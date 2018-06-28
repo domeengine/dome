@@ -9,6 +9,10 @@ const int GAME_HEIGHT = 240;
 const int SCREEN_WIDTH = GAME_WIDTH * 3;
 const int SCREEN_HEIGHT = GAME_HEIGHT * 2;
 
+void write(WrenVM* vm, const char* text) {
+  printf("%s", text);
+}
+
 int main(int argc, char* args[])
 {
   // WrenConfiguration config; 
@@ -59,6 +63,12 @@ int main(int argc, char* args[])
     goto cleanup;
   }
 
+  WrenConfiguration config; 
+  wrenInitConfiguration(&config);
+  config.writeFn = write; 
+  WrenVM* vm = wrenNewVM(&config);
+  WrenInterpretResult wResult = wrenInterpret(vm, "System.print(\"I am running in a VM!\")");
+
   uint16_t x = 0;
   uint16_t y = 0;
 
@@ -73,9 +83,21 @@ int main(int argc, char* args[])
         case SDL_QUIT:
           running = false;
           break;
+        case SDL_KEYDOWN:
+        case SDL_KEYUP:
+        {
+          SDL_Keycode KeyCode = event.key.keysym.sym;
+          if(KeyCode == SDLK_ESCAPE && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+            running = false; 
+          }
+          if(KeyCode == SDLK_RIGHT && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+            x += 1;
+          }
+        } break;
       }
     }
-    ((uint32_t*)pixels)[GAME_WIDTH * y + x/2] = 0xFF00FFFF; 
+    ((uint32_t*)pixels)[GAME_WIDTH * y + x] = 0xFF00FFFF; 
+
     // clear screen
     SDL_SetRenderDrawColor( renderer, 0x00, 0x00, 0x00, 0x00 );
     SDL_RenderClear( renderer );
@@ -87,6 +109,8 @@ int main(int argc, char* args[])
 
 cleanup:
   // Free resources
+  wrenFreeVM(vm);
+
   if (pixels != NULL) {
     free(pixels);
   }
