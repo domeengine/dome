@@ -1,3 +1,3 @@
-# YSL - Yet (another) Scripting Language
+# DOME - Digital Objective Management Engine
 
-A simple language for game scripting, written from scratch and inspired by Lua and C.
+A lightweight game engine which melds SDL2 and the Wren scripting language, written in C.
