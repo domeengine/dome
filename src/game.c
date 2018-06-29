@@ -1,5 +1,6 @@
 //Using SDL and standard IO
 #include <stdio.h>
+#include <string.h>
 #include <SDL2/SDL.h>
 #include <wren.h>
 
@@ -17,17 +18,47 @@ typedef struct {
   void* pixels;
 } ENGINE;
 
+char* WREN_load_module(WrenVM* vm, const char* name) {
+  if (strncmp(name, "engine", 6) == 0) {
+    FILE* file = fopen("src/engine/engine.wren", "r");
+    if (file == NULL) {
+      return NULL;
+    }
+    char* source = NULL;
+    if (fseek(file, 0L, SEEK_END) == 0) {
+      /* Get the size of the file. */
+      long bufsize = ftell(file);
+      /* Allocate our buffer to that size. */
+      source = malloc(sizeof(char) * (bufsize + 1));
+
+      /* Go back to the start of the file. */
+      if (fseek(file, 0L, SEEK_SET) != 0) { /* Error */ }
+
+      /* Read the entire file into memory. */
+      size_t newLen = fread(source, sizeof(char), bufsize, file);
+      if ( ferror( file ) != 0 ) {
+        fputs("Error reading file", stderr);
+      } else {
+        source[newLen++] = '\0'; /* Just to be safe. */
+      }
+    }
+    fclose(file);
+    return source;
+  }
+  return "";
+}
+
 // Debug output for VM
 void WREN_write(WrenVM* vm, const char* text) {
   printf("%s", text);
 }
 
 void WREN_error( 
-      WrenVM* vm,
-      WrenErrorType type, 
-      const char* module, 
-      int line, 
-      const char* message) {
+    WrenVM* vm,
+    WrenErrorType type, 
+    const char* module, 
+    int line, 
+    const char* message) {
   if (type == WREN_ERROR_COMPILE) {
     printf("%s:%d: %s\n", module, line, message);
   } else if (type == WREN_ERROR_RUNTIME) {
@@ -61,7 +92,6 @@ int ENGINE_init(ENGINE* engine) {
     goto engine_init_end;
   }
   SDL_RenderSetLogicalSize(engine->renderer, GAME_WIDTH, GAME_HEIGHT);
-  SDL_RenderSetIntegerScale(engine->renderer, SDL_TRUE);
 
   engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET , GAME_WIDTH, GAME_HEIGHT);
   if (engine->texture == NULL) {
@@ -124,13 +154,14 @@ int main(int argc, char* args[])
   wrenInitConfiguration(&config);
   config.writeFn = WREN_write; 
   config.errorFn = WREN_error; 
+  config.loadModuleFn = WREN_load_module; 
   WrenVM* vm = wrenNewVM(&config);
-  WrenInterpretResult wResult = wrenInterpret(vm, "System.print(\"I am running in a VM!\")");
+  WrenInterpretResult wResult = wrenInterpret(vm, "import \"engine\"");
 
   /*
-  uint16_t x = 0;
-  uint16_t y = 0;
-  */
+     uint16_t x = 0;
+     uint16_t y = 0;
+     */
 
   // Initiate game loop
   bool running = true;
@@ -145,16 +176,16 @@ int main(int argc, char* args[])
           break;
         case SDL_KEYDOWN:
         case SDL_KEYUP:
-        {
-          SDL_Keycode KeyCode = event.key.keysym.sym;
-          if(KeyCode == SDLK_ESCAPE && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-            // TODO: Let Wren decide when to end game
-            running = false; 
-          }
-          if(KeyCode == SDLK_RIGHT && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-            // x += 1;
-          }
-        } break;
+          {
+            SDL_Keycode KeyCode = event.key.keysym.sym;
+            if(KeyCode == SDLK_ESCAPE && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+              // TODO: Let Wren decide when to end game
+              running = false; 
+            }
+            if(KeyCode == SDLK_RIGHT && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+              // x += 1;
+            }
+          } break;
       }
     }
     ENGINE_pset(&engine, 5, 5, 0xFFFF00FF);
