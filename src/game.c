@@ -1,139 +1,27 @@
 //Using SDL and standard IO
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include <SDL2/SDL.h>
 #include <wren.h>
 
-//Screen dimension constants
+// Constants
+// Screen dimension constants
 const int GAME_WIDTH = 320;
 const int GAME_HEIGHT = 240;
 const int SCREEN_WIDTH = GAME_WIDTH * 2;
 const int SCREEN_HEIGHT = GAME_HEIGHT * 2;
 
-
-typedef struct {
-  SDL_Window* window;
-  SDL_Renderer *renderer;
-  SDL_Texture *texture;
-  void* pixels;
-} ENGINE;
-
-char* WREN_load_module(WrenVM* vm, const char* name) {
-  if (strncmp(name, "engine", 6) == 0) {
-    FILE* file = fopen("src/engine/engine.wren", "r");
-    if (file == NULL) {
-      return NULL;
-    }
-    char* source = NULL;
-    if (fseek(file, 0L, SEEK_END) == 0) {
-      /* Get the size of the file. */
-      long bufsize = ftell(file);
-      /* Allocate our buffer to that size. */
-      source = malloc(sizeof(char) * (bufsize + 1));
-
-      /* Go back to the start of the file. */
-      if (fseek(file, 0L, SEEK_SET) != 0) { /* Error */ }
-
-      /* Read the entire file into memory. */
-      size_t newLen = fread(source, sizeof(char), bufsize, file);
-      if ( ferror( file ) != 0 ) {
-        fputs("Error reading file", stderr);
-      } else {
-        source[newLen++] = '\0'; /* Just to be safe. */
-      }
-    }
-    fclose(file);
-    return source;
-  }
-  return "";
-}
-
-// Debug output for VM
-void WREN_write(WrenVM* vm, const char* text) {
-  printf("%s", text);
-}
-
-void WREN_error( 
-    WrenVM* vm,
-    WrenErrorType type, 
-    const char* module, 
-    int line, 
-    const char* message) {
-  if (type == WREN_ERROR_COMPILE) {
-    printf("%s:%d: %s\n", module, line, message);
-  } else if (type == WREN_ERROR_RUNTIME) {
-    printf("Runtime error: %s\n", message);
-  } else if (type == WREN_ERROR_STACK_TRACE) {
-    printf("  %d: %s\n", line, module);
-  } 
-}
-
-int ENGINE_init(ENGINE* engine) {
-  int result = EXIT_SUCCESS;
-  engine->window = NULL; 
-  engine->renderer = NULL;
-  engine->texture = NULL;
-  engine->pixels = NULL;
-
-  //Create window
-  engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-  if(engine->window == NULL)
-  {
-    SDL_Log("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-    result = EXIT_FAILURE;
-    goto engine_init_end;
-  }
-
-  engine->renderer = SDL_CreateRenderer(engine->window, -1, SDL_RENDERER_ACCELERATED);
-  if (engine->renderer == NULL)
-  {
-    SDL_Log("Could not create a renderer: %s", SDL_GetError());
-    result = EXIT_FAILURE;
-    goto engine_init_end;
-  }
-  SDL_RenderSetLogicalSize(engine->renderer, GAME_WIDTH, GAME_HEIGHT);
-
-  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET , GAME_WIDTH, GAME_HEIGHT);
-  if (engine->texture == NULL) {
-    result = EXIT_FAILURE;
-    goto engine_init_end;
-  }
-
-  engine->pixels = malloc(GAME_WIDTH * GAME_HEIGHT * 4);
-  if (engine->pixels == NULL) {
-    result = EXIT_FAILURE;
-    goto engine_init_end;
-  }
-
-engine_init_end:
-  return result; 
-} 
-
-void ENGINE_pset(ENGINE* engine, uint16_t x, uint16_t y, uint32_t c) {
-  // Draw pixel at (x,y)
-  ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x] = c; 
-}
-
-void ENGINE_free(ENGINE* engine) {
-  if (engine->pixels != NULL) {
-    free(engine->pixels);
-  }
-
-  if (engine->texture) {
-    SDL_DestroyTexture(engine->texture);
-  }
-
-  if (engine->renderer != NULL) {
-    SDL_DestroyRenderer(engine->renderer);
-  }
-  if (engine->window != NULL) {
-    SDL_DestroyWindow(engine->window);
-  }
-}
+// Game code
+#include "io.c"
+#include "engine.c"
+#include "vm.c"
 
 int main(int argc, char* args[])
 {
   int result = EXIT_SUCCESS;
+  char* gameFile;
+
 
   //Initialize SDL
   if(SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -143,20 +31,22 @@ int main(int argc, char* args[])
     goto cleanup;
   }
 
-  ENGINE engine;
+  printf("%d", argc);
+  if (argc == 2) {
+    gameFile = readEntireFile(args[1]);
+  } else {
+    result = EXIT_FAILURE;
+    goto cleanup;
+  }
+
   result = ENGINE_init(&engine);
   if (result == EXIT_FAILURE) {
     goto cleanup; 
   };
 
   // Configure Wren VM
-  WrenConfiguration config; 
-  wrenInitConfiguration(&config);
-  config.writeFn = WREN_write; 
-  config.errorFn = WREN_error; 
-  config.loadModuleFn = WREN_load_module; 
-  WrenVM* vm = wrenNewVM(&config);
-  WrenInterpretResult wResult = wrenInterpret(vm, "import \"engine\"");
+  WrenVM* vm = WREN_create();
+  WrenInterpretResult wResult = wrenInterpret(vm, gameFile);
 
   /*
      uint16_t x = 0;
@@ -201,10 +91,12 @@ int main(int argc, char* args[])
 
 cleanup:
   // Free resources
-  wrenFreeVM(vm);
+  WREN_free(vm);
   ENGINE_free(&engine);
   //Quit SDL subsystems
-  SDL_Quit();
+  if (strlen(SDL_GetError()) > 0) {
+    SDL_Quit();
+  } 
 
   return result;
 }
