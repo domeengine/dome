@@ -20,8 +20,8 @@ const int SCREEN_HEIGHT = GAME_HEIGHT * 2;
 int main(int argc, char* args[])
 {
   int result = EXIT_SUCCESS;
+  WrenVM* vm = NULL;
   char* gameFile;
-
 
   //Initialize SDL
   if(SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -31,10 +31,11 @@ int main(int argc, char* args[])
     goto cleanup;
   }
 
-  printf("%d", argc);
   if (argc == 2) {
     gameFile = readEntireFile(args[1]);
   } else {
+    printf("No entry path was provided.\n");
+    printf("Usage: ./dome [entryPath]\n");
     result = EXIT_FAILURE;
     goto cleanup;
   }
@@ -45,7 +46,7 @@ int main(int argc, char* args[])
   };
 
   // Configure Wren VM
-  WrenVM* vm = WREN_create();
+  vm = WREN_create();
   WrenInterpretResult wResult = wrenInterpret(vm, gameFile);
 
   /*
@@ -78,7 +79,6 @@ int main(int argc, char* args[])
           } break;
       }
     }
-    ENGINE_pset(&engine, 5, 5, 0xFFFF00FF);
 
     // clear screen
     SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );

@@ -2,7 +2,8 @@ void graphicsPset(WrenVM* vm)
 { 
   uint16_t x = floor(wrenGetSlotDouble(vm, 1)); 
   uint16_t y = floor(wrenGetSlotDouble(vm, 2)); 
-  uint16_t c = floor(wrenGetSlotDouble(vm, 2)); 
+  uint32_t c = floor(wrenGetSlotDouble(vm, 3)); 
+  // printf("graphics.pset(%d, %d, %x)\n", x, y, c);
   ENGINE_pset(&engine, x,y,c);
 }
 

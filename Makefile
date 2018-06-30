@@ -4,9 +4,9 @@ OBJECTS = main.o test.o
 SOURCE  = src
 BUILD  = build
 
-all: game
-game: $(SOURCE)/*.c
-	$(CC) $(SOURCE)/game.c -o game -I$(SOURCE)/include -L$(SOURCE)/lib -lSDL2-2.0.0 -lwren
+all: dome
+dome: $(SOURCE)/*.c
+	$(CC) $(SOURCE)/main.c -o dome -I$(SOURCE)/include -L$(SOURCE)/lib -lSDL2-2.0.0 -lwren
 
 clean:
-	    rm -f $(BUILD)/*.o game
+	    rm -f $(BUILD)/*.o dome
