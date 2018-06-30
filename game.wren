@@ -6,27 +6,31 @@ class Color {
   }
 }
 
-var x = 10
-var y = 10
-var w = 5
-var h = 5
+class Game {
+  static init() {
 
-// Fillrect
-for (i in 0...w) {
-  for (j in 0...h) {
-    Graphics.pset(x+i, y+j, Color.rgb(255,255,255,0))
   }
-}
 
-Graphics.pset(42, 42, Color.rgb(255,255,255,0))
+  static update(dt) {
 
-/*
-// Clear screen
-var clearScreen = Fn.new {
-  for (i in 0...320) {
-    for (j in 0...240) {
-      Graphics.pset(i, j, Color.rgb(0,0,0,0))
+    var x = 10
+    var y = 10
+    var w = 5
+    var h = 5
+      // Fillrect
+      for (i in 0...w) {
+      for (j in 0...h) {
+        Graphics.pset(i, j, Color.rgb(0,0,0,0))
+      }
     }
+    // Fillrect
+    for (i in 0...w) {
+      for (j in 0...h) {
+        Graphics.pset(x+i, y+j, Color.rgb(255,255,255,0))
+      }
+    }
+
+    Graphics.pset(42, 42, Color.rgb(255,255,255,0))
+
   }
 }
-*/

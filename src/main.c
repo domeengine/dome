@@ -48,6 +48,12 @@ int main(int argc, char* args[])
   // Configure Wren VM
   vm = WREN_create();
   WrenInterpretResult wResult = wrenInterpret(vm, gameFile);
+  // Load the class into slot 0.
+
+  WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update(_)");
+  wrenEnsureSlots(vm, 1); 
+  wrenGetVariable(vm, "main", "Game", 0); 
+  WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
 
   /*
      uint16_t x = 0;
@@ -79,6 +85,10 @@ int main(int argc, char* args[])
           } break;
       }
     }
+    double elapsedTime = 0;
+    wrenSetSlotHandle(vm, 0, gameClass);
+    wrenSetSlotDouble(vm, 1, elapsedTime);
+    wrenCall(vm, updateMethod);
 
     // clear screen
     SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
