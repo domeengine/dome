@@ -1,9 +1,15 @@
-void graphicsPset(WrenVM* vm) 
+void INPUT_is_key_down(WrenVM* vm) {
+  const char* keyName = wrenGetSlotString(vm, 1); 
+  SDL_Keycode keycode =  SDL_GetKeyFromName(keyName);
+  bool result = ENGINE_getKeyState(&engine, keycode).isPressed;
+  wrenSetSlotBool(vm, 0, result); 
+}
+
+void GRAPHICS_pset(WrenVM* vm) 
 { 
   uint16_t x = floor(wrenGetSlotDouble(vm, 1)); 
   uint16_t y = floor(wrenGetSlotDouble(vm, 2)); 
   uint32_t c = floor(wrenGetSlotDouble(vm, 3)); 
-  // printf("graphics.pset(%d, %d, %x)\n", x, y, c);
   ENGINE_pset(&engine, x,y,c);
 }
 
@@ -17,7 +23,15 @@ WrenForeignMethodFn WREN_bind_foreign_method(
   if (strcmp(module, "graphics") == 0) { 
     if (strcmp(className, "Graphics") == 0) {
       if (isStatic && strcmp(signature, "pset(_,_,_)") == 0) {
-        return graphicsPset; // C function for Math.add(_,_).
+        return GRAPHICS_pset; // C function for Math.add(_,_).
+      } 
+      // Other foreign methods on Math...
+    } 
+    // Other classes in main...
+  } else if (strcmp(module, "input") == 0) { 
+    if (strcmp(className, "Keyboard") == 0) {
+      if (isStatic && strcmp(signature, "isKeyDown(_)") == 0) {
+        return INPUT_is_key_down;
       } 
       // Other foreign methods on Math...
     } 

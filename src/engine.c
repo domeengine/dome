@@ -1,8 +1,19 @@
 typedef struct {
+  bool isPressed; 
+} KEY_STATE;
+
+typedef struct {
+  KEY_STATE left;
+  KEY_STATE right;
+  KEY_STATE up;
+  KEY_STATE down;
+} INPUT_STATE;
+typedef struct {
   SDL_Window* window;
   SDL_Renderer *renderer;
   SDL_Texture *texture;
   void* pixels;
+  INPUT_STATE keyboard;
 } ENGINE;
 
 ENGINE engine = {0};
@@ -74,3 +85,35 @@ void ENGINE_pset(ENGINE* engine, uint16_t x, uint16_t y, uint32_t c) {
   ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x] = c; 
 }
 
+void ENGINE_storeKeyState(ENGINE* engine, SDL_Keycode keycode, uint8_t state) {
+  if(keycode == SDLK_LEFT) {
+    engine->keyboard.left.isPressed = (state == SDL_PRESSED);
+  }
+  if(keycode == SDLK_RIGHT) {
+    engine->keyboard.right.isPressed = (state == SDL_PRESSED);
+  }
+  if(keycode == SDLK_UP) {
+    engine->keyboard.up.isPressed = (state == SDL_PRESSED);
+  }
+  if(keycode == SDLK_DOWN) {
+    engine->keyboard.down.isPressed = (state == SDL_PRESSED);
+  }
+}
+
+KEY_STATE ENGINE_getKeyState(ENGINE* engine, SDL_Keycode keycode) {
+  if(keycode == SDLK_LEFT) {
+    return engine->keyboard.left;
+  }
+  if(keycode == SDLK_RIGHT) {
+    return engine->keyboard.right;
+  }
+  if(keycode == SDLK_UP) {
+    return engine->keyboard.up;
+  }
+  if(keycode == SDLK_DOWN) {
+    return engine->keyboard.down;
+  }
+  KEY_STATE none;
+  none.isPressed = false;
+  return none;
+}

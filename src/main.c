@@ -54,17 +54,15 @@ int main(int argc, char* args[])
   }
   // Load the class into slot 0.
 
+  WrenHandle* initMethod = wrenMakeCallHandle(vm, "init()");
   WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update(_)");
   wrenEnsureSlots(vm, 1); 
   wrenGetVariable(vm, "main", "Game", 0); 
   WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
 
-  /*
-     uint16_t x = 0;
-     uint16_t y = 0;
-     */
-
   // Initiate game loop
+  wrenSetSlotHandle(vm, 0, gameClass);
+  wrenCall(vm, initMethod);
   bool running = true;
   SDL_Event event;
   while (running) {
@@ -78,13 +76,12 @@ int main(int argc, char* args[])
         case SDL_KEYDOWN:
         case SDL_KEYUP:
           {
-            SDL_Keycode KeyCode = event.key.keysym.sym;
-            if(KeyCode == SDLK_ESCAPE && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+            SDL_Keycode keyCode = event.key.keysym.sym;
+            if(keyCode == SDLK_ESCAPE && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               // TODO: Let Wren decide when to end game
               running = false; 
-            }
-            if(KeyCode == SDLK_RIGHT && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-              // x += 1;
+            } else {
+              ENGINE_storeKeyState(&engine, keyCode, event.key.state);
             }
           } break;
       }
