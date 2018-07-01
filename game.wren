@@ -1,13 +1,9 @@
 import "input" for Keyboard
-import "graphics" for Graphics
+import "graphics" for Graphics, Color
 
-class Color {
-  static rgb(r, g, b, a) {
-    return a << 24 | r << 16 | g << 8 | b
-  }
-}
 
 class Game {
+
   static init() {
     __x = 10
     __y = 10

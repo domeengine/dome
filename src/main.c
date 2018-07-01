@@ -62,7 +62,11 @@ int main(int argc, char* args[])
 
   // Initiate game loop
   wrenSetSlotHandle(vm, 0, gameClass);
-  wrenCall(vm, initMethod);
+  interpreterResult = wrenCall(vm, initMethod);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    result = EXIT_FAILURE;
+    goto cleanup;
+  }
   bool running = true;
   SDL_Event event;
   while (running) {
@@ -89,7 +93,11 @@ int main(int argc, char* args[])
     double elapsedTime = 0;
     wrenSetSlotHandle(vm, 0, gameClass);
     wrenSetSlotDouble(vm, 1, elapsedTime);
-    wrenCall(vm, updateMethod);
+    interpreterResult = wrenCall(vm, updateMethod);
+    if (interpreterResult != WREN_RESULT_SUCCESS) {
+      result = EXIT_FAILURE;
+      goto cleanup;
+    }
 
     // clear screen
     SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
