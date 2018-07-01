@@ -47,7 +47,11 @@ int main(int argc, char* args[])
 
   // Configure Wren VM
   vm = WREN_create();
-  WrenInterpretResult wResult = wrenInterpret(vm, gameFile);
+  WrenInterpretResult interpreterResult = wrenInterpret(vm, gameFile);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    result = EXIT_FAILURE;
+    goto cleanup;
+  }
   // Load the class into slot 0.
 
   WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update(_)");
@@ -98,6 +102,9 @@ int main(int argc, char* args[])
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
   }
+
+  wrenReleaseHandle(vm, updateMethod);
+  wrenReleaseHandle(vm, gameClass);
 
 cleanup:
   // Free resources
