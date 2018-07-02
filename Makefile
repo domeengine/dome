@@ -1,5 +1,5 @@
 CC = cc
-CFLAGS = -std=c99 -pedantic -Wall
+CFLAGS = -std=c99 -pedantic -Wall -Wextra
 OBJECTS = main.o test.o 
 SOURCE  = src
 BUILD  = build
