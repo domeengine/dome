@@ -27,18 +27,9 @@ class Game {
     // Fillrect
   }
   static draw(dt) {
-    var color = Color.black.rgb
-    /*
-    for (i in 0...Graphics.screenWidth) {
-      for (j in 0...Graphics.screenHeight) {
-        Graphics.pset(i, j, color)
-      }
-    }
-    */
-    Graphics.rectfill(0, 0, Graphics.screenWidth, Graphics.screenHeight, color)
-
+    Graphics.cls()
     // Fillrect
-    color = Color.new(171, 82, 54).rgb
+    var color = Color.new(171, 82, 54).rgb
     Graphics.rectfill(__x, __y, __w, __h, color)
     /*
     for (i in 0...__w) {

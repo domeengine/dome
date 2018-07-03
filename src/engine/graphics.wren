@@ -1,6 +1,16 @@
 class Graphics {
  foreign static pset(x, y, c)
  foreign static rectfill(x, y, w, h, c)
+ static cls() {
+   cls(Color.black)
+ }
+ static cls(c) {
+   var color = Color.black
+   if (c is Color) { 
+     color = c
+   }
+   rectfill(0, 0, Graphics.screenWidth, Graphics.screenHeight, color.rgb)
+ }
  static screenWidth { 320 }
  static screenHeight { 240 }
 }
