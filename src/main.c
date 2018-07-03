@@ -101,6 +101,8 @@ int main(int argc, char* args[])
           } break;
       }
     }
+
+    // Decouple updates from rendering
     while (lag >= MS_PER_FRAME) {
       wrenSetSlotHandle(vm, 0, gameClass);
       wrenSetSlotDouble(vm, 1, MS_PER_FRAME);
@@ -111,6 +113,8 @@ int main(int argc, char* args[])
       }
       lag -= MS_PER_FRAME;
     }
+    SDL_Delay(lag);
+
 
     // clear screen
     SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );

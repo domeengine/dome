@@ -80,9 +80,11 @@ void ENGINE_free(ENGINE* engine) {
   }
 }
 
-void ENGINE_pset(ENGINE* engine, uint16_t x, uint16_t y, uint32_t c) {
+void ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
   // Draw pixel at (x,y)
-  ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x] = c; 
+  if (0 <= x && x < GAME_WIDTH && 0 <= y && y < GAME_HEIGHT) {
+    ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x] = c; 
+  }
 }
 
 void ENGINE_storeKeyState(ENGINE* engine, SDL_Keycode keycode, uint8_t state) {

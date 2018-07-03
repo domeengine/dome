@@ -7,8 +7,8 @@ void INPUT_is_key_down(WrenVM* vm) {
 
 void GRAPHICS_pset(WrenVM* vm) 
 { 
-  uint16_t x = floor(wrenGetSlotDouble(vm, 1)); 
-  uint16_t y = floor(wrenGetSlotDouble(vm, 2)); 
+  int16_t x = floor(wrenGetSlotDouble(vm, 1)); 
+  int16_t y = floor(wrenGetSlotDouble(vm, 2)); 
   uint32_t c = floor(wrenGetSlotDouble(vm, 3)); 
   ENGINE_pset(&engine, x,y,c);
 }
