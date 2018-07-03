@@ -132,7 +132,6 @@ int main(int argc, char* args[])
     SDL_RenderClear(engine.renderer);
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
-//    SDL_Delay(16);
   }
 
   wrenReleaseHandle(vm, initMethod);

@@ -25,7 +25,7 @@ int ENGINE_init(ENGINE* engine) {
   engine->pixels = NULL;
 
   //Create window
-  engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+  engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
   if(engine->window == NULL)
   {
     SDL_Log("Window could not be created! SDL_Error: %s\n", SDL_GetError());
@@ -33,7 +33,7 @@ int ENGINE_init(ENGINE* engine) {
     goto engine_init_end;
   }
 
-  engine->renderer = SDL_CreateRenderer(engine->window, -1, SDL_RENDERER_ACCELERATED);
+  engine->renderer = SDL_CreateRenderer(engine->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
   if (engine->renderer == NULL)
   {
     SDL_Log("Could not create a renderer: %s", SDL_GetError());

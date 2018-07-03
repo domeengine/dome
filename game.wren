@@ -38,7 +38,7 @@ class Game {
     Graphics.rectfill(0, 0, Graphics.screenWidth, Graphics.screenHeight, color)
 
     // Fillrect
-    color = Color.green.rgb
+    color = Color.new(171, 82, 54).rgb
     Graphics.rectfill(__x, __y, __w, __h, color)
     /*
     for (i in 0...__w) {
