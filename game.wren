@@ -2,6 +2,7 @@ import "input" for Keyboard
 import "graphics" for Graphics, Color
 
 
+
 class Game {
 
   static init() {
@@ -26,15 +27,17 @@ class Game {
     }
 
       // Fillrect
+    var color = Color.black.rgb
     for (i in 0...Graphics.screenWidth) {
       for (j in 0...Graphics.screenHeight) {
-        Graphics.pset(i, j, Color.rgb(0,0,0,0))
+        Graphics.pset(i, j, color)
       }
     }
     // Fillrect
+    color = Color.green.rgb
     for (i in 0...__w) {
       for (j in 0...__h) {
-        Graphics.pset(__x+i, __y+j, Color.rgb(255,255,255,0))
+        Graphics.pset(__x+i, __y+j, color)
       }
     }
   }
