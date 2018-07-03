@@ -12,6 +12,7 @@ const int16_t GAME_HEIGHT = 240;
 const int16_t SCREEN_WIDTH = GAME_WIDTH * 2;
 const int16_t SCREEN_HEIGHT = GAME_HEIGHT * 2;
 const int32_t FPS = 60;
+const int32_t MS_PER_FRAME = 1000 / FPS;
 
 
 // Game code
@@ -58,7 +59,7 @@ int main(int argc, char* args[])
 
   WrenHandle* initMethod = wrenMakeCallHandle(vm, "init()");
   WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update(_)");
-  wrenEnsureSlots(vm, 1); 
+  wrenEnsureSlots(vm, 2); 
   wrenGetVariable(vm, "main", "Game", 0); 
   WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
 
@@ -70,11 +71,17 @@ int main(int argc, char* args[])
     goto cleanup;
   }
 
-  int32_t lastTime = SDL_GetTicks(); 
+  uint32_t previousTime = SDL_GetTicks(); 
+  int32_t lag = 0; 
   bool running = true;
   SDL_Event event;
   while (running) {
-    int32_t startTime = SDL_GetTicks();
+    int32_t currentTime = SDL_GetTicks();
+    int32_t elapsed = currentTime - previousTime;
+    previousTime = currentTime;
+    lag += elapsed;
+
+    // processInput()
     while(SDL_PollEvent(&event)) {
       switch (event.type)
       {
@@ -94,15 +101,16 @@ int main(int argc, char* args[])
           } break;
       }
     }
-    int32_t currentTime = SDL_GetTicks();
-    wrenSetSlotHandle(vm, 0, gameClass);
-    wrenSetSlotDouble(vm, 1, currentTime - startTime);
-    interpreterResult = wrenCall(vm, updateMethod);
-    if (interpreterResult != WREN_RESULT_SUCCESS) {
-      result = EXIT_FAILURE;
-      goto cleanup;
+    while (lag >= MS_PER_FRAME) {
+      wrenSetSlotHandle(vm, 0, gameClass);
+      wrenSetSlotDouble(vm, 1, MS_PER_FRAME);
+      interpreterResult = wrenCall(vm, updateMethod);
+      if (interpreterResult != WREN_RESULT_SUCCESS) {
+        result = EXIT_FAILURE;
+        goto cleanup;
+      }
+      lag -= MS_PER_FRAME;
     }
-    lastTime = currentTime;
 
     // clear screen
     SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
@@ -111,10 +119,6 @@ int main(int argc, char* args[])
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
-
-    int32_t elapsedTime = SDL_GetTicks() - startTime;
-    uint32_t waitTime = abs((1000 /* ms  */ / FPS) - elapsedTime);
-    SDL_Delay(waitTime);
   }
 
   wrenReleaseHandle(vm, initMethod);
