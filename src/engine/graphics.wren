@@ -1,5 +1,6 @@
 class Graphics {
  foreign static pset(x, y, c)
+ foreign static rectfill(x, y, w, h, c)
  static screenHeight { 240 }
  static screenWidth { 320 }
 }

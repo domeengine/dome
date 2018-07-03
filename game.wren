@@ -28,18 +28,24 @@ class Game {
   }
   static draw(dt) {
     var color = Color.black.rgb
+    /*
     for (i in 0...Graphics.screenWidth) {
       for (j in 0...Graphics.screenHeight) {
         Graphics.pset(i, j, color)
       }
     }
+    */
+    Graphics.rectfill(0, 0, Graphics.screenWidth, Graphics.screenHeight, color)
 
     // Fillrect
     color = Color.green.rgb
+    Graphics.rectfill(__x, __y, __w, __h, color)
+    /*
     for (i in 0...__w) {
       for (j in 0...__h) {
         Graphics.pset(__x+i, __y+j, color)
       }
     }
+    */
   }
 }

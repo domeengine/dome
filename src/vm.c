@@ -13,6 +13,16 @@ void GRAPHICS_pset(WrenVM* vm)
   ENGINE_pset(&engine, x,y,c);
 }
 
+void GRAPHICS_rectfill(WrenVM* vm) 
+{ 
+  int16_t x = floor(wrenGetSlotDouble(vm, 1)); 
+  int16_t y = floor(wrenGetSlotDouble(vm, 2)); 
+  int16_t w = floor(wrenGetSlotDouble(vm, 3)); 
+  int16_t h = floor(wrenGetSlotDouble(vm, 4)); 
+  uint32_t c = floor(wrenGetSlotDouble(vm, 5)); 
+  ENGINE_rectfill(&engine, x, y, w, h, c);
+}
+
 WrenForeignMethodFn WREN_bind_foreign_method( 
     WrenVM* vm, 
     const char* module, 
@@ -23,9 +33,12 @@ WrenForeignMethodFn WREN_bind_foreign_method(
   if (strcmp(module, "graphics") == 0) { 
     if (strcmp(className, "Graphics") == 0) {
       if (isStatic && strcmp(signature, "pset(_,_,_)") == 0) {
-        return GRAPHICS_pset; // C function for Math.add(_,_).
+        return GRAPHICS_pset; 
       } 
-      // Other foreign methods on Math...
+      if (isStatic && strcmp(signature, "rectfill(_,_,_,_,_)") == 0) {
+        return GRAPHICS_rectfill;
+      } 
+      // Other foreign methods on Graphics...
     } 
     // Other classes in main...
   } else if (strcmp(module, "input") == 0) { 
