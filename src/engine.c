@@ -42,7 +42,7 @@ int ENGINE_init(ENGINE* engine) {
   }
   SDL_RenderSetLogicalSize(engine->renderer, GAME_WIDTH, GAME_HEIGHT);
 
-  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET , GAME_WIDTH, GAME_HEIGHT);
+  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, GAME_WIDTH, GAME_HEIGHT);
   if (engine->texture == NULL) {
     result = EXIT_FAILURE;
     goto engine_init_end;

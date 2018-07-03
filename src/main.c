@@ -58,8 +58,8 @@ int main(int argc, char* args[])
   // Load the class into slot 0.
 
   WrenHandle* initMethod = wrenMakeCallHandle(vm, "init()");
-  WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update(_)");
-  WrenHandle* drawMethod = wrenMakeCallHandle(vm, "draw()");
+  WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update()");
+  WrenHandle* drawMethod = wrenMakeCallHandle(vm, "draw(_)");
   wrenEnsureSlots(vm, 2); 
   wrenGetVariable(vm, "main", "Game", 0); 
   WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
@@ -76,6 +76,7 @@ int main(int argc, char* args[])
   int32_t lag = 0; 
   bool running = true;
   SDL_Event event;
+  SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
   while (running) {
     int32_t currentTime = SDL_GetTicks();
     int32_t elapsed = currentTime - previousTime;
@@ -104,34 +105,33 @@ int main(int argc, char* args[])
     }
 
     // Decouple updates from rendering
-    while (lag >= MS_PER_FRAME) {
+    uint8_t attempts = 0;
+    while (lag >= MS_PER_FRAME && attempts < 10) {
       wrenSetSlotHandle(vm, 0, gameClass);
-      wrenSetSlotDouble(vm, 1, MS_PER_FRAME);
       interpreterResult = wrenCall(vm, updateMethod);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
         result = EXIT_FAILURE;
         goto cleanup;
       }
       lag -= MS_PER_FRAME;
+      attempts += 1;
     }
     
     // render();
     wrenSetSlotHandle(vm, 0, gameClass);
+    wrenSetSlotDouble(vm, 1, (double)lag / MS_PER_FRAME);
     interpreterResult = wrenCall(vm, drawMethod);
     if (interpreterResult != WREN_RESULT_SUCCESS) {
       result = EXIT_FAILURE;
       goto cleanup;
     }
 
-
-    // clear screen
-    SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
-    SDL_RenderClear( engine.renderer );
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
+    // clear screen
+    SDL_RenderClear(engine.renderer);
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
-    // SDL_Delay(lag);
   }
 
   wrenReleaseHandle(vm, initMethod);
