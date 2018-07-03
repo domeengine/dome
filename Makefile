@@ -5,8 +5,10 @@ SOURCE  = src
 BUILD  = build
 
 all: dome
-dome: $(SOURCE)/*.c
+src/lib/libwren.a: 
+	./setup.sh
+dome: $(SOURCE)/*.c src/lib/libwren.a
 	$(CC) $(SOURCE)/main.c -o dome -I$(SOURCE)/include -L$(SOURCE)/lib -lSDL2-2.0.0 -lwren
 
 clean:
-	    rm -f $(BUILD)/*.o dome
+	    rm -rf $(BUILD)/*.o dome ${SOURCE}/lib/wren ${SOURCE}/lib/libwren.a
