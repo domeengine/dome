@@ -7,8 +7,8 @@
 
 // Constants
 // Screen dimension constants
-const int16_t GAME_WIDTH = 320;
-const int16_t GAME_HEIGHT = 240;
+const int16_t GAME_WIDTH = 128;
+const int16_t GAME_HEIGHT = 128;
 const int16_t SCREEN_WIDTH = GAME_WIDTH * 2;
 const int16_t SCREEN_HEIGHT = GAME_HEIGHT * 2;
 const int32_t FPS = 60;
@@ -132,6 +132,7 @@ int main(int argc, char* args[])
     SDL_RenderClear(engine.renderer);
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
+//    SDL_Delay(16);
   }
 
   wrenReleaseHandle(vm, initMethod);
