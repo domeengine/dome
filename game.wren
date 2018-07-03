@@ -1,15 +1,13 @@
 import "input" for Keyboard
 import "graphics" for Graphics, Color
 
-
-
 class Game {
 
   static init() {
     __x = 10
-    __y = 10
-    __w = 5
-    __h = 5
+      __y = 10
+      __w = 5
+      __h = 5
   }
 
   static update(dt) {
@@ -26,19 +24,21 @@ class Game {
       __y = __y + 1 
     }
 
-      // Fillrect
+    // Fillrect
+  }
+  static draw() {
     var color = Color.black.rgb
-    for (i in 0...Graphics.screenWidth) {
-      for (j in 0...Graphics.screenHeight) {
-        Graphics.pset(i, j, color)
+      for (i in 0...Graphics.screenWidth) {
+        for (j in 0...Graphics.screenHeight) {
+          Graphics.pset(i, j, color)
+        }
       }
-    }
     // Fillrect
     color = Color.green.rgb
-    for (i in 0...__w) {
-      for (j in 0...__h) {
-        Graphics.pset(__x+i, __y+j, color)
+      for (i in 0...__w) {
+        for (j in 0...__h) {
+          Graphics.pset(__x+i, __y+j, color)
+        }
       }
-    }
   }
 }

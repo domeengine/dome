@@ -59,6 +59,7 @@ int main(int argc, char* args[])
 
   WrenHandle* initMethod = wrenMakeCallHandle(vm, "init()");
   WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update(_)");
+  WrenHandle* drawMethod = wrenMakeCallHandle(vm, "draw()");
   wrenEnsureSlots(vm, 2); 
   wrenGetVariable(vm, "main", "Game", 0); 
   WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
@@ -113,7 +114,14 @@ int main(int argc, char* args[])
       }
       lag -= MS_PER_FRAME;
     }
-    SDL_Delay(lag);
+    
+    // render();
+    wrenSetSlotHandle(vm, 0, gameClass);
+    interpreterResult = wrenCall(vm, drawMethod);
+    if (interpreterResult != WREN_RESULT_SUCCESS) {
+      result = EXIT_FAILURE;
+      goto cleanup;
+    }
 
 
     // clear screen
@@ -123,9 +131,11 @@ int main(int argc, char* args[])
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
+    // SDL_Delay(lag);
   }
 
   wrenReleaseHandle(vm, initMethod);
+  wrenReleaseHandle(vm, drawMethod);
   wrenReleaseHandle(vm, updateMethod);
   wrenReleaseHandle(vm, gameClass);
 
