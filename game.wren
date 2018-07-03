@@ -23,20 +23,10 @@ class Game {
     if (Keyboard.isKeyDown("down")) {
       __y = __y + 1 
     }
-
-    // Fillrect
   }
   static draw(dt) {
     Graphics.cls()
-    // Fillrect
     var color = Color.new(171, 82, 54).rgb
     Graphics.rectfill(__x, __y, __w, __h, color)
-    /*
-    for (i in 0...__w) {
-      for (j in 0...__h) {
-        Graphics.pset(__x+i, __y+j, color)
-      }
-    }
-    */
   }
 }
