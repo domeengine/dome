@@ -71,4 +71,10 @@ DOME provides the following modules/methods/classes:
 - Audio
 - Math
 
+## Dependencies
 
+DOME currently depends on a few libraries to achieve it's functions.
+- Wren (This is downloaded and built by `make` automatically)
+- SDL2
+- libpng
+- freetype
