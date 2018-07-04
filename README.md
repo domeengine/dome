@@ -2,6 +2,10 @@
 
 A lightweight game engine which melds SDL2 and the Wren scripting language, written in C.
 
+## Warning
+
+As of 03/07/2018, DOME is in a pre-alpha state. None of the API is stable and it is not production ready. 
+
 ## How to Use
 
 ### Build
