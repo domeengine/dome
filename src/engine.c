@@ -80,6 +80,13 @@ void ENGINE_free(ENGINE* engine) {
   }
 }
 
+int16_t min(int16_t n1, int16_t n2) {
+  if (n1 < n2) {
+    return n1;
+  }
+  return n2;
+}
+
 int16_t mid(int16_t n1, int16_t n2, int16_t n3) {
   int16_t temp;
   if (n1 > n3) {
