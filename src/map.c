@@ -40,3 +40,13 @@ WrenForeignMethodFn MAP_get(ForeignFunctionMap* map, const char* module, const c
   }
   return NULL;
 }
+
+void MAP_free(ForeignFunctionMap* map) {
+  ForeignFunctionMapNode* node = map->head;
+  ForeignFunctionMapNode* nextNode;
+  while (node != NULL) {
+    nextNode = node->next;
+    free(node);
+    node = nextNode;
+  }
+}

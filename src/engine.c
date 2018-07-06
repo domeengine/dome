@@ -64,6 +64,8 @@ void ENGINE_free(ENGINE* engine) {
     return;
   }
 
+  MAP_free(&engine->fnMap);
+
   if (engine->pixels != NULL) {
     free(engine->pixels);
   }
