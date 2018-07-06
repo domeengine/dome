@@ -75,6 +75,8 @@ int main(int argc, char* args[])
     goto cleanup;
   }
 
+  SDL_ShowWindow(engine.window);
+
   uint32_t previousTime = SDL_GetTicks(); 
   int32_t lag = 0; 
   bool running = true;
