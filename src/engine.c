@@ -124,8 +124,8 @@ void ENGINE_rectfill(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h,
   int16_t x2 = mid(0, x + w, GAME_WIDTH);
   int16_t y2 = mid(0, y + h, GAME_HEIGHT);
 
-  for (uint16_t i = x1; i < x2; i++) {
-    for (uint16_t j = y1; j < y2; j++) {
+  for (uint16_t j = y1; j < y2; j++) {
+    for (uint16_t i = x1; i < x2; i++) {
       ENGINE_pset(engine, i, j, c);
     }
   }
