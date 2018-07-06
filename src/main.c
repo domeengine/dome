@@ -31,6 +31,7 @@ const int32_t MS_PER_FRAME = 1000 / FPS;
 #include "map.c"
 #include "io.c"
 #include "engine.c"
+#include "engine/image.c"
 #include "vm.c"
 
 int main(int argc, char* args[])
@@ -85,7 +86,7 @@ int main(int argc, char* args[])
   };
 
   // Configure Wren VM
-  vm = WREN_create(&engine);
+  vm = VM_create(&engine);
   WrenInterpretResult interpreterResult = wrenInterpret(vm, gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
@@ -196,7 +197,7 @@ cleanup:
     stbi_image_free(image);
   }
   // Free resources
-  WREN_free(vm);
+  VM_free(vm);
   ENGINE_free(&engine);
   //Quit SDL subsystems
   if (strlen(SDL_GetError()) > 0) {

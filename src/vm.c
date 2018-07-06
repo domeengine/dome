@@ -1,3 +1,21 @@
+internal WrenForeignClassMethods 
+bindForeignClass(WrenVM* vm, const char* module, const char* className) {
+  WrenForeignClassMethods methods;
+  if (strcmp(module, "graphics") == 0) {
+
+  } else if (strcmp(className, "ImageData") == 0) {
+    methods.allocate = IMAGE_allocate; 
+    methods.finalize = IMAGE_finalize;
+  } else {
+    // Unknown class.
+    methods.allocate = NULL; 
+    methods.finalize = NULL; 
+  }
+
+  return methods;
+}
+
+
 internal void INPUT_is_key_down(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   const char* keyName = wrenGetSlotString(vm, 1); 
@@ -6,7 +24,7 @@ internal void INPUT_is_key_down(WrenVM* vm) {
   wrenSetSlotBool(vm, 0, result); 
 }
 
-internal void GRAPHICS_pset(WrenVM* vm) 
+internal void CANVAS_pset(WrenVM* vm) 
 { 
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int16_t x = floor(wrenGetSlotDouble(vm, 1)); 
@@ -15,7 +33,7 @@ internal void GRAPHICS_pset(WrenVM* vm)
   ENGINE_pset(engine, x,y,c);
 }
 
-internal void GRAPHICS_rectfill(WrenVM* vm) 
+internal void CANVAS_rectfill(WrenVM* vm) 
 { 
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int16_t x = floor(wrenGetSlotDouble(vm, 1)); 
@@ -26,7 +44,7 @@ internal void GRAPHICS_rectfill(WrenVM* vm)
   ENGINE_rectfill(engine, x, y, w, h, c);
 }
 
-internal WrenForeignMethodFn WREN_bind_foreign_method( 
+internal WrenForeignMethodFn VM_bind_foreign_method( 
     WrenVM* vm, 
     const char* module, 
     const char* className, 
@@ -38,7 +56,7 @@ internal WrenForeignMethodFn WREN_bind_foreign_method(
   return MAP_get(&fnMap, module, className, signature, isStatic);
 }
 
-internal char* WREN_load_module(WrenVM* vm, const char* name) {
+internal char* VM_load_module(WrenVM* vm, const char* name) {
   char* base = "src/engine/";
   char* extension = ".wren";
 
@@ -52,11 +70,11 @@ internal char* WREN_load_module(WrenVM* vm, const char* name) {
 }
 
 // Debug output for VM
-internal void WREN_write(WrenVM* vm, const char* text) {
+internal void VM_write(WrenVM* vm, const char* text) {
   printf("%s", text);
 }
 
-internal void WREN_error(WrenVM* vm, WrenErrorType type, const char* module, 
+internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module, 
     int line, const char* message) {
   if (type == WREN_ERROR_COMPILE) {
     printf("%s:%d: %s\n", module, line, message);
@@ -67,26 +85,27 @@ internal void WREN_error(WrenVM* vm, WrenErrorType type, const char* module,
   } 
 }
 
-internal WrenVM* WREN_create(ENGINE* engine) {
+internal WrenVM* VM_create(ENGINE* engine) {
   WrenConfiguration config; 
   wrenInitConfiguration(&config);
-  config.writeFn = WREN_write; 
-  config.errorFn = WREN_error; 
-  config.bindForeignMethodFn = WREN_bind_foreign_method; 
-  config.loadModuleFn = WREN_load_module; 
+  config.writeFn = VM_write; 
+  config.errorFn = VM_error; 
+  config.bindForeignMethodFn = VM_bind_foreign_method; 
+  config.loadModuleFn = VM_load_module; 
 
   WrenVM* vm = wrenNewVM(&config);
   wrenSetUserData(vm, engine);
 
   // Set modules
-  MAP_add(&engine->fnMap, "graphics", "Graphics", "pset(_,_,_)", true, GRAPHICS_pset);
-  MAP_add(&engine->fnMap, "graphics", "Graphics", "rectfill(_,_,_,_,_)", true, GRAPHICS_rectfill);
+  MAP_add(&engine->fnMap, "graphics", "Canvas", "pset(_,_,_)", true, CANVAS_pset);
+  MAP_add(&engine->fnMap, "graphics", "Canvas", "rectfill(_,_,_,_,_)", true, CANVAS_rectfill);
+  MAP_add(&engine->fnMap, "graphics", "ImageData", "loadFromFile(_)", true, CANVAS_rectfill);
   MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, INPUT_is_key_down);
   
   return vm;
 }
 
-internal void WREN_free(WrenVM* vm) {
+internal void VM_free(WrenVM* vm) {
   if (vm != NULL) {
     wrenFreeVM(vm);
   }

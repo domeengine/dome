@@ -9,7 +9,7 @@ class Canvas {
    if (c is Color) { 
      color = c
    }
-   rectfill(0, 0, Canvas.screenWidth, Canvas.screenHeight, color.rgb)
+   rectfill(0, 0, Canvas.width, Canvas.height, color.rgb)
  }
  static width { 320 }
  static height { 240 }
