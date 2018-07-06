@@ -13,6 +13,10 @@
 #define STBI_ONLY_BMP
 #include "lib/stb_image.h"
 
+#define internal static
+#define global_variable static
+#define local_persist static
+
 // Constants
 // Screen dimension constants
 const int16_t GAME_WIDTH = 320;

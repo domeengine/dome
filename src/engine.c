@@ -8,6 +8,7 @@ typedef struct {
   KEY_STATE up;
   KEY_STATE down;
 } INPUT_STATE;
+
 typedef struct {
   SDL_Window* window;
   SDL_Renderer *renderer;
@@ -17,7 +18,7 @@ typedef struct {
   ForeignFunctionMap fnMap;
 } ENGINE;
 
-int ENGINE_init(ENGINE* engine) {
+internal int ENGINE_init(ENGINE* engine) {
   int result = EXIT_SUCCESS;
   engine->window = NULL; 
   engine->renderer = NULL;
@@ -59,10 +60,13 @@ engine_init_end:
 } 
 
 
-void ENGINE_free(ENGINE* engine) {
+internal void ENGINE_free(ENGINE* engine) {
+  
   if (engine == NULL) {
     return;
   }
+
+  MAP_free(&engine->fnMap);
 
   if (engine->pixels != NULL) {
     free(engine->pixels);

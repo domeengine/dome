@@ -1,4 +1,4 @@
-void INPUT_is_key_down(WrenVM* vm) {
+internal void INPUT_is_key_down(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   const char* keyName = wrenGetSlotString(vm, 1); 
   SDL_Keycode keycode =  SDL_GetKeyFromName(keyName);
@@ -6,7 +6,7 @@ void INPUT_is_key_down(WrenVM* vm) {
   wrenSetSlotBool(vm, 0, result); 
 }
 
-void GRAPHICS_pset(WrenVM* vm) 
+internal void GRAPHICS_pset(WrenVM* vm) 
 { 
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int16_t x = floor(wrenGetSlotDouble(vm, 1)); 
@@ -15,7 +15,7 @@ void GRAPHICS_pset(WrenVM* vm)
   ENGINE_pset(engine, x,y,c);
 }
 
-void GRAPHICS_rectfill(WrenVM* vm) 
+internal void GRAPHICS_rectfill(WrenVM* vm) 
 { 
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int16_t x = floor(wrenGetSlotDouble(vm, 1)); 
@@ -26,7 +26,7 @@ void GRAPHICS_rectfill(WrenVM* vm)
   ENGINE_rectfill(engine, x, y, w, h, c);
 }
 
-WrenForeignMethodFn WREN_bind_foreign_method( 
+internal WrenForeignMethodFn WREN_bind_foreign_method( 
     WrenVM* vm, 
     const char* module, 
     const char* className, 
@@ -38,7 +38,7 @@ WrenForeignMethodFn WREN_bind_foreign_method(
   return MAP_get(&fnMap, module, className, signature, isStatic);
 }
 
-char* WREN_load_module(WrenVM* vm, const char* name) {
+internal char* WREN_load_module(WrenVM* vm, const char* name) {
   char* base = "src/engine/";
   char* extension = ".wren";
 
@@ -52,16 +52,12 @@ char* WREN_load_module(WrenVM* vm, const char* name) {
 }
 
 // Debug output for VM
-void WREN_write(WrenVM* vm, const char* text) {
+internal void WREN_write(WrenVM* vm, const char* text) {
   printf("%s", text);
 }
 
-void WREN_error( 
-    WrenVM* vm,
-    WrenErrorType type, 
-    const char* module, 
-    int line, 
-    const char* message) {
+internal void WREN_error(WrenVM* vm, WrenErrorType type, const char* module, 
+    int line, const char* message) {
   if (type == WREN_ERROR_COMPILE) {
     printf("%s:%d: %s\n", module, line, message);
   } else if (type == WREN_ERROR_RUNTIME) {
@@ -71,7 +67,7 @@ void WREN_error(
   } 
 }
 
-WrenVM* WREN_create(ENGINE* engine) {
+internal WrenVM* WREN_create(ENGINE* engine) {
   WrenConfiguration config; 
   wrenInitConfiguration(&config);
   config.writeFn = WREN_write; 
@@ -90,7 +86,7 @@ WrenVM* WREN_create(ENGINE* engine) {
   return vm;
 }
 
-void WREN_free(WrenVM* vm) {
+internal void WREN_free(WrenVM* vm) {
   if (vm != NULL) {
     wrenFreeVM(vm);
   }
