@@ -15,7 +15,7 @@ typedef struct {
   ForeignFunctionMapNode* head;
 } ForeignFunctionMap; 
 
-void MAP_add(ForeignFunctionMap* map, char* module, char* className, char* signature, bool isStatic, WrenForeignMethodFn fn) {
+internal void MAP_add(ForeignFunctionMap* map, char* module, char* className, char* signature, bool isStatic, WrenForeignMethodFn fn) {
   ForeignFunctionMapNode* node = (ForeignFunctionMapNode*) malloc(sizeof(ForeignFunctionMapNode));
   node->module = module;
   node->className = className;
@@ -26,7 +26,7 @@ void MAP_add(ForeignFunctionMap* map, char* module, char* className, char* signa
   map->head = node;
 }
 
-WrenForeignMethodFn MAP_get(ForeignFunctionMap* map, const char* module, const char* className, const char* signature, bool isStatic) {
+internal WrenForeignMethodFn MAP_get(ForeignFunctionMap* map, const char* module, const char* className, const char* signature, bool isStatic) {
   ForeignFunctionMapNode* node = map->head;
   while (node != NULL) {
     if (strcmp(module, node->module) == 0 &&
@@ -41,7 +41,7 @@ WrenForeignMethodFn MAP_get(ForeignFunctionMap* map, const char* module, const c
   return NULL;
 }
 
-void MAP_free(ForeignFunctionMap* map) {
+internal void MAP_free(ForeignFunctionMap* map) {
   ForeignFunctionMapNode* node = map->head;
   ForeignFunctionMapNode* nextNode;
   while (node != NULL) {
