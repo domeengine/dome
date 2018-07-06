@@ -17,7 +17,6 @@ typedef struct {
   ForeignFunctionMap fnMap;
 } ENGINE;
 
-ENGINE engine = {0};
 int ENGINE_init(ENGINE* engine) {
   int result = EXIT_SUCCESS;
   engine->window = NULL; 
