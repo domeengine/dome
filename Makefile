@@ -7,7 +7,7 @@ BUILD  = build
 all: dome
 src/lib/libwren.a: 
 	./setup.sh
-dome: $(SOURCE)/*.c src/lib/libwren.a
+dome: $(SOURCE)/*.c src/lib/libwren.a $(SOURCE)/engine/*.c
 	$(CC) $(SOURCE)/main.c -o dome -I$(SOURCE)/include -L$(SOURCE)/lib -lSDL2-2.0.0 -lwren
 
 clean:

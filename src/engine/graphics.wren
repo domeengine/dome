@@ -48,7 +48,19 @@ var AllColors = {
 }
 
 foreign class ImageData {
-  foreign static loadFromFile(path)
+  construct fromFile(path) {}
+  static loadFromFile(path) {
+    if (!__cache) {
+      __cache = {}
+    }
+    
+    if (!__cache.contains(path)) {
+      __cache[path] = ImageData.fromFile(path) 
+    }
+
+      return __cache[path]
+  }
+  foreign draw(x, y)
 }
 
 System.print("Canvas initialized.")

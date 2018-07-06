@@ -8,6 +8,7 @@
 #include <wren.h>
 #include <SDL2/SDL.h>
 
+// Set up STB_IMAGE
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_PNG
@@ -168,6 +169,7 @@ int main(int argc, char* args[])
       goto cleanup;
     }
 
+    /*
     uint32_t* pixel = (uint32_t*)image;
     for (int j = 0; j < min(GAME_HEIGHT, height); j++) {
       for (int i = 0; i < min(GAME_WIDTH, width); i++) {
@@ -176,6 +178,7 @@ int main(int argc, char* args[])
       }
     }
 
+    */
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
     // clear screen

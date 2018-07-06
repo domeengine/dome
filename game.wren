@@ -1,5 +1,5 @@
 import "input" for Keyboard
-import "graphics" for Canvas, Color
+import "graphics" for Canvas, Color, ImageData
 
 class Game {
 
@@ -9,7 +9,7 @@ class Game {
     __w = 5
     __h = 5
 
-//    __image = ImageData.fromFile("test.png")
+    __image = ImageData.loadFromFile("test.png")
     
   }
 
@@ -33,14 +33,13 @@ class Game {
     var color = Color.new(171, 82, 54).rgb
     Canvas.rectfill(__x, __y, __w, __h, color)
 
+
     // Proposals for drawing an image
     /*
     Canvas.draw(__image, __x, __y)
     Canvas.draw(__image, __x, __y)
-    __image.draw(__x, __y)
-
     */
-
+    __image.draw(__x, __y)
     
   }
 }
