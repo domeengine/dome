@@ -1,4 +1,4 @@
-class Graphics {
+class Canvas {
  foreign static pset(x, y, c)
  foreign static rectfill(x, y, w, h, c)
  static cls() {
@@ -9,10 +9,10 @@ class Graphics {
    if (c is Color) { 
      color = c
    }
-   rectfill(0, 0, Graphics.screenWidth, Graphics.screenHeight, color.rgb)
+   rectfill(0, 0, Canvas.screenWidth, Canvas.screenHeight, color.rgb)
  }
- static screenWidth { 320 }
- static screenHeight { 240 }
+ static width { 320 }
+ static height { 240 }
 }
 
 class Color {
@@ -47,4 +47,8 @@ var AllColors = {
   "yellow": Color.new(255, 255, 0),
 }
 
-System.print("Graphics initialized.")
+foreign class ImageData {
+  foreign static loadFromFile(path)
+}
+
+System.print("Canvas initialized.")

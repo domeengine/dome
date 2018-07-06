@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <libgen.h>
 
 #include <wren.h>
 #include <SDL2/SDL.h>
@@ -37,6 +38,8 @@ int main(int argc, char* args[])
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   char* gameFile;
+
+  // printf("%s\n", realpath("test.png", 0));
 
   int width, height, channels;
   unsigned char *image = stbi_load("test.png",

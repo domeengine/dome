@@ -22,7 +22,7 @@ Your game's entry point must contain a `Game` class which contains at least `sta
 
 ```wren
 import "input" for Keyboard
-import "graphics" for Graphics, Color
+import "graphics" for Canvas, Color
 
 class Game {
 
@@ -48,9 +48,9 @@ class Game {
     }
   }
   static draw(dt) {
-    Graphics.cls()
+    Canvas.cls()
     var color = Color.new(171, 82, 54).rgb
-    Graphics.rectfill(__x, __y, __w, __h, color)
+    Canvas.rectfill(__x, __y, __w, __h, color)
   }
 }
 
@@ -70,6 +70,7 @@ DOME provides the following modules/methods/classes:
 - IO
 - Audio
 - Math
+- Sprites
 
 ## Dependencies
 
