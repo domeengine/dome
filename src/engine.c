@@ -1,5 +1,5 @@
 typedef struct {
-  bool isPressed; 
+  bool isPressed;
 } KEY_STATE;
 
 typedef struct {
@@ -20,7 +20,7 @@ typedef struct {
 
 internal int ENGINE_init(ENGINE* engine) {
   int result = EXIT_SUCCESS;
-  engine->window = NULL; 
+  engine->window = NULL;
   engine->renderer = NULL;
   engine->texture = NULL;
   engine->pixels = NULL;
@@ -56,12 +56,12 @@ internal int ENGINE_init(ENGINE* engine) {
   }
 
 engine_init_end:
-  return result; 
-} 
+  return result;
+}
 
 
 internal void ENGINE_free(ENGINE* engine) {
-  
+
   if (engine == NULL) {
     return;
   }
@@ -96,12 +96,12 @@ int16_t mid(int16_t n1, int16_t n2, int16_t n3) {
   if (n1 > n3) {
     temp = n1;
     n1 = n3;
-    n3 = temp; 
+    n3 = temp;
   }
   if (n1 > n2) {
     temp = n1;
     n1 = n2;
-    n2 = temp; 
+    n2 = temp;
   }
   if (n2 < n3) {
     return n2;
@@ -114,15 +114,15 @@ int16_t mid(int16_t n1, int16_t n2, int16_t n3) {
 void ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
   // Draw pixel at (x,y)
   if (0 <= x && x < GAME_WIDTH && 0 <= y && y < GAME_HEIGHT) {
-    ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x] = c; 
+    ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x] = c;
   }
 }
 
 void ENGINE_rectfill(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t c) {
-  int16_t x1 = mid(0, x, GAME_WIDTH - 1);
-  int16_t y1 = mid(0, y, GAME_HEIGHT - 1);
-  int16_t x2 = mid(0, x + w - 1, GAME_WIDTH - 1);
-  int16_t y2 = mid(0, y + h - 1, GAME_HEIGHT - 1);
+  int16_t x1 = mid(0, x, GAME_WIDTH);
+  int16_t y1 = mid(0, y, GAME_HEIGHT);
+  int16_t x2 = mid(0, x + w, GAME_WIDTH);
+  int16_t y2 = mid(0, y + h, GAME_HEIGHT);
 
   for (uint16_t i = x1; i < x2; i++) {
     for (uint16_t j = y1; j < y2; j++) {

@@ -10,21 +10,21 @@ class Game {
     __h = 5
 
     __image = ImageData.loadFromFile("test.png")
-    
+
   }
 
   static update() {
     if (Keyboard.isKeyDown("left")) {
-      __x = __x - 1 
+      __x = __x - 1
     }
     if (Keyboard.isKeyDown("right")) {
-      __x = __x+ 1 
+      __x = __x+ 1
     }
     if (Keyboard.isKeyDown("up")) {
-      __y = __y - 1 
+      __y = __y - 1
     }
     if (Keyboard.isKeyDown("down")) {
-      __y = __y + 1 
+      __y = __y + 1
     }
   }
 
@@ -35,11 +35,8 @@ class Game {
 
 
     // Proposals for drawing an image
-    /*
     Canvas.draw(__image, __x, __y)
-    Canvas.draw(__image, __x, __y)
-    */
-    __image.draw(__x, __y)
-    
+    // __image.draw(__x, __y)
+
   }
 }

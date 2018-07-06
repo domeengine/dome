@@ -6,13 +6,19 @@ class Canvas {
  }
  static cls(c) {
    var color = Color.black
-   if (c is Color) { 
+   if (c is Color) {
      color = c
    }
    rectfill(0, 0, Canvas.width, Canvas.height, color.rgb)
  }
  static width { 320 }
  static height { 240 }
+
+ static draw(object, x, y) {
+   if (object is ImageData) {
+     object.draw(x, y)
+   }
+ }
 }
 
 class Color {
@@ -53,14 +59,12 @@ foreign class ImageData {
     if (!__cache) {
       __cache = {}
     }
-    
+
     if (!__cache.contains(path)) {
-      __cache[path] = ImageData.fromFile(path) 
+      __cache[path] = ImageData.fromFile(path)
     }
 
       return __cache[path]
   }
   foreign draw(x, y)
 }
-
-System.print("Canvas initialized.")

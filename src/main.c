@@ -51,7 +51,7 @@ int main(int argc, char* args[])
       STBI_rgb_alpha);
   uint32_t* pixel = (uint32_t*)image;
   for (int i = 0; i < height * width; i++) {
-    uint32_t c = *pixel;   
+    uint32_t c = *pixel;
     uint8_t r = (0x000000FF & c);
     uint8_t g = (0x0000FF00 & c) >> 8;
     uint8_t b = (0x00FF0000 & c) >> 16;
@@ -83,7 +83,7 @@ int main(int argc, char* args[])
   ENGINE engine = {0};
   result = ENGINE_init(&engine);
   if (result == EXIT_FAILURE) {
-    goto cleanup; 
+    goto cleanup;
   };
 
   // Configure Wren VM
@@ -98,8 +98,8 @@ int main(int argc, char* args[])
   WrenHandle* initMethod = wrenMakeCallHandle(vm, "init()");
   WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update()");
   WrenHandle* drawMethod = wrenMakeCallHandle(vm, "draw(_)");
-  wrenEnsureSlots(vm, 2); 
-  wrenGetVariable(vm, "main", "Game", 0); 
+  wrenEnsureSlots(vm, 2);
+  wrenGetVariable(vm, "main", "Game", 0);
   WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
 
   // Initiate game loop
@@ -112,8 +112,8 @@ int main(int argc, char* args[])
 
   SDL_ShowWindow(engine.window);
 
-  uint32_t previousTime = SDL_GetTicks(); 
-  int32_t lag = 0; 
+  uint32_t previousTime = SDL_GetTicks();
+  int32_t lag = 0;
   bool running = true;
   SDL_Event event;
   SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
@@ -136,7 +136,7 @@ int main(int argc, char* args[])
             SDL_Keycode keyCode = event.key.keysym.sym;
             if(keyCode == SDLK_ESCAPE && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               // TODO: Let Wren decide when to end game
-              running = false; 
+              running = false;
             } else {
               ENGINE_storeKeyState(&engine, keyCode, event.key.state);
             }
@@ -157,9 +157,9 @@ int main(int argc, char* args[])
       attempts += 1;
     }
     if (lag > 0) {
-      SDL_Delay((uint32_t)lag);
+      // SDL_Delay((uint32_t)lag);
     }
-    
+
     // render();
     wrenSetSlotHandle(vm, 0, gameClass);
     wrenSetSlotDouble(vm, 1, (double)lag / MS_PER_FRAME);
@@ -173,7 +173,7 @@ int main(int argc, char* args[])
     uint32_t* pixel = (uint32_t*)image;
     for (int j = 0; j < min(GAME_HEIGHT, height); j++) {
       for (int i = 0; i < min(GAME_WIDTH, width); i++) {
-        uint32_t c = pixel[j * width + i];   
+        uint32_t c = pixel[j * width + i];
         ENGINE_pset(&engine, i, j, c);
       }
     }
@@ -205,7 +205,7 @@ cleanup:
   //Quit SDL subsystems
   if (strlen(SDL_GetError()) > 0) {
     SDL_Quit();
-  } 
+  }
 
   return result;
 }
