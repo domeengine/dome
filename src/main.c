@@ -17,6 +17,7 @@ const int32_t MS_PER_FRAME = 1000 / FPS;
 
 
 // Game code
+#include "map.c"
 #include "io.c"
 #include "engine.c"
 #include "vm.c"
@@ -50,7 +51,7 @@ int main(int argc, char* args[])
   };
 
   // Configure Wren VM
-  vm = WREN_create();
+  vm = WREN_create(&engine);
   WrenInterpretResult interpreterResult = wrenInterpret(vm, gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;

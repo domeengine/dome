@@ -14,6 +14,7 @@ typedef struct {
   SDL_Texture *texture;
   void* pixels;
   INPUT_STATE keyboard;
+  ForeignFunctionMap fnMap;
 } ENGINE;
 
 ENGINE engine = {0};
