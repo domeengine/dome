@@ -30,29 +30,9 @@ WrenForeignMethodFn WREN_bind_foreign_method(
     bool isStatic, 
     const char* signature) {
 
-  if (strcmp(module, "graphics") == 0) { 
-    if (strcmp(className, "Graphics") == 0) {
-      if (isStatic && strcmp(signature, "pset(_,_,_)") == 0) {
-        return GRAPHICS_pset; 
-      } 
-      if (isStatic && strcmp(signature, "rectfill(_,_,_,_,_)") == 0) {
-        return GRAPHICS_rectfill;
-      } 
-      // Other foreign methods on Graphics...
-    } 
-    // Other classes in main...
-  } else if (strcmp(module, "input") == 0) { 
-    if (strcmp(className, "Keyboard") == 0) {
-      if (isStatic && strcmp(signature, "isKeyDown(_)") == 0) {
-        return INPUT_is_key_down;
-      } 
-      // Other foreign methods on Math...
-    } 
-    // Other classes in main...
-  } 
-  // Other modules...
-
-  return NULL;
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ForeignFunctionMap fnMap = engine->fnMap;
+  return MAP_get(&fnMap, module, className, signature, isStatic);
 }
 
 char* WREN_load_module(WrenVM* vm, const char* name) {
@@ -88,7 +68,7 @@ void WREN_error(
   } 
 }
 
-WrenVM* WREN_create(void) {
+WrenVM* WREN_create(ENGINE* engine) {
   WrenConfiguration config; 
   wrenInitConfiguration(&config);
   config.writeFn = WREN_write; 
@@ -96,7 +76,15 @@ WrenVM* WREN_create(void) {
   config.bindForeignMethodFn = WREN_bind_foreign_method; 
   config.loadModuleFn = WREN_load_module; 
 
-  return wrenNewVM(&config);
+  WrenVM* vm = wrenNewVM(&config);
+  wrenSetUserData(vm, engine);
+
+  // Set modules
+  MAP_add(&engine->fnMap, "graphics", "Graphics", "pset(_,_,_)", true, GRAPHICS_pset);
+  MAP_add(&engine->fnMap, "graphics", "Graphics", "rectfill(_,_,_,_,_)", true, GRAPHICS_rectfill);
+  MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, INPUT_is_key_down);
+  
+  return vm;
 }
 
 void WREN_free(WrenVM* vm) {
