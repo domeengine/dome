@@ -71,7 +71,7 @@ int main(int argc, char* args[])
     goto cleanup;
   }
 
-  ENGINE engine;
+  ENGINE engine = {0};
   result = ENGINE_init(&engine);
   if (result == EXIT_FAILURE) {
     goto cleanup; 
@@ -100,6 +100,8 @@ int main(int argc, char* args[])
     result = EXIT_FAILURE;
     goto cleanup;
   }
+
+  SDL_ShowWindow(engine.window);
 
   uint32_t previousTime = SDL_GetTicks(); 
   int32_t lag = 0; 
@@ -144,6 +146,9 @@ int main(int argc, char* args[])
       }
       lag -= MS_PER_FRAME;
       attempts += 1;
+    }
+    if (lag > 0) {
+      SDL_Delay((uint32_t)lag);
     }
     
     // render();
