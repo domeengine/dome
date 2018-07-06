@@ -9,7 +9,7 @@ class Game {
     __w = 5
     __h = 5
 
-    __image = ImageData.fromFile("test.png")
+//    __image = ImageData.fromFile("test.png")
     
   }
 
