@@ -8,6 +8,9 @@ class Game {
     __y = 10
     __w = 5
     __h = 5
+
+    __image = ImageData.fromFile("test.png")
+    
   }
 
   static update() {
@@ -28,5 +31,15 @@ class Game {
     Graphics.cls()
     var color = Color.new(171, 82, 54).rgb
     Graphics.rectfill(__x, __y, __w, __h, color)
+
+    // Proposals for drawing an image
+    /*
+    Graphics.draw(__image, __x, __y)
+    Canvas.draw(__image, __x, __y)
+    __image.draw(__x, __y)
+
+    */
+
+    
   }
 }
