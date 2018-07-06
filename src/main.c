@@ -71,6 +71,7 @@ int main(int argc, char* args[])
     goto cleanup;
   }
 
+  ENGINE engine;
   result = ENGINE_init(&engine);
   if (result == EXIT_FAILURE) {
     goto cleanup; 

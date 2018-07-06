@@ -1,26 +1,29 @@
 void INPUT_is_key_down(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   const char* keyName = wrenGetSlotString(vm, 1); 
   SDL_Keycode keycode =  SDL_GetKeyFromName(keyName);
-  bool result = ENGINE_getKeyState(&engine, keycode).isPressed;
+  bool result = ENGINE_getKeyState(engine, keycode).isPressed;
   wrenSetSlotBool(vm, 0, result); 
 }
 
 void GRAPHICS_pset(WrenVM* vm) 
 { 
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int16_t x = floor(wrenGetSlotDouble(vm, 1)); 
   int16_t y = floor(wrenGetSlotDouble(vm, 2)); 
   uint32_t c = floor(wrenGetSlotDouble(vm, 3)); 
-  ENGINE_pset(&engine, x,y,c);
+  ENGINE_pset(engine, x,y,c);
 }
 
 void GRAPHICS_rectfill(WrenVM* vm) 
 { 
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int16_t x = floor(wrenGetSlotDouble(vm, 1)); 
   int16_t y = floor(wrenGetSlotDouble(vm, 2)); 
   int16_t w = floor(wrenGetSlotDouble(vm, 3)); 
   int16_t h = floor(wrenGetSlotDouble(vm, 4)); 
   uint32_t c = floor(wrenGetSlotDouble(vm, 5)); 
-  ENGINE_rectfill(&engine, x, y, w, h, c);
+  ENGINE_rectfill(engine, x, y, w, h, c);
 }
 
 WrenForeignMethodFn WREN_bind_foreign_method( 
