@@ -1,5 +1,21 @@
 import "input" for Keyboard
 import "graphics" for Canvas, Color, ImageData
+// The default random module seems to be broken currently
+// import "random" for Random
+
+class Random {
+  construct new(seed) {
+    _seed = (seed % 2147483646).abs % 2147483647
+    if (_seed <= 0) {
+      _seed = _seed + 2147483646
+    }
+  }
+
+  int(n) {
+   _seed = _seed * 16807 % 2147483647
+   return _seed % n
+  }
+}
 
 class Bullet {
 
@@ -20,16 +36,16 @@ class Bullet {
 }
 
 class Enemy {
-  construct new() {
-    _x = 10
-    _y = 10
+  construct new(x, y) {
+    _x = x
+    _y = y
     _image = ImageData.loadFromFile("img/enemy.png")
   }
 
   x { _x }
   y { _y }
 
-  move() {
+  update() {
     _y = _y + 1
   }
 
@@ -41,8 +57,8 @@ class Enemy {
 
 class Ship {
   construct new() {
-    _x = 10
-    _y = 10
+    _x = Canvas.width / 2
+    _y = Canvas.height - 20
     _t = 0
     _ship = [
       ImageData.loadFromFile("img/ship1.png"),
@@ -73,9 +89,12 @@ class Game {
 
     __ship = Ship.new()
     __bullets = []
+    __enemies = []
+    var random = Random.new(12345)
+    for (i in 0...5) {
+      __enemies.add(Enemy.new(random.int(Canvas.width), -random.int(30)))
+    }
     __lastFire = 0
-
-
   }
 
   static update() {
@@ -108,11 +127,20 @@ class Game {
       bullet.update()
       i = i + 1
     }
+
+    i = 0
+    for (enemy in __enemies) {
+      if (enemy.y > Canvas.height) {
+        __enemies.removeAt(i)
+      }
+      enemy.update()
+      i = i + 1
+    }
   }
 
   static draw(dt) {
     Canvas.cls()
-    Enemy.new().draw()
+    Enemy.new(0,0).draw()
     /*
     var color = Color.new(171, 82, 54).rgb
     Canvas.rectfill(__x, __y, __w, __h, color)
@@ -121,6 +149,9 @@ class Game {
     __ship.draw(__t)
     for (bullet in __bullets) {
       bullet.draw()
+    }
+    for (enemy in __enemies) {
+      enemy.draw()
     }
 
   }
