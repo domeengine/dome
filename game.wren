@@ -8,8 +8,9 @@ class Game {
     __y = 10
     __w = 5
     __h = 5
+    __t = 0
 
-    __image = ImageData.loadFromFile("test.png")
+    __ship = [ImageData.loadFromFile("img/ship1.png"), ImageData.loadFromFile("img/ship2.png")]
 
   }
 
@@ -26,6 +27,7 @@ class Game {
     if (Keyboard.isKeyDown("down")) {
       __y = __y + 1
     }
+    __t = __t + 1
   }
 
   static draw(dt) {
@@ -35,7 +37,8 @@ class Game {
 
 
     // Proposals for drawing an image
-    Canvas.draw(__image, __x, __y)
+    var frame = (__t / 5).floor % 2
+    Canvas.draw(__ship[frame], __x, __y)
     // __image.draw(__x, __y)
 
   }
