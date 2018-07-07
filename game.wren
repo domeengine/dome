@@ -140,7 +140,6 @@ class Game {
 
   static draw(dt) {
     Canvas.cls()
-    Enemy.new(0,0).draw()
     /*
     var color = Color.new(171, 82, 54).rgb
     Canvas.rectfill(__x, __y, __w, __h, color)
