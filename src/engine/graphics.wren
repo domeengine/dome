@@ -1,6 +1,7 @@
 class Canvas {
  foreign static pset(x, y, c)
  foreign static f_rectfill(x, y, w, h, c)
+ foreign static f_print(str, x, y, c)
  static rectfill(x, y, w, h, c) {
    if (c is Color) {
      f_rectfill(x, y, w, h, c.rgb)
