@@ -57,6 +57,7 @@ internal WrenForeignMethodFn VM_bind_foreign_method(
 }
 
 internal char* VM_load_module(WrenVM* vm, const char* name) {
+  printf("Loading module %s\n", name);
   char* base = "src/engine/";
   char* extension = ".wren";
 
@@ -66,7 +67,9 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
   strcat(path, name); /* add the extension */
   strcat(path, extension); /* add the extension */
 
-  return readEntireFile(path);
+  char* file = readEntireFile(path);
+  free(path);
+  return file;
 }
 
 // Debug output for VM
