@@ -1,6 +1,13 @@
 class Canvas {
  foreign static pset(x, y, c)
- foreign static rectfill(x, y, w, h, c)
+ foreign static f_rectfill(x, y, w, h, c)
+ static rectfill(x, y, w, h, c) {
+   if (c is Color) {
+     f_rectfill(x, y, w, h, c.rgb)
+   } else {
+     f_rectfill(x, y, w, h, c)
+   }
+ }
  static cls() {
    cls(Color.black)
  }
@@ -31,6 +38,7 @@ class Color {
 
   rgb { Color.rgb(_r, _g, _b, _a) }
 
+  static white { AllColors["white"] }
   static black { AllColors["black"] }
   static red { AllColors["red"] }
   static blue { AllColors["blue"] }
@@ -60,11 +68,11 @@ foreign class ImageData {
       __cache = {}
     }
 
-    if (!__cache.contains(path)) {
+    if (!__cache.containsKey(path)) {
       __cache[path] = ImageData.fromFile(path)
     }
 
-      return __cache[path]
+    return __cache[path]
   }
   foreign draw(x, y)
 }

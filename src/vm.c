@@ -99,7 +99,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // Set modules
   MAP_add(&engine->fnMap, "graphics", "Canvas", "pset(_,_,_)", true, CANVAS_pset);
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "rectfill(_,_,_,_,_)", true, CANVAS_rectfill);
+  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_rectfill(_,_,_,_,_)", true, CANVAS_rectfill);
   MAP_add(&engine->fnMap, "graphics", "ImageData", "draw(_,_)", false, IMAGE_draw);
   MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, INPUT_is_key_down);
 

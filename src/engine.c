@@ -7,6 +7,7 @@ typedef struct {
   KEY_STATE right;
   KEY_STATE up;
   KEY_STATE down;
+  KEY_STATE space;
 } INPUT_STATE;
 
 typedef struct {
@@ -144,6 +145,9 @@ void ENGINE_storeKeyState(ENGINE* engine, SDL_Keycode keycode, uint8_t state) {
   if(keycode == SDLK_DOWN) {
     engine->keyboard.down.isPressed = (state == SDL_PRESSED);
   }
+  if(keycode == SDLK_SPACE) {
+    engine->keyboard.space.isPressed = (state == SDL_PRESSED);
+  }
 }
 
 KEY_STATE ENGINE_getKeyState(ENGINE* engine, SDL_Keycode keycode) {
@@ -158,6 +162,9 @@ KEY_STATE ENGINE_getKeyState(ENGINE* engine, SDL_Keycode keycode) {
   }
   if(keycode == SDLK_DOWN) {
     return engine->keyboard.down;
+  }
+  if(keycode == SDLK_SPACE) {
+    return engine->keyboard.space;
   }
   KEY_STATE none;
   none.isPressed = false;
