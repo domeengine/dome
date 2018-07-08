@@ -77,4 +77,7 @@ DOME provides the following modules/methods/classes:
 DOME currently depends on a few libraries to achieve it's functions.
 - Wren (This is downloaded and built by `make` automatically)
 - SDL2
-- freetype (soon)
+
+## Acknowledgements
+
+Font comes from [here](https://opengameart.org/content/ascii-bitmap-font-cellphone)
