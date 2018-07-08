@@ -32,6 +32,7 @@ const int32_t FPS = 60;
 const int32_t MS_PER_FRAME = 1000 / FPS;
 
 // Game code
+#include "util/font.c"
 #include "map.c"
 #include "io.c"
 #include "engine.c"
@@ -43,19 +44,6 @@ int main(int argc, char* args[])
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   char* gameFile;
-
-  // printf("%s\n", realpath("test.png", 0));
-
-  stbtt_fontinfo font;
-  uint8_t* ttf_buffer = (uint8_t*)readEntireFile("Teatable.ttf");
-  int size = 114;
-  stbtt_InitFont(&font, ttf_buffer, stbtt_GetFontOffsetForIndex(ttf_buffer, 0));
-  int codepoint = 65;
-  int width, height, xOff, yOff;
-  float scaleY = stbtt_ScaleForPixelHeight(&font, size);
-  uint8_t* bitmap = stbtt_GetCodepointBitmap(&font, 0, scaleY, codepoint, &width, &height, &xOff,&yOff);
-  // ... do something with the image
-
 
   //Initialize SDL
   if(SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -163,10 +151,12 @@ int main(int argc, char* args[])
       goto cleanup;
     }
 
-    uint8_t* pixel = (uint8_t*)bitmap;
-    for (int j = 0; j < min(GAME_HEIGHT, height); j++) {
-      for (int i = 0; i < min(GAME_WIDTH, width); i++) {
-        uint8_t v = pixel[j * width + i];
+    uint8_t* pixel = (uint8_t*)font;
+    int n = 65;
+    pixel += 7*5 * (n - 32);
+    for (int j = 0; j < min(GAME_HEIGHT, 7); j++) {
+      for (int i = 0; i < min(GAME_WIDTH, 5); i++) {
+        uint8_t v = pixel[j * 5 + i];
         uint32_t c;
           c =  0xFF << 24 | v << 16 | v << 8 | v;
         ENGINE_pset(&engine, i, j+10, c);
