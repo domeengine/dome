@@ -8,11 +8,11 @@
 #include <wren.h>
 #include <SDL2/SDL.h>
 
-// Set up STB_IMAGE
-#define STB_IMAGE_IMPLEMENTATION
+// Set up STB_IMAGE #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_PNG
 #define STBI_ONLY_BMP
+#define STB_IMAGE_IMPLEMENTATION
 #include "include/stb_image.h"
 
 #define STB_TRUETYPE_IMPLEMENTATION
@@ -46,23 +46,14 @@ int main(int argc, char* args[])
 
   // printf("%s\n", realpath("test.png", 0));
 
-  int width, height, channels;
-  unsigned char *image = stbi_load("test.png",
-      &width,
-      &height,
-      &channels,
-      STBI_rgb_alpha);
-  uint32_t* pixel = (uint32_t*)image;
-  for (int i = 0; i < height * width; i++) {
-    uint32_t c = *pixel;
-    uint8_t r = (0x000000FF & c);
-    uint8_t g = (0x0000FF00 & c) >> 8;
-    uint8_t b = (0x00FF0000 & c) >> 16;
-    uint8_t a = (0xFF000000 & c) << 24;
-    *pixel = a | (r << 16) | (g << 8) | b;
-    pixel++;
-  }
-
+  stbtt_fontinfo font;
+  uint8_t* ttf_buffer = (uint8_t*)readEntireFile("Teatable.ttf");
+  int size = 32;
+  stbtt_InitFont(&font, ttf_buffer, stbtt_GetFontOffsetForIndex(ttf_buffer, 0));
+  int codepoint = 65;
+  int width, height, xOff, yOff;
+  float scaleY = stbtt_ScaleForPixelHeight(&font, size);
+  uint8_t* bitmap = stbtt_GetCodepointBitmap(&font, 0, scaleY, codepoint, &width, &height, &xOff,&yOff);
   // ... do something with the image
 
 
@@ -172,16 +163,20 @@ int main(int argc, char* args[])
       goto cleanup;
     }
 
-    /*
-    uint32_t* pixel = (uint32_t*)image;
+    uint8_t* pixel = (uint8_t*)bitmap;
     for (int j = 0; j < min(GAME_HEIGHT, height); j++) {
       for (int i = 0; i < min(GAME_WIDTH, width); i++) {
-        uint32_t c = pixel[j * width + i];
-        ENGINE_pset(&engine, i, j, c);
+        uint8_t v = pixel[j * width + i];
+        uint32_t c;
+        if (v > 200) {
+          c =  0xFF << 24 | v << 16 | v << 8 | v;
+        } else {
+          c = 0;
+        }
+        ENGINE_pset(&engine, i, j+10, c);
       }
     }
 
-    */
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
     // clear screen
@@ -199,9 +194,6 @@ int main(int argc, char* args[])
   wrenReleaseHandle(vm, gameClass);
 
 cleanup:
-  if (image != NULL) {
-    stbi_image_free(image);
-  }
   // Free resources
   VM_free(vm);
   ENGINE_free(&engine);
