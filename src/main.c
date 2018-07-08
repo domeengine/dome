@@ -48,7 +48,7 @@ int main(int argc, char* args[])
 
   stbtt_fontinfo font;
   uint8_t* ttf_buffer = (uint8_t*)readEntireFile("Teatable.ttf");
-  int size = 32;
+  int size = 114;
   stbtt_InitFont(&font, ttf_buffer, stbtt_GetFontOffsetForIndex(ttf_buffer, 0));
   int codepoint = 65;
   int width, height, xOff, yOff;
@@ -168,11 +168,7 @@ int main(int argc, char* args[])
       for (int i = 0; i < min(GAME_WIDTH, width); i++) {
         uint8_t v = pixel[j * width + i];
         uint32_t c;
-        if (v > 200) {
           c =  0xFF << 24 | v << 16 | v << 8 | v;
-        } else {
-          c = 0;
-        }
         ENGINE_pset(&engine, i, j+10, c);
       }
     }
