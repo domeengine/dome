@@ -89,10 +89,12 @@ int main(int argc, char* args[])
     }
   }
    */
-  printf("char font[%d] = {\n", gW*gH*5*7);
+  printf("char font[%d][%d] = {\n", gW*gH, 5*7);
    for (int gY = 0; gY < gH; gY++) {
      for (int gX = 0; gX < gW; gX++) {
+       printf("  {\n");
       for (int j = 0; j < 7; j++) {
+        printf("    ");
         // traverse a row
         for (int i = 0; i < 5; i++) {
           uint8_t pixel = image[1+ imageWidth + gX * 7 + j * imageWidth + i + (imageWidth * (7+2) * gY)];
@@ -101,7 +103,7 @@ int main(int argc, char* args[])
         }
         printf("\n");
       }
-      printf("\n");
+      printf("  },\n");
     }
   }
    printf("};\n");
