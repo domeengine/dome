@@ -151,6 +151,7 @@ int main(int argc, char* args[])
       goto cleanup;
     }
 
+    /*
     int n = 65;
     int fontWidth = 5;
     int fontHeight = 7;
@@ -168,6 +169,7 @@ int main(int argc, char* args[])
       }
       cursor += 6;
     }
+    */
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
     // clear screen

@@ -140,6 +140,7 @@ class Game {
 
   static draw(dt) {
     Canvas.cls()
+    Canvas.print("Hello world", 0, 0, Color.white)
     /*
     var color = Color.new(171, 82, 54).rgb
     Canvas.rectfill(__x, __y, __w, __h, color)

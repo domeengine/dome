@@ -61,6 +61,7 @@ engine_init_end:
 }
 
 
+
 internal void ENGINE_free(ENGINE* engine) {
 
   if (engine == NULL) {
@@ -116,6 +117,30 @@ void ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
   // Draw pixel at (x,y)
   if (0 <= x && x < GAME_WIDTH && 0 <= y && y < GAME_HEIGHT) {
     ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x] = c;
+  }
+}
+
+internal void
+ENGINE_print(ENGINE* engine, char* text, uint16_t x, uint16_t y, uint32_t c) {
+  int fontWidth = 5;
+  int fontHeight = 7;
+  int cursor = 0;
+  for (int pos = 0; pos < strlen(text); pos++) {
+    char letter = text[pos];
+
+    uint8_t* glyph = (uint8_t*)font[letter - 32];
+    if (*glyph == '\n') {
+      break;
+    }
+    for (int j = 0; j < fontHeight; j++) {
+      for (int i = 0; i < fontWidth; i++) {
+        uint8_t v = glyph[j * fontWidth + i];
+        if (v != 0) {
+          ENGINE_pset(engine, cursor + i, j+10, c);
+        }
+      }
+    }
+    cursor += 6;
   }
 }
 

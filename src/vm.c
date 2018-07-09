@@ -24,6 +24,16 @@ internal void INPUT_is_key_down(WrenVM* vm) {
   wrenSetSlotBool(vm, 0, result);
 }
 
+internal void CANVAS_print(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  char* text = (char*)wrenGetSlotString(vm, 1);
+  int16_t x = floor(wrenGetSlotDouble(vm, 2));
+  int16_t y = floor(wrenGetSlotDouble(vm, 3));
+  uint32_t c = floor(wrenGetSlotDouble(vm, 4));
+
+  ENGINE_print(engine, text, x, y, c);
+}
+
 internal void CANVAS_pset(WrenVM* vm)
 {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
@@ -103,6 +113,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Set modules
   MAP_add(&engine->fnMap, "graphics", "Canvas", "pset(_,_,_)", true, CANVAS_pset);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_rectfill(_,_,_,_,_)", true, CANVAS_rectfill);
+  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_print(_,_,_,_)", true, CANVAS_print);
   MAP_add(&engine->fnMap, "graphics", "ImageData", "draw(_,_)", false, IMAGE_draw);
   MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, INPUT_is_key_down);
 

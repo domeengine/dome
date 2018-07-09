@@ -1,13 +1,20 @@
 class Canvas {
  foreign static pset(x, y, c)
  foreign static f_rectfill(x, y, w, h, c)
- //foreign static f_print(str, x, y, c)
+ foreign static f_print(str, x, y, c)
  static rectfill(x, y, w, h, c) {
    if (c is Color) {
      f_rectfill(x, y, w, h, c.rgb)
    } else {
      f_rectfill(x, y, w, h, c)
    }
+ }
+ static print(str, x, y, c) {
+   var color = Color.white
+   if (c is Color) {
+     color = c
+   }
+   f_print(str, x, y, color.rgb)
  }
  static cls() {
    cls(Color.black)
