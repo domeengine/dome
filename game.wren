@@ -59,6 +59,7 @@ class Ship {
   construct new() {
     _x = Canvas.width / 2
     _y = Canvas.height - 20
+    _health = 3
     _t = 0
     _ship = [
       ImageData.loadFromFile("img/ship1.png"),
@@ -68,6 +69,7 @@ class Ship {
 
   x { _x }
   y { _y }
+  health { _health }
 
   move(x, y) {
     _x = _x + x
@@ -95,6 +97,8 @@ class Game {
       __enemies.add(Enemy.new(random.int(Canvas.width), -random.int(30)))
     }
     __lastFire = 0
+    __heart = ImageData.loadFromFile("img/heart-full.png")
+    __heartEmpty = ImageData.loadFromFile("img/heart-empty.png")
   }
 
   static update() {
@@ -152,6 +156,14 @@ class Game {
     }
     for (enemy in __enemies) {
       enemy.draw()
+    }
+
+    for (i in 1..3) {
+      if (i <= __ship.health) {
+        Canvas.draw(__heart, 80+6*i, 3)
+      } else {
+        Canvas.draw(__heartEmpty, 80+6*i, 3)
+      }
     }
 
   }
