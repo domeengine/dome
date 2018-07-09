@@ -23,7 +23,10 @@ class Bullet {
     _x = x
     _y = y
   }
+  x { _x }
   y { _y }
+  h { 2 }
+  w { 2 }
 
   update() {
     _y = _y - 1
@@ -39,18 +42,28 @@ class Enemy {
   construct new(x, y) {
     _x = x
     _y = y
+    _alive = true
     _image = ImageData.loadFromFile("img/enemy.png")
   }
 
+  alive { _alive }
   x { _x }
   y { _y }
+  h { 8 }
+  w { 6 }
+
+  kill() {
+    _alive = false
+  }
 
   update() {
     _y = _y + 1
   }
 
   draw() {
-    Canvas.draw(_image, x, y)
+    if (alive) {
+      Canvas.draw(_image, x, y)
+    }
   }
 }
 
@@ -69,7 +82,13 @@ class Ship {
 
   x { _x }
   y { _y }
+  h { 8 }
+  w { 6 }
   health { _health }
+
+  damage() {
+    _health = _health - 1
+  }
 
   move(x, y) {
     _x = _x + x
@@ -88,13 +107,15 @@ class Game {
     __w = 5
     __h = 5
     __t = 0
+    __points = 0
 
     __ship = Ship.new()
     __bullets = []
     __enemies = []
-    var random = Random.new(12345)
+
+    __random = Random.new(12345)
     for (i in 0...5) {
-      __enemies.add(Enemy.new(random.int(Canvas.width), -random.int(30)))
+      __enemies.add(Enemy.new(__random.int(Canvas.width), -__random.int(30)))
     }
     __lastFire = 0
     __heart = ImageData.loadFromFile("img/heart-full.png")
@@ -123,32 +144,62 @@ class Game {
     }
 
     __ship.move(x, y)
-    var i = 0
-    for (bullet in __bullets) {
-      if (bullet.y < 0) {
-        __bullets.removeAt(i)
-      }
-      bullet.update()
-      i = i + 1
-    }
 
-    i = 0
-    for (enemy in __enemies) {
+    for (i in 0...__enemies.count) {
+      var enemy = __enemies[i]
       if (enemy.y > Canvas.height) {
         __enemies.removeAt(i)
       }
       enemy.update()
       i = i + 1
+      if (colliding(__ship, enemy)) {
+        __ship.damage()
+        enemy.kill()
+      }
     }
+
+    var bulletCount = 0
+    for (bullet in __bullets) {
+      bullet.update()
+
+      // check if we hit something
+      for (j in 0...__enemies.count) {
+        var enemy = __enemies[j]
+        if (enemy.alive && colliding(bullet, enemy)) {
+          enemy.kill()
+          __points = __points + 1
+
+          // TODO: remove bullet also?
+        }
+      }
+
+      if (bullet.y < 0) {
+        __bullets.removeAt(bulletCount)
+      }
+
+      bulletCount = bulletCount + 1
+    }
+
+    for (j in 0...__enemies.count) {
+      var enemy = __enemies[j]
+      if (!enemy.alive || enemy.y > Canvas.height) {
+        __enemies.removeAt(j)
+        __enemies.add(Enemy.new(__random.int(Canvas.width), -__random.int(30)))
+      }
+    }
+  }
+
+  static colliding(o1, o2) {
+    var box1 = Box.new(o1.x, o1.y, o1.x + o1.w, o1.y+o1.h)
+    var box2 = Box.new(o2.x, o2.y, o2.x + o2.w, o2.y+o2.h)
+    return box1.x1 < box2.x2 &&
+      box1.x2 > box2.x1 &&
+      box1.y1 < box2.y2 &&
+      box1.y2 > box2.y1
   }
 
   static draw(dt) {
     Canvas.cls()
-    Canvas.print("Hello world", 0, 0, Color.white)
-    /*
-    var color = Color.new(171, 82, 54).rgb
-    Canvas.rectfill(__x, __y, __w, __h, color)
-    */
 
     __ship.draw(__t)
     for (bullet in __bullets) {
@@ -158,13 +209,31 @@ class Game {
       enemy.draw()
     }
 
+    Canvas.rectfill(0, 0, 320, 10, Color.black)
+
     for (i in 1..3) {
       if (i <= __ship.health) {
-        Canvas.draw(__heart, 80+6*i, 3)
+        Canvas.draw(__heart, 292+6*i, 3)
       } else {
-        Canvas.draw(__heartEmpty, 80+6*i, 3)
+        Canvas.draw(__heartEmpty, 292+6*i, 3)
       }
     }
 
+    Canvas.print("Score: %(__points)", 3, 3, Color.white)
   }
+}
+
+class Box {
+  construct new(x1, y1, x2, y2) {
+    _x1 = x1
+    _x2 = x2
+    _y1 = y1
+    _y2 = y2
+  }
+
+    x1 { _x1 }
+    y1 { _y1 }
+    x2 { _x2 }
+    y2 { _y2 }
+
 }
