@@ -136,7 +136,7 @@ ENGINE_print(ENGINE* engine, char* text, uint16_t x, uint16_t y, uint32_t c) {
       for (int i = 0; i < fontWidth; i++) {
         uint8_t v = glyph[j * fontWidth + i];
         if (v != 0) {
-          ENGINE_pset(engine, cursor + i, j+10, c);
+          ENGINE_pset(engine, x + cursor + i, y + j, c);
         }
       }
     }
