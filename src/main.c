@@ -151,25 +151,6 @@ int main(int argc, char* args[])
       goto cleanup;
     }
 
-    /*
-    int n = 65;
-    int fontWidth = 5;
-    int fontHeight = 7;
-    int cursor = 0;
-    char* string = "Hello world";
-    for (int c = 0; c < strlen(string); c++) {
-      uint8_t* glyph = (uint8_t*)font[string[c]-32];
-      for (int j = 0; j < fontHeight; j++) {
-        for (int i = 0; i < fontWidth; i++) {
-          uint8_t v = glyph[j * fontWidth + i];
-          uint32_t c;
-          c =  0xFF << 24 | v << 16 | v << 8 | v;
-          ENGINE_pset(&engine, cursor + i, j+10, c);
-        }
-      }
-      cursor += 6;
-    }
-    */
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
     // clear screen
