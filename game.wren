@@ -147,9 +147,6 @@ class Game {
 
     for (i in 0...__enemies.count) {
       var enemy = __enemies[i]
-      if (enemy.y > Canvas.height) {
-        __enemies.removeAt(i)
-      }
       enemy.update()
       i = i + 1
       if (colliding(__ship, enemy)) {
@@ -183,7 +180,7 @@ class Game {
     for (j in 0...__enemies.count) {
       var enemy = __enemies[j]
       if (!enemy.alive || enemy.y > Canvas.height) {
-        __enemies.removeAt(j)
+        __enemies.remove(enemy)
         __enemies.add(Enemy.new(__random.int(Canvas.width), -__random.int(30)))
       }
     }
