@@ -213,6 +213,8 @@ class MainGame {
 
   static draw(dt) {
     Canvas.cls()
+    Canvas.circle(20, 40, 6, Color.white)
+    // Canvas.circle(20, 40, 9, Color.white)
 
     __ship.draw(__t)
     for (bullet in __bullets) {

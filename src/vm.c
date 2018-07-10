@@ -47,6 +47,16 @@ internal void CANVAS_pset(WrenVM* vm)
   ENGINE_pset(engine, x,y,c);
 }
 
+internal void CANVAS_circle(WrenVM* vm)
+{
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  int16_t x = floor(wrenGetSlotDouble(vm, 1));
+  int16_t y = floor(wrenGetSlotDouble(vm, 2));
+  int16_t r = floor(wrenGetSlotDouble(vm, 3));
+  uint32_t c = floor(wrenGetSlotDouble(vm, 4));
+  ENGINE_circle(engine, x, y, r, c);
+}
+
 internal void CANVAS_rectfill(WrenVM* vm)
 {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
@@ -115,12 +125,18 @@ internal WrenVM* VM_create(ENGINE* engine) {
   wrenSetUserData(vm, engine);
 
   // Set modules
+
+  // Canvas
   MAP_add(&engine->fnMap, "graphics", "Canvas", "pset(_,_,_)", true, CANVAS_pset);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_rectfill(_,_,_,_,_)", true, CANVAS_rectfill);
+  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_circle(_,_,_,_)", true, CANVAS_circle);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_print(_,_,_,_)", true, CANVAS_print);
   MAP_add(&engine->fnMap, "graphics", "ImageData", "draw(_,_)", false, IMAGE_draw);
+
+  // Input
   MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, INPUT_is_key_down);
 
+  // Point
   MAP_add(&engine->fnMap, "graphics", "Point", "x", false, POINT_getX);
   MAP_add(&engine->fnMap, "graphics", "Point", "y", false, POINT_getY);
   return vm;

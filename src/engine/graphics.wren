@@ -2,11 +2,19 @@ class Canvas {
  foreign static pset(x, y, c)
  foreign static f_rectfill(x, y, w, h, c)
  foreign static f_print(str, x, y, c)
+ foreign static f_circle(x, y, r, c)
  static rectfill(x, y, w, h, c) {
    if (c is Color) {
      f_rectfill(x, y, w, h, c.rgb)
    } else {
      f_rectfill(x, y, w, h, c)
+   }
+ }
+ static circle(x, y, r, c) {
+   if (c is Color) {
+     f_circle(x, y, r, c.rgb)
+   } else {
+     f_circle(x, y, r, c)
    }
  }
  static print(str, x, y, c) {
