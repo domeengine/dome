@@ -84,3 +84,10 @@ foreign class ImageData {
   }
   foreign draw(x, y)
 }
+
+foreign class Point {
+  construct new() {}
+  construct new(x, y) {}
+  foreign x
+  foreign y
+}

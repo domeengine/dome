@@ -37,6 +37,7 @@ const int32_t MS_PER_FRAME = 1000 / FPS;
 #include "io.c"
 #include "engine.c"
 #include "engine/image.c"
+#include "engine/point.c"
 #include "vm.c"
 
 int main(int argc, char* args[])

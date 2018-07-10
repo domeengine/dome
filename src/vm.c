@@ -1,17 +1,21 @@
 internal WrenForeignClassMethods
 VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   WrenForeignClassMethods methods;
+  // Assume an unknown class.
+  methods.allocate = NULL;
+  methods.finalize = NULL;
+
   if (strcmp(module, "graphics") == 0) {
     if (strcmp(className, "ImageData") == 0) {
       methods.allocate = IMAGE_allocate;
       methods.finalize = IMAGE_finalize;
-    } else {
-      // Unknown class.
-      methods.allocate = NULL;
-      methods.finalize = NULL;
     }
   }
 
+  if (strcmp(className, "Point") == 0) {
+    methods.allocate = POINT_allocate;
+    methods.finalize = POINT_finalize;
+  }
   return methods;
 }
 
@@ -117,6 +121,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "graphics", "ImageData", "draw(_,_)", false, IMAGE_draw);
   MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, INPUT_is_key_down);
 
+  MAP_add(&engine->fnMap, "graphics", "Point", "x", false, POINT_getX);
+  MAP_add(&engine->fnMap, "graphics", "Point", "y", false, POINT_getY);
   return vm;
 }
 

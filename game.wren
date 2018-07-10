@@ -1,5 +1,5 @@
 import "input" for Keyboard
-import "graphics" for Canvas, Color, ImageData
+import "graphics" for Canvas, Color, ImageData, Point
 // The default random module seems to be broken currently
 // import "random" for Random
 
@@ -35,12 +35,12 @@ class Bullet {
   }
 
   update() {
-    _y = _y - 1
+    _y = _y - 3
   }
 
   draw() {
     var color = Color.white
-    Canvas.rectfill(_x, _y, 2, 2, color)
+    Canvas.rectfill(_x, _y, 2, 4, color)
   }
 }
 
@@ -238,33 +238,15 @@ class MainGame {
 
 class Box {
   construct new(x1, y1, x2, y2) {
-    _x1 = x1
-    _x2 = x2
-    _y1 = y1
-    _y2 = y2
+    _p1 = Point.new(x1, y1)
+    _p2 = Point.new(x2, y2)
   }
 
-  x1 { _x1 }
-  y1 { _y1 }
-  x2 { _x2 }
-  y2 { _y2 }
+  x1 { _p1.x }
+  y1 { _p1.y }
+  x2 { _p2.x }
+  y2 { _p2.y }
 
-}
-class Game {
-  static init() {
-    __state = MainGame
-    __state.init()
-  }
-  static update() {
-    __state.update()
-    if (__state.next) {
-      __state = __state.next
-      __state.init()
-    }
-  }
-  static draw(dt) {
-    __state.draw(dt)
-  }
 }
 
 class GameOverState {
@@ -287,5 +269,22 @@ class GameOverState {
   static draw(dt) {
     Canvas.cls()
     Canvas.print("Game Over", 160-27, 120-3, Color.white)
+  }
+}
+
+class Game {
+  static init() {
+    __state = MainGame
+    __state.init()
+  }
+  static update() {
+    __state.update()
+    if (__state.next) {
+      __state = __state.next
+      __state.init()
+    }
+  }
+  static draw(dt) {
+    __state.draw(dt)
   }
 }
