@@ -145,11 +145,11 @@ ENGINE_print(ENGINE* engine, char* text, uint16_t x, uint16_t y, uint32_t c) {
 }
 
 void ENGINE_circle(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c) {
-  int16_t x = r;
-  int16_t y = 0;
-  int16_t err = 0;
+  int16_t x = 0;
+  int16_t y = r;
+  int16_t d = round(M_PI - (2*r));
 
-  while (x >= y) {
+  while (x <= y) {
     ENGINE_pset(engine, x0 + x, y0 + y, c);
     ENGINE_pset(engine, x0 + y, y0 + x, c);
     ENGINE_pset(engine, x0 - y, y0 + x, c);
@@ -160,12 +160,13 @@ void ENGINE_circle(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c
     ENGINE_pset(engine, x0 + y, y0 - x, c);
     ENGINE_pset(engine, x0 + x, y0 - y, c);
 
-    y += 1;
-    err += 1 + 2*y;
-    if (2*(err - x) + 1 > 0) {
-      x -= 1;
-      err += 1 - 2*x;
+    if (d < 0) {
+      d = d + (M_PI * x) + (M_PI * 2);
+    } else {
+      d = d + (M_PI * (x - y)) + (M_PI * 3);
+      y--;
     }
+    x++;
   }
 }
 
