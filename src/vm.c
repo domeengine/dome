@@ -77,6 +77,16 @@ internal void CANVAS_line(WrenVM* vm)
   ENGINE_line(engine, x1, y1, x2, y2, c);
 }
 
+internal void CANVAS_rect(WrenVM* vm)
+{
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  int16_t x = floor(wrenGetSlotDouble(vm, 1));
+  int16_t y = floor(wrenGetSlotDouble(vm, 2));
+  int16_t w = floor(wrenGetSlotDouble(vm, 3));
+  int16_t h = floor(wrenGetSlotDouble(vm, 4));
+  uint32_t c = floor(wrenGetSlotDouble(vm, 5));
+  ENGINE_rect(engine, x, y, w, h, c);
+}
 internal void CANVAS_rectfill(WrenVM* vm)
 {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
@@ -149,6 +159,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Canvas
   MAP_add(&engine->fnMap, "graphics", "Canvas", "pset(_,_,_)", true, CANVAS_pset);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_rectfill(_,_,_,_,_)", true, CANVAS_rectfill);
+  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_rect(_,_,_,_,_)", true, CANVAS_rect);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_line(_,_,_,_,_)", true, CANVAS_line);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_circle(_,_,_,_)", true, CANVAS_circle);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_circlefill(_,_,_,_)", true, CANVAS_circle_filled);

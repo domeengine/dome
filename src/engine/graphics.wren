@@ -2,6 +2,7 @@ class Canvas {
  foreign static pset(x, y, c)
  foreign static f_line(x1, y1, x2, y2, c)
  foreign static f_rectfill(x, y, w, h, c)
+ foreign static f_rect(x, y, w, h, c)
  foreign static f_print(str, x, y, c)
  foreign static f_circle(x, y, r, c)
  foreign static f_circlefill(x, y, r, c)
@@ -10,6 +11,13 @@ class Canvas {
      f_line(x, y, w, h, c.rgb)
    } else {
      f_line(x, y, w, h, c)
+   }
+ }
+ static rect(x, y, w, h, c) {
+   if (c is Color) {
+     f_rect(x, y, w, h, c.rgb)
+   } else {
+     f_rect(x, y, w, h, c)
    }
  }
  static rectfill(x, y, w, h, c) {

@@ -156,7 +156,7 @@ void ENGINE_line_high(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_
 
   int16_t y = y1;
   int16_t x = x1;
-  while(y < y2) {
+  while(y <= y2) {
     ENGINE_pset(engine, x, y, c);
     if (p > 0) {
       x += xi;
@@ -179,7 +179,7 @@ void ENGINE_line_low(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t
 
   int16_t y = y1;
   int16_t x = x1;
-  while(x < x2) {
+  while(x <= x2) {
     ENGINE_pset(engine, x, y, c);
     if (p > 0) {
       y += yi;
@@ -256,6 +256,13 @@ void ENGINE_circle(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c
   }
 }
 
+
+void ENGINE_rect(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t c) {
+  ENGINE_line(engine, x, y, x, y+h-1, c);
+  ENGINE_line(engine, x, y, x+w-1, y, c);
+  ENGINE_line(engine, x, y+h-1, x+w-1, y+h-1, c);
+  ENGINE_line(engine, x+w-1, y, x+w-1, y+h-1, c);
+}
 
 void ENGINE_rectfill(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t c) {
   int16_t x1 = mid(0, x, GAME_WIDTH);
