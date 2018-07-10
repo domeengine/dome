@@ -144,6 +144,92 @@ ENGINE_print(ENGINE* engine, char* text, uint16_t x, uint16_t y, uint32_t c) {
   }
 }
 
+void ENGINE_line_high(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint32_t c) {
+  int16_t dx = x2 - x1;
+  int16_t dy = y2 - y1;
+  int16_t xi = 1;
+  if (dx < 0) {
+    xi = -1;
+    dx = -dx;
+  }
+  int16_t p = 2 * dx - dy;
+
+  int16_t y = y1;
+  int16_t x = x1;
+  while(y < y2) {
+    ENGINE_pset(engine, x, y, c);
+    if (p > 0) {
+      x += xi;
+      p = p - 2 * dy;
+    } else {
+      p = p + 2 * dx;
+    }
+    y++;
+  }
+}
+void ENGINE_line_low(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint32_t c) {
+  int16_t dx = x2 - x1;
+  int16_t dy = y2 - y1;
+  int16_t yi = 1;
+  if (dy < 0) {
+    yi = -1;
+    dy = -dy;
+  }
+  int16_t p = 2 * dy - dx;
+
+  int16_t y = y1;
+  int16_t x = x1;
+  while(x < x2) {
+    ENGINE_pset(engine, x, y, c);
+    if (p > 0) {
+      y += yi;
+      p = p - 2 * dx;
+    } else {
+      p = p + 2 * dy;
+    }
+    x++;
+  }
+}
+
+void ENGINE_line(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint32_t c) {
+  if (abs(y2 - y1) < abs(x2 - x1)) {
+    if (x1 > x2) {
+      ENGINE_line_low(engine, x2, y2, x1, y1, c);
+    } else {
+      ENGINE_line_low(engine, x1, y1, x2, y2, c);
+    }
+  } else {
+    if (y1 > y2) {
+      ENGINE_line_high(engine, x2, y2, x1, y1, c);
+    } else {
+      ENGINE_line_high(engine, x1, y1, x2, y2, c);
+    }
+
+  }
+
+}
+
+void ENGINE_circle_filled(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c) {
+  int16_t x = 0;
+  int16_t y = r;
+  int16_t d = round(M_PI - (2*r));
+
+  while (x <= y) {
+    ENGINE_line(engine, x0 - x, y0 + y, x0 + x, y0 + y, c);
+    ENGINE_line(engine, x0 - y, y0 + x, x0 + y, y0 + x, c);
+    ENGINE_line(engine, x0 + x, y0 - y, x0 - x, y0 - y, c);
+    ENGINE_line(engine, x0 - y, y0 - x, x0 + y, y0 - x, c);
+
+    if (d < 0) {
+      d = d + (M_PI * x) + (M_PI * 2);
+    } else {
+      d = d + (M_PI * (x - y)) + (M_PI * 3);
+      y--;
+    }
+    x++;
+  }
+}
+
 void ENGINE_circle(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c) {
   int16_t x = 0;
   int16_t y = r;
@@ -169,6 +255,7 @@ void ENGINE_circle(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c
     x++;
   }
 }
+
 
 void ENGINE_rectfill(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t c) {
   int16_t x1 = mid(0, x, GAME_WIDTH);
