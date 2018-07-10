@@ -107,9 +107,11 @@ class Ship {
   }
 }
 
-class Game {
+class MainGame {
+  static next { __next}
 
   static init() {
+    __next = null
     __w = 5
     __h = 5
     __t = 0
@@ -156,6 +158,9 @@ class Game {
       if (colliding(__ship, enemy)) {
         __ship.damage()
         enemy.kill()
+        if (__ship.health == 0) {
+          __next = GameOverState
+        }
       }
     }
 
@@ -232,4 +237,43 @@ class Box {
   x2 { _x2 }
   y2 { _y2 }
 
+}
+class Game {
+  static init() {
+    __state = MainGame
+    __state.init()
+  }
+  static update() {
+    __state.update()
+    if (__state.next) {
+      __state = __state.next
+      __state.init()
+    }
+  }
+  static draw(dt) {
+    __state.draw(dt)
+  }
+}
+
+class GameOverState {
+  static next { __next}
+  static init() {
+    __next = null
+    __hold = 0
+  }
+  static update() {
+    if (Keyboard.isKeyDown("space")) {
+      __hold = __hold + 1
+      if (__hold > 4) {
+        __next = MainGame
+      }
+    } else {
+      __hold = 0
+    }
+  }
+
+  static draw(dt) {
+    Canvas.cls()
+    Canvas.print("Game Over", 160-27, 120-3, Color.white)
+  }
 }
