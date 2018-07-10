@@ -22,11 +22,17 @@ class Bullet {
   construct fire(x, y) {
     _x = x
     _y = y
+    _alive = true
   }
   x { _x }
   y { _y }
   h { 2 }
   w { 2 }
+  alive { _alive }
+
+  kill() {
+    _alive = false
+  }
 
   update() {
     _y = _y - 1
@@ -145,10 +151,8 @@ class Game {
 
     __ship.move(x, y)
 
-    for (i in 0...__enemies.count) {
-      var enemy = __enemies[i]
+    for (enemy in __enemies) {
       enemy.update()
-      i = i + 1
       if (colliding(__ship, enemy)) {
         __ship.damage()
         enemy.kill()
@@ -160,23 +164,18 @@ class Game {
       bullet.update()
 
       // check if we hit something
-      for (j in 0...__enemies.count) {
-        var enemy = __enemies[j]
+      for (enemy in __enemies) {
         if (enemy.alive && colliding(bullet, enemy)) {
+          bullet.kill()
           enemy.kill()
           __points = __points + 1
-
-          // TODO: remove bullet also?
         }
       }
-
-      if (bullet.y < 0) {
-        __bullets.removeAt(bulletCount)
-      }
-
-      bulletCount = bulletCount + 1
     }
 
+    __bullets = __bullets.where {|bullet|
+      return bullet.alive && bullet.y > 0
+    }.toList
     __enemies = __enemies.where {|enemy|
       var isAlive = enemy.alive && enemy.y < Canvas.height
       if (!isAlive) {
