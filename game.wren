@@ -177,13 +177,13 @@ class Game {
       bulletCount = bulletCount + 1
     }
 
-    for (j in 0...__enemies.count) {
-      var enemy = __enemies[j]
-      if (!enemy.alive || enemy.y > Canvas.height) {
-        __enemies.remove(enemy)
-        __enemies.add(Enemy.new(__random.int(Canvas.width), -__random.int(30)))
+    __enemies = __enemies.where {|enemy|
+      var isAlive = enemy.alive && enemy.y < Canvas.height
+      if (!isAlive) {
+        __enemies.add(Enemy.new(__random.int(Canvas.width), 0))
       }
-    }
+      return isAlive
+    }.toList
   }
 
   static colliding(o1, o2) {
@@ -228,9 +228,9 @@ class Box {
     _y2 = y2
   }
 
-    x1 { _x1 }
-    y1 { _y1 }
-    x2 { _x2 }
-    y2 { _y2 }
+  x1 { _x1 }
+  y1 { _y1 }
+  x2 { _x2 }
+  y2 { _y2 }
 
 }
