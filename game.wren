@@ -78,6 +78,7 @@ class Ship {
   construct new() {
     _x = Canvas.width / 2
     _y = Canvas.height - 20
+    _imm = false
     _health = 3
     _t = 0
     _ship = [
@@ -93,17 +94,28 @@ class Ship {
   health { _health }
 
   damage() {
-    _health = _health - 1
+    if (!_imm) {
+      _health = _health - 1
+      _imm = true
+      _t = 0
+    }
   }
 
   move(x, y) {
     _x = _x + x
     _y = _y + y
+    _t = _t + 1
+    if (_imm && _t > 30) {
+      _imm = false
+    }
   }
 
   draw(t) {
     var frame = (t / 5).floor % 2
-    Canvas.draw(_ship[frame], _x, _y)
+    if (!_imm || (_t/4).floor % 2 == 0) {
+      Canvas.draw(_ship[frame], _x, _y)
+    }
+
   }
 }
 
