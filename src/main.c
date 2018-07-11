@@ -158,6 +158,7 @@ int main(int argc, char* args[])
     SDL_RenderClear(engine.renderer);
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
+    elapsed = SDL_GetTicks() - currentTime;
     char buffer[20];
     snprintf(buffer, sizeof(buffer), "DOME - %.02f fps", 1000.0 / (elapsed+1));   // here 2 means binary
     SDL_SetWindowTitle(engine.window, buffer);
