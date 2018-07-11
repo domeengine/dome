@@ -3,27 +3,20 @@ import "graphics" for Canvas, Color, ImageData, Point
 // The default random module seems to be broken currently
 // import "random" for Random
 
-
-class Explosion {
-  construct new(x, y) {
-    _x = x + OurRandom.int(6)-3
-    _y = y + OurRandom.int(6)-3
-    _c = [Color.red, Color.orange][OurRandom.int(2)]
-    _t = 0
+// Consider moving Box to "graphics"
+class Box {
+  construct new(x1, y1, x2, y2) {
+    _p1 = Point.new(x1, y1)
+    _p2 = Point.new(x2, y2)
   }
 
-  x { _x }
-  y { _y }
-  done { _t > 5 }
+  x1 { _p1.x }
+  y1 { _p1.y }
+  x2 { _p2.x }
+  y2 { _p2.y }
 
-  update() {
-    _t = _t + 1
-  }
-
-  draw() {
-    Canvas.circlefill(_x, _y, _t, _c)
-  }
 }
+
 
 class Random {
   construct new(seed) {
@@ -44,6 +37,48 @@ class Random {
 
   float() {
     return (next() - 1) / 2147483646
+  }
+}
+
+// -------------------------
+// ------- GAME CODE -------
+// -------------------------
+
+class Game {
+  static init() {
+    __state = MainGame
+    __state.init()
+  }
+  static update() {
+    __state.update()
+    if (__state.next) {
+      __state = __state.next
+      __state.init()
+    }
+  }
+  static draw(dt) {
+    __state.draw(dt)
+  }
+}
+
+class Explosion {
+  construct new(x, y) {
+    _x = x + OurRandom.int(6)-3
+    _y = y + OurRandom.int(6)-3
+    _c = [Color.red, Color.orange][OurRandom.int(2)]
+    _t = 0
+  }
+
+  x { _x }
+  y { _y }
+  done { _t > 5 }
+
+  update() {
+    _t = _t + 1
+  }
+
+  draw() {
+    Canvas.circlefill(_x, _y, _t, _c)
   }
 }
 
@@ -292,28 +327,13 @@ class MainGame {
 
   static draw(dt) {
     Canvas.cls()
-    // Canvas.circlefill(20, 60, 9, Color.white)
-//    Canvas.circle(20, 60, 9, Color.red)
-    // Canvas.line(318,20, 100,100,Color.red)
-    // Canvas.circle(20, 40, 9, Color.white)
-    Canvas.rect(50,50,20,20, Color.white)
-    for (star in __stars) {
-      star.draw()
-    }
-
+    __stars.each {|star| star.draw() }
+    __enemies.each {|enemy| enemy.draw() }
+    __bullets.each {|bullet| bullet.draw() }
     __ship.draw(__t)
-    for (bullet in __bullets) {
-      bullet.draw()
-    }
-    for (enemy in __enemies) {
-      enemy.draw()
-    }
-    for (explosion in __explosions) {
-      explosion.draw()
-    }
+    __explosions.each {|explosion| explosion.draw() }
 
-    Canvas.rectfill(0, 0, 320, 10, Color.black)
-
+    // Draw UI
     for (i in 1..3) {
       if (i <= __ship.health) {
         Canvas.draw(__heart, 292+6*i, 3)
@@ -326,19 +346,7 @@ class MainGame {
   }
 }
 
-class Box {
-  construct new(x1, y1, x2, y2) {
-    _p1 = Point.new(x1, y1)
-    _p2 = Point.new(x2, y2)
-  }
-
-  x1 { _p1.x }
-  y1 { _p1.y }
-  x2 { _p2.x }
-  y2 { _p2.y }
-
-}
-
+// State displays a "Game Over" message and allows a restart
 class GameOverState {
   static next { __next}
   static init() {
@@ -359,22 +367,5 @@ class GameOverState {
   static draw(dt) {
     Canvas.cls()
     Canvas.print("Game Over", 160-27, 120-3, Color.white)
-  }
-}
-
-class Game {
-  static init() {
-    __state = MainGame
-    __state.init()
-  }
-  static update() {
-    __state.update()
-    if (__state.next) {
-      __state = __state.next
-      __state.init()
-    }
-  }
-  static draw(dt) {
-    __state.draw(dt)
   }
 }
