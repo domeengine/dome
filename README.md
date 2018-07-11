@@ -74,6 +74,7 @@ DOME provides the following modules/methods/classes:
 - IO
 - Audio
 - Math
+- Random
 
 ## Dependencies
 
