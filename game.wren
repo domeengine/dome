@@ -8,7 +8,7 @@ class Explosion {
   construct new(x, y) {
     _x = x + OurRandom.int(6)-3
     _y = y + OurRandom.int(6)-3
-    _c = [Color.white, Color.red, Color.orange][OurRandom.int(3)]
+    _c = [Color.red, Color.orange][OurRandom.int(2)]
     _t = 0
   }
 
@@ -23,8 +23,6 @@ class Explosion {
   draw() {
     Canvas.circlefill(_x, _y, _t, _c)
   }
-
-
 }
 
 class Random {
@@ -38,6 +36,29 @@ class Random {
   int(n) {
    _seed = _seed * 16807 % 2147483647
    return _seed % n
+  }
+}
+
+class Star {
+
+  construct new() {
+    _x = OurRandom.int(Canvas.width)
+    _y = OurRandom.int(Canvas.height)
+  }
+
+  x { _x }
+  y { _y }
+
+  update() {
+    _y = _y + 0.5
+    if (_y > Canvas.height) {
+      _x = OurRandom.int(Canvas.width)
+      _y = 0
+    }
+  }
+
+  draw() {
+    Canvas.pset(_x, _y, Color.lightgray)
   }
 }
 
@@ -159,6 +180,11 @@ class MainGame {
     __bullets = []
     __enemies = []
     __explosions = []
+    __stars = []
+
+    for (i in 0...30) {
+      __stars.add(Star.new())
+    }
 
     for (i in 0...5) {
       __enemies.add(Enemy.new(OurRandom.int(Canvas.width), -OurRandom.int(30)))
@@ -240,6 +266,10 @@ class MainGame {
       explosion.update()
       return !explosion.done
     }.toList
+
+    for (star in __stars) {
+      star.update()
+    }
   }
 
   static colliding(o1, o2) {
@@ -258,6 +288,9 @@ class MainGame {
     // Canvas.line(318,20, 100,100,Color.red)
     // Canvas.circle(20, 40, 9, Color.white)
     Canvas.rect(50,50,20,20, Color.white)
+    for (star in __stars) {
+      star.draw()
+    }
 
     __ship.draw(__t)
     for (bullet in __bullets) {
