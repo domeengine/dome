@@ -49,7 +49,7 @@ class Game {
   }
   static draw(dt) {
     Canvas.cls()
-    var color = Color.new(171, 82, 54).rgb
+    var color = Color.new(171, 82, 54)
     Canvas.rectfill(__x, __y, __w, __h, color)
   }
 }
@@ -63,6 +63,10 @@ DOME provides the following modules/methods/classes:
   - Color
   - Rectfill
   - Point
+  - Circle
+  - Lines
+- ImageData
+  - Draw sprites loaded from files
 - Input
 
 ## TODO
@@ -70,7 +74,6 @@ DOME provides the following modules/methods/classes:
 - IO
 - Audio
 - Math
-- Sprites
 
 ## Dependencies
 
