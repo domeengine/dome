@@ -1,11 +1,19 @@
 class Canvas {
- foreign static pset(x, y, c)
+ foreign static f_pset(x, y, c)
  foreign static f_line(x1, y1, x2, y2, c)
  foreign static f_rectfill(x, y, w, h, c)
  foreign static f_rect(x, y, w, h, c)
  foreign static f_print(str, x, y, c)
  foreign static f_circle(x, y, r, c)
  foreign static f_circlefill(x, y, r, c)
+ static pset(x, y, c) {
+   if (c is Color) {
+     f_pset(x, y, c.rgb)
+   } else {
+     f_pset(x, y, c)
+   }
+
+ }
  static line(x, y, w, h, c) {
    if (c is Color) {
      f_line(x, y, w, h, c.rgb)
@@ -85,6 +93,8 @@ class Color {
   static blue { AllColors["blue"] }
   static green { AllColors["green"] }
   static cyan { AllColors["cyan"] }
+  static darkgray { AllColors["darkgray"] }
+  static lightgray { AllColors["lightgray"] }
 
   static rgb(r, g, b, a) {
     return a << 24 | r << 16 | g << 8 | b
@@ -101,6 +111,8 @@ var AllColors = {
   "cyan": Color.new(0, 255, 255),
   "magenta": Color.new(255, 0, 255),
   "yellow": Color.new(255, 255, 0),
+  "lightgray": Color.new(194, 195, 199),
+  "darkgray": Color.new(95, 87, 79)
 }
 
 foreign class ImageData {

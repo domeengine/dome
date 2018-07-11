@@ -157,7 +157,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Set modules
 
   // Canvas
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "pset(_,_,_)", true, CANVAS_pset);
+  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_pset(_,_,_)", true, CANVAS_pset);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_rectfill(_,_,_,_,_)", true, CANVAS_rectfill);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_rect(_,_,_,_,_)", true, CANVAS_rect);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_line(_,_,_,_,_)", true, CANVAS_line);
