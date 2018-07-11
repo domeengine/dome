@@ -33,9 +33,17 @@ class Random {
     }
   }
 
-  int(n) {
+  next() {
    _seed = _seed * 16807 % 2147483647
-   return _seed % n
+   return _seed
+  }
+
+  int(n) {
+    return next() % n
+  }
+
+  float() {
+    return (next() - 1) / 2147483646
   }
 }
 
@@ -44,13 +52,14 @@ class Star {
   construct new() {
     _x = OurRandom.int(Canvas.width)
     _y = OurRandom.int(Canvas.height)
+    _s = OurRandom.float()
   }
 
   x { _x }
   y { _y }
 
   update() {
-    _y = _y + 0.5
+    _y = _y + 0.25 + _s
     if (_y > Canvas.height) {
       _x = OurRandom.int(Canvas.width)
       _y = 0
