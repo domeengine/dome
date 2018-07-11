@@ -81,6 +81,7 @@ class Color {
   static white { AllColors["white"] }
   static black { AllColors["black"] }
   static red { AllColors["red"] }
+  static orange { AllColors["orange"] }
   static blue { AllColors["blue"] }
   static green { AllColors["green"] }
   static cyan { AllColors["cyan"] }
@@ -93,6 +94,7 @@ class Color {
 var AllColors = {
   "black": Color.new(0, 0, 0),
   "white": Color.new(255, 255, 255),
+  "orange": Color.new(255, 163, 0),
   "red": Color.new(255, 0, 0),
   "green": Color.new(0, 255, 0),
   "blue": Color.new(0, 0, 255),

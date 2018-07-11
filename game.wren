@@ -3,6 +3,30 @@ import "graphics" for Canvas, Color, ImageData, Point
 // The default random module seems to be broken currently
 // import "random" for Random
 
+
+class Explosion {
+  construct new(x, y) {
+    _x = x + OurRandom.int(6)-3
+    _y = y + OurRandom.int(6)-3
+    _c = [Color.white, Color.red, Color.orange][OurRandom.int(3)]
+    _t = 0
+  }
+
+  x { _x }
+  y { _y }
+  done { _t > 5 }
+
+  update() {
+    _t = _t + 1
+  }
+
+  draw() {
+    Canvas.circlefill(_x, _y, _t, _c)
+  }
+
+
+}
+
 class Random {
   construct new(seed) {
     _seed = (seed % 2147483646).abs % 2147483647
@@ -92,6 +116,7 @@ class Ship {
   h { 8 }
   w { 6 }
   health { _health }
+  imm { _imm }
 
   damage() {
     if (!_imm) {
@@ -112,12 +137,13 @@ class Ship {
 
   draw(t) {
     var frame = (t / 5).floor % 2
-    if (!_imm || (_t/4).floor % 2 == 0) {
+    if (_health > 0 && !_imm || (_t/4).floor % 2 == 0) {
       Canvas.draw(_ship[frame], _x, _y)
     }
 
   }
 }
+var OurRandom = Random.new(12345)
 
 class MainGame {
   static next { __next}
@@ -132,10 +158,10 @@ class MainGame {
     __ship = Ship.new()
     __bullets = []
     __enemies = []
+    __explosions = []
 
-    __random = Random.new(12345)
     for (i in 0...5) {
-      __enemies.add(Enemy.new(__random.int(Canvas.width), -__random.int(30)))
+      __enemies.add(Enemy.new(OurRandom.int(Canvas.width), -OurRandom.int(30)))
     }
     __lastFire = 0
     __heart = ImageData.loadFromFile("img/heart-full.png")
@@ -146,34 +172,40 @@ class MainGame {
     __t = __t + 1
     var x = 0
     var y = 0
-    if (Keyboard.isKeyDown("left")) {
-      x = -1
-    }
-    if (Keyboard.isKeyDown("right")) {
-      x = 1
-    }
-    if (Keyboard.isKeyDown("up")) {
-      y = -1
-    }
-    if (Keyboard.isKeyDown("down")) {
-      y = 1
-    }
-    if (Keyboard.isKeyDown("space") && (__t - __lastFire) > 10) {
-      __bullets.add(Bullet.fire(__ship.x+2, __ship.y))
-      __lastFire = __t
+    if (__ship.health > 0) {
+      if (Keyboard.isKeyDown("left")) {
+        x = -1
+      }
+      if (Keyboard.isKeyDown("right")) {
+        x = 1
+      }
+      if (Keyboard.isKeyDown("up")) {
+        y = -1
+      }
+      if (Keyboard.isKeyDown("down")) {
+        y = 1
+      }
+      if (Keyboard.isKeyDown("space") && (__t - __lastFire) > 10) {
+        __bullets.add(Bullet.fire(__ship.x+2, __ship.y))
+          __lastFire = __t
+      }
+
     }
 
     __ship.move(x, y)
 
     for (enemy in __enemies) {
       enemy.update()
-      if (colliding(__ship, enemy)) {
+      if (!__ship.imm && colliding(__ship, enemy)) {
         __ship.damage()
         enemy.kill()
-        if (__ship.health == 0) {
-          __next = GameOverState
+        for (i in 1..5) {
+          __explosions.add(Explosion.new(enemy.x, enemy.y))
         }
       }
+    }
+    if (__ship.health == 0 && __explosions.count == 0) {
+      __next = GameOverState
     }
 
     var bulletCount = 0
@@ -185,6 +217,9 @@ class MainGame {
         if (enemy.alive && colliding(bullet, enemy)) {
           bullet.kill()
           enemy.kill()
+          for (i in 1..5) {
+            __explosions.add(Explosion.new(enemy.x, enemy.y))
+          }
           __points = __points + 1
         }
       }
@@ -196,9 +231,14 @@ class MainGame {
     __enemies = __enemies.where {|enemy|
       var isAlive = enemy.alive && enemy.y < Canvas.height
       if (!isAlive) {
-        __enemies.add(Enemy.new(__random.int(Canvas.width), 0))
+        __enemies.add(Enemy.new(OurRandom.int(Canvas.width), 0))
       }
       return isAlive
+    }.toList
+
+    __explosions = __explosions.where {|explosion|
+      explosion.update()
+      return !explosion.done
     }.toList
   }
 
@@ -225,6 +265,9 @@ class MainGame {
     }
     for (enemy in __enemies) {
       enemy.draw()
+    }
+    for (explosion in __explosions) {
+      explosion.draw()
     }
 
     Canvas.rectfill(0, 0, 320, 10, Color.black)
