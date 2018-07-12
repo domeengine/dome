@@ -1,6 +1,6 @@
 # DOME - Dynamic Opinionated Mini Engine
 
-A lightweight game engine which melds SDL2 and the (Wren scripting language)[http://wren.io], written in C.
+A lightweight game engine which melds SDL2 and the [Wren scripting language](http://wren.io), written in C.
 
 ## Warning
 
