@@ -18,6 +18,14 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "include/stb_truetype.h"
 
+#define DR_MP3_IMPLEMENTATION
+#include "mini_al/extras/dr_mp3.h"   // Enables MP3 decoding.
+#define DR_WAV_IMPLEMENTATION
+#include "mini_al/extras/dr_wav.h"   // Enables WAV decoding.
+
+#define MINI_AL_IMPLEMENTATION
+#include "mini_al/mini_al.h"
+
 #define internal static
 #define global_variable static
 #define local_persist static
@@ -45,6 +53,13 @@ int main(int argc, char* args[])
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   char* gameFile;
+
+  mal_decoder decoder;
+  mal_result malResult = mal_decoder_init_file(args[1], NULL, &decoder);
+  if (malResult != MAL_SUCCESS) {
+      return -2;
+  }
+   mal_decoder_uninit(&decoder);
 
   //Initialize SDL
   if(SDL_Init(SDL_INIT_VIDEO) < 0)

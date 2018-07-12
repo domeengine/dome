@@ -1,5 +1,4 @@
 dome
 libwren.a
-src/lib/wren
 **/.DS_Store
 src/util/convert

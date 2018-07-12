@@ -1,0 +1,6 @@
+[submodule "src/include/mini_al"]
+	path = src/include/mini_al
+	url = https://github.com/dr-soft/mini_al.git
+[submodule "src/lib/wren"]
+	path = src/lib/wren
+	url = https://github.com/munificent/wren.git
