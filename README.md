@@ -10,7 +10,10 @@ As of 03/07/2018, DOME is in a pre-alpha state. None of the API is stable and it
 
 ### Build
 
-Execute `make` and it will first pull and build the Wren VM if it hasn't been, and then the DOME core.
+```bash
+> git submodule update
+> make
+```
 
 ### Run
 

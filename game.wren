@@ -139,7 +139,7 @@ class Enemy {
     _x = x
     _y = y
     _alive = true
-    _image = ImageData.loadFromFile("img/enemy.png")
+    _image = ImageData.loadFromFile("res/enemy.png")
   }
 
   alive { _alive }
@@ -172,8 +172,8 @@ class Ship {
     _health = 3
     _t = 0
     _ship = [
-      ImageData.loadFromFile("img/ship1.png"),
-      ImageData.loadFromFile("img/ship2.png")
+      ImageData.loadFromFile("res/ship1.png"),
+      ImageData.loadFromFile("res/ship2.png")
     ]
   }
 
@@ -235,8 +235,8 @@ class MainGame {
       __enemies.add(Enemy.new(OurRandom.int(Canvas.width), -OurRandom.int(30)))
     }
     __lastFire = 0
-    __heart = ImageData.loadFromFile("img/heart-full.png")
-    __heartEmpty = ImageData.loadFromFile("img/heart-empty.png")
+    __heart = ImageData.loadFromFile("res/heart-full.png")
+    __heartEmpty = ImageData.loadFromFile("res/heart-empty.png")
   }
 
   static update() {

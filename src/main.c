@@ -55,11 +55,13 @@ int main(int argc, char* args[])
   char* gameFile;
 
   mal_decoder decoder;
-  mal_result malResult = mal_decoder_init_file(args[1], NULL, &decoder);
+  /*
+  // mal_result malResult = mal_decoder_init_file(args[1], NULL, &decoder);
   if (malResult != MAL_SUCCESS) {
       return -2;
   }
    mal_decoder_uninit(&decoder);
+  */
 
   //Initialize SDL
   if(SDL_Init(SDL_INIT_VIDEO) < 0)
