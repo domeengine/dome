@@ -115,6 +115,9 @@ int16_t mid(int16_t n1, int16_t n2, int16_t n3) {
 
 void ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
   // Draw pixel at (x,y)
+  if ((c | (0xFF << 24)) == 0) {
+    return;
+  }
   if (0 <= x && x < GAME_WIDTH && 0 <= y && y < GAME_HEIGHT) {
     ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x] = c;
   }

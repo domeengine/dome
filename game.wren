@@ -129,7 +129,8 @@ class Bullet {
 
   draw() {
     var color = Color.white
-    Canvas.rectfill(_x, _y, 2, 4, color)
+    Canvas.rectfill(_x, _y, 2, 2, Color.white)
+    Canvas.rectfill(_x, _y+2, 2, 4, Color.darkgray)
   }
 }
 
@@ -333,6 +334,7 @@ class MainGame {
     __ship.draw(__t)
     __explosions.each {|explosion| explosion.draw() }
 
+    Canvas.rectfill(0,0, 320,10, Color.black)
     // Draw UI
     for (i in 1..3) {
       if (i <= __ship.health) {
