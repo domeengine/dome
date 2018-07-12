@@ -18,14 +18,6 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "include/stb_truetype.h"
 
-#define DR_MP3_IMPLEMENTATION
-#include "mini_al/extras/dr_mp3.h"   // Enables MP3 decoding.
-#define DR_WAV_IMPLEMENTATION
-#include "mini_al/extras/dr_wav.h"   // Enables WAV decoding.
-
-#define MINI_AL_IMPLEMENTATION
-#include "mini_al/mini_al.h"
-
 #define internal static
 #define global_variable static
 #define local_persist static
@@ -54,17 +46,8 @@ int main(int argc, char* args[])
   WrenVM* vm = NULL;
   char* gameFile;
 
-  mal_decoder decoder;
-  /*
-  // mal_result malResult = mal_decoder_init_file(args[1], NULL, &decoder);
-  if (malResult != MAL_SUCCESS) {
-      return -2;
-  }
-   mal_decoder_uninit(&decoder);
-  */
-
   //Initialize SDL
-  if(SDL_Init(SDL_INIT_VIDEO) < 0)
+  if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
   {
     printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     result = EXIT_FAILURE;
@@ -85,6 +68,19 @@ int main(int argc, char* args[])
   if (result == EXIT_FAILURE) {
     goto cleanup;
   };
+
+  SDL_AudioSpec wavSpec;
+  Uint32 wavLength;
+  Uint8 *wavBuffer;
+
+  SDL_LoadWAV("res/Laser_Shoot.wav", &wavSpec, &wavBuffer, &wavLength);
+  // open audio device
+
+  SDL_AudioDeviceID deviceId = SDL_OpenAudioDevice(NULL, 0, &wavSpec, NULL, 0);
+  // play audio
+
+  int success = SDL_QueueAudio(deviceId, wavBuffer, wavLength);
+  SDL_PauseAudioDevice(deviceId, 0);
 
   // Configure Wren VM
   vm = VM_create(&engine);
@@ -189,6 +185,8 @@ int main(int argc, char* args[])
 cleanup:
   // Free resources
   VM_free(vm);
+  SDL_CloseAudioDevice(deviceId);
+  SDL_FreeWAV(wavBuffer);
   ENGINE_free(&engine);
   //Quit SDL subsystems
   if (strlen(SDL_GetError()) > 0) {
