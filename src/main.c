@@ -40,6 +40,28 @@ const int32_t MS_PER_FRAME = 1000 / FPS;
 #include "engine/point.c"
 #include "vm.c"
 
+// variable declarations
+static uint8_t audioScale = 14;
+
+
+// audio callback function
+// here you have to copy the data of your audio buffer into the
+// requesting audio buffer (stream)
+// you should only copy as much as the requested length (len)
+void my_audio_callback(void *userdata, uint8_t *stream, int len) {
+
+  // We need to cast the pointer to the actual type for our data.
+  int16_t *buf = (int16_t*)stream;
+  // And account for the fact that a larger type means a "smaller" buffer.
+  len = len / 2;
+
+  // Copy and perform DSP here
+  for (int i = 0; i < len/2; i++) {
+    buf[i] = (i % 2 == 0) ? (1<<audioScale) : -(1<<audioScale);
+    buf[i+1] = (i % 2 == 0) ? (1<<audioScale) : -(1<<audioScale);
+  }
+}
+
 int main(int argc, char* args[])
 {
   int result = EXIT_SUCCESS;
@@ -70,16 +92,24 @@ int main(int argc, char* args[])
   };
 
   SDL_AudioSpec wavSpec;
-  Uint32 wavLength;
-  Uint8 *wavBuffer;
+  uint32_t wavLength;
+  uint8_t* wavBuffer;
 
   SDL_LoadWAV("res/Laser_Shoot.wav", &wavSpec, &wavBuffer, &wavLength);
-  // open audio device
+  // set the callback function
+	wavSpec.callback = my_audio_callback;
+	wavSpec.userdata = NULL;
+	// set our global static variables
+	audio_pos = wavBuffer; // copy sound buffer
+	audio_len = wavLength; // copy file length
+  printf("%i\n", wavSpec.format);
 
+  // open audio device
   SDL_AudioDeviceID deviceId = SDL_OpenAudioDevice(NULL, 0, &wavSpec, NULL, 0);
+
   // play audio
 
-  int success = SDL_QueueAudio(deviceId, wavBuffer, wavLength);
+  // int success = SDL_QueueAudio(deviceId, wavBuffer, wavLength);
   SDL_PauseAudioDevice(deviceId, 0);
 
   // Configure Wren VM
@@ -175,6 +205,12 @@ int main(int argc, char* args[])
     char buffer[20];
     snprintf(buffer, sizeof(buffer), "DOME - %.02f fps", 1000.0 / (elapsed+1));   // here 2 means binary
     SDL_SetWindowTitle(engine.window, buffer);
+    SDL_LockAudioDevice(deviceId);
+    audioScale--;
+    if (audioScale < 0) {
+      audioScale = 15;
+    }
+    SDL_UnlockAudioDevice(deviceId);
   }
 
   wrenReleaseHandle(vm, initMethod);
