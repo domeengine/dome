@@ -1,6 +1,8 @@
 // Encapsulates the data of the currently playing channel
-class Channel {
+foreign class AudioChannel {
   construct new(id, audio) {}
+  foreign isFinished
+  foreign id
 }
 
 // Represents the data of an audio file
@@ -15,6 +17,8 @@ foreign class AudioEngineImpl {
   construct init() {
     __files = {}
     __playing = []
+    __channels = {}
+    __newChannelId = 42
   }
   // TODO: Allow device enumeration and selection
 
@@ -41,7 +45,10 @@ foreign class AudioEngineImpl {
   play(name, volume) {}
   play(name, volume, pan) {
     if (__files.containsKey(name)) {
-      __playing.add(__files[name])
+      var channel = AudioChannel.new(__newChannelId, __files[name])
+      __playing.add(channel)
+      __channels[__newChannelId] = channel
+      __newChannelId = __newChannelId + 1
     }
   }
 
@@ -49,11 +56,19 @@ foreign class AudioEngineImpl {
   setChannelVolume(channelId, volume) {}
   setChannelPan(channelId, pan) {}
   stopAllChannels() {}
-  isPlaying(channelId) {}
+  isPlaying(channelId) { }
 
   update() {
+    __playing = __playing.where {|channel|
+      var finished = !channel.isFinished
+      if (finished) {
+        __channels[channel.id] = null
+      }
+      return finished
+    }.toList
     f_update(__playing)
-    __playing = []
+    System.gc()
+    // __playing = []
   }
   foreign f_update(list)
 }

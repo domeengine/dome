@@ -7,17 +7,18 @@ typedef struct {
 } AUDIO_DATA;
 
 typedef struct {
-  uint32_t channelId;
+  bool enabled;
+  int16_t channelId;
   uint32_t position;
+  uint8_t volume;
   AUDIO_DATA* audio;
-}
+} AUDIO_CHANNEL;
 
 typedef struct {
   SDL_AudioDeviceID deviceId;
   SDL_AudioSpec spec;
-  AUDIO_DATA* playing;
-  bool enabled;
   int16_t audioScale;
+  AUDIO_CHANNEL* channels[4];
 } AUDIO_ENGINE;
 
 // audio callback function
@@ -27,29 +28,32 @@ typedef struct {
 void AUDIO_ENGINE_callback(void *userData, uint8_t *stream, int len) {
 
   AUDIO_ENGINE* audioEngine = (AUDIO_ENGINE*)userData;
-  if (audioEngine->playing != NULL) {
-
-
-  }
-
   // We need to cast the pointer to the actual type for our audio buffer.
   int16_t *buf = (int16_t*)stream;
   // And account for the fact that a larger type means a "smaller" buffer.
   len = len / 2;
 
-  // Copy and perform DSP here
-  int16_t audioScale = audioEngine->audioScale;
-  for (int i = 0; i < len/2; i++) {
-     if (audioEngine->playing == NULL) {
-       buf[i*2] = 0;
-       buf[i*2+1] = 0;
-     } else {
-       buf[i*2] = audioEngine->playing->buffer[i*2];
-       buf[i*2+1] = audioEngine->playing->buffer[i*2+1];
+  // Get channel
+  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)(audioEngine->channels[0]);
+  if (channel != NULL && channel->enabled) {
+    int16_t* channelBuffer = (int16_t*)(channel->audio->buffer);
+    channelBuffer += channel->position;
 
-     }
-    // buf[i*2] = (i % 2 == 0) ? (1<<audioScale) : -(1<<audioScale);
-    // buf[i*2 + 1] = (i % 2 == 0) ? (1<<audioScale) : -(1<<audioScale);
+    // Copy and perform DSP here
+    for (int i = 0; i < len/2; i++) {
+      buf[i*2] = channelBuffer[i*2];
+      buf[i*2+1] = channelBuffer[i*2+1];
+    }
+    channel->position += len*2;
+    if (channel->position >= channel->audio->length / 2) {
+      channel->enabled = false;
+    }
+  } else {
+    // Write silence
+    for (int i = 0; i < len/2; i++) {
+      buf[i*2] = 0;
+      buf[i*2+1] = 0;
+    }
   }
 }
 
@@ -78,6 +82,9 @@ internal void AUDIO_unload(WrenVM* vm) {
 internal void AUDIO_ENGINE_allocate(WrenVM* vm) {
   AUDIO_ENGINE* engine = (AUDIO_ENGINE*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_ENGINE));
   engine->audioScale = 15;
+  for (int i = 0; i < 4; i++) {
+    engine->channels[i] = NULL;
+  }
   // SETUP player
   // set the callback function
   (engine->spec).freq = 48000;
@@ -86,6 +93,7 @@ internal void AUDIO_ENGINE_allocate(WrenVM* vm) {
   (engine->spec).samples = 4096;
   (engine->spec).callback = AUDIO_ENGINE_callback;
   (engine->spec).userdata = engine;
+
 
   // open audio device
   engine->deviceId = SDL_OpenAudioDevice(NULL, 0, &(engine->spec), NULL, SDL_AUDIO_ALLOW_ANY_CHANGE);
@@ -99,16 +107,18 @@ internal void AUDIO_ENGINE_update(WrenVM* vm) {
   // We need additional slots to parse a list
   wrenEnsureSlots(vm, 3);
   AUDIO_ENGINE* data = (AUDIO_ENGINE*)wrenGetSlotForeign(vm, 0);
-  uint8_t soundCount = wrenGetListCount(vm, 1);
-  data->playing = NULL;
-  for (int i = 0; i < soundCount; i++) {
-    wrenGetListElement(vm, 1, i, 2);
-    data->playing = wrenGetSlotForeign(vm, 2);
-  }
   SDL_LockAudioDevice(data->deviceId);
-  data->audioScale--;
-  if (data->audioScale < 0) {
-    data->audioScale = 14;
+  uint8_t soundCount = wrenGetListCount(vm, 1);
+  //printf("Count %i\n", soundCount);
+  for (int i = 0; i < 4; i++) {
+    if (i < soundCount) {
+      wrenGetListElement(vm, 1, i, 2);
+      if (wrenGetSlotType(vm, 2) != WREN_TYPE_NULL) {
+        data->channels[i] = wrenGetSlotForeign(vm, 2);
+      }
+    } else {
+      data->channels[i] = NULL;
+    }
   }
   SDL_UnlockAudioDevice(data->deviceId);
 }
@@ -116,9 +126,35 @@ internal void AUDIO_ENGINE_update(WrenVM* vm) {
 internal void AUDIO_ENGINE_finalize(void* audioEngine) {
   // We might need to free contained audio here
   AUDIO_ENGINE* engine = (AUDIO_ENGINE*)audioEngine;
+  SDL_LockAudioDevice(engine->deviceId);
   SDL_PauseAudioDevice(engine->deviceId, 1);
   SDL_CloseAudioDevice(engine->deviceId);
+  SDL_UnlockAudioDevice(engine->deviceId);
 }
+
+internal void AUDIO_CHANNEL_allocate(WrenVM* vm) {
+  AUDIO_CHANNEL* data = (AUDIO_CHANNEL*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_CHANNEL));
+  int16_t id = (int16_t)wrenGetSlotDouble(vm, 1);
+  data->channelId = id;
+  data->enabled = true;
+  data->audio = (AUDIO_DATA*)wrenGetSlotForeign(vm, 2);
+}
+
+internal void AUDIO_CHANNEL_isFinished(WrenVM* vm) {
+  AUDIO_CHANNEL* data = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
+  wrenSetSlotBool(vm, 0, !data->enabled);
+}
+
+internal void AUDIO_CHANNEL_getId(WrenVM* vm) {
+  AUDIO_CHANNEL* data = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
+  wrenSetSlotDouble(vm, 0, !data->channelId);
+}
+
+internal void AUDIO_CHANNEL_finalize(void* data) {
+  printf("Channel finished\n");
+}
+
+
 /*
 internal double
 dbToVolume(double dB) {
