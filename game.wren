@@ -214,6 +214,7 @@ class MainGame {
     __heart = ImageData.loadFromFile("res/heart-full.png")
     __heartEmpty = ImageData.loadFromFile("res/heart-empty.png")
     AudioEngine.load("fire", "res/Laser_Shoot.wav")
+    AudioEngine.play("fire")
   }
 
   static update() {

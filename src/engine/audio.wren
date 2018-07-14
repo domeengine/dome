@@ -82,7 +82,6 @@ foreign class AudioEngineImpl {
     }.toList
 
     f_update(playing)
-//     System.gc()
   }
   foreign f_update(list)
 }

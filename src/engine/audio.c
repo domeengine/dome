@@ -22,6 +22,9 @@ typedef struct {
   AUDIO_CHANNEL* channels[4];
 } AUDIO_ENGINE;
 
+const int16_t bytesPerSample = 2;
+const int16_t channels = 2;
+
 // audio callback function
 // here you have to copy the data of your audio buffer into the
 // requesting audio buffer (stream)
@@ -33,27 +36,27 @@ void AUDIO_ENGINE_callback(void *userData, uint8_t *stream, int len) {
   // We need to cast the pointer to the actual type for our audio buffer.
   int16_t* buf = (int16_t*)stream;
   // And account for the fact that a larger type means a "smaller" buffer.
-  len = len / 2;
+
+  int16_t timeLengthRequested = len / (bytesPerSample * channels);
 
   // Get channel
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)(audioEngine->channels[0]);
   if (channel != NULL && channel->enabled) {
-    int16_t* channelBuffer = (int16_t*)(channel->audio->buffer);
-    channelBuffer += channel->position;
+    AUDIO_DATA* audio = channel->audio;
+    int16_t* pendingPlayBuffer = (int16_t*)(audio->buffer);
+    pendingPlayBuffer += channel->position;
+    int16_t remainingInChannel = (audio->length / channels) - channel->position;
 
     // Copy and perform DSP here
-    for (int i = 0; i < len/2; i++) {
-      uint16_t remaining = (channel->audio->length / 2) - channel->position;
+    for (int i = 0; i < min(timeLengthRequested, remainingInChannel); i++) {
 
-      if (i <= remaining/4) {
-        buf[i*2] = channelBuffer[i*2];
-        buf[i*2+1] = channelBuffer[i*2+1];
+      if (i <= remainingInChannel) {
+        buf[i*2] = pendingPlayBuffer[i*2];
+        buf[i*2+1] = pendingPlayBuffer[i*2+1];
       }
     }
-    channel->position += len*2;
-    if (channel->position >= channel->audio->length / 2) {
-      channel->enabled = false;
-    }
+    channel->position += timeLengthRequested * channels; // positions is int16_t
+    channel->enabled = remainingInChannel < 0;
   }
 }
 
