@@ -14,6 +14,7 @@ foreign class AudioData {
 foreign class AudioEngineImpl {
   construct init() {
     __files = {}
+    __playing = []
   }
   // TODO: Allow device enumeration and selection
 
@@ -38,7 +39,11 @@ foreign class AudioEngineImpl {
   // audio mix operations
   play(name) { play(name, 0.5, 0) }
   play(name, volume) {}
-  play(name, volume, pan) {}
+  play(name, volume, pan) {
+    if (__files.containsKey(name)) {
+      __playing.add(__files[name])
+    }
+  }
 
   stopChannel(channelId) {}
   setChannelVolume(channelId, volume) {}
@@ -46,7 +51,11 @@ foreign class AudioEngineImpl {
   stopAllChannels() {}
   isPlaying(channelId) {}
 
-  foreign update()
+  update() {
+    f_update(__playing)
+    __playing = []
+  }
+  foreign f_update(list)
 }
 
 // We only intend to expose this
