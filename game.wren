@@ -1,5 +1,6 @@
 import "input" for Keyboard
 import "graphics" for Canvas, Color, ImageData, Point
+import "audio" for AudioEngine
 // The default random module seems to be broken currently
 // import "random" for Random
 
@@ -237,6 +238,7 @@ class MainGame {
     __lastFire = 0
     __heart = ImageData.loadFromFile("res/heart-full.png")
     __heartEmpty = ImageData.loadFromFile("res/heart-empty.png")
+    AudioEngine.load("fire", "res/Laser_Shoot.wav")
   }
 
   static update() {
@@ -258,8 +260,10 @@ class MainGame {
       }
       if (Keyboard.isKeyDown("space") && (__t - __lastFire) > 10) {
         __bullets.add(Bullet.fire(__ship.x+2, __ship.y))
-          __lastFire = __t
+        __lastFire = __t
+        AudioEngine.play("fire")
       }
+      AudioEngine.update()
 
     }
 
