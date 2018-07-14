@@ -3,6 +3,7 @@ foreign class AudioChannel {
   construct new(id, audio) {}
   foreign isFinished
   foreign id
+  foreign enabled=(id)
 }
 
 // Represents the data of an audio file
@@ -16,7 +17,6 @@ foreign class AudioData {
 foreign class AudioEngineImpl {
   construct init() {
     __files = {}
-    __playing = []
     __channels = {}
     __newChannelId = 42
   }
@@ -46,29 +46,46 @@ foreign class AudioEngineImpl {
   play(name, volume, pan) {
     if (__files.containsKey(name)) {
       var channel = AudioChannel.new(__newChannelId, __files[name])
-      __playing.add(channel)
       __channels[__newChannelId] = channel
       __newChannelId = __newChannelId + 1
     }
+    return __newChannelId
   }
 
-  stopChannel(channelId) {}
+  stopChannel(channelId) {
+    if (__channels.containsKey(channelId)) {
+      __channels[channelId].enabled = false
+    }
+  }
+
   setChannelVolume(channelId, volume) {}
   setChannelPan(channelId, pan) {}
-  stopAllChannels() {}
-  isPlaying(channelId) { }
+
+  stopAllChannels() {
+    System.print(__channels.values)
+    __channels.values.each { |channel| channel.enabled = false }
+  }
+
+  isPlaying(channelId) {
+    if (__channels.containsKey(channelId)) {
+      return !__channels[channelId].isFinished
+    }
+    return false
+  }
 
   update() {
-    __playing = __playing.where {|channel|
-      var finished = !channel.isFinished
-      if (finished) {
-        __channels[channel.id] = null
+    var playing = __channels.values.where {|channel|
+      var stillPlaying = !channel.isFinished
+      if (!stillPlaying) {
+        System.print(channel.id)
+        __channels.remove(channel.id)
       }
-      return finished
+      return stillPlaying
     }.toList
-    f_update(__playing)
+
+    f_update(playing)
+    System.print(__channels)
     System.gc()
-    // __playing = []
   }
   foreign f_update(list)
 }

@@ -258,13 +258,15 @@ class MainGame {
       if (Keyboard.isKeyDown("down")) {
         y = 1
       }
-      if (Keyboard.isKeyDown("space") && (__t - __lastFire) > 10) {
-        __bullets.add(Bullet.fire(__ship.x+2, __ship.y))
-        __lastFire = __t
+      if (Keyboard.isKeyDown("space")) {
+        if ((__t - __lastFire) > 10) {
+          __bullets.add(Bullet.fire(__ship.x+2, __ship.y))
+          __lastFire = __t
+          AudioEngine.stopAllChannels()
+        }
         AudioEngine.play("fire")
       }
       AudioEngine.update()
-
     }
 
     __ship.move(x, y)

@@ -147,15 +147,18 @@ internal void AUDIO_CHANNEL_isFinished(WrenVM* vm) {
 
 internal void AUDIO_CHANNEL_getId(WrenVM* vm) {
   AUDIO_CHANNEL* data = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
-  wrenSetSlotDouble(vm, 0, !data->channelId);
+  wrenSetSlotDouble(vm, 0, data->channelId);
+}
+
+internal void AUDIO_CHANNEL_setEnabled(WrenVM* vm) {
+  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
+  channel->enabled = wrenGetSlotBool(vm, 1);
 }
 
 internal void AUDIO_CHANNEL_finalize(void* data) {
   printf("Channel finished\n");
 }
 
-
-/*
 internal double
 dbToVolume(double dB) {
   return pow(10.0, 0.05 * dB);
@@ -165,11 +168,3 @@ internal double
 volumeToDb(double volume) {
   return 20.0 * log10(volume);
 }
-
-
-internal int AUDIO_ENGINE_play_sound(char* soundName, double volume) {}
-internal void AUDIO_ENGINE_stop_channel(uint16_t channelId) {}
-internal void AUDIO_ENGINE_stop_all_channels() {}
-internal void AUDIO_ENGINE_set_channel_volume(uint16_t channelId, double volume) {}
-internal bool AUDIO_ENGINE_is_playing(uint16_t channelId) {}
-*/
