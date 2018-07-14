@@ -62,7 +62,6 @@ foreign class AudioEngineImpl {
   setChannelPan(channelId, pan) {}
 
   stopAllChannels() {
-    System.print(__channels.values)
     __channels.values.each { |channel| channel.enabled = false }
   }
 
@@ -77,15 +76,13 @@ foreign class AudioEngineImpl {
     var playing = __channels.values.where {|channel|
       var stillPlaying = !channel.isFinished
       if (!stillPlaying) {
-        System.print(channel.id)
         __channels.remove(channel.id)
       }
       return stillPlaying
     }.toList
 
     f_update(playing)
-    System.print(__channels)
-    System.gc()
+//     System.gc()
   }
   foreign f_update(list)
 }

@@ -1,8 +1,7 @@
 import "input" for Keyboard
 import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
-// The default random module seems to be broken currently
-// import "random" for Random
+import "random" for Random
 
 // Consider moving Box to "graphics"
 class Box {
@@ -15,30 +14,6 @@ class Box {
   y1 { _p1.y }
   x2 { _p2.x }
   y2 { _p2.y }
-
-}
-
-
-class Random {
-  construct new(seed) {
-    _seed = (seed % 2147483646).abs % 2147483647
-    if (_seed <= 0) {
-      _seed = _seed + 2147483646
-    }
-  }
-
-  next() {
-   _seed = _seed * 16807 % 2147483647
-   return _seed
-  }
-
-  int(n) {
-    return next() % n
-  }
-
-  float() {
-    return (next() - 1) / 2147483646
-  }
 }
 
 // -------------------------
@@ -262,12 +237,12 @@ class MainGame {
         if ((__t - __lastFire) > 10) {
           __bullets.add(Bullet.fire(__ship.x+2, __ship.y))
           __lastFire = __t
-          AudioEngine.stopAllChannels()
+          AudioEngine.play("fire")
         }
-        AudioEngine.play("fire")
       }
-      AudioEngine.update()
     }
+    // TODO: Remove this and embed it in main engine
+    AudioEngine.update()
 
     __ship.move(x, y)
 
