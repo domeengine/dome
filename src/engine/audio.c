@@ -1,3 +1,5 @@
+#define CHANNEL_MAX 4
+
 
 typedef struct {
   SDL_AudioSpec spec;
@@ -19,7 +21,7 @@ typedef struct {
   SDL_AudioDeviceID deviceId;
   SDL_AudioSpec spec;
   int16_t audioScale;
-  AUDIO_CHANNEL* channels[4];
+  AUDIO_CHANNEL* channels[CHANNEL_MAX];
 } AUDIO_ENGINE;
 
 const int16_t bytesPerSample = 2;
@@ -93,7 +95,7 @@ internal void AUDIO_ENGINE_allocate(WrenVM* vm) {
   (engine->spec).freq = 48000;
   (engine->spec).format = AUDIO_S16LSB;
   (engine->spec).channels = 2; // TODO: consider mono/stereo
-  (engine->spec).samples = 1024*4;
+  (engine->spec).samples = 4096;
   (engine->spec).callback = AUDIO_ENGINE_callback;
   (engine->spec).userdata = engine;
 
@@ -112,7 +114,7 @@ internal void AUDIO_ENGINE_update(WrenVM* vm) {
   AUDIO_ENGINE* data = (AUDIO_ENGINE*)wrenGetSlotForeign(vm, 0);
   SDL_LockAudioDevice(data->deviceId);
   uint8_t soundCount = wrenGetListCount(vm, 1);
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < CHANNEL_MAX; i++) {
     if (i < soundCount) {
       wrenGetListElement(vm, 1, i, 2);
       if (wrenGetSlotType(vm, 2) != WREN_TYPE_NULL) {
