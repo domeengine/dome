@@ -28,6 +28,24 @@ typedef struct {
 const uint16_t bytesPerSample = 2;
 const uint16_t channels = 2;
 
+internal void DEBUG_printAudioSpec(SDL_AudioSpec spec) {
+  printf("Frequency: %i Hz\n", spec.freq);
+  printf("Samples: %i\n", spec.samples);
+  printf("Channels: %i\n", spec.channels);
+  printf("Format: ");
+  if (SDL_AUDIO_ISSIGNED(spec.format)) {
+    printf("Signed ");
+  } else {
+    printf("Unsigned ");
+  }
+  printf("%i bit (", SDL_AUDIO_BITSIZE(spec.format));
+  if (SDL_AUDIO_ISLITTLEENDIAN(spec.format)) {
+    printf("LSB");
+  } else {
+    printf("MSB");
+  }
+  printf(")\n");
+}
 
 // audio callback function
 // here you have to copy the data of your audio buffer into the
@@ -37,7 +55,7 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
   uint16_t* writeCursor = (uint16_t*)(audioEngine->outputBuffer);
   uint32_t totalSamples = audioEngine->spec.samples;
   uint32_t outputBufferSize = totalSamples * channels * bytesPerSample;
-  SDL_memset(writeCursor, 0, totalSamples);
+  SDL_memset(writeCursor, 0, outputBufferSize);
   uint32_t samplesWritten = 0;
 
   // Get channel
@@ -51,12 +69,16 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
 
     // Mono data needs to be interleaved to output to stereo
     for (size_t i = 0; i < min(samplesToWrite, samplesInChannel); i++) {
-      writeCursor[i*channels] = readCursor[i];
-      writeCursor[i*channels+1] = readCursor[i];
+      for (int j = 0; j < channels; j++) {
+        writeCursor[i*channels+j] = readCursor[i];
+      }
       samplesWritten++;
     }
     channel->position += samplesWritten; // account for channel
-    channel->enabled = channel->position < audio->length / bytesPerSample;
+    channel->enabled = channel->position < audio->length / (bytesPerSample * audio->spec.channels);
+    if (channel->enabled == false) {
+      printf("ended\n");
+    }
     SDL_QueueAudio(audioEngine->deviceId, audioEngine->outputBuffer, samplesWritten*bytesPerSample*channels);
   }
 }
@@ -67,12 +89,10 @@ internal void AUDIO_allocate(WrenVM* vm) {
   strncpy(data->name, path, 255);
   data->name[255] = '\0';
   SDL_LoadWAV(path, &data->spec, &data->buffer, &data->length);
-  printf("%i\n", data->spec.freq);
-  printf("%i\n", data->spec.samples);
-  printf("%i\n", data->spec.format);
-  printf("%i\n", data->spec.channels);
+  DEBUG_printAudioSpec(data->spec);
   printf("Audio loaded: %s\n", path);
 }
+
 
 internal void AUDIO_finalize(void* data) {
   AUDIO_DATA* audioData = (AUDIO_DATA*)data;
@@ -98,7 +118,7 @@ internal void AUDIO_ENGINE_allocate(WrenVM* vm) {
   (engine->spec).freq = 44100;
   (engine->spec).format = AUDIO_S16LSB;
   (engine->spec).channels = channels; // TODO: consider mono/stereo
-  (engine->spec).samples = 4096;
+  (engine->spec).samples = 1024;
   (engine->spec).callback = NULL;
   (engine->spec).userdata = engine;
 
