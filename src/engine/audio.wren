@@ -80,7 +80,6 @@ foreign class AudioEngineImpl {
       }
       return stillPlaying
     }.toList
-    System.print("Audio Update")
     f_update(playing)
   }
   foreign f_update(list)
