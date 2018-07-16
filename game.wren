@@ -242,7 +242,7 @@ class MainGame {
       }
     }
     // TODO: Remove this and embed it in main engine
-    AudioEngine.update()
+    // AudioEngine.update()
 
     __ship.move(x, y)
 

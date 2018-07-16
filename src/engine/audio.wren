@@ -80,7 +80,7 @@ foreign class AudioEngineImpl {
       }
       return stillPlaying
     }.toList
-
+    System.print("Audio Update")
     f_update(playing)
   }
   foreign f_update(list)
@@ -88,3 +88,4 @@ foreign class AudioEngineImpl {
 
 // We only intend to expose this
 var AudioEngine = AudioEngineImpl.init()
+var AudioEngine_internal = AudioEngine
