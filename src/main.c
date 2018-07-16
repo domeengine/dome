@@ -75,10 +75,14 @@ int main(int argc, char* args[])
     goto cleanup;
   };
 
+  char* initFile = readEntireFile("src/engine/init.wren");
+  char* completeGameFile = calloc(strlen(initFile) + strlen(gameFile), sizeof(char));
+  strcpy(completeGameFile, initFile);
+  strcpy(completeGameFile+strlen(initFile), gameFile);
 
   // Configure Wren VM
   vm = VM_create(&engine);
-  WrenInterpretResult interpreterResult = wrenInterpret(vm, gameFile);
+  WrenInterpretResult interpreterResult = wrenInterpret(vm, completeGameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
     goto cleanup;
@@ -91,6 +95,8 @@ int main(int argc, char* args[])
   wrenEnsureSlots(vm, 2);
   wrenGetVariable(vm, "main", "Game", 0);
   WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
+  wrenGetVariable(vm, "main", "AudioEngine_internal", 0);
+  WrenHandle* audioEngineClass = wrenGetSlotHandle(vm, 0);
 
   // Initiate game loop
   wrenSetSlotHandle(vm, 0, gameClass);
@@ -146,8 +152,13 @@ int main(int argc, char* args[])
       lag -= MS_PER_FRAME;
       attempts += 1;
     }
-    if (lag > 0) {
-      // SDL_Delay((uint32_t)lag);
+
+    // Update audio system
+    wrenSetSlotHandle(vm, 0, audioEngineClass);
+    interpreterResult = wrenCall(vm, updateMethod);
+    if (interpreterResult != WREN_RESULT_SUCCESS) {
+      result = EXIT_FAILURE;
+      goto cleanup;
     }
 
     // render();
@@ -175,6 +186,7 @@ int main(int argc, char* args[])
   wrenReleaseHandle(vm, drawMethod);
   wrenReleaseHandle(vm, updateMethod);
   wrenReleaseHandle(vm, gameClass);
+  wrenReleaseHandle(vm, audioEngineClass);
 
 cleanup:
   // Free resources
