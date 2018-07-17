@@ -1,6 +1,5 @@
 #define CHANNEL_MAX 4
 
-
 typedef struct {
   SDL_AudioSpec spec;
   uint32_t length;
@@ -25,73 +24,53 @@ typedef struct {
   AUDIO_CHANNEL* channels[CHANNEL_MAX];
 } AUDIO_ENGINE;
 
-const uint16_t bytesPerSample = 2;
 const uint16_t channels = 2;
-
-internal void DEBUG_printFloat(float f) {
-  printf("%f\n", f);
-}
-internal void DEBUG_printInt(int i) {
-  printf("%i\n", i);
-}
-internal void DEBUG_printString(char* str) {
-  printf("%s\n", str);
-}
-
-internal void DEBUG_printAudioSpec(SDL_AudioSpec spec) {
-  printf("Frequency: %i Hz\n", spec.freq);
-  printf("Samples: %i\n", spec.samples);
-  printf("Channels: %i\n", spec.channels);
-  printf("Format: ");
-  if (SDL_AUDIO_ISSIGNED(spec.format)) {
-    printf("Signed ");
-  } else {
-    printf("Unsigned ");
-  }
-  printf("%i bit (", SDL_AUDIO_BITSIZE(spec.format));
-  if (SDL_AUDIO_ISLITTLEENDIAN(spec.format)) {
-    printf("LSB");
-  } else {
-    printf("MSB");
-  }
-  printf(")\n");
-}
+const uint16_t bytesPerSample = 2 * channels;
 
 // audio callback function
 // here you have to copy the data of your audio buffer into the
 // requesting audio buffer (stream)
 // you should only copy as much as the requested length (len)
 void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
-  uint16_t* writeCursor = (uint16_t*)(audioEngine->outputBuffer);
   uint32_t totalSamples = audioEngine->spec.samples;
-  uint32_t outputBufferSize = totalSamples * channels * bytesPerSample * 8;
+  uint32_t outputBufferSize = totalSamples * bytesPerSample;
+
+  int16_t* writeCursor = (int16_t*)(audioEngine->outputBuffer);
   SDL_memset(writeCursor, 0, outputBufferSize);
+
+  int32_t samplesQueued = SDL_GetQueuedAudioSize(audioEngine->deviceId) / bytesPerSample;
+  int32_t samplesToWrite = totalSamples - samplesQueued;
+
   uint32_t samplesWritten = 0;
 
   // Get channel
-  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)(audioEngine->channels[0]);
-  if (channel != NULL && channel->enabled) {
-    AUDIO_DATA* audio = channel->audio;
-    /*
-    int32_t samplesInChannel = (audio->length - channel->position);
-    int32_t samplesQueued = (SDL_GetQueuedAudioSize(audioEngine->deviceId) / (bytesPerSample));
-    int32_t samplesToWrite = totalSamples - samplesQueued;
-    DEBUG_printInt(samplesToWrite);
-    DEBUG_printInt(samplesInChannel);
-    */
-    float* readCursor = (float*)(audio->buffer);
-    // readCursor += channel->position;
+  for (int i = 0; i < samplesToWrite; i++) {
+    int totalEnabled = 0;
+    float left = 0;
+    float right = 0;
+    for (int c = 0; c < 4; c++) {
+      AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)(audioEngine->channels[c]);
+      if (channel != NULL && channel->enabled) {
+        totalEnabled++;
+        AUDIO_DATA* audio = channel->audio;
+        float* readCursor = (float*)(audio->buffer);
+        readCursor += channel->position * channels;
 
-    // Mono data needs to be interleaved to output to stereo
-    for (size_t i = 0; i < audio->length; i++) {
-      writeCursor[i] = (int16_t)(readCursor[i] * INT16_MAX);
-      samplesWritten++;
+        // Mono data needs to be interleaved to output to stereo
+        left += readCursor[0];
+        right += readCursor[1];
+        channel->position++;
+        channel->enabled = channel->position < audio->length;
+      }
     }
-    channel->position += samplesWritten; // account for channel
-    channel->enabled = channel->position < audio->length;
-    channel->enabled = false;
-    SDL_QueueAudio(audioEngine->deviceId, audioEngine->outputBuffer, audio->length*bytesPerSample);
+    if (totalEnabled > 1) {
+      left = (float)tanh(left); ///= totalEnabled;
+      right = (float)tanh(right); //= totalEnabled;
+    }
+    writeCursor[i*2] = (int16_t)(left * INT16_MAX);
+    writeCursor[i*2+1] = (int16_t)(right * INT16_MAX);
   }
+  SDL_QueueAudio(audioEngine->deviceId, audioEngine->outputBuffer, samplesToWrite*bytesPerSample);
 }
 
 internal void AUDIO_allocate(WrenVM* vm) {
@@ -103,15 +82,12 @@ internal void AUDIO_allocate(WrenVM* vm) {
   SDL_LoadWAV(path, &data->spec, ((uint8_t**)&tempBuffer), &data->length);
   data->buffer = calloc(channels * data->length, sizeof(float));
   assert(data->buffer != NULL);
+  data->length /= 2;
   for (int i = 0; i < data->length; i++) {
     data->buffer[i * channels] = (float)(tempBuffer[i]) / INT16_MAX;
     if (data->spec.channels == 1) {
       data->buffer[i * channels + 1] = (float)(tempBuffer[i]) / INT16_MAX;
     }
-  }
-  data->length = (data->length / bytesPerSample);
-  if (data->spec.channels == 1) {
-    data->length = (data->length * channels);
   }
   SDL_FreeWAV((uint8_t*)tempBuffer);
   DEBUG_printAudioSpec(data->spec);
@@ -143,11 +119,11 @@ internal void AUDIO_ENGINE_allocate(WrenVM* vm) {
   (engine->spec).freq = 44100;
   (engine->spec).format = AUDIO_S16LSB;
   (engine->spec).channels = channels; // TODO: consider mono/stereo
-  (engine->spec).samples = 1024;
+  (engine->spec).samples = 2048;
   (engine->spec).callback = NULL;
   (engine->spec).userdata = engine;
 
-  engine->outputBuffer = calloc(engine->spec.samples * channels * bytesPerSample * 8, sizeof(uint8_t));
+  engine->outputBuffer = calloc(engine->spec.samples * channels * bytesPerSample, sizeof(uint8_t));
 
   // open audio device
   engine->deviceId = SDL_OpenAudioDevice(NULL, 0, &(engine->spec), NULL, 0);

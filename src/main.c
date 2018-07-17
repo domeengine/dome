@@ -32,6 +32,7 @@ const int32_t FPS = 60;
 const int32_t MS_PER_FRAME = 1000 / FPS;
 
 // Game code
+#include "debug.c"
 #include "util/font.c"
 #include "map.c"
 #include "io.c"
