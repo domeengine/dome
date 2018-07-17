@@ -1,4 +1,4 @@
-#define CHANNEL_MAX 4
+#define CHANNEL_MAX 8
 
 typedef struct {
   SDL_AudioSpec spec;
@@ -48,7 +48,7 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
     int totalEnabled = 0;
     float left = 0;
     float right = 0;
-    for (int c = 0; c < 4; c++) {
+    for (int c = 0; c < CHANNEL_MAX; c++) {
       AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)(audioEngine->channels[c]);
       if (channel != NULL && channel->enabled) {
         totalEnabled++;
@@ -80,13 +80,15 @@ internal void AUDIO_allocate(WrenVM* vm) {
   data->name[255] = '\0';
   int16_t* tempBuffer;
   SDL_LoadWAV(path, &data->spec, ((uint8_t**)&tempBuffer), &data->length);
+  data->length /= sizeof(int16_t) * data->spec.channels;
   data->buffer = calloc(channels * data->length, sizeof(float));
   assert(data->buffer != NULL);
-  data->length /= 2;
   for (int i = 0; i < data->length; i++) {
-    data->buffer[i * channels] = (float)(tempBuffer[i]) / INT16_MAX;
+    data->buffer[i * channels] = (float)(tempBuffer[i * data->spec.channels]) / INT16_MAX;
     if (data->spec.channels == 1) {
-      data->buffer[i * channels + 1] = (float)(tempBuffer[i]) / INT16_MAX;
+      data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels]) / INT16_MAX;
+    } else {
+      data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels + 1]) / INT16_MAX;
     }
   }
   SDL_FreeWAV((uint8_t*)tempBuffer);
@@ -111,7 +113,7 @@ internal void AUDIO_unload(WrenVM* vm) {
 internal void AUDIO_ENGINE_allocate(WrenVM* vm) {
   AUDIO_ENGINE* engine = (AUDIO_ENGINE*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_ENGINE));
   engine->audioScale = 15;
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < CHANNEL_MAX; i++) {
     engine->channels[i] = NULL;
   }
   // SETUP player
