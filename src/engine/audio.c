@@ -1,27 +1,35 @@
-#define CHANNEL_MAX 8
+#define AUDIO_CHANNEL_MAX 8
 
 typedef struct {
-  SDL_AudioSpec spec;
-  uint32_t length;
   char name[256];
+  SDL_AudioSpec spec;
+  // Length is the number of LR samples
+  uint32_t length;
+  // Audio is stored as a stream of interleaved normalised values from [-1, 1)
   float* buffer;
 } AUDIO_DATA;
 
 typedef struct {
-  bool enabled;
-  bool requestEnabled;
   int16_t channelId;
+  // Control variables
+  bool enabled;
+  bool loop;
+
+  // Playback variables
+  float volume;
+  float pan;
+
+  // Position is the sample value to play next
   uint32_t position;
-  uint8_t volume;
   AUDIO_DATA* audio;
 } AUDIO_CHANNEL;
 
 typedef struct {
   SDL_AudioDeviceID deviceId;
-  uint8_t* outputBuffer;
   SDL_AudioSpec spec;
   int16_t audioScale;
-  AUDIO_CHANNEL* channels[CHANNEL_MAX];
+  AUDIO_CHANNEL* channels[AUDIO_CHANNEL_MAX];
+  uint8_t* outputBuffer;
 } AUDIO_ENGINE;
 
 const uint16_t channels = 2;
@@ -48,7 +56,7 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
     int totalEnabled = 0;
     float left = 0;
     float right = 0;
-    for (int c = 0; c < CHANNEL_MAX; c++) {
+    for (int c = 0; c < AUDIO_CHANNEL_MAX; c++) {
       AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)(audioEngine->channels[c]);
       if (channel != NULL && channel->enabled) {
         totalEnabled++;
@@ -60,6 +68,9 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
         left += readCursor[0];
         right += readCursor[1];
         channel->position++;
+        if (channel->loop && channel->position >= audio->length) {
+          channel->position = 0;
+        }
         channel->enabled = channel->position < audio->length;
       }
     }
@@ -78,11 +89,13 @@ internal void AUDIO_allocate(WrenVM* vm) {
   const char* path = wrenGetSlotString(vm, 1);
   strncpy(data->name, path, 255);
   data->name[255] = '\0';
+
   int16_t* tempBuffer;
   SDL_LoadWAV(path, &data->spec, ((uint8_t**)&tempBuffer), &data->length);
   data->length /= sizeof(int16_t) * data->spec.channels;
   data->buffer = calloc(channels * data->length, sizeof(float));
   assert(data->buffer != NULL);
+  // Process incoming values into an intermediate mixable format
   for (int i = 0; i < data->length; i++) {
     data->buffer[i * channels] = (float)(tempBuffer[i * data->spec.channels]) / INT16_MAX;
     if (data->spec.channels == 1) {
@@ -95,7 +108,6 @@ internal void AUDIO_allocate(WrenVM* vm) {
   DEBUG_printAudioSpec(data->spec);
   printf("Audio loaded: %s\n", path);
 }
-
 
 internal void AUDIO_finalize(void* data) {
   AUDIO_DATA* audioData = (AUDIO_DATA*)data;
@@ -113,7 +125,7 @@ internal void AUDIO_unload(WrenVM* vm) {
 internal void AUDIO_ENGINE_allocate(WrenVM* vm) {
   AUDIO_ENGINE* engine = (AUDIO_ENGINE*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_ENGINE));
   engine->audioScale = 15;
-  for (int i = 0; i < CHANNEL_MAX; i++) {
+  for (int i = 0; i < AUDIO_CHANNEL_MAX; i++) {
     engine->channels[i] = NULL;
   }
   // SETUP player
@@ -140,12 +152,11 @@ internal void AUDIO_ENGINE_update(WrenVM* vm) {
   wrenEnsureSlots(vm, 3);
   AUDIO_ENGINE* data = (AUDIO_ENGINE*)wrenGetSlotForeign(vm, 0);
   uint8_t soundCount = wrenGetListCount(vm, 1);
-  for (int i = 0; i < CHANNEL_MAX; i++) {
+  for (int i = 0; i < AUDIO_CHANNEL_MAX; i++) {
     if (i < soundCount) {
       wrenGetListElement(vm, 1, i, 2);
       if (wrenGetSlotType(vm, 2) != WREN_TYPE_NULL) {
         data->channels[i] = wrenGetSlotForeign(vm, 2);
-        data->channels[i]->enabled = data->channels[i]->requestEnabled;
       }
     } else {
       data->channels[i] = NULL;
@@ -167,7 +178,7 @@ internal void AUDIO_CHANNEL_allocate(WrenVM* vm) {
   int16_t id = (int16_t)wrenGetSlotDouble(vm, 1);
   data->channelId = id;
   data->enabled = true;
-  data->requestEnabled = true;
+  data->loop = false;
   data->audio = (AUDIO_DATA*)wrenGetSlotForeign(vm, 2);
 }
 
@@ -183,7 +194,22 @@ internal void AUDIO_CHANNEL_getId(WrenVM* vm) {
 
 internal void AUDIO_CHANNEL_setEnabled(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
-  channel->requestEnabled = wrenGetSlotBool(vm, 1);
+  channel->enabled = wrenGetSlotBool(vm, 1);
+}
+
+internal void AUDIO_CHANNEL_setLoop(WrenVM* vm) {
+  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
+  channel->loop = wrenGetSlotBool(vm, 1);
+}
+
+internal void AUDIO_CHANNEL_setVolume(WrenVM* vm) {
+  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
+  channel->volume = (float)wrenGetSlotDouble(vm, 1);
+}
+
+internal void AUDIO_CHANNEL_setPan(WrenVM* vm) {
+  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
+  channel->pan = (float)wrenGetSlotDouble(vm, 1);
 }
 
 internal void AUDIO_CHANNEL_finalize(void* data) {

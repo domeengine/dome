@@ -181,6 +181,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // Audio
   MAP_add(&engine->fnMap, "audio", "AudioChannel", "enabled=(_)", false, AUDIO_CHANNEL_setEnabled);
+  MAP_add(&engine->fnMap, "audio", "AudioChannel", "loop=(_)", false, AUDIO_CHANNEL_setLoop);
+  MAP_add(&engine->fnMap, "audio", "AudioChannel", "pan=(_)", false, AUDIO_CHANNEL_setPan);
+  MAP_add(&engine->fnMap, "audio", "AudioChannel", "volume=(_)", false, AUDIO_CHANNEL_setVolume);
   MAP_add(&engine->fnMap, "audio", "AudioChannel", "isFinished", false, AUDIO_CHANNEL_isFinished);
   MAP_add(&engine->fnMap, "audio", "AudioChannel", "id", false, AUDIO_CHANNEL_getId);
   MAP_add(&engine->fnMap, "audio", "AudioData", "unload()", false, AUDIO_unload);

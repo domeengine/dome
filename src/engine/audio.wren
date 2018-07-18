@@ -4,6 +4,9 @@ foreign class AudioChannel {
   foreign isFinished
   foreign id
   foreign enabled=(id)
+  foreign loop=(do)
+  foreign pan=(pan)
+  foreign volume=(volume)
 }
 
 // Represents the data of an audio file
@@ -41,14 +44,20 @@ foreign class AudioEngineImpl {
   }
 
   // audio mix operations
-  play(name) { play(name, 0.5, 0) }
-  play(name, volume) {}
-  play(name, volume, pan) {
+  play(name) { play(name, 1, false, 0) }
+  play(name, volume) { play(name, volume, false, 0) }
+  play(name, volume, loop) { play(name, volume, loop, 0) }
+  play(name, volume, loop, pan) {
     if (__files.containsKey(name)) {
       var channel = AudioChannel.new(__newChannelId, __files[name])
       __channels[__newChannelId] = channel
       __newChannelId = __newChannelId + 1
+      channel.loop = loop
+      channel.volume = volume
+      channel.pan = pan
     }
+
+
     return __newChannelId
   }
 
@@ -60,6 +69,7 @@ foreign class AudioEngineImpl {
 
   setChannelVolume(channelId, volume) {}
   setChannelPan(channelId, pan) {}
+  setChannelLoop(channelId, loop) {}
 
   stopAllChannels() {
     __channels.values.each { |channel| channel.enabled = false }

@@ -216,7 +216,7 @@ class MainGame {
     AudioEngine.load("fire", "res/Laser_Shoot.wav")
     AudioEngine.load("explosion", "res/Explosion.wav")
     AudioEngine.load("music", "res/music.wav")
-    AudioEngine.play("music")
+    AudioEngine.play("music", 1, true)
   }
 
   static update() {
