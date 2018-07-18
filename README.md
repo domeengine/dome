@@ -71,20 +71,30 @@ DOME provides the following modules/methods/classes:
 - ImageData
   - Draw sprites loaded from files
 - Input
+- Audio (stereo and mono OGG and WAV files only)
+- Random
 
 ## TODO
 
 - IO
-- Audio
+- Graphics 
+  - Triangles
+- Network Access
 - Math
-- Random
+- Robust error checking
+- Documentation
 
 ## Dependencies
 
 DOME currently depends on a few libraries to achieve it's functions.
-- Wren (This is downloaded and built by `make` automatically)
+- Wren (This is built by `make` automatically)
 - SDL2
 
 ## Acknowledgements
 
-Font comes from [here](https://opengameart.org/content/ascii-bitmap-font-cellphone)
+- Bob Nystrom for creating Wren and inspiring me to make games, thanks to [Game Programming Patterns](http://gameprogrammingpatterns.com)
+- Font comes from [here](https://opengameart.org/content/ascii-bitmap-font-cellphone)
+- Sean Barrett for [multiple libraries](https://github.com/nothings/stb)
+- Example game and graphics are derived from [this](https://ztiromoritz.github.io/pico-8-shooter/) fantastic PICO-8 tutorial.
+- Aerith's Piano Theme (res/AerisPiano.ogg) by Tanner Helland is available under a CC BY-SA 3.0 license: [Link](http://www.tannerhelland.com/68/aeris-theme-piano/)
+- Game Over Theme (res/music.wav) by Doppelganger is available under a CC BY-SA 3.0 license: [Link](https://opengameart.org/content/game-over-theme)
