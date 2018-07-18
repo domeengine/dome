@@ -1,3 +1,12 @@
+
+// Represents the data of an audio file
+// which can be loaded and unloaded
+// It is otherwise opaque Wren-side
+foreign class AudioData {
+  construct fromFile(path) {}
+  foreign unload()
+}
+
 // Encapsulates the data of the currently playing channel
 foreign class AudioChannel {
   construct new(id, audio) {}
@@ -9,19 +18,11 @@ foreign class AudioChannel {
   foreign volume=(volume)
 }
 
-// Represents the data of an audio file
-// which can be loaded and unloaded
-// It is otherwise opaque Wren-side
-foreign class AudioData {
-  construct fromFile(path) {}
-  foreign unload()
-}
-
 foreign class AudioEngineImpl {
   construct init() {
     __files = {}
     __channels = {}
-    __newChannelId = 42
+    __newChannelId = 0
   }
   // TODO: Allow device enumeration and selection
 
@@ -56,7 +57,6 @@ foreign class AudioEngineImpl {
       channel.volume = volume
       channel.pan = pan
     }
-
 
     return __newChannelId
   }
@@ -97,4 +97,7 @@ foreign class AudioEngineImpl {
 
 // We only intend to expose this
 var AudioEngine = AudioEngineImpl.init()
+
+// We need the same engine under a different name so that we can
+// call it from C with a unique import.
 var AudioEngine_internal = AudioEngine
