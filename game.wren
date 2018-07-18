@@ -216,13 +216,14 @@ class MainGame {
     AudioEngine.load("fire", "res/Laser_Shoot.wav")
     AudioEngine.load("explosion", "res/Explosion.wav")
     AudioEngine.load("music", "res/music.wav")
-    AudioEngine.play("music", 1, true)
+    __channel = AudioEngine.play("music", 1, true, -0.5)
   }
 
   static update() {
     __t = __t + 1
     var x = 0
     var y = 0
+    AudioEngine.setChannelPan(__channel, (((__t / 60) % 20) * 0.1) - 1 )
     if (__ship.health > 0) {
       if (Keyboard.isKeyDown("left")) {
         x = -1

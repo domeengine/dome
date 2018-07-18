@@ -50,9 +50,9 @@ foreign class AudioEngineImpl {
   play(name, volume, loop) { play(name, volume, loop, 0) }
   play(name, volume, loop, pan) {
     if (__files.containsKey(name)) {
+      __newChannelId = __newChannelId + 1
       var channel = AudioChannel.new(__newChannelId, __files[name])
       __channels[__newChannelId] = channel
-      __newChannelId = __newChannelId + 1
       channel.loop = loop
       channel.volume = volume
       channel.pan = pan
@@ -67,9 +67,24 @@ foreign class AudioEngineImpl {
     }
   }
 
-  setChannelVolume(channelId, volume) {}
-  setChannelPan(channelId, pan) {}
-  setChannelLoop(channelId, loop) {}
+  setChannelVolume(channelId, volume) {
+    if (__channels.containsKey(channelId)) {
+      __channels[channelId].volume = volume
+    }
+  }
+
+  setChannelPan(channelId, pan) {
+    if (__channels.containsKey(channelId)) {
+      __channels[channelId].pan = pan
+    }
+  }
+
+
+  setChannelLoop(channelId, loop) {
+    if (__channels.containsKey(channelId)) {
+      __channels[channelId].loop = loop
+    }
+  }
 
   stopAllChannels() {
     __channels.values.each { |channel| channel.enabled = false }

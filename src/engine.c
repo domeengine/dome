@@ -86,33 +86,6 @@ internal void ENGINE_free(ENGINE* engine) {
   }
 }
 
-int16_t min(int16_t n1, int16_t n2) {
-  if (n1 < n2) {
-    return n1;
-  }
-  return n2;
-}
-
-int16_t mid(int16_t n1, int16_t n2, int16_t n3) {
-  int16_t temp;
-  if (n1 > n3) {
-    temp = n1;
-    n1 = n3;
-    n3 = temp;
-  }
-  if (n1 > n2) {
-    temp = n1;
-    n1 = n2;
-    n2 = temp;
-  }
-  if (n2 < n3) {
-    return n2;
-  } else {
-    return n3;
-  }
-}
-
-
 void ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
   // Draw pixel at (x,y)
   if ((c | (0xFF << 24)) == 0) {
