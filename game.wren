@@ -215,7 +215,7 @@ class MainGame {
     __heartEmpty = ImageData.loadFromFile("res/heart-empty.png")
     AudioEngine.load("fire", "res/Laser_Shoot.wav")
     AudioEngine.load("explosion", "res/Explosion.wav")
-    AudioEngine.load("music", "res/music.wav")
+    AudioEngine.load("music", "res/AerisPiano.ogg")
     __channel = AudioEngine.play("music", 1, true, -0.5)
   }
 

@@ -15,6 +15,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "include/stb_image.h"
 
+
+#define STB_VORBIS_NO_PUSHDATA_API
 #include "include/stb_vorbis.c"
 
 #define internal static
