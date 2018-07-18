@@ -214,6 +214,7 @@ class MainGame {
     __heart = ImageData.loadFromFile("res/heart-full.png")
     __heartEmpty = ImageData.loadFromFile("res/heart-empty.png")
     AudioEngine.load("fire", "res/Laser_Shoot.wav")
+    AudioEngine.load("explosion", "res/Explosion.wav")
     AudioEngine.load("music", "res/music.wav")
     AudioEngine.play("music")
   }
@@ -253,6 +254,7 @@ class MainGame {
       if (!__ship.imm && colliding(__ship, enemy)) {
         __ship.damage()
         enemy.kill()
+        AudioEngine.play("explosion")
         for (i in 1..5) {
           __explosions.add(Explosion.new(enemy.x, enemy.y))
         }
@@ -271,6 +273,7 @@ class MainGame {
         if (enemy.alive && colliding(bullet, enemy)) {
           bullet.kill()
           enemy.kill()
+          AudioEngine.play("explosion")
           for (i in 1..5) {
             __explosions.add(Explosion.new(enemy.x, enemy.y))
           }
