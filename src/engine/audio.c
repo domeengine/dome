@@ -105,43 +105,40 @@ internal void AUDIO_allocate(WrenVM* vm) {
 
   int16_t* tempBuffer;
   if (strstr(data->name, ".wav") != NULL) {
-    // file is declared as WAV
     data->audioType = AUDIO_TYPE_WAV;
 
-    // Loading a WAV file
+    // Loading the WAV file
     SDL_LoadWAV(path, &data->spec, ((uint8_t**)&tempBuffer), &data->length);
     data->length /= sizeof(int16_t) * data->spec.channels;
-    data->buffer = calloc(channels * data->length, sizeof(float));
-    assert(data->buffer != NULL);
-    // Process incoming values into an intermediate mixable format
-    for (int i = 0; i < data->length; i++) {
-      data->buffer[i * channels] = (float)(tempBuffer[i * data->spec.channels]) / INT16_MAX;
-      if (data->spec.channels == 1) {
-        data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels]) / INT16_MAX;
-      } else {
-        data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels + 1]) / INT16_MAX;
-      }
-    }
-    SDL_FreeWAV((uint8_t*)tempBuffer);
   } else if (strstr(data->name, ".ogg") != NULL) {
+    data->audioType = AUDIO_TYPE_OGG;
+
     int channelsInFile, freq;
     memset(&data->spec, 0, sizeof(SDL_AudioSpec));
-    data->audioType = AUDIO_TYPE_OGG;
+    // Loading the OGG file
     data->length = stb_vorbis_decode_filename(path, &channelsInFile, &freq, &tempBuffer);
     data->spec.channels = channelsInFile;
     data->spec.freq = freq;
-    data->length /= bytesPerSample;
-    data->buffer = calloc(channels * data->length, sizeof(float));
-    assert(data->buffer != NULL);
-    // Process incoming values into an intermediate mixable format
-    for (int i = 0; i < data->length; i++) {
-      data->buffer[i * channels] = (float)(tempBuffer[i * data->spec.channels]) / INT16_MAX;
-      if (data->spec.channels == 1) {
-        data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels]) / INT16_MAX;
-      } else {
-        data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels + 1]) / INT16_MAX;
-      }
+    data->spec.format = AUDIO_S16LSB;
+  }
+
+  data->buffer = calloc(channels * data->length, sizeof(float));
+  assert(data->buffer != NULL);
+  assert(data->length != -1);
+  // Process incoming values into an intermediate mixable format
+  for (int i = 0; i < data->length; i++) {
+    data->buffer[i * channels] = (float)(tempBuffer[i * data->spec.channels]) / INT16_MAX;
+    if (data->spec.channels == 1) {
+      data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels]) / INT16_MAX;
+    } else {
+      data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels + 1]) / INT16_MAX;
     }
+  }
+  // free the intermediate buffers
+  if (data->audioType == AUDIO_TYPE_WAV) {
+    SDL_FreeWAV((uint8_t*)tempBuffer);
+  } else if (data->audioType == AUDIO_TYPE_OGG) {
+    free(tempBuffer);
   }
   DEBUG_printAudioSpec(data->spec);
   printf("Audio loaded: %s\n", path);
@@ -249,7 +246,7 @@ internal void AUDIO_CHANNEL_setVolume(WrenVM* vm) {
 
 internal void AUDIO_CHANNEL_setPan(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
-  channel->pan = (float)mid(-1, wrenGetSlotDouble(vm, 1), 1);
+  channel->pan = (float)mid(-1.0, wrenGetSlotDouble(vm, 1), 1.0f);
 }
 
 internal void AUDIO_CHANNEL_finalize(void* data) {
