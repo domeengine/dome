@@ -15,8 +15,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "include/stb_image.h"
 
-#define STB_TRUETYPE_IMPLEMENTATION
-#include "include/stb_truetype.h"
+#include "include/stb_vorbis.c"
 
 #define internal static
 #define global_variable static
