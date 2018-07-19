@@ -1,4 +1,3 @@
-
 // Represents the data of an audio file
 // which can be loaded and unloaded
 // It is otherwise opaque Wren-side
@@ -40,6 +39,7 @@ foreign class AudioEngineImpl {
       __files[name] = null
     }
   }
+
   unloadAll() {
     __files = {}
   }
