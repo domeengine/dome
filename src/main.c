@@ -19,6 +19,9 @@
 #define STB_VORBIS_NO_PUSHDATA_API
 #include "include/stb_vorbis.c"
 
+#define ABC_FIFO_IMPL
+#include "include/ABC_fifo.h"
+
 #define internal static
 #define global_variable static
 #define local_persist static
@@ -112,6 +115,12 @@ int main(int argc, char* args[])
 
   SDL_ShowWindow(engine.window);
 
+  ABC_TASK* task = malloc(sizeof(ABC_TASK));
+  task->data = "settings.txt";
+  task->type = TASK_LOAD_FILE;
+  ABC_FIFO_pushTask(&engine.fifo, *task);
+  free(task);
+
   uint32_t previousTime = SDL_GetTicks();
   int32_t lag = 0;
   bool running = true;
@@ -141,6 +150,14 @@ int main(int argc, char* args[])
               ENGINE_storeKeyState(&engine, keyCode, event.key.state);
             }
           } break;
+        case SDL_USEREVENT:
+          {
+            printf("Event code %i\n", event.user.code);
+            if (event.user.code == EVENT_LOAD_FILE) {
+              printf("%s\n", event.user.data1);
+              free(event.user.data1);
+            }
+          }
       }
     }
 

@@ -16,10 +16,43 @@ typedef struct {
   SDL_Texture *texture;
   void* pixels;
   INPUT_STATE keyboard;
+  ABC_FIFO fifo;
   ForeignFunctionMap fnMap;
 } ENGINE;
 
-internal int ENGINE_init(ENGINE* engine) {
+typedef enum {
+  EVENT_LOAD_FILE
+} EVENT_TYPE;
+
+typedef enum {
+  TASK_NOP,
+  TASK_PRINT,
+  TASK_LOAD_FILE
+} TASK_TYPE;
+
+global_variable uint32_t ENGINE_EVENT_TYPE;
+
+internal int
+ENGINE_taskHandler(ABC_TASK* task) {
+	if (task->type == TASK_PRINT) {
+		printf("%s\n", task->data);
+		task->resultCode = 0;
+		// TODO: Push to SDL Event Queue
+	} else if (task->type == TASK_LOAD_FILE) {
+    char* fileData = readEntireFile(task->data);
+    SDL_Event event;
+    SDL_memset(&event, 0, sizeof(event));
+    event.type = ENGINE_EVENT_TYPE;
+    event.user.code = EVENT_LOAD_FILE;
+    event.user.data1 = fileData;
+    event.user.data2 = NULL;
+    SDL_PushEvent(&event);
+  }
+  return 0;
+}
+
+internal int
+ENGINE_init(ENGINE* engine) {
   int result = EXIT_SUCCESS;
   engine->window = NULL;
   engine->renderer = NULL;
@@ -56,17 +89,25 @@ internal int ENGINE_init(ENGINE* engine) {
     goto engine_init_end;
   }
 
+  ENGINE_EVENT_TYPE = SDL_RegisterEvents(1);
+
+  ABC_FIFO_create(&engine->fifo);
+  engine->fifo.taskHandler = ENGINE_taskHandler;
+
 engine_init_end:
   return result;
 }
 
 
 
-internal void ENGINE_free(ENGINE* engine) {
+internal void
+ENGINE_free(ENGINE* engine) {
 
   if (engine == NULL) {
     return;
   }
+
+  ABC_FIFO_close(&engine->fifo);
 
   if (engine->fnMap.head != NULL) {
     MAP_free(&engine->fnMap);
@@ -88,7 +129,8 @@ internal void ENGINE_free(ENGINE* engine) {
   }
 }
 
-void ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
+internal void
+ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
   // Draw pixel at (x,y)
   if ((c | (0xFF << 24)) == 0) {
     return;
@@ -122,7 +164,8 @@ ENGINE_print(ENGINE* engine, char* text, uint16_t x, uint16_t y, uint32_t c) {
   }
 }
 
-void ENGINE_line_high(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint32_t c) {
+internal void
+ENGINE_line_high(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint32_t c) {
   int16_t dx = x2 - x1;
   int16_t dy = y2 - y1;
   int16_t xi = 1;
@@ -145,7 +188,9 @@ void ENGINE_line_high(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_
     y++;
   }
 }
-void ENGINE_line_low(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint32_t c) {
+
+internal void
+ENGINE_line_low(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint32_t c) {
   int16_t dx = x2 - x1;
   int16_t dy = y2 - y1;
   int16_t yi = 1;
@@ -169,7 +214,8 @@ void ENGINE_line_low(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t
   }
 }
 
-void ENGINE_line(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint32_t c) {
+internal void
+ENGINE_line(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint32_t c) {
   if (abs(y2 - y1) < abs(x2 - x1)) {
     if (x1 > x2) {
       ENGINE_line_low(engine, x2, y2, x1, y1, c);
@@ -187,7 +233,8 @@ void ENGINE_line(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2,
 
 }
 
-void ENGINE_circle_filled(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c) {
+internal void
+ENGINE_circle_filled(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c) {
   int16_t x = 0;
   int16_t y = r;
   int16_t d = round(M_PI - (2*r));
@@ -208,7 +255,8 @@ void ENGINE_circle_filled(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uin
   }
 }
 
-void ENGINE_circle(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c) {
+internal void
+ENGINE_circle(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c) {
   int16_t x = 0;
   int16_t y = r;
   int16_t d = round(M_PI - (2*r));
@@ -235,14 +283,16 @@ void ENGINE_circle(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c
 }
 
 
-void ENGINE_rect(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t c) {
+internal void
+ENGINE_rect(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t c) {
   ENGINE_line(engine, x, y, x, y+h-1, c);
   ENGINE_line(engine, x, y, x+w-1, y, c);
   ENGINE_line(engine, x, y+h-1, x+w-1, y+h-1, c);
   ENGINE_line(engine, x+w-1, y, x+w-1, y+h-1, c);
 }
 
-void ENGINE_rectfill(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t c) {
+internal void
+ENGINE_rectfill(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t c) {
   int16_t x1 = mid(0, x, GAME_WIDTH);
   int16_t y1 = mid(0, y, GAME_HEIGHT);
   int16_t x2 = mid(0, x + w, GAME_WIDTH);
@@ -255,7 +305,8 @@ void ENGINE_rectfill(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h,
   }
 }
 
-void ENGINE_storeKeyState(ENGINE* engine, SDL_Keycode keycode, uint8_t state) {
+internal void
+ENGINE_storeKeyState(ENGINE* engine, SDL_Keycode keycode, uint8_t state) {
   if(keycode == SDLK_LEFT) {
     engine->keyboard.left.isPressed = (state == SDL_PRESSED);
   }
@@ -273,7 +324,8 @@ void ENGINE_storeKeyState(ENGINE* engine, SDL_Keycode keycode, uint8_t state) {
   }
 }
 
-KEY_STATE ENGINE_getKeyState(ENGINE* engine, SDL_Keycode keycode) {
+internal KEY_STATE
+ENGINE_getKeyState(ENGINE* engine, SDL_Keycode keycode) {
   if(keycode == SDLK_LEFT) {
     return engine->keyboard.left;
   }

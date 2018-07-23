@@ -3,6 +3,8 @@ import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
 
+// import "io" for File
+
 // Consider moving Box to "graphics"
 class Box {
   construct new(x1, y1, x2, y2) {
@@ -219,6 +221,7 @@ class MainGame {
     AudioEngine.load("music", "res/music.wav")
 
     __channel = AudioEngine.play("music", 1, true, -0.5)
+    // var settingsFile = File.load("settings.txt")
   }
 
   static update() {
