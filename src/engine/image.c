@@ -7,9 +7,8 @@ typedef struct {
 
 void IMAGE_allocate(WrenVM* vm) {
 
-  // TODO: Get the image file name
-  // read in the file
-  // convert to the correct pixel format
+  // TODO: We should read this from a "DataBuffer" which is file loaded, rather than loading ourselves.
+  // So that we can defer the file loading to a thread.
   const char* path = wrenGetSlotString(vm, 1);
   IMAGE* image = (IMAGE*)wrenSetSlotNewForeign(vm,
       0, 0, sizeof(IMAGE));

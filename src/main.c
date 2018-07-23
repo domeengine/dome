@@ -63,6 +63,8 @@ int main(int argc, char* args[])
     goto cleanup;
   }
 
+  ENGINE engine = {0};
+
   if (argc == 2) {
     gameFile = readEntireFile(args[1]);
   } else {
@@ -72,7 +74,6 @@ int main(int argc, char* args[])
     goto cleanup;
   }
 
-  ENGINE engine = {0};
   result = ENGINE_init(&engine);
   if (result == EXIT_FAILURE) {
     goto cleanup;
