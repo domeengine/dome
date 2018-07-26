@@ -71,28 +71,38 @@ DOME provides the following modules/methods/classes:
 - ImageData
   - Draw sprites loaded from files
 - Input
+- Async File IO for generic files
 - Audio (stereo and mono OGG and WAV files only)
-- Random
 
 ## TODO
 
-- IO
+- User module importing
+- Loading Audio and Graphics asynchronously
 - Graphics 
   - Triangles
 - Network Access
-- Math
-- Robust error checking
+  - UDP
+  - HTTP client (optional)
+- Math (Better API for Num class functions)
+- Robust error checking and sandboxing
 - Documentation
+- Memory leak checks
 
 ## Dependencies
 
 DOME currently depends on a few libraries to achieve it's functions.
 - Wren (This is built by `make` automatically)
 - SDL2
+- stb_image
+- stb_vorbis
+- [ABC_fifo](https://github.com/avivbeeri/abc) (A SPMC threadpool/task dispatching FIFO I wrote for this project)
+
+Apart from SDL2, all other dependancies are baked in or linked statically. DOME aspires to be both minimalist and cross platform, so it depends on as few external components as possible.
 
 ## Acknowledgements
 
 - Bob Nystrom for creating Wren and inspiring me to make games, thanks to [Game Programming Patterns](http://gameprogrammingpatterns.com)
+- Casey Muratori for creating [Handmade Hero](https://hero.handmade.network), an inspiration and educational resource that makes this project possible. 
 - Font comes from [here](https://opengameart.org/content/ascii-bitmap-font-cellphone)
 - Sean Barrett for [multiple libraries](https://github.com/nothings/stb)
 - Example game and graphics are derived from [this](https://ztiromoritz.github.io/pico-8-shooter/) fantastic PICO-8 tutorial.
