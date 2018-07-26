@@ -149,7 +149,7 @@ ENGINE_print(ENGINE* engine, char* text, uint16_t x, uint16_t y, uint32_t c) {
   int fontWidth = 5;
   int fontHeight = 7;
   int cursor = 0;
-  for (int pos = 0; pos < strlen(text); pos++) {
+  for (size_t pos = 0; pos < strlen(text); pos++) {
     char letter = text[pos];
 
     uint8_t* glyph = (uint8_t*)font[letter - 32];

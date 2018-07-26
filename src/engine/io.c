@@ -9,7 +9,8 @@ GAMEFILE_allocate(WrenVM* vm) {
   data->name[255] = '\0';
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
 
-  ABC_TASK task = {0};
+  INIT_TO_ZERO(ABC_TASK, task);
+
   task.type = TASK_LOAD_FILE;
   task.data = data;
   printf("allocate\n");

@@ -26,6 +26,10 @@
 #define global_variable static
 #define local_persist static
 
+#define INIT_TO_ZERO(Type, name)\
+  Type name;\
+  memset(&name, 0, sizeof(Type));
+
 // Constants
 // Screen dimension constants
 const int16_t GAME_WIDTH = 320;
@@ -48,11 +52,6 @@ const int32_t MS_PER_FRAME = 1000 / FPS;
 #include "engine/point.c"
 #include "vm.c"
 
-// variable declarations
-static uint8_t audioScale = 14;
-
-
-
 int main(int argc, char* args[])
 {
   int result = EXIT_SUCCESS;
@@ -67,7 +66,7 @@ int main(int argc, char* args[])
     goto cleanup;
   }
 
-  ENGINE engine = {0};
+  INIT_TO_ZERO(ENGINE, engine);
 
   if (argc == 2) {
     gameFile = readEntireFile(args[1]);

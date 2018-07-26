@@ -11,7 +11,7 @@ void POINT_allocate(WrenVM* vm) {
 }
 
 void POINT_finalize(void* data) {
-  POINT* point = data;
+  // POINT* point = data;
 }
 
 void POINT_getX(WrenVM* vm) {

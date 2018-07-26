@@ -56,8 +56,6 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
   int32_t samplesQueued = SDL_GetQueuedAudioSize(audioEngine->deviceId) / bytesPerSample;
   int32_t samplesToWrite = totalSamples - samplesQueued;
 
-  uint32_t samplesWritten = 0;
-
   // Get channel
   for (int i = 0; i < samplesToWrite; i++) {
     int totalEnabled = 0;
@@ -124,9 +122,9 @@ internal void AUDIO_allocate(WrenVM* vm) {
 
   data->buffer = calloc(channels * data->length, sizeof(float));
   assert(data->buffer != NULL);
-  assert(data->length != -1);
+  assert(data->length != UINT32_MAX);
   // Process incoming values into an intermediate mixable format
-  for (int i = 0; i < data->length; i++) {
+  for (uint32_t i = 0; i < data->length; i++) {
     data->buffer[i * channels] = (float)(tempBuffer[i * data->spec.channels]) / INT16_MAX;
     if (data->spec.channels == 1) {
       data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels]) / INT16_MAX;
