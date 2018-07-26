@@ -42,6 +42,7 @@ const int32_t MS_PER_FRAME = 1000 / FPS;
 #include "map.c"
 #include "io.c"
 #include "engine.c"
+#include "engine/io.c"
 #include "engine/audio.c"
 #include "engine/image.c"
 #include "engine/point.c"
@@ -115,12 +116,6 @@ int main(int argc, char* args[])
 
   SDL_ShowWindow(engine.window);
 
-  ABC_TASK* task = malloc(sizeof(ABC_TASK));
-  task->data = "settings.txt";
-  task->type = TASK_LOAD_FILE;
-  ABC_FIFO_pushTask(&engine.fifo, *task);
-  free(task);
-
   uint32_t previousTime = SDL_GetTicks();
   int32_t lag = 0;
   bool running = true;
@@ -154,8 +149,7 @@ int main(int argc, char* args[])
           {
             printf("Event code %i\n", event.user.code);
             if (event.user.code == EVENT_LOAD_FILE) {
-              printf("%s\n", event.user.data1);
-              free(event.user.data1);
+              GAMEFILE_loadComplete(event.user.data1, event.user.data2);
             }
           }
       }

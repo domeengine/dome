@@ -12,6 +12,13 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
     }
   }
 
+  if (strcmp(module, "io") == 0) {
+    if (strcmp(className, "File") == 0) {
+      methods.allocate = GAMEFILE_allocate;
+      methods.finalize = GAMEFILE_finalize;
+    }
+  }
+
   if (strcmp(module, "audio") == 0) {
     if (strcmp(className, "AudioData") == 0) {
       methods.allocate = AUDIO_allocate;
@@ -189,6 +196,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "audio", "AudioData", "unload()", false, AUDIO_unload);
   MAP_add(&engine->fnMap, "audio", "AudioEngineImpl", "f_update(_)", false, AUDIO_ENGINE_update);
 
+  // File
+  MAP_add(&engine->fnMap, "io", "File", "f_data", false, GAMEFILE_getData);
+  MAP_add(&engine->fnMap, "io", "File", "ready", false, GAMEFILE_getReady);
 
   // Input
   MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, INPUT_is_key_down);

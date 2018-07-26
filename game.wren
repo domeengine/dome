@@ -3,7 +3,7 @@ import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
 
-// import "io" for File
+import "io" for File
 
 // Consider moving Box to "graphics"
 class Box {
@@ -26,8 +26,15 @@ class Game {
   static init() {
     __state = MainGame
     __state.init()
+    __done = false
+
+    __settingsFile = File.load("res/AerisPiano.ogg")
   }
   static update() {
+    if (__settingsFile != null && __settingsFile.ready && !__done) {
+      __done = true
+        System.print("loaded")
+    }
     __state.update()
     if (__state.next) {
       __state = __state.next
@@ -221,7 +228,6 @@ class MainGame {
     AudioEngine.load("music", "res/music.wav")
 
     __channel = AudioEngine.play("music", 1, true, -0.5)
-    // var settingsFile = File.load("settings.txt")
   }
 
   static update() {
@@ -268,6 +274,7 @@ class MainGame {
     }
     if (__ship.health == 0 && __explosions.count == 0) {
       __next = GameOverState
+      AudioEngine.stopAllChannels()
     }
 
     var bulletCount = 0

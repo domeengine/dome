@@ -1,3 +1,9 @@
+typedef struct {
+  bool ready;
+  char name[256];
+  char* data;
+} GAMEFILE;
+
 char* readEntireFile(char* path) {
   FILE* file = fopen(path, "r");
   if (file == NULL) {
@@ -24,4 +30,5 @@ char* readEntireFile(char* path) {
   fclose(file);
   return source;
 }
+
 

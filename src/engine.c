@@ -21,6 +21,7 @@ typedef struct {
 } ENGINE;
 
 typedef enum {
+  EVENT_NOP,
   EVENT_LOAD_FILE
 } EVENT_TYPE;
 
@@ -39,13 +40,16 @@ ENGINE_taskHandler(ABC_TASK* task) {
 		task->resultCode = 0;
 		// TODO: Push to SDL Event Queue
 	} else if (task->type == TASK_LOAD_FILE) {
-    char* fileData = readEntireFile(task->data);
+    GAMEFILE* file = (GAMEFILE*)task->data;
+    char* fileData = readEntireFile(file->name);
+    // printf("%s\n", file->name);
+
     SDL_Event event;
     SDL_memset(&event, 0, sizeof(event));
     event.type = ENGINE_EVENT_TYPE;
     event.user.code = EVENT_LOAD_FILE;
-    event.user.data1 = fileData;
-    event.user.data2 = NULL;
+    event.user.data1 = file;
+    event.user.data2 = fileData;
     SDL_PushEvent(&event);
   }
   return 0;
