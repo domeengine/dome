@@ -74,11 +74,15 @@ DOME provides the following modules/methods/classes:
 - ImageData
   - Draw sprites loaded from files
 - Input
-- Async File IO for generic files
+- IO
+  - Asynchronous
+  - File reading
 - Audio (stereo and mono OGG and WAV files only)
 
 ## TODO
 
+- IO
+  - Writing to files
 - User module importing
 - Loading Audio and Graphics asynchronously
 - Graphics 
