@@ -4,13 +4,16 @@ A lightweight game engine which melds SDL2 and the [Wren scripting language](htt
 
 ## Warning
 
-As of 03/07/2018, DOME is in a pre-alpha state. None of the API is stable and it is not production ready. 
+As of 03/07/2018, DOME is in a pre-alpha state. None of the API is stable and it is not production ready. It has been tested in OSX Sierra and 64-bit Lubuntu 18.04.
 
 ## How to Use
 
 ### Build
 
+Ensure you have the shared SDL2 libraries installed on your system first.
+
 ```bash
+> git submodule init
 > git submodule update
 > make
 ```
