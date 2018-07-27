@@ -40,7 +40,7 @@ typedef struct {
 } AUDIO_ENGINE;
 
 const uint16_t channels = 2;
-const uint16_t bytesPerSample = 2 * channels;
+const uint16_t bytesPerSample = 2 * 2 /* channels */;
 
 // audio callback function
 // here you have to copy the data of your audio buffer into the

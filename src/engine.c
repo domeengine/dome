@@ -36,7 +36,7 @@ global_variable uint32_t ENGINE_EVENT_TYPE;
 internal int
 ENGINE_taskHandler(ABC_TASK* task) {
 	if (task->type == TASK_PRINT) {
-		printf("%s\n", task->data);
+		printf("%s\n", (char*)task->data);
 		task->resultCode = 0;
 		// TODO: Push to SDL Event Queue
 	} else if (task->type == TASK_LOAD_FILE) {

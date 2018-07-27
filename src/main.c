@@ -32,12 +32,12 @@
 
 // Constants
 // Screen dimension constants
-const int16_t GAME_WIDTH = 320;
-const int16_t GAME_HEIGHT = 240;
-const int16_t SCREEN_WIDTH = GAME_WIDTH * 2;
-const int16_t SCREEN_HEIGHT = GAME_HEIGHT * 2;
-const int32_t FPS = 60;
-const int32_t MS_PER_FRAME = 1000 / FPS;
+#define GAME_WIDTH 320
+#define GAME_HEIGHT 240
+#define SCREEN_WIDTH GAME_WIDTH * 2
+#define SCREEN_HEIGHT GAME_HEIGHT * 2
+#define FPS 60
+#define MS_PER_FRAME 1000 / FPS
 
 // Game code
 #include "math.c"
