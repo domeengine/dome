@@ -1,4 +1,3 @@
-
 internal void
 GAMEFILE_allocate(WrenVM* vm) {
   GAMEFILE* data = (GAMEFILE*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(GAMEFILE));
@@ -13,7 +12,6 @@ GAMEFILE_allocate(WrenVM* vm) {
 
   task.type = TASK_LOAD_FILE;
   task.data = data;
-  printf("allocate\n");
   ABC_FIFO_pushTask(&engine->fifo, task);
 }
 

@@ -42,7 +42,6 @@ ENGINE_taskHandler(ABC_TASK* task) {
 	} else if (task->type == TASK_LOAD_FILE) {
     GAMEFILE* file = (GAMEFILE*)task->data;
     char* fileData = readEntireFile(file->name);
-    // printf("%s\n", file->name);
 
     SDL_Event event;
     SDL_memset(&event, 0, sizeof(event));
@@ -101,7 +100,6 @@ ENGINE_init(ENGINE* engine) {
 engine_init_end:
   return result;
 }
-
 
 
 internal void
