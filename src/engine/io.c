@@ -2,6 +2,7 @@ internal void
 GAMEFILE_allocate(WrenVM* vm) {
   GAMEFILE* data = (GAMEFILE*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(GAMEFILE));
   data->ready = false;
+  data->length = 0;
 
   const char* path = wrenGetSlotString(vm, 1);
   strncpy(data->name, path, 255);
@@ -25,6 +26,12 @@ internal void
 GAMEFILE_getReady(WrenVM* vm) {
   GAMEFILE* file = wrenGetSlotForeign(vm, 0);
   wrenSetSlotBool(vm, 0, file->ready);
+}
+
+internal void
+GAMEFILE_getLength(WrenVM* vm) {
+  GAMEFILE* file = wrenGetSlotForeign(vm, 0);
+  wrenSetSlotDouble(vm, 0, file->length);
 }
 
 internal void

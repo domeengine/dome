@@ -56,6 +56,7 @@ int main(int argc, char* args[])
 {
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
+  size_t gameFileLength;
   char* gameFile;
 
   //Initialize SDL
@@ -69,7 +70,7 @@ int main(int argc, char* args[])
   INIT_TO_ZERO(ENGINE, engine);
 
   if (argc == 2) {
-    gameFile = readEntireFile(args[1]);
+    gameFile = readEntireFile(args[1], &gameFileLength);
   } else {
     printf("No entry path was provided.\n");
     printf("Usage: ./dome [entry path]\n");
@@ -82,10 +83,12 @@ int main(int argc, char* args[])
     goto cleanup;
   };
 
-  char* initFile = readEntireFile("src/engine/init.wren");
-  char* completeGameFile = calloc(strlen(initFile) + strlen(gameFile), sizeof(char));
+  size_t initFileLength;
+  char* initFile = readEntireFile("src/engine/init.wren", &initFileLength);
+  char* completeGameFile = calloc(initFileLength + gameFileLength + 1, sizeof(char));
   strcpy(completeGameFile, initFile);
-  strcpy(completeGameFile+strlen(initFile), gameFile);
+  strcpy(completeGameFile + initFileLength, gameFile);
+  completeGameFile[initFileLength + gameFileLength + 1] = '\0';
 
   // Configure Wren VM
   vm = VM_create(&engine);

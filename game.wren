@@ -29,11 +29,13 @@ class Game {
     __done = false
 
     __settingsFile = File.load("res/AerisPiano.ogg")
+    System.print(__settingsFile.length)
   }
   static update() {
     if (__settingsFile != null && __settingsFile.ready && !__done) {
       __done = true
         System.print("loaded")
+        System.print(__settingsFile.length)
     }
     __state.update()
     if (__state.next) {

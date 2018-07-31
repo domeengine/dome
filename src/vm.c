@@ -141,7 +141,7 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
   strcat(path, name); /* add the extension */
   strcat(path, extension); /* add the extension */
 
-  char* file = readEntireFile(path);
+  char* file = readEntireFile(path, NULL);
   free(path);
   return file;
 }
@@ -199,6 +199,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // File
   MAP_add(&engine->fnMap, "io", "File", "f_data", false, GAMEFILE_getData);
   MAP_add(&engine->fnMap, "io", "File", "ready", false, GAMEFILE_getReady);
+  MAP_add(&engine->fnMap, "io", "File", "f_length", false, GAMEFILE_getLength);
 
   // Input
   MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, INPUT_is_key_down);
