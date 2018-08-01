@@ -80,6 +80,7 @@ DOME provides the following modules/methods/classes:
 - Audio (stereo and mono OGG and WAV files only)
 
 ## TODO
+You can follow my progress on implementing DOME on [my twitter](https://twitter.com/avivbeeri/status/1012448692119457798).
 
 - IO
   - Writing to files
