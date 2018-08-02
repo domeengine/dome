@@ -118,7 +118,6 @@ void ABC_FIFO_create(ABC_FIFO* queue) {
 
   for (int i = 0; i < ABC_FIFO_POOL_SIZE; ++i) {
     queue->threads[i] = SDL_CreateThread(ABC_FIFO_executeTask, NULL, queue);
-    SDL_DetachThread(queue->threads[i]);
   }
 }
 
@@ -161,6 +160,7 @@ void ABC_FIFO_close(ABC_FIFO* queue) {
   // Tidy up our resources
   for (int i = 0; i < ABC_FIFO_POOL_SIZE; ++i) {
     SDL_SemPost(queue->semaphore);
+    SDL_WaitThread(queue->threads[i], NULL);
   }
 
   // Destroy queue
