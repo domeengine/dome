@@ -100,7 +100,7 @@ You can follow my progress on implementing DOME on [my twitter](https://twitter.
 
 DOME currently depends on a few libraries to achieve it's functions.
 - Wren (This is built by `make` automatically)
-- SDL2
+- SDL2 (version 2.0.4 or newer)
 - stb_image
 - stb_vorbis
 - [ABC_fifo](https://github.com/avivbeeri/abc) (A SPMC threadpool/task dispatching FIFO I wrote for this project)
