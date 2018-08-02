@@ -203,7 +203,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "audio", "AudioEngineImpl", "f_update(_)", false, AUDIO_ENGINE_update);
 
   // FileSystem
-  MAP_add(&engine->fnMap, "io", "FileSystem", "f_data", true, FILESYSTEM_load);
+  MAP_add(&engine->fnMap, "io", "FileSystem", "f_load(_,_)", true, FILESYSTEM_load);
 
   /*
   // File

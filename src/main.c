@@ -85,18 +85,19 @@ int main(int argc, char* args[])
 
   size_t initFileLength;
   char* initFile = readEntireFile("src/engine/init.wren", &initFileLength);
-  char* completeGameFile = calloc(initFileLength + gameFileLength + 1, sizeof(char));
-  strcpy(completeGameFile, initFile);
-  strcpy(completeGameFile + initFileLength, gameFile);
-  completeGameFile[initFileLength + gameFileLength + 1] = '\0';
 
   // Configure Wren VM
   vm = VM_create(&engine);
-  WrenInterpretResult interpreterResult = wrenInterpret(vm, initFile);
+  WrenInterpretResult interpreterResult;
+
+  // Run wren engine init()
+  interpreterResult = wrenInterpret(vm, initFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
     goto cleanup;
   }
+  
+  // Load user game file
   interpreterResult = wrenInterpret(vm, gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;

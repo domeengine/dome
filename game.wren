@@ -3,7 +3,7 @@ import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
 
-import "io" for File, FileSystem
+import "io" for FileSystem
 
 // Consider moving Box to "graphics"
 class Box {
@@ -28,16 +28,18 @@ class Game {
     __state.init()
     __done = false
 
-    __loadSettingsOp = FileSystem.load("res/AerisPiano.ogg")
-    System.print(__loadSettingsOp.result.length)
+    // __loadSettingsOp = FileSystem.load("res/AerisPiano.ogg")
+    // System.print(__loadSettingsOp.result.length)
   }
   static update() {
+    /*
     if (__loadSettingsOp.complete && !__done) {
       __settingsFile = operation.result
       __done = true
       System.print("loaded")
       System.print(__settingsFile.length)
     }
+    */
     __state.update()
     if (__state.next) {
       __state = __state.next

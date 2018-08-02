@@ -1,8 +1,15 @@
 typedef struct {
+  bool ready;
+  size_t length;
+  char* data;
+} DBUFFER;
+
+typedef struct {
   bool complete;
   bool error;
   uint32_t id;
   WrenVM* vm;
+  WrenHandle* bufferHandle;
   DBUFFER* buffer;
 } ASYNCOP;
 
@@ -36,14 +43,9 @@ internal void
 ASYNCOP_getResult(WrenVM* vm) {
   ASYNCOP* op = (ASYNCOP*)wrenGetSlotForeign(vm, 0);
   // HOW DO?
-  wrenSetSlotHandle(vm, 0, op->handle);
+  wrenSetSlotHandle(vm, 0, op->bufferHandle);
 }
 
-typedef struct {
-  bool ready;
-  size_t length;
-  char* data;
-} DBUFFER;
 
 internal void
 DBUFFER_allocate(WrenVM* vm) {
@@ -99,7 +101,7 @@ FILESYSTEM_load(WrenVM* vm) {
   // TODO We probably need to hold a handle to the op
   taskData->op = (ASYNCOP*)wrenGetSlotForeign(vm, 2);
 
-  taskData->buffer = (DBUFFER*)taskData->op->data;
+  // TODO: taskData->buffer = (DBUFFER*)taskData->op->;
   taskData->data = NULL;
 
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
@@ -109,7 +111,8 @@ FILESYSTEM_load(WrenVM* vm) {
 }
 
 internal void
-FILESYSTEM_loadEventHandler(TASK_DATA* task) {
+FILESYSTEM_loadEventHandler(void* data) {
+  TASK_DATA* task = data;
   // Thread: Async
   ASYNCOP* op = task->op;
   DBUFFER* buffer = task->buffer;

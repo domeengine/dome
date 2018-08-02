@@ -1,5 +1,5 @@
 class FileSystem {
-  foreign static f_load(path, op) {}
+  foreign static f_load(path, op)
   // foreign static f_write_buffer(path, buffer, op) {}
   // foreign static f_write_string(path, str, op) {}
   // foreign f_append(path, buffer, op) {}
@@ -64,7 +64,7 @@ foreign class DataBuffer {
   // TODO: Index value read and write
 }
 
-
+/*
 // Deprecated
 foreign class File {
   construct load(path) {}
@@ -92,7 +92,7 @@ foreign class File {
   }
 }
 
-
+*/
 
 /*
 
