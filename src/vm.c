@@ -16,6 +16,12 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
     if (strcmp(className, "File") == 0) {
       methods.allocate = GAMEFILE_allocate;
       methods.finalize = GAMEFILE_finalize;
+    } else if (strcmp(className, "DataBuffer") == 0) {
+      methods.allocate = DBUFFER_allocate;
+      methods.finalize = DBUFFER_finalize;
+    } else if (strcmp(className, "AsyncOperation") == 0) {
+      methods.allocate = ASYNCOP_allocate;
+      methods.finalize = ASYNCOP_finalize;
     }
   }
 
@@ -200,6 +206,15 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "io", "File", "f_data", false, GAMEFILE_getData);
   MAP_add(&engine->fnMap, "io", "File", "ready", false, GAMEFILE_getReady);
   MAP_add(&engine->fnMap, "io", "File", "f_length", false, GAMEFILE_getLength);
+
+  // Buffer
+  MAP_add(&engine->fnMap, "io", "DataBuffer", "f_data", false, DBUFFER_getData);
+  MAP_add(&engine->fnMap, "io", "DataBuffer", "ready", false, DBUFFER_getReady);
+  MAP_add(&engine->fnMap, "io", "DataBuffer", "f_length", false, DBUFFER_getLength);
+
+  // AsyncOperation
+  MAP_add(&engine->fnMap, "io", "AsyncOperation", "result", false, ASYNCOP_getResult);
+  MAP_add(&engine->fnMap, "io", "AsyncOperation", "complete", false, ASYNCOP_getComplete);
 
   // Input
   MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, INPUT_is_key_down);

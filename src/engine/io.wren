@@ -1,8 +1,8 @@
 class FileSystem {
-  foreign f_read(path, op) {}
-  foreign f_write_buffer(path, buffer, op) {}
-  foreign f_write_string(path, str, op) {}
-  foreign f_append(path, buffer, op) {}
+  f_read(path, op) {}
+  f_write_buffer(path, buffer, op) {}
+  f_write_string(path, str, op) {}
+  // foreign f_append(path, buffer, op) {}
 
   read(path) {
     operation = AsyncOperation.init()
@@ -30,16 +30,12 @@ class FileSystem {
 }
 
 foreign class AsyncOperation {
-  construct init(result) {
-    opResult = result
-  }
+  construct init(result) {}
 
-  foreign id
   foreign complete
-  foreign error
-
   foreign result
-  foreign result=(result)
+
+  // foreign error?
 }
 
 // Stretchy buffer?
@@ -64,14 +60,15 @@ foreign class DataBuffer {
       return null
     }
   }
+  // TODO: Index value read and write
 }
 
 
 // Deprecated
 foreign class File {
   construct load(path) {}
-  foreign write(path) {}
-  foreign append(path) {}
+  // foreign write(path) {}
+  // foreign append(path) {}
 
   foreign ready
   foreign f_length

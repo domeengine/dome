@@ -1,3 +1,84 @@
+typedef struct {
+  bool complete;
+  bool error;
+  uint32_t id;
+  WrenVM* vm;
+  WrenHandle* data;
+} ASYNCOP;
+global_variable uint32_t idCount = 0;
+
+internal void
+ASYNCOP_allocate(WrenVM* vm) {
+  ASYNCOP* op = (ASYNCOP*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(ASYNCOP));
+  op->vm = vm;
+  op->id = idCount;
+  idCount++;
+
+  op->data = wrenGetSlotHandle(vm, 1);
+  op->complete = false;
+  op->error = false;
+}
+
+internal void
+ASYNCOP_finalize(void* data) {
+  ASYNCOP* op = (ASYNCOP*)data;
+  wrenReleaseHandle(op->vm, op->data);
+}
+
+internal void
+ASYNCOP_getComplete(WrenVM* vm) {
+  ASYNCOP* op = (ASYNCOP*)wrenGetSlotForeign(vm, 0);
+  wrenSetSlotBool(vm, 0, op->complete);
+}
+
+internal void
+ASYNCOP_getResult(WrenVM* vm) {
+  ASYNCOP* op = (ASYNCOP*)wrenGetSlotForeign(vm, 0);
+  wrenSetSlotHandle(vm, 0, op->data);
+}
+
+typedef struct {
+  bool ready;
+  size_t length;
+  char* data;
+} DBUFFER;
+
+internal void
+DBUFFER_allocate(WrenVM* vm) {
+  DBUFFER* buffer = (DBUFFER*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(DBUFFER));
+  buffer->data = NULL;
+  buffer->length = 0;
+  buffer->ready = false;
+}
+
+internal void
+DBUFFER_finalize(void* data) {
+  DBUFFER* buffer = (DBUFFER*) data;
+  if (buffer->ready && buffer->data != NULL) {
+    free(buffer->data);
+  }
+}
+
+internal void
+DBUFFER_getLength(WrenVM* vm) {
+  DBUFFER* buffer = wrenGetSlotForeign(vm, 0);
+  wrenSetSlotDouble(vm, 0, buffer->length);
+}
+
+internal void
+DBUFFER_getReady(WrenVM* vm) {
+  DBUFFER* buffer = wrenGetSlotForeign(vm, 0);
+  wrenSetSlotBool(vm, 0, buffer->ready);
+}
+
+internal void
+DBUFFER_getData(WrenVM* vm) {
+  DBUFFER* buffer = wrenGetSlotForeign(vm, 0);
+  wrenSetSlotString(vm, 0, buffer->data);
+}
+
+
+
 internal void
 GAMEFILE_allocate(WrenVM* vm) {
   GAMEFILE* data = (GAMEFILE*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(GAMEFILE));
