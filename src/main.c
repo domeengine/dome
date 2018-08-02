@@ -156,7 +156,8 @@ int main(int argc, char* args[])
           {
             printf("Event code %i\n", event.user.code);
             if (event.user.code == EVENT_LOAD_FILE) {
-              GAMEFILE_loadComplete(event.user.data1, event.user.data2);
+              FILESYSTEM_loadEventComplete(&event);
+              // GAMEFILE_loadComplete(event.user.data1, event.user.data2);
             }
           }
       }

@@ -5,6 +5,8 @@ typedef struct {
   char* data;
 } GAMEFILE;
 
+internal void FILESYSTEM_loadEventHandler(void* task);
+
 char* readEntireFile(char* path, size_t* lengthPtr) {
   FILE* file = fopen(path, "r");
   if (file == NULL) {

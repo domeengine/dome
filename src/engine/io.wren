@@ -1,15 +1,16 @@
 class FileSystem {
-  static f_read(path, op) {}
-  static f_write_buffer(path, buffer, op) {}
-  static f_write_string(path, str, op) {}
+  foreign static f_load(path, op) {}
+  // foreign static f_write_buffer(path, buffer, op) {}
+  // foreign static f_write_string(path, str, op) {}
   // foreign f_append(path, buffer, op) {}
 
   static load(path) {
     var operation = AsyncOperation.init(DataBuffer.create())
-    f_read(path, operation)
+    f_load(path, operation)
     return operation
   }
 
+  /*
   // Overwrites entire path
   static write(path, buffer) {
     operation = AsyncOperation.init()
@@ -23,7 +24,7 @@ class FileSystem {
     }
     return operation
   }
-
+  */
 
   // Append
 

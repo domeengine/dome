@@ -14,8 +14,8 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
 
   if (strcmp(module, "io") == 0) {
     if (strcmp(className, "File") == 0) {
-      methods.allocate = GAMEFILE_allocate;
-      methods.finalize = GAMEFILE_finalize;
+      // methods.allocate = GAMEFILE_allocate;
+      // methods.finalize = GAMEFILE_finalize;
     } else if (strcmp(className, "DataBuffer") == 0) {
       methods.allocate = DBUFFER_allocate;
       methods.finalize = DBUFFER_finalize;
@@ -202,10 +202,15 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "audio", "AudioData", "unload()", false, AUDIO_unload);
   MAP_add(&engine->fnMap, "audio", "AudioEngineImpl", "f_update(_)", false, AUDIO_ENGINE_update);
 
+  // FileSystem
+  MAP_add(&engine->fnMap, "io", "FileSystem", "f_data", true, FILESYSTEM_load);
+
+  /*
   // File
   MAP_add(&engine->fnMap, "io", "File", "f_data", false, GAMEFILE_getData);
   MAP_add(&engine->fnMap, "io", "File", "ready", false, GAMEFILE_getReady);
   MAP_add(&engine->fnMap, "io", "File", "f_length", false, GAMEFILE_getLength);
+  */
 
   // Buffer
   MAP_add(&engine->fnMap, "io", "DataBuffer", "f_data", false, DBUFFER_getData);

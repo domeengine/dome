@@ -3,8 +3,9 @@ typedef struct {
   bool error;
   uint32_t id;
   WrenVM* vm;
-  WrenHandle* data;
+  DBUFFER* buffer;
 } ASYNCOP;
+
 global_variable uint32_t idCount = 0;
 
 internal void
@@ -14,7 +15,8 @@ ASYNCOP_allocate(WrenVM* vm) {
   op->id = idCount;
   idCount++;
 
-  op->data = wrenGetSlotHandle(vm, 1);
+  // We might want to hold onto a handle for this buffer
+  op->buffer = wrenGetSlotForeign(vm, 1);
   op->complete = false;
   op->error = false;
 }
@@ -22,7 +24,6 @@ ASYNCOP_allocate(WrenVM* vm) {
 internal void
 ASYNCOP_finalize(void* data) {
   ASYNCOP* op = (ASYNCOP*)data;
-  wrenReleaseHandle(op->vm, op->data);
 }
 
 internal void
@@ -34,7 +35,8 @@ ASYNCOP_getComplete(WrenVM* vm) {
 internal void
 ASYNCOP_getResult(WrenVM* vm) {
   ASYNCOP* op = (ASYNCOP*)wrenGetSlotForeign(vm, 0);
-  wrenSetSlotHandle(vm, 0, op->data);
+  // HOW DO?
+  wrenSetSlotHandle(vm, 0, op->handle);
 }
 
 typedef struct {
@@ -77,8 +79,64 @@ DBUFFER_getData(WrenVM* vm) {
   wrenSetSlotString(vm, 0, buffer->data);
 }
 
+typedef struct {
+  ASYNCOP* op;
+  DBUFFER* buffer;
+  void* data;
+  char name[256];
+} TASK_DATA;
 
+internal void
+FILESYSTEM_load(WrenVM* vm) {
+  // Thread: main
+  INIT_TO_ZERO(ABC_TASK, task);
+  TASK_DATA* taskData = malloc(sizeof(TASK_DATA));
 
+  const char* path = wrenGetSlotString(vm, 1);
+  strncpy(taskData->name, path, 255);
+  taskData->name[255] = '\0';
+
+  // TODO We probably need to hold a handle to the op
+  taskData->op = (ASYNCOP*)wrenGetSlotForeign(vm, 2);
+
+  taskData->buffer = (DBUFFER*)taskData->op->data;
+  taskData->data = NULL;
+
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  task.type = TASK_LOAD_FILE;
+  task.data = taskData;
+  ABC_FIFO_pushTask(&engine->fifo, task);
+}
+
+internal void
+FILESYSTEM_loadEventHandler(TASK_DATA* task) {
+  // Thread: Async
+  ASYNCOP* op = task->op;
+  DBUFFER* buffer = task->buffer;
+
+  char* fileData = readEntireFile(task->name, &buffer->length);
+
+  SDL_Event event;
+  SDL_memset(&event, 0, sizeof(event));
+  event.type = ENGINE_EVENT_TYPE;
+  event.user.code = EVENT_LOAD_FILE;
+  event.user.data1 = op;
+  // TODO: Use this to handle errors in future?
+  event.user.data2 = fileData;
+  SDL_PushEvent(&event);
+  free(task);
+}
+
+internal void
+FILESYSTEM_loadEventComplete(SDL_Event* event) {
+  // Thread: Main
+  ASYNCOP* op = event->user.data1;
+  DBUFFER* buffer = op->buffer;
+  buffer->data = event->user.data2;
+  buffer->ready = true;
+}
+
+/*
 internal void
 GAMEFILE_allocate(WrenVM* vm) {
   GAMEFILE* data = (GAMEFILE*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(GAMEFILE));
@@ -132,3 +190,4 @@ GAMEFILE_finalize(void* data) {
     free(file->data);
   }
 }
+*/
