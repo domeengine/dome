@@ -92,7 +92,12 @@ int main(int argc, char* args[])
 
   // Configure Wren VM
   vm = VM_create(&engine);
-  WrenInterpretResult interpreterResult = wrenInterpret(vm, completeGameFile);
+  WrenInterpretResult interpreterResult = wrenInterpret(vm, initFile);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    result = EXIT_FAILURE;
+    goto cleanup;
+  }
+  interpreterResult = wrenInterpret(vm, gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
     goto cleanup;
