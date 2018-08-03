@@ -28,10 +28,11 @@ class Game {
     __state.init()
     __done = false
 
-    // __loadSettingsOp = FileSystem.load("res/AerisPiano.ogg")
-    // System.print(__loadSettingsOp.result.length)
+    __loadSettingsOp = FileSystem.load("res/AerisPiano.ogg")
+    System.print(__loadSettingsOp.result.length)
   }
   static update() {
+    
     /*
     if (__loadSettingsOp.complete && !__done) {
       __settingsFile = operation.result
@@ -40,6 +41,7 @@ class Game {
       System.print(__settingsFile.length)
     }
     */
+   
     __state.update()
     if (__state.next) {
       __state = __state.next

@@ -7,30 +7,22 @@ typedef struct {
 typedef struct {
   bool complete;
   bool error;
-  uint32_t id;
   WrenVM* vm;
   WrenHandle* bufferHandle;
-  DBUFFER* buffer;
 } ASYNCOP;
 
-global_variable uint32_t idCount = 0;
 
 internal void
 ASYNCOP_allocate(WrenVM* vm) {
   ASYNCOP* op = (ASYNCOP*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(ASYNCOP));
   op->vm = vm;
-  op->id = idCount;
-  idCount++;
-
-  // We might want to hold onto a handle for this buffer
-  op->buffer = wrenGetSlotForeign(vm, 1);
+  op->bufferHandle = wrenGetSlotHandle(vm, 1);
   op->complete = false;
   op->error = false;
 }
 
 internal void
 ASYNCOP_finalize(void* data) {
-  ASYNCOP* op = (ASYNCOP*)data;
 }
 
 internal void
@@ -42,7 +34,6 @@ ASYNCOP_getComplete(WrenVM* vm) {
 internal void
 ASYNCOP_getResult(WrenVM* vm) {
   ASYNCOP* op = (ASYNCOP*)wrenGetSlotForeign(vm, 0);
-  // HOW DO?
   wrenSetSlotHandle(vm, 0, op->bufferHandle);
 }
 
@@ -82,10 +73,12 @@ DBUFFER_getData(WrenVM* vm) {
 }
 
 typedef struct {
-  ASYNCOP* op;
-  DBUFFER* buffer;
-  void* data;
+  WrenVM* vm;
+  WrenHandle* opHandle;
+  WrenHandle* bufferHandle;
   char name[256];
+  size_t length;
+  char* buffer;
 } TASK_DATA;
 
 internal void
@@ -99,10 +92,12 @@ FILESYSTEM_load(WrenVM* vm) {
   taskData->name[255] = '\0';
 
   // TODO We probably need to hold a handle to the op
-  taskData->op = (ASYNCOP*)wrenGetSlotForeign(vm, 2);
-
-  // TODO: taskData->buffer = (DBUFFER*)taskData->op->;
-  taskData->data = NULL;
+  taskData->vm = vm;
+  taskData->opHandle = wrenGetSlotHandle(vm, 2);
+  ASYNCOP* op = wrenGetSlotForeign(vm, 2);
+  taskData->bufferHandle = op->bufferHandle;
+  taskData->buffer = NULL;
+  taskData->length = 0;
 
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   task.type = TASK_LOAD_FILE;
@@ -114,29 +109,40 @@ internal void
 FILESYSTEM_loadEventHandler(void* data) {
   TASK_DATA* task = data;
   // Thread: Async
-  ASYNCOP* op = task->op;
-  DBUFFER* buffer = task->buffer;
-
-  char* fileData = readEntireFile(task->name, &buffer->length);
+  task->buffer = readEntireFile(task->name, &task->length);
 
   SDL_Event event;
   SDL_memset(&event, 0, sizeof(event));
   event.type = ENGINE_EVENT_TYPE;
   event.user.code = EVENT_LOAD_FILE;
-  event.user.data1 = op;
+  event.user.data1 = task;
   // TODO: Use this to handle errors in future?
-  event.user.data2 = fileData;
+  event.user.data2 = NULL;
   SDL_PushEvent(&event);
-  free(task);
 }
 
 internal void
 FILESYSTEM_loadEventComplete(SDL_Event* event) {
   // Thread: Main
-  ASYNCOP* op = event->user.data1;
-  DBUFFER* buffer = op->buffer;
-  buffer->data = event->user.data2;
+  TASK_DATA* task = event->user.data1;
+  WrenVM* vm = task->vm;
+  wrenEnsureSlots(vm, 3);
+  
+  wrenSetSlotHandle(vm, 1, task->opHandle);
+  ASYNCOP* op = (ASYNCOP*)wrenGetSlotForeign(vm, 1);
+  wrenSetSlotHandle(vm, 2, task->bufferHandle);
+  DBUFFER* buffer = (DBUFFER*)wrenGetSlotForeign(vm, 2);
+
+  buffer->data = task->buffer;
+  buffer->length = task->length;
   buffer->ready = true;
+
+  op->complete = true;
+
+  // Free resources and handles
+  wrenReleaseHandle(vm, task->bufferHandle);
+  wrenReleaseHandle(vm, task->opHandle);
+  free(task);
 }
 
 /*
