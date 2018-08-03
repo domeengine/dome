@@ -1,5 +1,5 @@
 /*
-  ABC_fifo.h - v0.0.9 - Public Domain
+  ABC_fifo.h - v0.0.11 - Public Domain
   Author: Aviv Beeri, 2018
 
   How To Use:
@@ -10,6 +10,9 @@
 
   Version History:
 
+  v0.0.11 - When closing, we actually make sure all the threads can wake up
+            waiting for them all.
+  v0.0.10 - We block when closing the FIFO til all threads finish
   v0.0.9 - Initial Release, be careful
 
   License:
@@ -160,6 +163,8 @@ void ABC_FIFO_close(ABC_FIFO* queue) {
   // Tidy up our resources
   for (int i = 0; i < ABC_FIFO_POOL_SIZE; ++i) {
     SDL_SemPost(queue->semaphore);
+  }
+  for (int i = 0; i < ABC_FIFO_POOL_SIZE; ++i) {
     SDL_WaitThread(queue->threads[i], NULL);
   }
 
