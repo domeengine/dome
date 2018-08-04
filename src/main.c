@@ -8,17 +8,18 @@
 #include <wren.h>
 #include <SDL2/SDL.h>
 
-// Set up STB_IMAGE #define STB_IMAGE_IMPLEMENTATION
+// Set up STB_IMAGE
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_PNG
 #define STBI_ONLY_BMP
 #define STB_IMAGE_IMPLEMENTATION
 #include "include/stb_image.h"
 
-
+// Setup STB_VORBIS
 #define STB_VORBIS_NO_PUSHDATA_API
 #include "include/stb_vorbis.c"
 
+// Setup ABC_FIFO
 #define ABC_FIFO_IMPL
 #include "include/ABC_fifo.h"
 
@@ -58,6 +59,7 @@ int main(int argc, char* args[])
   WrenVM* vm = NULL;
   size_t gameFileLength;
   char* gameFile;
+  INIT_TO_ZERO(ENGINE, engine);
 
   //Initialize SDL
   if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
@@ -67,10 +69,16 @@ int main(int argc, char* args[])
     goto cleanup;
   }
 
-  INIT_TO_ZERO(ENGINE, engine);
 
   if (argc == 2) {
     gameFile = readEntireFile(args[1], &gameFileLength);
+    /*
+    char basePath[PATH_MAX+1];
+    char resolved[PATH_MAX+1];
+    int ptr;
+    ptr = realpath(args[1], resolved);
+    strncpy(basePath, dirname(resolved), PATH_MAX+1);
+    */ 
   } else {
     printf("No entry path was provided.\n");
     printf("Usage: ./dome [entry path]\n");
@@ -158,7 +166,6 @@ int main(int argc, char* args[])
             printf("Event code %i\n", event.user.code);
             if (event.user.code == EVENT_LOAD_FILE) {
               FILESYSTEM_loadEventComplete(&event);
-              // GAMEFILE_loadComplete(event.user.data1, event.user.data2);
             }
           }
       }

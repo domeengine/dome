@@ -135,7 +135,12 @@ internal WrenForeignMethodFn VM_bind_foreign_method(
 
 internal char* VM_load_module(WrenVM* vm, const char* name) {
   printf("Loading module %s\n", name);
-  char* base = "src/engine/";
+  char* base = "";
+  if (strncmp("./", name, 2) != 0) {
+    base = "src/engine/";
+  } else {
+  
+  }
   char* extension = ".wren";
 
   char* path;

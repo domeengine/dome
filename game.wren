@@ -2,6 +2,7 @@ import "input" for Keyboard
 import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
+import "./test"
 
 import "io" for FileSystem
 
