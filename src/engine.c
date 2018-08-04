@@ -46,15 +46,6 @@ ENGINE_taskHandler(ABC_TASK* task) {
 	} else if (task->type == TASK_LOAD_FILE) {
     FILESYSTEM_loadEventHandler(task->data);
 	} else if (task->type == TASK_WRITE_FILE) {
-    GAMEFILE* file = (GAMEFILE*)task->data;
-
-    SDL_Event event;
-    SDL_memset(&event, 0, sizeof(event));
-    event.type = ENGINE_EVENT_TYPE;
-    event.user.code = EVENT_WRITE_FILE;
-    event.user.data1 = file;
-    event.user.data2 = NULL;
-    SDL_PushEvent(&event);
   }
   return 0;
 }

@@ -65,36 +65,6 @@ foreign class DataBuffer {
 }
 
 /*
-// Deprecated
-foreign class File {
-  construct load(path) {}
-  // foreign write(path) {}
-  // foreign append(path) {}
-
-  foreign ready
-  foreign f_length
-  foreign f_data
-
-  length {
-    if (ready) {
-      return f_length
-    } else {
-      return null
-    }
-  }
-
-  data {
-    if (ready) {
-      return f_data
-    } else {
-      return null
-    }
-  }
-}
-
-*/
-
-/*
 
 API Experiment
 

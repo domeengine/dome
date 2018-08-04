@@ -13,10 +13,7 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   }
 
   if (strcmp(module, "io") == 0) {
-    if (strcmp(className, "File") == 0) {
-      // methods.allocate = GAMEFILE_allocate;
-      // methods.finalize = GAMEFILE_finalize;
-    } else if (strcmp(className, "DataBuffer") == 0) {
+    if (strcmp(className, "DataBuffer") == 0) {
       methods.allocate = DBUFFER_allocate;
       methods.finalize = DBUFFER_finalize;
     } else if (strcmp(className, "AsyncOperation") == 0) {
@@ -204,13 +201,6 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // FileSystem
   MAP_add(&engine->fnMap, "io", "FileSystem", "f_load(_,_)", true, FILESYSTEM_load);
-
-  /*
-  // File
-  MAP_add(&engine->fnMap, "io", "File", "f_data", false, GAMEFILE_getData);
-  MAP_add(&engine->fnMap, "io", "File", "ready", false, GAMEFILE_getReady);
-  MAP_add(&engine->fnMap, "io", "File", "f_length", false, GAMEFILE_getLength);
-  */
 
   // Buffer
   MAP_add(&engine->fnMap, "io", "DataBuffer", "f_data", false, DBUFFER_getData);

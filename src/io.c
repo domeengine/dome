@@ -1,10 +1,3 @@
-typedef struct {
-  bool ready;
-  char name[256];
-  size_t length;
-  char* data;
-} GAMEFILE;
-
 internal void FILESYSTEM_loadEventHandler(void* task);
 
 char* readEntireFile(char* path, size_t* lengthPtr) {
