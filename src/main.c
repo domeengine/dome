@@ -56,6 +56,7 @@ int main(int argc, char* args[])
 {
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
+  size_t gameFileLength;
   char* gameFile;
 
   //Initialize SDL
@@ -69,7 +70,7 @@ int main(int argc, char* args[])
   INIT_TO_ZERO(ENGINE, engine);
 
   if (argc == 2) {
-    gameFile = readEntireFile(args[1]);
+    gameFile = readEntireFile(args[1], &gameFileLength);
   } else {
     printf("No entry path was provided.\n");
     printf("Usage: ./dome [entry path]\n");
@@ -82,14 +83,22 @@ int main(int argc, char* args[])
     goto cleanup;
   };
 
-  char* initFile = readEntireFile("src/engine/init.wren");
-  char* completeGameFile = calloc(strlen(initFile) + strlen(gameFile), sizeof(char));
-  strcpy(completeGameFile, initFile);
-  strcpy(completeGameFile+strlen(initFile), gameFile);
+  size_t initFileLength;
+  char* initFile = readEntireFile("src/engine/init.wren", &initFileLength);
 
   // Configure Wren VM
   vm = VM_create(&engine);
-  WrenInterpretResult interpreterResult = wrenInterpret(vm, completeGameFile);
+  WrenInterpretResult interpreterResult;
+
+  // Run wren engine init()
+  interpreterResult = wrenInterpret(vm, initFile);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    result = EXIT_FAILURE;
+    goto cleanup;
+  }
+  
+  // Load user game file
+  interpreterResult = wrenInterpret(vm, gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
     goto cleanup;
@@ -148,7 +157,8 @@ int main(int argc, char* args[])
           {
             printf("Event code %i\n", event.user.code);
             if (event.user.code == EVENT_LOAD_FILE) {
-              GAMEFILE_loadComplete(event.user.data1, event.user.data2);
+              FILESYSTEM_loadEventComplete(&event);
+              // GAMEFILE_loadComplete(event.user.data1, event.user.data2);
             }
           }
       }

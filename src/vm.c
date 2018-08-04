@@ -13,9 +13,12 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   }
 
   if (strcmp(module, "io") == 0) {
-    if (strcmp(className, "File") == 0) {
-      methods.allocate = GAMEFILE_allocate;
-      methods.finalize = GAMEFILE_finalize;
+    if (strcmp(className, "DataBuffer") == 0) {
+      methods.allocate = DBUFFER_allocate;
+      methods.finalize = DBUFFER_finalize;
+    } else if (strcmp(className, "AsyncOperation") == 0) {
+      methods.allocate = ASYNCOP_allocate;
+      methods.finalize = ASYNCOP_finalize;
     }
   }
 
@@ -141,7 +144,7 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
   strcat(path, name); /* add the extension */
   strcat(path, extension); /* add the extension */
 
-  char* file = readEntireFile(path);
+  char* file = readEntireFile(path, NULL);
   free(path);
   return file;
 }
@@ -196,9 +199,17 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "audio", "AudioData", "unload()", false, AUDIO_unload);
   MAP_add(&engine->fnMap, "audio", "AudioEngineImpl", "f_update(_)", false, AUDIO_ENGINE_update);
 
-  // File
-  MAP_add(&engine->fnMap, "io", "File", "f_data", false, GAMEFILE_getData);
-  MAP_add(&engine->fnMap, "io", "File", "ready", false, GAMEFILE_getReady);
+  // FileSystem
+  MAP_add(&engine->fnMap, "io", "FileSystem", "f_load(_,_)", true, FILESYSTEM_load);
+
+  // Buffer
+  MAP_add(&engine->fnMap, "io", "DataBuffer", "f_data", false, DBUFFER_getData);
+  MAP_add(&engine->fnMap, "io", "DataBuffer", "ready", false, DBUFFER_getReady);
+  MAP_add(&engine->fnMap, "io", "DataBuffer", "f_length", false, DBUFFER_getLength);
+
+  // AsyncOperation
+  MAP_add(&engine->fnMap, "io", "AsyncOperation", "result", false, ASYNCOP_getResult);
+  MAP_add(&engine->fnMap, "io", "AsyncOperation", "complete", false, ASYNCOP_getComplete);
 
   // Input
   MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, INPUT_is_key_down);

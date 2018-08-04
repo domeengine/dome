@@ -1,10 +1,6 @@
-typedef struct {
-  bool ready;
-  char name[256];
-  char* data;
-} GAMEFILE;
+internal void FILESYSTEM_loadEventHandler(void* task);
 
-char* readEntireFile(char* path) {
+char* readEntireFile(char* path, size_t* lengthPtr) {
   FILE* file = fopen(path, "r");
   if (file == NULL) {
     return NULL;
@@ -24,6 +20,9 @@ char* readEntireFile(char* path) {
     if ( ferror( file ) != 0 ) {
       fputs("Error reading file", stderr);
     } else {
+      if (lengthPtr != NULL) {
+        *lengthPtr = newLen;
+      }
       source[newLen++] = '\0'; /* Just to be safe. */
     }
   }
