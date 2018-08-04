@@ -82,11 +82,12 @@ DOME provides the following modules/methods/classes:
 ## TODO
 You can follow my progress on implementing DOME on [my twitter](https://twitter.com/avivbeeri/status/1012448692119457798).
 
+- User module importing
 - IO
   - Writing to files
-- User module importing
 - Loading Audio and Graphics asynchronously
 - Graphics 
+  - Rect (no-fill)
   - Triangles
 - Network Access
   - UDP
