@@ -46,6 +46,7 @@
 #include "util/font.c"
 #include "map.c"
 #include "io.c"
+#include "engine/modules.c"
 #include "engine.c"
 #include "engine/io.c"
 #include "engine/audio.c"

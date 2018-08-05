@@ -18,6 +18,7 @@ typedef struct {
   INPUT_STATE keyboard;
   ABC_FIFO fifo;
   ForeignFunctionMap fnMap;
+  ModuleMap moduleMap;
 } ENGINE;
 
 typedef enum {
@@ -93,6 +94,8 @@ ENGINE_init(ENGINE* engine) {
   ABC_FIFO_create(&engine->fifo);
   engine->fifo.taskHandler = ENGINE_taskHandler;
 
+  ModuleMap_init(&engine->moduleMap);
+
 engine_init_end:
   return result;
 }
@@ -109,6 +112,10 @@ ENGINE_free(ENGINE* engine) {
 
   if (engine->fnMap.head != NULL) {
     MAP_free(&engine->fnMap);
+  }
+
+  if (engine->moduleMap.head != NULL) {
+    ModuleMap_free(&engine->moduleMap);
   }
 
   if (engine->pixels != NULL) {

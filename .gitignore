@@ -2,3 +2,6 @@ dome
 libwren.a
 **/.DS_Store
 src/util/convert
+src/util/embed
+src/engine/*.inc
+
