@@ -92,15 +92,12 @@ int main(int argc, char* args[])
     goto cleanup;
   };
 
-  size_t initFileLength;
-  char* initFile = readEntireFile("src/engine/init.wren", &initFileLength);
-
   // Configure Wren VM
   vm = VM_create(&engine);
   WrenInterpretResult interpreterResult;
 
   // Run wren engine init()
-  interpreterResult = wrenInterpret(vm, initFile);
+  interpreterResult = wrenInterpret(vm, initModule);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
     goto cleanup;
