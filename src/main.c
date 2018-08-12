@@ -1,4 +1,7 @@
-//Using SDL and standard IO
+// TODO: We need this for realpath in BSD, but it won't be available in windows (_fullpath)
+#define _DEFAULT_SOURCE
+
+// Standard libs
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -79,7 +82,7 @@ int main(int argc, char* args[])
     int ptr;
     ptr = realpath(args[1], resolved);
     strncpy(basePath, dirname(resolved), PATH_MAX+1);
-    */ 
+    */
   } else {
     printf("No entry path was provided.\n");
     printf("Usage: ./dome [entry path]\n");
