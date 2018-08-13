@@ -1,5 +1,5 @@
 CC = cc
-CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `pkg-config --cflags sdl2`
+CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags`
 OBJECTS = main.o test.o 
 SOURCE  = src
 BUILD  = build
