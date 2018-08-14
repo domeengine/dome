@@ -105,7 +105,7 @@ int main(int argc, char* args[])
     result = EXIT_FAILURE;
     goto cleanup;
   }
-  
+
   // Load user game file
   interpreterResult = wrenInterpret(vm, gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -172,9 +172,8 @@ int main(int argc, char* args[])
       }
     }
 
-    // Decouple updates from rendering
-    uint8_t attempts = 0;
-    while (lag >= MS_PER_FRAME && attempts < 10) {
+    // update()
+    if (lag >= MS_PER_FRAME) {
       wrenSetSlotHandle(vm, 0, gameClass);
       interpreterResult = wrenCall(vm, updateMethod);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -182,10 +181,9 @@ int main(int argc, char* args[])
         goto cleanup;
       }
       lag -= MS_PER_FRAME;
-      attempts += 1;
     }
 
-    // Update audio system
+    // updateAudio()
     wrenSetSlotHandle(vm, 0, audioEngineClass);
     interpreterResult = wrenCall(vm, updateMethod);
     if (interpreterResult != WREN_RESULT_SUCCESS) {
