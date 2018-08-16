@@ -23,6 +23,17 @@ void POINT_getY(WrenVM* vm) {
   POINT* point = (POINT*)wrenGetSlotForeign(vm, 0);
   wrenSetSlotDouble(vm, 0, point->y);
 }
+
+void POINT_setX(WrenVM* vm) {
+  POINT* point = (POINT*)wrenGetSlotForeign(vm, 0);
+  point->x = wrenGetSlotDouble(vm, 1);
+}
+
+void POINT_setY(WrenVM* vm) {
+  POINT* point = (POINT*)wrenGetSlotForeign(vm, 0);
+  point->y = wrenGetSlotDouble(vm, 1);
+}
+
 /*
 void IMAGE_draw(WrenVM* vm) {
   IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);

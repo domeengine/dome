@@ -135,5 +135,7 @@ foreign class Point {
   construct new() {}
   construct new(x, y) {}
   foreign x
+  foreign x=(v)
   foreign y
+  foreign y=(v)
 }

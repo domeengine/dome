@@ -223,6 +223,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Point
   MAP_add(&engine->fnMap, "graphics", "Point", "x", false, POINT_getX);
   MAP_add(&engine->fnMap, "graphics", "Point", "y", false, POINT_getY);
+  MAP_add(&engine->fnMap, "graphics", "Point", "x=(_)", false, POINT_setX);
+  MAP_add(&engine->fnMap, "graphics", "Point", "y=(_)", false, POINT_setY);
   return vm;
 }
 
