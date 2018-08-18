@@ -310,8 +310,8 @@ ENGINE_ellipse(ENGINE* engine, int16_t x0, int16_t y0, int16_t x1, int16_t y1, u
   int32_t x = 0;
   int32_t y = ry;
 
-  int32_t d = rxSquare * pow(ry, 2) - rx2ry2;
-  // int32_t d = rySquare - rxSquare * ry + 0.25 * rxSquare;
+  // int32_t d = rxSquare * pow(ry, 2) - rx2ry2;
+  double d = 0;
 
   do {
     ENGINE_pset(engine, xc+x, yc+y, c);
@@ -327,6 +327,7 @@ ENGINE_ellipse(ENGINE* engine, int16_t x0, int16_t y0, int16_t x1, int16_t y1, u
       y = y - 1;
     }
   } while (ellipse_getRegion(x, y, rx, ry) == 1);
+  x--;
 
   do {
     ENGINE_pset(engine, xc+x, yc+y, c);
