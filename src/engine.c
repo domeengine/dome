@@ -287,6 +287,63 @@ ENGINE_circle(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c) {
   }
 }
 
+internal inline int16_t
+ellipse_getRegion(double x, double y, int16_t rx, int16_t ry) {
+  return (ry*x > rx*y) ? 2 : 1;
+}
+
+internal void
+ENGINE_ellipse(ENGINE* engine, int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint32_t c) {
+
+  // Calcularte radius
+  int32_t rx = abs(x1 - x0) / 2; // Radius on x
+  int32_t ry = abs(y1 - y0) / 2; // Radius on y
+  int32_t rxSquare = rx*rx;
+  int32_t rySquare = ry*ry;
+  int32_t rx2ry2 = rxSquare * rySquare;
+
+  // calculate center co-ordinates
+  int32_t xc = ((x0 < x1) ? x0 : x1) + rx;
+  int32_t yc = ((y0 < y1) ? y0 : y1) + ry;
+
+  // Start drawing at (0,ry)
+  int32_t x = 0;
+  int32_t y = ry;
+
+  int32_t d = rxSquare * pow(ry, 2) - rx2ry2;
+  // int32_t d = rySquare - rxSquare * ry + 0.25 * rxSquare;
+
+  do {
+    ENGINE_pset(engine, xc+x, yc+y, c);
+    ENGINE_pset(engine, xc-x, yc-y, c);
+    ENGINE_pset(engine, xc-x, yc+y, c);
+    ENGINE_pset(engine, xc+x, yc-y, c);
+    x++;
+    int32_t xSquare = x*x;
+    // valuate decision paramter
+    d = rySquare * xSquare + rxSquare * pow(y - 0.5, 2) - rx2ry2;
+
+    if (d > 0) {
+      y = y - 1;
+    }
+  } while (ellipse_getRegion(x, y, rx, ry) == 1);
+
+  do {
+    ENGINE_pset(engine, xc+x, yc+y, c);
+    ENGINE_pset(engine, xc-x, yc-y, c);
+    ENGINE_pset(engine, xc-x, yc+y, c);
+    ENGINE_pset(engine, xc+x, yc-y, c);
+    y--;
+    int32_t ySquare = y*y;
+    // valuate decision paramter
+    d = rxSquare * ySquare + rySquare * pow(x + 0.5, 2) - rx2ry2;
+
+    if (d < 0) {
+      x = x + 1;
+    }
+  } while (y >= 0);
+
+}
 
 internal void
 ENGINE_rect(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t c) {
