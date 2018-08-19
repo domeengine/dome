@@ -7,6 +7,7 @@ class Canvas {
  foreign static f_circle(x, y, r, c)
  foreign static f_circlefill(x, y, r, c)
  foreign static f_ellipse(x1, y1, x2, y2, c)
+ foreign static f_ellipsefill(x1, y1, x2, y2, c)
  static pset(x, y, c) {
    if (c is Color) {
      f_pset(x, y, c.rgb)
@@ -27,6 +28,13 @@ class Canvas {
      f_ellipse(x0, y0, x1, y1, c.rgb)
    } else {
      f_ellipse(x0, y0, x1, y1, c)
+   }
+ }
+ static ellipsefill(x0, y0, x1, y1, c) {
+   if (c is Color) {
+     f_ellipsefill(x0, y0, x1, y1, c.rgb)
+   } else {
+     f_ellipsefill(x0, y0, x1, y1, c)
    }
  }
  static rect(x, y, w, h, c) {
