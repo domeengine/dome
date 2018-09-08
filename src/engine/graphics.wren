@@ -145,6 +145,7 @@ foreign class ImageData {
     return __cache[path]
   }
   foreign draw(x, y)
+  foreign drawArea(srcX, srcY, srcW, srcH, destX, destY)
 }
 
 foreign class Point {

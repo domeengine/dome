@@ -218,6 +218,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_ellipsefill(_,_,_,_,_)", true, CANVAS_ellipsefill);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_print(_,_,_,_)", true, CANVAS_print);
   MAP_add(&engine->fnMap, "graphics", "ImageData", "draw(_,_)", false, IMAGE_draw);
+  MAP_add(&engine->fnMap, "graphics", "ImageData", "drawArea(_,_,_,_,_,_)", false, IMAGE_drawArea);
 
   // Audio
   MAP_add(&engine->fnMap, "audio", "AudioChannel", "enabled=(_)", false, AUDIO_CHANNEL_setEnabled);
