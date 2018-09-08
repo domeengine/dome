@@ -66,6 +66,15 @@ void IMAGE_draw(WrenVM* vm) {
   }
 }
 
+void IMAGE_getWidth(WrenVM* vm) {
+  IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
+  wrenSetSlotDouble(vm, 0, image->width);
+}
+void IMAGE_getHeight(WrenVM* vm) {
+  IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
+  wrenSetSlotDouble(vm, 0, image->height);
+}
+
 void IMAGE_drawArea(WrenVM* vm) {
   IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
   int32_t srcX = wrenGetSlotDouble(vm, 1);

@@ -146,6 +146,9 @@ foreign class ImageData {
   }
   foreign draw(x, y)
   foreign drawArea(srcX, srcY, srcW, srcH, destX, destY)
+
+  foreign width
+  foreign height
 }
 
 foreign class Point {
