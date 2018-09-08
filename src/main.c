@@ -61,7 +61,7 @@
 
 int main(int argc, char* args[])
 {
-  bool makeGif = false;
+  bool makeGif = true;
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   size_t gameFileLength;
@@ -135,12 +135,13 @@ int main(int argc, char* args[])
   }
 
   jo_gif_t gif;
-  int imageSize;
+  size_t imageSize;
+  uint8_t t = 0;
   uint8_t* destroyableImage;
   if (makeGif) {
     gif = jo_gif_start("test.gif", engine.width, engine.height, 0, 31);
-    imageSize = engine.width*engine.height*4*sizeof(uint8_t);
-    destroyableImage = (uint8_t*)malloc(imageSize);
+    imageSize = engine.width*engine.height;
+    destroyableImage = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
   }
 
   SDL_ShowWindow(engine.window);
@@ -187,6 +188,21 @@ int main(int argc, char* args[])
 
     // update()
     if (lag >= MS_PER_FRAME) {
+      t++;
+      if (makeGif && t > 3) {
+        t = 0;
+        for (size_t i = 0; i < imageSize; i++) {
+          uint32_t c = ((uint32_t*)engine.pixels)[i];
+          uint8_t a = (0xFF000000 & c) >> 24;
+          uint8_t r = (0x00FF0000 & c) >> 16;
+          uint8_t g = (0x0000FF00 & c) >> 8;
+          uint8_t b = (0x000000FF & c);
+          ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
+        }
+        jo_gif_frame(&gif, destroyableImage, 8, true);
+      }
+    }
+    if (lag >= MS_PER_FRAME) {
       wrenSetSlotHandle(vm, 0, gameClass);
       interpreterResult = wrenCall(vm, updateMethod);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -223,17 +239,6 @@ int main(int argc, char* args[])
     char buffer[20];
     snprintf(buffer, sizeof(buffer), "DOME - %.02f fps", 1000.0 / (elapsed+1));   // here 2 means binary
     SDL_SetWindowTitle(engine.window, buffer);
-    for (size_t i = 0; i < imageSize / (4 * sizeof(uint8_t)); i++) {
-      uint32_t c = ((uint32_t*)engine.pixels)[i];
-      uint8_t a = (0xFF000000 & c) >> 24;
-      uint8_t r = (0x00FF0000 & c) >> 16;
-      uint8_t g = (0x0000FF00 & c) >> 8;
-      uint8_t b = (0x000000FF & c);
-      ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
-    }
-    if (makeGif) {
-      jo_gif_frame(&gif, destroyableImage, 2, false);
-    }
   }
   if (makeGif) {
     jo_gif_end(&gif);
