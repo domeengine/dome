@@ -61,7 +61,7 @@
 
 int main(int argc, char* args[])
 {
-  bool makeGif = true;
+  bool makeGif = false;
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   size_t gameFileLength;
