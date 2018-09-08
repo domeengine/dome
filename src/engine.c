@@ -19,6 +19,8 @@ typedef struct {
   ABC_FIFO fifo;
   ForeignFunctionMap fnMap;
   ModuleMap moduleMap;
+  uint32_t width;
+  uint32_t height;
 } ENGINE;
 
 typedef enum {
@@ -84,6 +86,8 @@ ENGINE_init(ENGINE* engine) {
   }
 
   engine->pixels = malloc(GAME_WIDTH * GAME_HEIGHT * 4);
+  engine->width = GAME_WIDTH;
+  engine->height = GAME_HEIGHT;
   if (engine->pixels == NULL) {
     result = EXIT_FAILURE;
     goto engine_init_end;
