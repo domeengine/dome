@@ -291,22 +291,22 @@ ENGINE_circle(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c) {
   }
 }
 
-internal inline int16_t
-ellipse_getRegion(double x, double y, int16_t rx, int16_t ry) {
+internal inline double
+ellipse_getRegion(double x, double y, int32_t rx, int32_t ry) {
   double rxSquare = rx * rx;
   double rySquare = ry * ry;
-  return -1.0 * (rySquare*x) / (rxSquare*y);
+  return (rySquare*x) / (rxSquare*y);
 }
 
 internal void
 ENGINE_ellipsefill(ENGINE* engine, int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint32_t c) {
 
   // Calculate radius
-  int32_t rx = abs(x1 - x0) / 2; // Radius on x
-  int32_t ry = abs(y1 - y0) / 2; // Radius on y
-  int32_t rxSquare = rx*rx;
-  int32_t rySquare = ry*ry;
-  int32_t rx2ry2 = rxSquare * rySquare;
+  int32_t rx = (x1 - x0) / 2; // Radius on x
+  int32_t ry = (y1 - y0) / 2; // Radius on y
+  uint32_t rxSquare = rx*rx;
+  uint32_t rySquare = ry*ry;
+  uint32_t rx2ry2 = rxSquare * rySquare;
 
   // calculate center co-ordinates
   int32_t xc = min(x0, x1) + rx;
@@ -317,7 +317,7 @@ ENGINE_ellipsefill(ENGINE* engine, int16_t x0, int16_t y0, int16_t x1, int16_t y
   int32_t y = ry;
   double d = 0;
 
-  while (abs(ellipse_getRegion(x, y, rx, ry)) < 1) {
+  while (fabs(ellipse_getRegion(x, y, rx, ry)) < 1) {
     x++;
     double xSquare = x*x;
     // valuate decision paramter
@@ -366,7 +366,7 @@ ENGINE_ellipse(ENGINE* engine, int16_t x0, int16_t y0, int16_t x1, int16_t y1, u
   ENGINE_pset(engine, xc+x, yc+y, c);
   ENGINE_pset(engine, xc+x, yc-y, c);
 
-  while (abs(ellipse_getRegion(x, y, rx, ry)) < 1) {
+  while (fabs(ellipse_getRegion(x, y, rx, ry)) < 1) {
     x++;
     double xSquare = x*x;
     // valuate decision paramter
