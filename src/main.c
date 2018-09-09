@@ -77,8 +77,11 @@ int main(int argc, char* args[])
   }
 
 
-  if (argc == 2) {
+  if (argc >= 2 || argc <= 3) {
     gameFile = readEntireFile(args[1], &gameFileLength);
+    if (argc == 3) {
+      makeGif = true;
+    }
     /*
     char basePath[PATH_MAX+1];
     char resolved[PATH_MAX+1];
@@ -139,7 +142,7 @@ int main(int argc, char* args[])
   uint8_t t = 0;
   uint8_t* destroyableImage;
   if (makeGif) {
-    gif = jo_gif_start("test.gif", engine.width, engine.height, 0, 31);
+    gif = jo_gif_start(args[2], engine.width, engine.height, 0, 31);
     imageSize = engine.width*engine.height;
     destroyableImage = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
   }
