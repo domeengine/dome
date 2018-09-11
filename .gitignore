@@ -4,4 +4,5 @@ libwren.a
 src/util/convert
 src/util/embed
 src/engine/*.inc
+*.swp
 
