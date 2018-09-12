@@ -10,6 +10,8 @@ class FileSystem {
     return operation
   }
 
+  foreign static loadSync(path)
+
   /*
   // Overwrites entire path
   static write(path, buffer) {

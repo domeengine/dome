@@ -122,12 +122,22 @@ FILESYSTEM_loadEventHandler(void* data) {
 }
 
 internal void
+FILESYSTEM_loadSync(WrenVM* vm) {
+  // TODO: We should return a DataBuffer object rather than a string
+  const char* path = wrenGetSlotString(vm, 1);
+  size_t length;
+  char* data = readEntireFile(path, &length);
+  wrenSetSlotBytes(vm, 0, data, length);
+  free(data);
+}
+
+internal void
 FILESYSTEM_loadEventComplete(SDL_Event* event) {
   // Thread: Main
   TASK_DATA* task = event->user.data1;
   WrenVM* vm = task->vm;
   wrenEnsureSlots(vm, 3);
-  
+
   wrenSetSlotHandle(vm, 1, task->opHandle);
   ASYNCOP* op = (ASYNCOP*)wrenGetSlotForeign(vm, 1);
   wrenSetSlotHandle(vm, 2, task->bufferHandle);

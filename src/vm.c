@@ -234,6 +234,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // FileSystem
   MAP_add(&engine->fnMap, "io", "FileSystem", "f_load(_,_)", true, FILESYSTEM_load);
+  MAP_add(&engine->fnMap, "io", "FileSystem", "loadSync(_)", true, FILESYSTEM_loadSync);
 
   // Buffer
   MAP_add(&engine->fnMap, "io", "DataBuffer", "f_data", false, DBUFFER_getData);
