@@ -143,8 +143,26 @@ ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
   // Draw pixel at (x,y)
   if ((c & (0xFF << 24)) == 0) {
     return;
-  }
-  if (0 <= x && x < GAME_WIDTH && 0 <= y && y < GAME_HEIGHT) {
+  } else if (0 <= x && x < GAME_WIDTH && 0 <= y && y < GAME_HEIGHT) {
+    if (((c & (0xFF << 24)) >> 24) < 0xFF) {
+      uint32_t current = ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x];
+
+      uint16_t oldA = (0xFF000000 & current) >> 24;
+      uint16_t newA = (0xFF000000 & c) >> 24;
+
+      uint16_t oldR = (255-newA) * ((0x00FF0000 & current) >> 16);
+      uint16_t oldG = (255-newA) * ((0x0000FF00 & current) >> 8);
+      uint16_t oldB = (255-newA) * (0x000000FF & current);
+      uint16_t newR = newA * ((0x00FF0000 & c) >> 16);
+      uint16_t newG = newA * ((0x0000FF00 & c) >> 8);
+      uint16_t newB = newA * (0x000000FF & c);
+      uint8_t a = newA;
+      uint8_t r = (oldR + newR) / 255;
+      uint8_t g = (oldG + newG) / 255;
+      uint8_t b = (oldB + newB) / 255;
+
+      c = (a << 24) | (r << 16) | (g << 8) | b;
+    }
     ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x] = c;
   }
 }

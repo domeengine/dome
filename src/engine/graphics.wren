@@ -99,6 +99,12 @@ class Color {
     _b = b
     _a = 255
   }
+  construct new(r, g, b, a) {
+    _r = r
+    _g = g
+    _b = b
+    _a = a
+  }
 
   rgb { Color.rgb(_r, _g, _b, _a) }
 
