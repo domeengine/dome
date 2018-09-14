@@ -1,5 +1,5 @@
 CC = cc
-CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value -Wno-incompatible-pointer-types-discards-qualifiers `sdl2-config --cflags` 
+CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value -Wno-ignored-qualifiers -Wno-unknown-warning -Wno-incompatible-pointer-types-discards-qualifiers `sdl2-config --cflags` 
 OBJECTS = main.o test.o 
 SOURCE  = src
 BUILD  = build
