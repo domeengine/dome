@@ -77,35 +77,35 @@ int main(int argc, char* args[])
     goto cleanup;
   }
 
-
-  printf("%d\n", argc);
+  char* base = SDL_GetBasePath();
   if (argc >= 2 && argc <= 3) {
     if( access( args[1], F_OK ) == -1 ) {
       printf("%s does not exist.\n", args[1]);
       result = EXIT_FAILURE;
       goto cleanup;
     }
-    gameFile = readEntireFile(args[1], &gameFileLength);
+    char pathBuf[strlen(base)+strlen(args[1])+1];
+    strcpy(pathBuf, base);
+    strcat(pathBuf, args[1]);
+    gameFile = readEntireFile(pathBuf, &gameFileLength);
     if (argc == 3) {
       makeGif = true;
     }
-    /*
-    char basePath[PATH_MAX+1];
-    char resolved[PATH_MAX+1];
-    int ptr;
-    ptr = realpath(args[1], resolved);
-    strncpy(basePath, dirname(resolved), PATH_MAX+1);
-    */
   } else {
-    if( access( "main.wren", F_OK ) == -1 ) {
+    char* fileName = "main.wren";
+    char pathBuf[strlen(base)+strlen(fileName)+1];
+    strcpy(pathBuf, base);
+    strcat(pathBuf, fileName);
+    if( access( pathBuf, F_OK ) == -1 ) {
       // file doesn't exist
       printf("No entry path was provided.\n");
       printf("Usage: ./dome [entry path]\n");
       result = EXIT_FAILURE;
       goto cleanup;
     }
-    gameFile = readEntireFile("main.wren", &gameFileLength);
+    gameFile = readEntireFile(pathBuf, &gameFileLength);
   }
+  SDL_free(base);
 
   result = ENGINE_init(&engine);
   if (result == EXIT_FAILURE) {

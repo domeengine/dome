@@ -10,9 +10,14 @@ void IMAGE_allocate(WrenVM* vm) {
   // TODO: We should read this from a "DataBuffer" which is file loaded, rather than loading ourselves.
   // So that we can defer the file loading to a thread.
   const char* path = wrenGetSlotString(vm, 1);
+  char* base = SDL_GetBasePath();
+  char pathBuf[strlen(base)+strlen(path)+1];
+  strcpy(pathBuf, base);
+  strcat(pathBuf, path);
+  SDL_free(base);
   IMAGE* image = (IMAGE*)wrenSetSlotNewForeign(vm,
       0, 0, sizeof(IMAGE));
-  image->pixels = (uint32_t*)stbi_load(path,
+  image->pixels = (uint32_t*)stbi_load(pathBuf,
       &image->width,
       &image->height,
       &image->channels,

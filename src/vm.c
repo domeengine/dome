@@ -163,7 +163,7 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
     return (char*)ModuleMap_get(&moduleMap, name);
   }
 
-  char* base = "";
+  char* base = SDL_GetBasePath();
   char* extension = ".wren";
 
   char* path;
@@ -171,6 +171,7 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
   strcpy(path, base); /* copy name into the new var */
   strcat(path, name); /* add the extension */
   strcat(path, extension); /* add the extension */
+  SDL_free(base);
 
   char* file = readEntireFile(path, NULL);
   free(path);

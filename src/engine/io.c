@@ -125,8 +125,12 @@ internal void
 FILESYSTEM_loadSync(WrenVM* vm) {
   // TODO: We should return a DataBuffer object rather than a string
   const char* path = wrenGetSlotString(vm, 1);
+  char* base = SDL_GetBasePath();
+  char pathBuf[strlen(base)+strlen(path)+1];
+  strcpy(pathBuf, base);
+  strcat(pathBuf, path);
   size_t length;
-  char* data = readEntireFile(path, &length);
+  char* data = readEntireFile(pathBuf, &length);
   wrenSetSlotBytes(vm, 0, data, length);
   free(data);
 }

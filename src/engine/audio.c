@@ -93,6 +93,12 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
 internal void AUDIO_allocate(WrenVM* vm) {
   AUDIO_DATA* data = (AUDIO_DATA*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_DATA));
   const char* path = wrenGetSlotString(vm, 1);
+  char* base = SDL_GetBasePath();
+  char pathBuf[strlen(base)+strlen(path)+1];
+  strcpy(pathBuf, base);
+  strcat(pathBuf, path);
+  SDL_free(base);
+
   strncpy(data->name, path, 255);
   data->name[255] = '\0';
 
@@ -106,7 +112,7 @@ internal void AUDIO_allocate(WrenVM* vm) {
     data->audioType = AUDIO_TYPE_WAV;
 
     // Loading the WAV file
-    SDL_LoadWAV(path, &data->spec, ((uint8_t**)&tempBuffer), &data->length);
+    SDL_LoadWAV(pathBuf, &data->spec, ((uint8_t**)&tempBuffer), &data->length);
     data->length /= sizeof(int16_t) * data->spec.channels;
   } else if (strstr(data->name, ".ogg") != NULL) {
     data->audioType = AUDIO_TYPE_OGG;
@@ -114,7 +120,7 @@ internal void AUDIO_allocate(WrenVM* vm) {
     int channelsInFile, freq;
     memset(&data->spec, 0, sizeof(SDL_AudioSpec));
     // Loading the OGG file
-    data->length = stb_vorbis_decode_filename(path, &channelsInFile, &freq, &tempBuffer);
+    data->length = stb_vorbis_decode_filename(pathBuf, &channelsInFile, &freq, &tempBuffer);
     data->spec.channels = channelsInFile;
     data->spec.freq = freq;
     data->spec.format = AUDIO_S16LSB;
