@@ -4,6 +4,7 @@
 // Standard libs
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <math.h>
 #include <libgen.h>
@@ -77,7 +78,13 @@ int main(int argc, char* args[])
   }
 
 
-  if (argc >= 2 || argc <= 3) {
+  printf("%d\n", argc);
+  if (argc >= 2 && argc <= 3) {
+    if( access( args[1], F_OK ) == -1 ) {
+      printf("%s does not exist.\n", args[1]);
+      result = EXIT_FAILURE;
+      goto cleanup;
+    }
     gameFile = readEntireFile(args[1], &gameFileLength);
     if (argc == 3) {
       makeGif = true;
@@ -90,10 +97,14 @@ int main(int argc, char* args[])
     strncpy(basePath, dirname(resolved), PATH_MAX+1);
     */
   } else {
-    printf("No entry path was provided.\n");
-    printf("Usage: ./dome [entry path]\n");
-    result = EXIT_FAILURE;
-    goto cleanup;
+    if( access( "main.wren", F_OK ) == -1 ) {
+      // file doesn't exist
+      printf("No entry path was provided.\n");
+      printf("Usage: ./dome [entry path]\n");
+      result = EXIT_FAILURE;
+      goto cleanup;
+    }
+    gameFile = readEntireFile("main.wren", &gameFileLength);
   }
 
   result = ENGINE_init(&engine);
