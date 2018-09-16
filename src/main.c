@@ -21,6 +21,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "include/stb_image.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "include/stb_image_write.h"
+
 // Setup STB_VORBIS
 #define STB_VORBIS_NO_PUSHDATA_API
 #include "include/stb_vorbis.c"
@@ -63,6 +66,7 @@
 int main(int argc, char* args[])
 {
   bool makeGif = false;
+  char* gifName = "test.gif";
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   size_t gameFileLength;
@@ -78,6 +82,7 @@ int main(int argc, char* args[])
   }
 
   char* base = SDL_GetBasePath();
+  // TODO: Use getopt to parse the arguments better
   if (argc >= 2 && argc <= 3) {
     if( access( args[1], F_OK ) == -1 ) {
       printf("%s does not exist.\n", args[1]);
@@ -89,7 +94,9 @@ int main(int argc, char* args[])
     strcat(pathBuf, args[1]);
     gameFile = readEntireFile(pathBuf, &gameFileLength);
     if (argc == 3) {
+      printf("GIF Recording is enabled\n");
       makeGif = true;
+      gifName = args[2];
     }
   } else {
     char* fileName = "main.wren";
@@ -149,13 +156,11 @@ int main(int argc, char* args[])
   }
 
   jo_gif_t gif;
-  size_t imageSize;
+  size_t imageSize = engine.width*engine.height;
   uint8_t t = 0;
-  uint8_t* destroyableImage;
+  uint8_t* destroyableImage = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
   if (makeGif) {
-    gif = jo_gif_start(args[2], engine.width, engine.height, 0, 31);
-    imageSize = engine.width*engine.height;
-    destroyableImage = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
+    gif = jo_gif_start(gifName, engine.width, engine.height, 0, 31);
   }
 
   SDL_ShowWindow(engine.window);
@@ -186,6 +191,16 @@ int main(int argc, char* args[])
             if(keyCode == SDLK_ESCAPE && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               // TODO: Let Wren decide when to end game
               running = false;
+            } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+              for (size_t i = 0; i < imageSize; i++) {
+                uint32_t c = ((uint32_t*)engine.pixels)[i];
+                uint8_t a = (0xFF000000 & c) >> 24;
+                uint8_t r = (0x00FF0000 & c) >> 16;
+                uint8_t g = (0x0000FF00 & c) >> 8;
+                uint8_t b = (0x000000FF & c);
+                ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
+              }
+              stbi_write_png("screenshot.png", engine.width, engine.height, 4, destroyableImage, engine.width * 4);
             } else {
               ENGINE_storeKeyState(&engine, keyCode, event.key.state);
             }
