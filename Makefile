@@ -1,16 +1,28 @@
+BUILD_VALUE=$(shell git rev-parse --short HEAD)
 CC = cc
 CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value -Wno-incompatible-pointer-types-discards-qualifiers `sdl2-config --cflags` 
-OBJECTS = main.o test.o 
+IFLAGS = -I$(SOURCE)/include
+LDFLAGS = -lSDL2 -lwren -lm -L$(SOURCE)/lib
 SOURCE  = src
-BUILD  = build
+UTILS = $(SOURCE)/util
+ENGINESRC = $(SOURCE)/engine
+EXENAME = dome
 
-all: dome
+all: $(EXENAME)
+
 src/lib/libwren.a: 
 	./setup.sh
-$(SOURCE)/engine/*.wren.inc: ${SOURCE}/util/embed.c ${SOURCE}/engine/*.wren
-	cd src/util && ./generateEmbedModules.sh
-dome: $(SOURCE)/*.c src/lib/libwren.a $(SOURCE)/engine/*.c ${SOURCE}/util/font.c ${SOURCE}/include $(SOURCE)/engine/*.wren.inc
-	$(CC) $(CFLAGS) $(SOURCE)/main.c -o dome -lSDL2 -I$(SOURCE)/include -L$(SOURCE)/lib -lwren -lm
+	
+$(ENGINESRC)/*.wren.inc: $(UTILS)/embed.c $(ENGINESRC)/*.wren
+	cd $(UTILS) && ./generateEmbedModules.sh
+
+$(EXENAME): $(SOURCE)/*.c src/lib/libwren.a $(ENGINESRC)/*.c $(UTILS)/font.c $(SOURCE)/include $(ENGINESRC)/*.wren.inc
+	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(EXENAME) $(LDFLAGS) $(IFLAGS)
+
+.PHONY: clean clean-all
+clean-all:
+	    rm -rf $(EXENAME) $(SOURCE)/lib/wren $(SOURCE)/lib/libwren.a $(ENGINESRC)/*.inc
 
 clean:
-	    rm -rf $(BUILD)/*.o dome ${SOURCE}/lib/wren ${SOURCE}/lib/libwren.a ${SOURCE}/engine/*.inc
+	    rm -rf $(EXENAME) $(ENGINESRC)/*.inc
+
