@@ -55,6 +55,7 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
 
   int32_t samplesQueued = SDL_GetQueuedAudioSize(audioEngine->deviceId) / bytesPerSample;
   int32_t samplesToWrite = totalSamples - samplesQueued;
+  int totalChannels = 0;
 
   // Get channel
   for (int i = 0; i < samplesToWrite; i++) {
@@ -84,8 +85,11 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
       left = (float)tanh(left); ///= totalEnabled;
       right = (float)tanh(right); //= totalEnabled;
     }
-    writeCursor[i*2] = (int16_t)(left * INT16_MAX);
-    writeCursor[i*2+1] = (int16_t)(right * INT16_MAX);
+    if (totalEnabled > 0) {
+      writeCursor[i*2] = (int16_t)(left * INT16_MAX);
+      writeCursor[i*2+1] = (int16_t)(right * INT16_MAX);
+    }
+    totalChannels = max(totalEnabled, totalChannels);
   }
   SDL_QueueAudio(audioEngine->deviceId, audioEngine->outputBuffer, samplesToWrite*bytesPerSample);
 }

@@ -4,6 +4,8 @@
 // Standard libs
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
+
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
@@ -65,6 +67,11 @@
 
 int main(int argc, char* args[])
 {
+     
+  #if defined _WIN32
+  SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
+  #endif    
+
   bool makeGif = false;
   char* gifName = "test.gif";
   int result = EXIT_SUCCESS;
