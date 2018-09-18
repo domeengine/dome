@@ -245,6 +245,7 @@ int main(int argc, char* args[])
         result = EXIT_FAILURE;
         goto cleanup;
       }
+      lag -= MS_PER_FRAME;
     }
 
     // updateAudio()
@@ -272,7 +273,6 @@ int main(int argc, char* args[])
     char buffer[20];
     // snprintf(buffer, sizeof(buffer), "DOME - %.02f fps", 1000.0 / (elapsed+1));   // here 2 means binary
     // SDL_SetWindowTitle(engine.window, buffer);
-    lag -= MS_PER_FRAME;
 
     elapsed = SDL_GetTicks() - currentTime;
   }
