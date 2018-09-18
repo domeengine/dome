@@ -1,12 +1,26 @@
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
 CC = cc
-CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value -Wno-incompatible-pointer-types-discards-qualifiers `sdl2-config --cflags` 
+CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags` 
 IFLAGS = -I$(SOURCE)/include
-LDFLAGS = -lSDL2 -lwren -lm -L$(SOURCE)/lib
+
+
+SDLFLAGS=-lSDL2
+LDFLAGS = -L$(SOURCE)/lib $(SDLFLAGS) -lwren -lm
 SOURCE  = src
 UTILS = $(SOURCE)/util
 ENGINESRC = $(SOURCE)/engine
 EXENAME = dome
+
+SYS=$(shell uname -s)
+
+ifneq (, $(findstring Darwin, $(SYS)))
+CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
+endif
+
+ifneq (, $(findstring MSYS, $(SYS)))
+SDLFLAGS := -lSDL2main -mwindows $(SDLFLAGS)
+endif
+
 
 all: $(EXENAME)
 
@@ -18,6 +32,9 @@ $(ENGINESRC)/*.wren.inc: $(UTILS)/embed.c $(ENGINESRC)/*.wren
 
 $(EXENAME): $(SOURCE)/*.c src/lib/libwren.a $(ENGINESRC)/*.c $(UTILS)/font.c $(SOURCE)/include $(ENGINESRC)/*.wren.inc
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(EXENAME) $(LDFLAGS) $(IFLAGS)
+ifneq (, $(findstring Darwin, $(SYS)))
+install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib @executable_path/libSDL2.dylib $(EXENAME)
+endif
 
 .PHONY: clean clean-all
 clean-all:
