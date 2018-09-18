@@ -67,10 +67,10 @@
 
 int main(int argc, char* args[])
 {
-     
+
   #if defined _WIN32
   SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
-  #endif    
+  #endif
 
   bool makeGif = false;
   char* gifName = "test.gif";
@@ -245,26 +245,6 @@ int main(int argc, char* args[])
         result = EXIT_FAILURE;
         goto cleanup;
       }
-
-      // render();
-      wrenSetSlotHandle(vm, 0, gameClass);
-      wrenSetSlotDouble(vm, 1, (double)lag / MS_PER_FRAME);
-      interpreterResult = wrenCall(vm, drawMethod);
-      if (interpreterResult != WREN_RESULT_SUCCESS) {
-        result = EXIT_FAILURE;
-        goto cleanup;
-      }
-
-      // Flip Buffer to Screen
-      SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
-      // clear screen
-      SDL_RenderClear(engine.renderer);
-      SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
-      SDL_RenderPresent(engine.renderer);
-      char buffer[20];
-      snprintf(buffer, sizeof(buffer), "DOME - %.02f fps", 1000.0 / (elapsed+1));   // here 2 means binary
-      SDL_SetWindowTitle(engine.window, buffer);
-      lag -= MS_PER_FRAME;
     }
 
     // updateAudio()
@@ -274,6 +254,25 @@ int main(int argc, char* args[])
       result = EXIT_FAILURE;
       goto cleanup;
     }
+    // render();
+    wrenSetSlotHandle(vm, 0, gameClass);
+    wrenSetSlotDouble(vm, 1, (double)lag / MS_PER_FRAME);
+    interpreterResult = wrenCall(vm, drawMethod);
+    if (interpreterResult != WREN_RESULT_SUCCESS) {
+      result = EXIT_FAILURE;
+      goto cleanup;
+    }
+
+    // Flip Buffer to Screen
+    SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
+    // clear screen
+    SDL_RenderClear(engine.renderer);
+    SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
+    SDL_RenderPresent(engine.renderer);
+    char buffer[20];
+    // snprintf(buffer, sizeof(buffer), "DOME - %.02f fps", 1000.0 / (elapsed+1));   // here 2 means binary
+    // SDL_SetWindowTitle(engine.window, buffer);
+    lag -= MS_PER_FRAME;
 
     elapsed = SDL_GetTicks() - currentTime;
   }
