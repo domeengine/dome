@@ -178,7 +178,7 @@ internal void AUDIO_ENGINE_allocate(WrenVM* vm) {
   (engine->spec).freq = 44100;
   (engine->spec).format = AUDIO_S16LSB;
   (engine->spec).channels = channels; // TODO: consider mono/stereo
-  (engine->spec).samples = 2048;
+  (engine->spec).samples = 4096;
   (engine->spec).callback = NULL;
   (engine->spec).userdata = engine;
 

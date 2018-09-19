@@ -238,8 +238,15 @@ int main(int argc, char* args[])
         jo_gif_frame(&gif, destroyableImage, 8, true);
       }
     }
-    if (lag >= MS_PER_FRAME) {
+    while (lag >= MS_PER_FRAME) {
       wrenSetSlotHandle(vm, 0, gameClass);
+      interpreterResult = wrenCall(vm, updateMethod);
+      if (interpreterResult != WREN_RESULT_SUCCESS) {
+        result = EXIT_FAILURE;
+        goto cleanup;
+      }
+      // updateAudio()
+      wrenSetSlotHandle(vm, 0, audioEngineClass);
       interpreterResult = wrenCall(vm, updateMethod);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
         result = EXIT_FAILURE;
@@ -248,16 +255,9 @@ int main(int argc, char* args[])
       lag -= MS_PER_FRAME;
     }
 
-    // updateAudio()
-    wrenSetSlotHandle(vm, 0, audioEngineClass);
-    interpreterResult = wrenCall(vm, updateMethod);
-    if (interpreterResult != WREN_RESULT_SUCCESS) {
-      result = EXIT_FAILURE;
-      goto cleanup;
-    }
     // render();
     wrenSetSlotHandle(vm, 0, gameClass);
-    wrenSetSlotDouble(vm, 1, (double)(lag % MS_PER_FRAME) / MS_PER_FRAME);
+    wrenSetSlotDouble(vm, 1, ((double)lag / MS_PER_FRAME));
     interpreterResult = wrenCall(vm, drawMethod);
     if (interpreterResult != WREN_RESULT_SUCCESS) {
       result = EXIT_FAILURE;
