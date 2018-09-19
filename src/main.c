@@ -257,7 +257,7 @@ int main(int argc, char* args[])
     }
     // render();
     wrenSetSlotHandle(vm, 0, gameClass);
-    wrenSetSlotDouble(vm, 1, (double)lag / MS_PER_FRAME);
+    wrenSetSlotDouble(vm, 1, (double)(lag % MS_PER_FRAME) / MS_PER_FRAME);
     interpreterResult = wrenCall(vm, drawMethod);
     if (interpreterResult != WREN_RESULT_SUCCESS) {
       result = EXIT_FAILURE;
