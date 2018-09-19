@@ -1,5 +1,6 @@
 #include "audio.wren.inc"
 #include "graphics.wren.inc"
+#include "point.wren.inc"
 #include "init.wren.inc"
 #include "input.wren.inc"
 #include "io.wren.inc"
@@ -16,7 +17,7 @@ typedef struct {
 } ModuleMap;
 
 
-internal void 
+internal void
 ModuleMap_add(ModuleMap* map, char* name, const char* module) {
   ModuleMapNode* newNode = malloc(sizeof(ModuleMapNode));
 
@@ -62,4 +63,5 @@ ModuleMap_init(ModuleMap* map) {
   ModuleMap_add(map, "io", ioModule);
   ModuleMap_add(map, "graphics", graphicsModule);
   ModuleMap_add(map, "audio", audioModule);
+  ModuleMap_add(map, "point", pointModule);
 }

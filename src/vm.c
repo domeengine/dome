@@ -35,9 +35,11 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
     }
   }
 
-  if (strcmp(className, "Point") == 0) {
-    methods.allocate = POINT_allocate;
-    methods.finalize = POINT_finalize;
+  if (strcmp(module, "point") == 0) {
+    if (strcmp(className, "Point") == 0) {
+      methods.allocate = POINT_allocate;
+      methods.finalize = POINT_finalize;
+    }
   }
   return methods;
 }
@@ -250,10 +252,10 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, INPUT_is_key_down);
 
   // Point
-  MAP_add(&engine->fnMap, "graphics", "Point", "x", false, POINT_getX);
-  MAP_add(&engine->fnMap, "graphics", "Point", "y", false, POINT_getY);
-  MAP_add(&engine->fnMap, "graphics", "Point", "x=(_)", false, POINT_setX);
-  MAP_add(&engine->fnMap, "graphics", "Point", "y=(_)", false, POINT_setY);
+  MAP_add(&engine->fnMap, "point", "Point", "x", false, POINT_getX);
+  MAP_add(&engine->fnMap, "point", "Point", "y", false, POINT_getY);
+  MAP_add(&engine->fnMap, "point", "Point", "x=(_)", false, POINT_setX);
+  MAP_add(&engine->fnMap, "point", "Point", "y=(_)", false, POINT_setY);
   return vm;
 }
 

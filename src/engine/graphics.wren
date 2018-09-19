@@ -1,3 +1,5 @@
+import "point" for Point
+
 class Canvas {
  foreign static f_pset(x, y, c)
  foreign static f_line(x1, y1, x2, y2, c)
@@ -157,22 +159,3 @@ foreign class ImageData {
   foreign height
 }
 
-foreign class Point {
-  construct new() {}
-  construct new(x, y) {}
-  foreign x
-  foreign x=(v)
-  foreign y
-  foreign y=(v)
-
-  +(other) {
-    if (!(other is Point)) Fiber.abort("Points can only be subtracted from other points.")
-    return Point.new(x + other.x, y + other.y)
-  }
-  -(other) {
-    if (!(other is Point)) Fiber.abort("Points can only be subtracted from other points.")
-    return Point.new(x - other.x, y - other.y)
-  }
-
-  toString { "{%(x), %(y)}" }
-}
