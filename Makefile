@@ -36,6 +36,10 @@ ifneq (, $(findstring Darwin, $(SYS)))
 	install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2.dylib $(EXENAME)
 endif
 
+nest: src/tools/nest/main.o
+	cd src/tools/nest && make
+	cp src/tools/nest/nest ./nest
+
 .PHONY: clean clean-all
 clean-all:
 	    rm -rf $(EXENAME) $(SOURCE)/lib/wren $(SOURCE)/lib/libwren.a $(ENGINESRC)/*.inc
