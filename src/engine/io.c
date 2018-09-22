@@ -108,8 +108,10 @@ FILESYSTEM_load(WrenVM* vm) {
 internal void
 FILESYSTEM_loadEventHandler(void* data) {
   TASK_DATA* task = data;
+
   // Thread: Async
-  task->buffer = readEntireFile(task->name, &task->length);
+  ENGINE* engine = (ENGINE*)wrenGetUserData(task->vm);
+  task->buffer = ENGINE_readFile(engine, task->name, &task->length);
 
   SDL_Event event;
   SDL_memset(&event, 0, sizeof(event));
@@ -125,12 +127,10 @@ internal void
 FILESYSTEM_loadSync(WrenVM* vm) {
   // TODO: We should return a DataBuffer object rather than a string
   const char* path = wrenGetSlotString(vm, 1);
-  char* base = SDL_GetBasePath();
-  char pathBuf[strlen(base)+strlen(path)+1];
-  strcpy(pathBuf, base);
-  strcat(pathBuf, path);
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+
   size_t length;
-  char* data = readEntireFile(pathBuf, &length);
+  char* data = ENGINE_readFile(engine, path, &length);
   wrenSetSlotBytes(vm, 0, data, length);
   free(data);
 }
