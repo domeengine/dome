@@ -45,7 +45,6 @@ void listDir(mtar_t* tar, char* directory, char* subtract) {
         size_t length;
         char* inputFile = readEntireFile(path, &length);
         printf ("Bundling: %s\n", path);
-        printf ("subtract: %s\n", subtract);
 
         if (((de->d_type & DT_DIR) != 0) && (strncmp(de->d_name, ".", 1) != 0)) {
           mtar_write_dir_header(tar, finalFileName);
@@ -101,6 +100,7 @@ int main(int argc, char **argv) {
       if (!isFile) {
         listDir(&tar, path, singleFile ? NULL : "");
       } else {
+        printf ("Bundling: %s\n", path);
         loadAndWriteFileToTar(&tar, path);
       }
     }
