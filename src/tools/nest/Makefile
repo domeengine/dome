@@ -1,10 +1,11 @@
 src = $(wildcard *.c)
 obj = $(src:.c=.o)
 
-# LDFLAGS = -lm
+CFLAGS = -std=c99 -pedantic -Wall
+LDFLAGS = -lm
 
-nest: $(obj)
-	$(CC) -o $@ $^ $(LDFLAGS)
+nest: *.c
+	$(CC) $(CFLAGS) -o $@ main.c $(LDFLAGS)
 
 .PHONY: clean
 clean:

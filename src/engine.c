@@ -21,6 +21,7 @@ typedef struct {
   ModuleMap moduleMap;
   uint32_t width;
   uint32_t height;
+  mtar_t* tar;
 } ENGINE;
 
 typedef enum {
@@ -39,6 +40,21 @@ typedef enum {
 } TASK_TYPE;
 
 global_variable uint32_t ENGINE_EVENT_TYPE;
+
+internal char*
+ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
+  if (engine->tar != NULL) {
+    printf("Reading tar: %s\n", path);
+    return readFileFromTar(engine->tar, path, lengthPtr);
+  } else {
+    char* base = SDL_GetBasePath();
+    char* fullPath = malloc(strlen(base)+strlen(path)+1);
+    strcpy(fullPath, base); /* copy name into the new var */
+    strcat(fullPath, path); /* add the extension */
+    SDL_free(base);
+    return readEntireFile(fullPath, lengthPtr);
+  }
+}
 
 internal int
 ENGINE_taskHandler(ABC_TASK* task) {
@@ -147,7 +163,7 @@ ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
     if (((c & (0xFF << 24)) >> 24) < 0xFF) {
       uint32_t current = ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x];
 
-      uint16_t oldA = (0xFF000000 & current) >> 24;
+      // uint16_t oldA = (0xFF000000 & current) >> 24;
       uint16_t newA = (0xFF000000 & c) >> 24;
 
       uint16_t oldR = (255-newA) * ((0x00FF0000 & current) >> 16);

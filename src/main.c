@@ -15,6 +15,9 @@
 #include <SDL2/SDL.h>
 #include "include/jo_gif.h"
 
+#include "include/microtar/microtar.h"
+#include "include/microtar/microtar.c"
+
 
 // Set up STB_IMAGE
 #define STBI_ONLY_JPEG
@@ -106,18 +109,31 @@ int main(int argc, char* args[])
       gifName = args[2];
     }
   } else {
-    char* fileName = "main.wren";
+    // Test for game.egg first
+    char* fileName = "game.egg";
     char pathBuf[strlen(base)+strlen(fileName)+1];
     strcpy(pathBuf, base);
     strcat(pathBuf, fileName);
-    if( access( pathBuf, F_OK ) == -1 ) {
-      // file doesn't exist
-      printf("No entry path was provided.\n");
-      printf("Usage: ./dome [entry path]\n");
-      result = EXIT_FAILURE;
-      goto cleanup;
+    if( access( pathBuf, F_OK ) != -1 ) {
+
+      printf("Loading bundle %s\n", pathBuf);
+      engine.tar = malloc(sizeof(mtar_t));
+      mtar_open(engine.tar, pathBuf, "r");
+      gameFile = ENGINE_readFile(&engine, "./main.wren", &gameFileLength);
+    } else {
+      fileName = "main.wren";
+      char pathBuf[strlen(base)+strlen(fileName)+1];
+      strcpy(pathBuf, base);
+      strcat(pathBuf, fileName);
+      if( access( pathBuf, F_OK ) == -1 ) {
+        // file doesn't exist
+        printf("No entry path was provided.\n");
+        printf("Usage: ./dome [entry path]\n");
+        result = EXIT_FAILURE;
+        goto cleanup;
+      }
+      gameFile = ENGINE_readFile(&engine, pathBuf, &gameFileLength);
     }
-    gameFile = readEntireFile(pathBuf, &gameFileLength);
   }
   SDL_free(base);
 
@@ -270,7 +286,7 @@ int main(int argc, char* args[])
     SDL_RenderClear(engine.renderer);
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
-    char buffer[20];
+    // char buffer[20];
     // snprintf(buffer, sizeof(buffer), "DOME - %.02f fps", 1000.0 / (elapsed+1));   // here 2 means binary
     // SDL_SetWindowTitle(engine.window, buffer);
 

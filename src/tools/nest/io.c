@@ -1,31 +1,5 @@
-internal void FILESYSTEM_loadEventHandler(void* task);
-
-char* readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr) {
-  // We assume the tar open has been done already
-  /* Open archive for reading */
-  // mtar_t tar;
-  // mtar_open(tar, "game.egg", "r");
-
-//
-
-  printf("Reading from tar: %s\n", path);
-  mtar_header_t h;
-  mtar_find(tar, path, &h);
-  size_t length = h.size;
-  char* p = calloc(1, length + 1);
-  if (mtar_read_data(tar, p, length) != MTAR_ESUCCESS) {
-    printf("Error: Couldn't read the data from the bundle.");
-    abort();
-  }
-
-  if (lengthPtr != NULL) {
-    *lengthPtr = length;
-  }
-  return p;
-}
-
 char* readEntireFile(char* path, size_t* lengthPtr) {
-  FILE* file = fopen(path, "r");
+  FILE* file = fopen(path, "rb");
   if (file == NULL) {
     return NULL;
   }
