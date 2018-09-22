@@ -44,16 +44,31 @@ global_variable uint32_t ENGINE_EVENT_TYPE;
 internal char*
 ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
   if (engine->tar != NULL) {
-    printf("Reading tar: %s\n", path);
-    return readFileFromTar(engine->tar, path, lengthPtr);
-  } else {
-    char* base = SDL_GetBasePath();
-    char* fullPath = malloc(strlen(base)+strlen(path)+1);
-    strcpy(fullPath, base); /* copy name into the new var */
-    strcat(fullPath, path); /* add the extension */
-    SDL_free(base);
-    return readEntireFile(fullPath, lengthPtr);
+    char pathBuf[PATH_MAX];
+    strcpy(pathBuf, "\0");
+    if (strncmp(path, "./", 2) != 0) {
+      strcpy(pathBuf, "./");
+    }
+    strcat(pathBuf, path);
+    printf("Reading tar: %s\n", pathBuf);
+    mtar_header_t h;
+    int success = mtar_find(engine->tar, pathBuf, &h);
+    if (success == MTAR_ESUCCESS) {
+      return readFileFromTar(engine->tar, pathBuf, lengthPtr);
+    } else if (success != MTAR_ENOTFOUND) {
+      printf("Error: There was a problem reading %s from the bundle.\n", pathBuf);
+      abort();
+    }
+    printf("Couldn't find %s in bundle, falling back.\n", pathBuf);
   }
+
+  char* base = SDL_GetBasePath();
+  char* fullPath = malloc(strlen(base)+strlen(path)+1);
+  strcpy(fullPath, base); /* copy name into the new var */
+  strcat(fullPath, path); /* add the extension */
+  SDL_free(base);
+  // We should probably check if the file exists
+  return readEntireFile(fullPath, lengthPtr);
 }
 
 internal int

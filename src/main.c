@@ -119,7 +119,7 @@ int main(int argc, char* args[])
       printf("Loading bundle %s\n", pathBuf);
       engine.tar = malloc(sizeof(mtar_t));
       mtar_open(engine.tar, pathBuf, "r");
-      gameFile = ENGINE_readFile(&engine, "./main.wren", &gameFileLength);
+      gameFile = ENGINE_readFile(&engine, "main.wren", &gameFileLength);
     } else {
       fileName = "main.wren";
       char pathBuf[strlen(base)+strlen(fileName)+1];

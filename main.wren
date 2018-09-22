@@ -33,14 +33,14 @@ class Game {
     System.print(__loadSettingsOp.result.length)
   }
   static update() {
-    
+
     if (__loadSettingsOp.complete && !__done) {
       __settingsFile = __loadSettingsOp.result
       __done = true
       System.print("loaded")
       System.print(__settingsFile.data)
     }
-   
+
     __state.update()
     if (__state.next) {
       __state = __state.next
@@ -230,8 +230,8 @@ class MainGame {
     __heartEmpty = ImageData.loadFromFile("res/heart-empty.png")
     AudioEngine.load("fire", "res/Laser_Shoot.wav")
     AudioEngine.load("explosion", "res/Explosion.wav")
-    // AudioEngine.load("music", "res/AerisPiano.ogg")
-    AudioEngine.load("music", "res/music.wav")
+    AudioEngine.load("music", "res/around-the-corner.ogg")
+    // AudioEngine.load("music", "res/music.wav")
 
     __channel = AudioEngine.play("music", 1, true, -0.5)
   }
