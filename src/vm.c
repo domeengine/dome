@@ -165,17 +165,13 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
     return (char*)ModuleMap_get(&moduleMap, name);
   }
 
-  char* base = SDL_GetBasePath();
   char* extension = ".wren";
-
   char* path;
-  path = malloc(strlen(base)+strlen(name)+strlen(extension)+1); /* make space for the new string (should check the return value ...) */
-  strcpy(path, base); /* copy name into the new var */
-  strcat(path, name); /* add the extension */
+  path = malloc(strlen(name)+strlen(extension)+1); /* make space for the new string (should check the return value ...) */
+  strcpy(path, name); /* add the extension */
   strcat(path, extension); /* add the extension */
-  SDL_free(base);
 
-  char* file = readEntireFile(path, NULL);
+  char* file = ENGINE_readFile(engine, path, NULL);
   free(path);
   return file;
 }
