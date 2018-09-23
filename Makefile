@@ -18,6 +18,7 @@ CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
 endif
 
 ifneq (, $(findstring MSYS, $(SYS)))
+CFLAGS += -Wno-discarded-qualifiers
 SDLFLAGS := -lSDL2main -mwindows $(SDLFLAGS)
 endif
 
