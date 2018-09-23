@@ -19,7 +19,14 @@ endif
 
 ifneq (, $(findstring MSYS, $(SYS)))
 CFLAGS += -Wno-discarded-qualifiers
+ifdef ICON_OBJECT_FILE
+	CFLAGS += $(ICON_OBJECT_FILE)
+endif
 SDLFLAGS := -lSDL2main -mwindows $(SDLFLAGS)
+endif
+
+ifneq (, $(findstring Linux, $(SYS)))
+CFLAGS += -Wno-discarded-qualifiers
 endif
 
 
