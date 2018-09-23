@@ -84,25 +84,21 @@ int main(int argc, char* args[])
   INIT_TO_ZERO(ENGINE, engine);
 
   //Initialize SDL
-  if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0)
   {
     printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     result = EXIT_FAILURE;
     goto cleanup;
   }
 
-  char* base = SDL_GetBasePath();
   // TODO: Use getopt to parse the arguments better
   if (argc >= 2 && argc <= 3) {
-    if( access( args[1], F_OK ) == -1 ) {
+    gameFile = ENGINE_readFile(&engine, args[1], &gameFileLength);
+    if (gameFile == NULL) {
       printf("%s does not exist.\n", args[1]);
       result = EXIT_FAILURE;
       goto cleanup;
     }
-    char pathBuf[strlen(base)+strlen(args[1])+1];
-    strcpy(pathBuf, base);
-    strcat(pathBuf, args[1]);
-    gameFile = readEntireFile(pathBuf, &gameFileLength);
     if (argc == 3) {
       printf("GIF Recording is enabled\n");
       makeGif = true;
@@ -110,32 +106,33 @@ int main(int argc, char* args[])
     }
   } else {
     // Test for game.egg first
+    char* base = SDL_GetBasePath();
     char* fileName = "game.egg";
+    char* mainFileName = "main.wren";
     char pathBuf[strlen(base)+strlen(fileName)+1];
     strcpy(pathBuf, base);
     strcat(pathBuf, fileName);
-    if( access( pathBuf, F_OK ) != -1 ) {
-
+    if (doesFileExist(pathBuf)) {
       printf("Loading bundle %s\n", pathBuf);
       engine.tar = malloc(sizeof(mtar_t));
       mtar_open(engine.tar, pathBuf, "r");
-      gameFile = ENGINE_readFile(&engine, "main.wren", &gameFileLength);
+      gameFile = ENGINE_readFile(&engine, mainFileName, &gameFileLength);
     } else {
-      fileName = "main.wren";
+      fileName = mainFileName;
       char pathBuf[strlen(base)+strlen(fileName)+1];
       strcpy(pathBuf, base);
       strcat(pathBuf, fileName);
-      if( access( pathBuf, F_OK ) == -1 ) {
+      gameFile = ENGINE_readFile(&engine, fileName, &gameFileLength);
+      if (gameFile == NULL) {
         // file doesn't exist
         printf("No entry path was provided.\n");
         printf("Usage: ./dome [entry path]\n");
         result = EXIT_FAILURE;
         goto cleanup;
       }
-      gameFile = ENGINE_readFile(&engine, pathBuf, &gameFileLength);
     }
+    SDL_free(base);
   }
-  SDL_free(base);
 
   result = ENGINE_init(&engine);
   if (result == EXIT_FAILURE) {

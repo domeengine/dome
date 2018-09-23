@@ -67,8 +67,11 @@ ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
   strcpy(fullPath, base); /* copy name into the new var */
   strcat(fullPath, path); /* add the extension */
   SDL_free(base);
-  // We should probably check if the file exists
-  return readEntireFile(fullPath, lengthPtr);
+  if (!doesFileExist(fullPath)) {
+    return NULL;
+  } else {
+    return readEntireFile(fullPath, lengthPtr);
+  }
 }
 
 internal int
@@ -141,6 +144,10 @@ ENGINE_free(ENGINE* engine) {
 
   if (engine == NULL) {
     return;
+  }
+
+  if (engine->tar != NULL) {
+    free(engine->tar);
   }
 
   ABC_FIFO_close(&engine->fifo);

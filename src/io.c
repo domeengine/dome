@@ -1,5 +1,9 @@
 internal void FILESYSTEM_loadEventHandler(void* task);
 
+bool doesFileExist(char* path) {
+  return access(path, F_OK) != -1;
+}
+
 char* readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr) {
   // We assume the tar open has been done already
   /* Open archive for reading */
