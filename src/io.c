@@ -29,7 +29,7 @@ char* readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr) {
 }
 
 char* readEntireFile(char* path, size_t* lengthPtr) {
-  FILE* file = fopen(path, "r");
+  FILE* file = fopen(path, "rb");
   if (file == NULL) {
     return NULL;
   }
