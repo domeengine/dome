@@ -147,6 +147,7 @@ ENGINE_free(ENGINE* engine) {
   }
 
   if (engine->tar != NULL) {
+    mtar_finalize(engine->tar);
     free(engine->tar);
   }
 
