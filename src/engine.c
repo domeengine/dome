@@ -1,21 +1,8 @@
 typedef struct {
-  bool isPressed;
-} KEY_STATE;
-
-typedef struct {
-  KEY_STATE left;
-  KEY_STATE right;
-  KEY_STATE up;
-  KEY_STATE down;
-  KEY_STATE space;
-} INPUT_STATE;
-
-typedef struct {
   SDL_Window* window;
   SDL_Renderer *renderer;
   SDL_Texture *texture;
   void* pixels;
-  INPUT_STATE keyboard;
   ABC_FIFO fifo;
   ForeignFunctionMap fnMap;
   ModuleMap moduleMap;
@@ -476,43 +463,10 @@ ENGINE_rectfill(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint
   }
 }
 
-internal void
-ENGINE_storeKeyState(ENGINE* engine, SDL_Keycode keycode, uint8_t state) {
-  if(keycode == SDLK_LEFT) {
-    engine->keyboard.left.isPressed = (state == SDL_PRESSED);
-  }
-  if(keycode == SDLK_RIGHT) {
-    engine->keyboard.right.isPressed = (state == SDL_PRESSED);
-  }
-  if(keycode == SDLK_UP) {
-    engine->keyboard.up.isPressed = (state == SDL_PRESSED);
-  }
-  if(keycode == SDLK_DOWN) {
-    engine->keyboard.down.isPressed = (state == SDL_PRESSED);
-  }
-  if(keycode == SDLK_SPACE) {
-    engine->keyboard.space.isPressed = (state == SDL_PRESSED);
-  }
-}
-
-internal KEY_STATE
-ENGINE_getKeyState(ENGINE* engine, SDL_Keycode keycode) {
-  if(keycode == SDLK_LEFT) {
-    return engine->keyboard.left;
-  }
-  if(keycode == SDLK_RIGHT) {
-    return engine->keyboard.right;
-  }
-  if(keycode == SDLK_UP) {
-    return engine->keyboard.up;
-  }
-  if(keycode == SDLK_DOWN) {
-    return engine->keyboard.down;
-  }
-  if(keycode == SDLK_SPACE) {
-    return engine->keyboard.space;
-  }
-  KEY_STATE none;
-  none.isPressed = false;
-  return none;
+internal bool
+ENGINE_getKeyState(ENGINE* engine, char* keyName) {
+  SDL_Keycode keycode =  SDL_GetKeyFromName(keyName);
+  SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode);
+  uint8_t* state = SDL_GetKeyboardState(NULL);
+  return state[scancode];
 }

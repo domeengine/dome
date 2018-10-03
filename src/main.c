@@ -221,8 +221,6 @@ int main(int argc, char* args[])
                 ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
               }
               stbi_write_png("screenshot.png", engine.width, engine.height, 4, destroyableImage, engine.width * 4);
-            } else {
-              ENGINE_storeKeyState(&engine, keyCode, event.key.state);
             }
           } break;
         case SDL_USEREVENT:

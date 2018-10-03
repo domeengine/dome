@@ -48,8 +48,7 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
 internal void INPUT_is_key_down(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   const char* keyName = wrenGetSlotString(vm, 1);
-  SDL_Keycode keycode =  SDL_GetKeyFromName(keyName);
-  bool result = ENGINE_getKeyState(engine, keycode).isPressed;
+  bool result = ENGINE_getKeyState(engine, keyName);
   wrenSetSlotBool(vm, 0, result);
 }
 
