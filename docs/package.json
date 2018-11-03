@@ -2,22 +2,19 @@
   "name": "docs",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "",
+  "dependencies": {
+    "jstransformer-handlebars": "^1.1.0",
+    "jstransformer-markdown": "^1.2.1",
+    "metalsmith": "^2.3.0",
+    "metalsmith-in-place": "^4.2.0",
+    "metalsmith-layouts": "^2.3.0"
+  },
+  "devDependencies": {},
   "scripts": {
+    "start": "npx metalsmith",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "handlebars": "^4.0.12",
-    "metalsmith": "^2.3.0",
-    "metalsmith-collections": "^0.9.0",
-    "metalsmith-discover-partials": "^0.1.2",
-    "metalsmith-layouts": "^2.3.0",
-    "metalsmith-markdown": "^1.1.0",
-    "metalsmith-paths": "^3.0.1",
-    "metalsmith-permalinks": "^2.0.0",
-    "metalsmith-register-helpers": "^0.4.0",
-    "metalsmith-static": "0.0.5"
-  }
+  "license": "ISC"
 }

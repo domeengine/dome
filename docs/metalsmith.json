@@ -1,0 +1,10 @@
+{
+  "source": "src",
+  "destination": "build",
+  "plugins": {
+    "metalsmith-in-place": true,
+    "metalsmith-layouts": {
+      "default": "template.hbs"
+    }
+  }
+}
