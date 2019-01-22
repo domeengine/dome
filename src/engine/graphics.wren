@@ -1,5 +1,13 @@
+/**
+  @Module graphics
+  The graphics module provides all the system functions required for drawing to the screen.
+*/
 import "point" for Point
 
+/**
+    @Class Canvas
+      This class provides static methods for drawing primitives and images.
+*/
 class Canvas {
  foreign static f_pset(x, y, c)
  foreign static f_line(x1, y1, x2, y2, c)
@@ -10,6 +18,23 @@ class Canvas {
  foreign static f_circlefill(x, y, r, c)
  foreign static f_ellipse(x1, y1, x2, y2, c)
  foreign static f_ellipsefill(x1, y1, x2, y2, c)
+
+ /**
+     @Method pset
+       Sets the given (x, y) co-ordinate with the Color given.
+       @Param
+         @Name x
+         @Type number
+         The x-coordinate of the pixel to set.
+       @Param
+         @Name y
+         @Type number
+         The y-coordinate of the pixel to set.
+       @Param
+         @Name y
+         @Type Color | number
+         The 32-bit value or Color object representing the color the pixel should be set to.
+ */
  static pset(x, y, c) {
    if (c is Color) {
      f_pset(x, y, c.rgb)
@@ -94,6 +119,10 @@ class Canvas {
  }
 }
 
+/**
+    @Class Color
+      An instance of this class represents an RGBA color, which can be passed to Canvas methods.
+*/
 class Color {
   construct new(r, g, b) {
     _r = r
