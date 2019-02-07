@@ -3,6 +3,18 @@
   "destination": "build",
   "plugins": {
     "metalsmith-in-place": true,
+    "metalsmith-collections": {
+      "blog": {
+        "sortBy": "date",
+        "reverse": true,
+        "pattern": "blog/**/*"
+      },
+      "docs": {
+        "sortBy": "order",
+        "pattern": "docs/**/*"
+      }
+    
+    },
     "metalsmith-layouts": {
       "default": "template.hbs",
       "pattern": "**/*.html"
