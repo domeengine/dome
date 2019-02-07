@@ -1,6 +1,6 @@
 title: DOME
 description: "A comfortable framework for making games in Wren"
 theme: jekyll-theme-minimal
-show_downloads: "false"
-root: "/dome"
+show_downloads: false
+baseurl: "/dome"
 
