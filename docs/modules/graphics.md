@@ -31,3 +31,21 @@ The `Canvas` class is the core api for graphical display.
 #### `static cls() `
 #### `static cls(c) `
 #### `static draw(object, x, y) `
+
+## Color
+
+An instance of the `Color` class represents a single color which can be used for drawing.
+
+`TODO`
+
+## Point
+
+The `Point` class is a 2-dimensional vector
+
+`TODO`
+
+## ImageData
+
+This class represents the data from an image, such as a sprite or tilemap.
+
+`TODO`
