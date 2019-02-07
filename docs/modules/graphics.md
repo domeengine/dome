@@ -15,8 +15,8 @@ It contains the following classes:
 The `Canvas` class is the core api for graphical display.
 
 ### Fields
-#### static width 
-#### static height 
+#### `static width`
+#### `static height` 
 
 ### Methods
 #### static pset(x, y, c) 
