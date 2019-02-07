@@ -5,10 +5,10 @@ The graphics module provides utilities for drawing to the screen.
 
 It contains the following classes:
 
-* Canvas
-* Color
-* Point
-* ImageData
+* [Canvas](#canvas)
+* [Color](#color)
+* [Point](#point)
+* [ImageData](#imagedata)
 
 ## Canvas
 
