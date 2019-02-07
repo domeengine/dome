@@ -15,22 +15,22 @@ It contains the following classes:
 The `Canvas` class is the core api for graphical display.
 
 ### Fields
-#### `static width`
 #### `static height` 
+#### `static width`
 
 ### Methods
-#### `static pset(x, y, c) `
-#### `static line(x0, y0, x1, y1, c) `
-#### `static ellipse(x0, y0, x1, y1, c) `
-#### `static ellipsefill(x0, y0, x1, y1, c) `
-#### `static rect(x, y, w, h, c) `
-#### `static rectfill(x, y, w, h, c) `
 #### `static circle(x, y, r, c) `
 #### `static circlefill(x, y, r, c) `
-#### `static print(str, x, y, c) `
 #### `static cls() `
 #### `static cls(c) `
 #### `static draw(object, x, y) `
+#### `static ellipse(x0, y0, x1, y1, c) `
+#### `static ellipsefill(x0, y0, x1, y1, c) `
+#### `static line(x0, y0, x1, y1, c) `
+#### `static print(str, x, y, c) `
+#### `static pset(x, y, c) `
+#### `static rect(x, y, w, h, c) `
+#### `static rectfill(x, y, w, h, c) `
 
 ## Color
 
