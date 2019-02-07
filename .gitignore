@@ -8,3 +8,4 @@ src/engine/*.inc
 *.o
 *.swp
 
+node_modules
