@@ -36,7 +36,18 @@ The `Canvas` class is the core api for graphical display.
 
 An instance of the `Color` class represents a single color which can be used for drawing.
 
-`TODO`
+#### `construct new(r, g, b)`
+#### `construct new(r, g, b, a)`
+#### `static rgb(r, g, b, a)`
+#### `static black`
+#### `static blue`
+#### `static cyan`
+#### `static darkgray`
+#### `static green`
+#### `static lightgray`
+#### `static orange`
+#### `static red`
+#### `static white`
 
 ## Point
 
@@ -48,4 +59,14 @@ The `Point` class is a 2-dimensional vector
 
 This class represents the data from an image, such as a sprite or tilemap.
 
-`TODO`
+### Static Methods
+#### `static loadFromFile(path)`
+
+### Instance Fields
+#### `foreign height`
+#### `foreign width`
+
+### Instance Methods
+#### `construct fromFile(path)`
+#### `foreign draw(x, y)`
+#### `foreign drawArea(srcX, srcY, srcW, srcH, destX, destY)`
