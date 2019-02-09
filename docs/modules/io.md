@@ -6,6 +6,8 @@ The `IO` module provides an interface to the host machine's file system, in orde
 It contains the following classes:
 
 * [FileSystem](#filesystem)
+* [DataBuffer](#databuffer)
+* [AsyncOperation](#asyncoperation)
 
 ## FileSystem
 
