@@ -1,12 +1,26 @@
 Modules
 ============
 
-DOME provides a number of modules which you can use to make 2D games with. They include:
+DOME includes a number of modules to interact with the user through graphics and audio, access their inputs and hard drive. It also has a few useful utilities for mathematical operations.
 
-* graphics
-* image
-* audio
-* io
-* input
-* math
-* point
+The modules you can import are here:
+
+* Audio
+* [Graphics](modules/graphics)
+* [Input](modules/input)
+* IO
+* Math
+
+For example, the `Graphics` module can be imported to access the `Canvas` and `Color` classes, like this:
+
+```wren
+import "graphics" for Canvas, Color
+
+...
+
+Canvas.cls()
+Canvas.print("Hello world", 20, 20, Color.white)
+```
+
+
+
