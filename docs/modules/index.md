@@ -5,7 +5,7 @@ DOME includes a number of modules to interact with the user through graphics and
 
 The modules you can import are here:
 
-* Audio
+* [Audio](audio)
 * [Graphics](graphics)
 * [Input](input)
 * IO
