@@ -9,7 +9,6 @@ The modules you can import are here:
 * [Graphics](graphics)
 * [Input](input)
 * IO
-* Math
 
 For example, the `Graphics` module can be imported to access the `Canvas` and `Color` classes, like this:
 

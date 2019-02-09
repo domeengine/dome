@@ -9,5 +9,4 @@ DOME is a framework for making 2D games using the Wren programming language whic
   * [Graphics](modules/graphics)
   * [Input](modules/input)
   * IO
-  * Math
 * Blog
