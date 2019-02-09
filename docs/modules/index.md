@@ -8,7 +8,7 @@ The modules you can import are here:
 * [Audio](audio)
 * [Graphics](graphics)
 * [Input](input)
-* IO
+* [IO](io)
 
 For example, the `Graphics` module can be imported to access the `Canvas` and `Color` classes, like this:
 
