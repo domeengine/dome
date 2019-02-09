@@ -1,7 +1,7 @@
-IO
+io
 ================
 
-The `IO` module provides an interface to the host machine's file system, in order to read and write data files.
+The `io` module provides an interface to the host machine's file system, in order to read and write data files.
 
 It contains the following classes:
 

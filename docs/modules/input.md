@@ -1,4 +1,4 @@
-Input
+input
 ================
 
 The `input` module allows you to retrieve the state of input devices such as the keyboard, mouse and game controllers.

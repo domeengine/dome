@@ -1,4 +1,4 @@
-Audio
+audio
 ================
 
 The `audio` module lets you play audio files such as music or sound effects.

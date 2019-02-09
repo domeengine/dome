@@ -1,7 +1,7 @@
-Graphics
+graphics
 =============
 
-The graphics module provides utilities for drawing to the screen.
+The `graphics` module provides utilities for drawing to the screen.
 
 It contains the following classes:
 

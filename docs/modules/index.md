@@ -5,12 +5,12 @@ DOME includes a number of modules to interact with the user through graphics and
 
 The modules you can import are here:
 
-* [Audio](audio)
-* [Graphics](graphics)
-* [Input](input)
-* [IO](io)
+* [audio](audio)
+* [graphics](graphics)
+* [input](input)
+* [io](io)
 
-For example, the `Graphics` module can be imported to access the `Canvas` and `Color` classes, like this:
+For example, the `graphics` module can be imported to access the `Canvas` and `Color` classes, like this:
 
 ```wren
 import "graphics" for Canvas, Color
