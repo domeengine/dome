@@ -33,4 +33,4 @@ At this point, you should have an executable named `dome` in your current direct
 
 If all is well, you should see the example game:
 
-![Image of Tutorial Shmup](https://avivbeeri.github.com/dome/assets/shmup.png)
+![Image of Tutorial Shmup](https://avivbeeri.github.com/dome/assets/shmup.png =500x)
