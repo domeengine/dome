@@ -26,7 +26,7 @@ foreign class AudioEngineImpl {
   // TODO: Allow device enumeration and selection
 
   // Loading and unloading
-  // We only support loading WAV and (maybe) OGG
+  // We only support loading WAV and OGG
   load(name, path) {
     if (!__files.containsKey(name)) {
       __files[name] = AudioData.fromFile(path)
