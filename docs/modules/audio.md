@@ -15,6 +15,8 @@ DOME currently supports OGG and WAV files, and can play up to four audio channel
 
 An audio file is loaded from disk into memory using the `load` function, and remains in memory until you call `unload` or `unloadAll`, or when DOME closes.
 
+The API for DOME's audio engine is heavily influenced by [this talk](://www.youtube.com/watch?v=Vjm--AqG04Y) by Guy Somberg.
+
 ### Example
 
 ```wren
