@@ -13,10 +13,10 @@
 
 #include <wren.h>
 #include <SDL2/SDL.h>
-#include "include/jo_gif.h"
+#include <jo_gif.h>
 
-#include "include/microtar/microtar.h"
-#include "include/microtar/microtar.c"
+#include <microtar/microtar.h>
+#include <microtar/microtar.c>
 
 
 // Set up STB_IMAGE
@@ -24,18 +24,18 @@
 #define STBI_ONLY_PNG
 #define STBI_ONLY_BMP
 #define STB_IMAGE_IMPLEMENTATION
-#include "include/stb_image.h"
+#include <stb_image.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "include/stb_image_write.h"
+#include <stb_image_write.h>
 
 // Setup STB_VORBIS
 #define STB_VORBIS_NO_PUSHDATA_API
-#include "include/stb_vorbis.c"
+#include <stb_vorbis.c>
 
 // Setup ABC_FIFO
 #define ABC_FIFO_IMPL
-#include "include/ABC_fifo.h"
+#include <ABC_fifo.h>
 
 #define internal static
 #define global_variable static
