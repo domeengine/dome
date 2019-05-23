@@ -5,6 +5,9 @@ These are the guidelines you should follow to contribute to DOME. Please use you
 
 ## Code of Conduct
 
+This project is released with a Contributor [Code of Conduct](https://github.com/avivbeeri/dome/code/blob/master/CODE_OF_CONDUCT.md). 
+By participating in this project you agree to abide by its terms.
+
 ## How can I contribute?
 
 ### Reporting a Bug / Suggesting an Enhancement
