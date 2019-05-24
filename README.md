@@ -2,6 +2,8 @@
 
 A lightweight game engine which melds SDL2 and the [Wren scripting language](http://wren.io), written in C.
 
+### For more information on how to use DOME and get started, read the docs [here](https://avivbeeri.github.io/dome).
+
 ## Warning
 
 As of 03/07/2018, DOME is in a pre-alpha state. None of the API is stable and it is not production ready. It has been tested in OSX Sierra and 64-bit Lubuntu 18.04, and can be compiled on Windows 10 using MinGW-w64 and MSYS2.
