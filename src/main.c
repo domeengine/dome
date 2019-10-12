@@ -144,14 +144,14 @@ int main(int argc, char* args[])
   WrenInterpretResult interpreterResult;
 
   // Run wren engine init()
-  interpreterResult = wrenInterpret(vm, initModule);
+  interpreterResult = wrenInterpret(vm, "main", initModule);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
     goto cleanup;
   }
 
   // Load user game file
-  interpreterResult = wrenInterpret(vm, gameFile);
+  interpreterResult = wrenInterpret(vm, "main", gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
     goto cleanup;
@@ -161,13 +161,13 @@ int main(int argc, char* args[])
   WrenHandle* initMethod = wrenMakeCallHandle(vm, "init()");
   WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update()");
   WrenHandle* drawMethod = wrenMakeCallHandle(vm, "draw(_)");
-  wrenEnsureSlots(vm, 2);
   wrenGetVariable(vm, "main", "Game", 0);
   WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
   wrenGetVariable(vm, "main", "AudioEngine_internal", 0);
   WrenHandle* audioEngineClass = wrenGetSlotHandle(vm, 0);
 
   // Initiate game loop
+  wrenEnsureSlots(vm, 3);
   wrenSetSlotHandle(vm, 0, gameClass);
   interpreterResult = wrenCall(vm, initMethod);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -250,6 +250,7 @@ int main(int argc, char* args[])
       }
     }
     while (lag >= MS_PER_FRAME) {
+      wrenEnsureSlots(vm, 3);
       wrenSetSlotHandle(vm, 0, gameClass);
       interpreterResult = wrenCall(vm, updateMethod);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -257,6 +258,7 @@ int main(int argc, char* args[])
         goto cleanup;
       }
       // updateAudio()
+      wrenEnsureSlots(vm, 3);
       wrenSetSlotHandle(vm, 0, audioEngineClass);
       interpreterResult = wrenCall(vm, updateMethod);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -267,6 +269,7 @@ int main(int argc, char* args[])
     }
 
     // render();
+    wrenEnsureSlots(vm, 3);
     wrenSetSlotHandle(vm, 0, gameClass);
     wrenSetSlotDouble(vm, 1, ((double)lag / MS_PER_FRAME));
     interpreterResult = wrenCall(vm, drawMethod);

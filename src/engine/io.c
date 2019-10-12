@@ -28,18 +28,21 @@ ASYNCOP_finalize(void* data) {
 internal void
 ASYNCOP_getComplete(WrenVM* vm) {
   ASYNCOP* op = (ASYNCOP*)wrenGetSlotForeign(vm, 0);
+  wrenEnsureSlots(vm, 1);
   wrenSetSlotBool(vm, 0, op->complete);
 }
 
 internal void
 ASYNCOP_getResult(WrenVM* vm) {
   ASYNCOP* op = (ASYNCOP*)wrenGetSlotForeign(vm, 0);
+  wrenEnsureSlots(vm, 1);
   wrenSetSlotHandle(vm, 0, op->bufferHandle);
 }
 
 
 internal void
 DBUFFER_allocate(WrenVM* vm) {
+  wrenEnsureSlots(vm, 1);
   DBUFFER* buffer = (DBUFFER*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(DBUFFER));
   buffer->data = NULL;
   buffer->length = 0;
@@ -57,18 +60,21 @@ DBUFFER_finalize(void* data) {
 internal void
 DBUFFER_getLength(WrenVM* vm) {
   DBUFFER* buffer = wrenGetSlotForeign(vm, 0);
+  wrenEnsureSlots(vm, 1);
   wrenSetSlotDouble(vm, 0, buffer->length);
 }
 
 internal void
 DBUFFER_getReady(WrenVM* vm) {
   DBUFFER* buffer = wrenGetSlotForeign(vm, 0);
+  wrenEnsureSlots(vm, 1);
   wrenSetSlotBool(vm, 0, buffer->ready);
 }
 
 internal void
 DBUFFER_getData(WrenVM* vm) {
   DBUFFER* buffer = wrenGetSlotForeign(vm, 0);
+  wrenEnsureSlots(vm, 1);
   wrenSetSlotBytes(vm, 0, buffer->data, buffer->length);
 }
 
@@ -131,6 +137,7 @@ FILESYSTEM_loadSync(WrenVM* vm) {
 
   size_t length;
   char* data = ENGINE_readFile(engine, path, &length);
+  wrenEnsureSlots(vm, 1);
   wrenSetSlotBytes(vm, 0, data, length);
   free(data);
 }
