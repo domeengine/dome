@@ -1,3 +1,3 @@
 [submodule "src/lib/wren"]
 	path = src/lib/wren
-	url = https://github.com/munificent/wren.git
+	url = https://github.com/wren-lang/wren.git

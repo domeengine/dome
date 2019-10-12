@@ -5,6 +5,7 @@ libwren.a
 src/util/convert
 src/util/embed
 src/engine/*.inc
+src/include/wren.h
 *.o
 *.swp
 
