@@ -95,6 +95,7 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
 }
 
 internal void AUDIO_allocate(WrenVM* vm) {
+  wrenEnsureSlots(vm, 1);
   AUDIO_DATA* data = (AUDIO_DATA*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_DATA));
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   const char* path = wrenGetSlotString(vm, 1);
@@ -180,6 +181,7 @@ internal void AUDIO_unload(WrenVM* vm) {
 }
 
 internal void AUDIO_ENGINE_allocate(WrenVM* vm) {
+  wrenEnsureSlots(vm, 1);
   AUDIO_ENGINE* engine = (AUDIO_ENGINE*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_ENGINE));
   engine->audioScale = 15;
   for (int i = 0; i < AUDIO_CHANNEL_MAX; i++) {
@@ -231,6 +233,7 @@ internal void AUDIO_ENGINE_finalize(void* audioEngine) {
 }
 
 internal void AUDIO_CHANNEL_allocate(WrenVM* vm) {
+  wrenEnsureSlots(vm, 1);
   AUDIO_CHANNEL* data = (AUDIO_CHANNEL*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_CHANNEL));
   int16_t id = (int16_t)wrenGetSlotDouble(vm, 1);
   data->channelId = id;
@@ -241,11 +244,13 @@ internal void AUDIO_CHANNEL_allocate(WrenVM* vm) {
 
 internal void AUDIO_CHANNEL_isFinished(WrenVM* vm) {
   AUDIO_CHANNEL* data = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
+  wrenEnsureSlots(vm, 1);
   wrenSetSlotBool(vm, 0, !data->enabled);
 }
 
 internal void AUDIO_CHANNEL_getId(WrenVM* vm) {
   AUDIO_CHANNEL* data = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
+  wrenEnsureSlots(vm, 1);
   wrenSetSlotDouble(vm, 0, data->channelId);
 }
 

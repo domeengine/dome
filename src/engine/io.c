@@ -14,6 +14,7 @@ typedef struct {
 
 internal void
 ASYNCOP_allocate(WrenVM* vm) {
+  wrenEnsureSlots(vm, 2);
   ASYNCOP* op = (ASYNCOP*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(ASYNCOP));
   op->vm = vm;
   op->bufferHandle = wrenGetSlotHandle(vm, 1);
@@ -147,7 +148,7 @@ FILESYSTEM_loadEventComplete(SDL_Event* event) {
   // Thread: Main
   TASK_DATA* task = event->user.data1;
   WrenVM* vm = task->vm;
-  wrenEnsureSlots(vm, 3);
+  wrenEnsureSlots(vm, 4);
 
   wrenSetSlotHandle(vm, 1, task->opHandle);
   ASYNCOP* op = (ASYNCOP*)wrenGetSlotForeign(vm, 1);

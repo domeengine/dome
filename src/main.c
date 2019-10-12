@@ -158,6 +158,7 @@ int main(int argc, char* args[])
   }
   // Load the class into slot 0.
 
+  wrenEnsureSlots(vm, 3);
   WrenHandle* initMethod = wrenMakeCallHandle(vm, "init()");
   WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update()");
   WrenHandle* drawMethod = wrenMakeCallHandle(vm, "draw(_)");
@@ -167,7 +168,6 @@ int main(int argc, char* args[])
   WrenHandle* audioEngineClass = wrenGetSlotHandle(vm, 0);
 
   // Initiate game loop
-  wrenEnsureSlots(vm, 3);
   wrenSetSlotHandle(vm, 0, gameClass);
   interpreterResult = wrenCall(vm, initMethod);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
