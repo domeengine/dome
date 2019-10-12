@@ -24,6 +24,8 @@ ASYNCOP_allocate(WrenVM* vm) {
 
 internal void
 ASYNCOP_finalize(void* data) {
+  ASYNCOP* op = data;
+  wrenReleaseHandle(op->vm, op->bufferHandle);
 }
 
 internal void
