@@ -8,5 +8,6 @@ src/engine/*.inc
 src/include/wren.h
 *.o
 *.swp
+*.dSYM
 
 node_modules
