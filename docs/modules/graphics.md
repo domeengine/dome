@@ -37,25 +37,25 @@ This clears the canvas fully, to the color _c_.
 This method is syntactic sugar, to draw objects with a "draw(x: Number, y: Number)" method.
 
 #### `static ellipse(x: Number0, y: Number0, x1, y: Number1, c: Color) `
-Draw an ellipse between (_x0, y: Number0_) and (_x1, y: Number1_) in the color _c_.
+Draw an ellipse between (_x0, y0_) and (_x1, y1_) in the color _c_.
 
 #### `static ellipsefill(x: Number0, y: Number0, x1, y: Number1, c: Color) `
-Draw a filled ellipse between (_x0, y: Number0_) and (_x1, y: Number1_) in the color _c_.
+Draw a filled ellipse between (_x0, y0_) and (_x1, y1_) in the color _c_.
 
 #### `static line(x: Number0, y: Number0, x1, y: Number1, c: Color) `
-Draw an 1px wide line between (_x0, y: Number0_) and (_x1, y: Number1_) in the color _c_.
+Draw an 1px wide line between (_x0, y0_) and (_x1, y1_) in the color _c_.
 
 #### `static print(str, x: Number, y: Number, c: Color) `
-Print the text _str_ with the top-left corner at (_x, y: Number_) in color _c_.
+Print the text _str_ with the top-left corner at (_x, y_) in color _c_.
 
 #### `static pset(x: Number, y: Number, c: Color) `
-Set the pixel at (_x, y: Number_) to the color _c_.
+Set the pixel at (_x, y_) to the color _c_.
 
 #### `static rect(x: Number, y: Number, w: Number, h: Number, c: Color) `
-Draw a rectangle with the top-left corner at (_x, y: Number_), with a width of _w_ and _h_ in color _c_.
+Draw a rectangle with the top-left corner at (_x, y_), with a width of _w_ and _h_ in color _c_.
 
 #### `static rectfill(x: Number, y: Number, w: Number, h: Number, c: Color) `
-Draw a filled rectangle with the top-left corner at (_x, y: Number_), with a width of _w_ and _h_ in color _c_.
+Draw a filled rectangle with the top-left corner at (_x, y_), with a width of _w_ and _h_ in color _c_.
 
 ## Color
 
