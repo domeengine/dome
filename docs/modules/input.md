@@ -11,4 +11,5 @@ It contains the following classes:
 
 ### Static Methods
 
-#### `static isKeyDown(key)`
+#### `static isKeyDown(key: String): Boolean`
+Returns true if the named key is pressed. The key uses the SDL key name, which can be referenced [here](https://wiki.libsdl.org/SDL_Keycode).
