@@ -31,13 +31,38 @@ AudioEngine.unload("fire")
 
 ### Methods
 
-#### `isPlaying(channelId)`
-#### `load(name, path)`
-#### `play(name, volume, loop, pan)`
-#### `setChannelLoop(channelId, loop)`
-#### `setChannelPan(channelId, pan)`
-#### `setChannelVolume(channelId, volume)`
-#### `stopChannel(channelId)`
+#### `isPlaying(channelId: Number): Boolean`
+#### `load(name: String, path: String)`
+
+#### `play(name: String): Number`
+Plays the named audio sample once, at maximum volume, with equal pan.
+#### `play(name: String, volume: Number): Number`
+Plays the named audio sample once, at _volume_, with equal pan.
+#### `play(name: String, volume: Number, loop: Boolean): Number`
+Plays the named audio sample, at _volume_, with equal pan. If _loop_ is set, the sample will repeat once playback completes.
+#### `play(name: String, volume: Number, loop: Boolean, pan: Number): Number`
+Play the named audio sample on an available channel.
+ * _volume_ - A value with minimum 0.0 for the volume.
+ * _loop_ - If true, the audio channel will loop once it is complete.
+ * _pan_ - A value between -1.0 and 1.0 which divides the audio playback between left and right stereo channels.
+
+#### `setChannelLoop(channelId: Number, loop: Boolean)`
+If true, the channel will loop once playback completes.
+
+#### `setChannelPan(channelId: Number, pan: Number)`
+Pan divides the audio playback between left and right stereo channels, as a value of -1.0 to 1.0
+
+#### `setChannelVolume(channelId: Number, volume: Number)`
+Set the volume of the channel between 0.0 and 1.0.
+
+#### `stopChannel(channelId: Number)`
+If it is playing, stop the chosen audio channel.
+
 #### `stopAllChannels()`
-#### `unload(name)`
+Stop all playing audio channels.
+
+#### `unload(name: String)`
+Releases the resources of the chosen audio sample.
+
 #### `unloadAll()`
+Release all audio samples.
