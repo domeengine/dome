@@ -32,7 +32,9 @@ AudioEngine.unload("fire")
 ### Methods
 
 #### `isPlaying(channelId: Number): Boolean`
+Returns true if the channel _channelId_ is currently playing. A channel cannot restart once it stops playing.
 #### `load(name: String, path: String)`
+Load the audio file from the specified _path_ and assign it a _name_ for future playback.
 
 #### `play(name: String): Number`
 Plays the named audio sample once, at maximum volume, with equal pan.
