@@ -43,7 +43,7 @@ Plays the named audio sample once, at _volume_, with equal pan.
 #### `play(name: String, volume: Number, loop: Boolean): Number`
 Plays the named audio sample, at _volume_, with equal pan. If _loop_ is set, the sample will repeat once playback completes.
 #### `play(name: String, volume: Number, loop: Boolean, pan: Number): Number`
-Play the named audio sample on an available channel.
+Play the named audio sample and return the channel id is plays on.
  * _volume_ - A value with minimum 0.0 for the volume.
  * _loop_ - If true, the audio channel will loop once it is complete.
  * _pan_ - A value between -1.0 and 1.0 which divides the audio playback between left and right stereo channels.
