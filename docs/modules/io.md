@@ -6,29 +6,12 @@ The `io` module provides an interface to the host machine's file system, in orde
 It contains the following classes:
 
 * [FileSystem](#filesystem)
-* [DataBuffer](#databuffer)
-* [AsyncOperation](#asyncoperation)
 
 ## FileSystem
 
 ### Static Methods
 
-#### `static load(path)`
-#### `static loadSync(path)`
+#### `static loadSync(path: String): String`
+Given a valid file path, this loads the file data into a String object.
+This is a blocking operation, and so execution will stop while the file is loaded.
 
-
-## DataBuffer
-
-### Instance fields
-
-#### `data`
-#### `length`
-#### `ready`
-
-
-## AsyncOperation
-
-### Instance fields
-
-#### `complete`
-#### `result`
