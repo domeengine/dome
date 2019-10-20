@@ -84,7 +84,17 @@ The `Point` class is a 2-dimensional vector
 
 ## ImageData
 
-This class represents the data from an image, such as a sprite or tilemap.
+This class represents the data from an image, such as a sprite or tilemap. 
+DOME uses stb_image to load images, so it supports the same formats:
+ * JPEG baseline & progressive (12 bpc/arithmetic not supported, same as stock IJG lib)
+ * PNG 1/2/4/8/16-bit-per-channel
+ * TGA (not sure what subset, if a subset)
+ * BMP non-1bpp, non-RLE
+ * PSD (composited view only, no extra channels, 8/16 bit-per-channel)
+ * GIF (*comp always reports as 4-channel)
+ * HDR (radiance rgbE format)
+ * PIC (Softimage PIC)
+ * PNM (PPM and PGM binary only)
 
 ### Static Methods
 #### `static loadFromFile(path: String): ImageData`
