@@ -64,6 +64,7 @@
 #include "engine.c"
 #include "engine/io.c"
 #include "engine/audio.c"
+#include "engine/graphics.c"
 #include "engine/image.c"
 #include "engine/input.c"
 #include "engine/point.c"
