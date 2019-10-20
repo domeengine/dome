@@ -64,21 +64,23 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
     float right = 0;
     for (int c = 0; c < AUDIO_CHANNEL_MAX; c++) {
       AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)(audioEngine->channels[c]);
-      if (channel != NULL && channel->enabled) {
-        totalEnabled++;
+      if (channel != NULL) {
         AUDIO_DATA* audio = channel->audio;
-        float* readCursor = (float*)(audio->buffer);
-        readCursor += channel->position * channels;
-        float volume = channel->volume;
-        float pan = (channel->pan + 1) * M_PI / 4; // Channel pan is [-1,1] real pan needs to be [0,1]
+        if (channel->enabled) {
+          totalEnabled++;
+          float* readCursor = (float*)(audio->buffer);
+          readCursor += channel->position * channels;
+          float volume = channel->volume;
+          float pan = (channel->pan + 1) * M_PI / 4; // Channel pan is [-1,1] real pan needs to be [0,1]
 
-        left += readCursor[0] * cos(pan) * volume;
-        right += readCursor[1] * sin(pan) * volume;
+          left += readCursor[0] * cos(pan) * volume;
+          right += readCursor[1] * sin(pan) * volume;
+        }
         channel->position++;
         if (channel->loop && channel->position >= audio->length) {
           channel->position = 0;
         }
-        channel->enabled = channel->position < audio->length;
+        channel->enabled = channel->enabled && channel->position < audio->length;
       }
     }
     if (totalEnabled > 1) {
