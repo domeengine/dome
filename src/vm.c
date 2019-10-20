@@ -44,14 +44,6 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   return methods;
 }
 
-
-internal void INPUT_is_key_down(WrenVM* vm) {
-  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  const char* keyName = wrenGetSlotString(vm, 1);
-  bool result = ENGINE_getKeyState(engine, keyName);
-  wrenSetSlotBool(vm, 0, result);
-}
-
 internal void CANVAS_print(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   char* text = (char*)wrenGetSlotString(vm, 1);
@@ -244,7 +236,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "io", "AsyncOperation", "complete", false, ASYNCOP_getComplete);
 
   // Input
-  MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, INPUT_is_key_down);
+  MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, KEYBOARD_isKeyDown);
 
   // Point
   MAP_add(&engine->fnMap, "point", "Point", "x", false, POINT_getX);
