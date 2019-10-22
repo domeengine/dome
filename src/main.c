@@ -63,6 +63,7 @@
 #include "io.c"
 #include "engine/modules.c"
 #include "engine.c"
+#include "engine/dome.c"
 #include "engine/io.c"
 #include "engine/audio.c"
 #include "engine/graphics.c"
@@ -191,10 +192,9 @@ int main(int argc, char* args[])
 
   uint32_t previousTime = SDL_GetTicks();
   int32_t lag = 0;
-  bool running = true;
   SDL_Event event;
   SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
-  while (running) {
+  while (engine.running) {
     int32_t currentTime = SDL_GetTicks();
     int32_t elapsed = currentTime - previousTime;
     previousTime = currentTime;
@@ -205,7 +205,7 @@ int main(int argc, char* args[])
       switch (event.type)
       {
         case SDL_QUIT:
-          running = false;
+          engine.running = false;
           break;
         case SDL_KEYDOWN:
         case SDL_KEYUP:
@@ -213,7 +213,7 @@ int main(int argc, char* args[])
             SDL_Keycode keyCode = event.key.keysym.sym;
             if(keyCode == SDLK_ESCAPE && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               // TODO: Let Wren decide when to end game
-              running = false;
+              engine.running = false;
             } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               for (size_t i = 0; i < imageSize; i++) {
                 uint32_t c = ((uint32_t*)engine.pixels)[i];
