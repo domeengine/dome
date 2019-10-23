@@ -296,7 +296,7 @@ int main(int argc, char* args[])
     // SDL_SetWindowTitle(engine.window, buffer);
 
     elapsed = SDL_GetTicks() - currentTime;
-    setjmp(loop_exit);
+    result = setjmp(loop_exit);
   }
   if (makeGif) {
     jo_gif_end(&gif);

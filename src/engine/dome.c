@@ -6,7 +6,7 @@ void DOME_exit(WrenVM* vm) {
   if (engine->exit_status != 0) {
     wrenAbortFiber(vm, 1);
   } else {
-    longjmp(loop_exit,1);
+    longjmp(loop_exit, EXIT_SUCCESS);
   }
 }
 
