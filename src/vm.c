@@ -106,7 +106,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Set modules
 
   // DOME
-  MAP_add(&engine->fnMap, "dome", "DOME", "f_exit(_)", true, DOME_exit);
+  MAP_add(&engine->fnMap, "dome", "Process", "f_exit(_)", true, PROCESS_exit);
   // Canvas
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_pset(_,_,_)", true, CANVAS_pset);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_rectfill(_,_,_,_,_)", true, CANVAS_rectfill);
