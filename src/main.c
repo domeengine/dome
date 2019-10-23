@@ -10,6 +10,7 @@
 #include <string.h>
 #include <math.h>
 #include <libgen.h>
+#include <setjmp.h>
 
 #include <wren.h>
 #include <SDL2/SDL.h>
@@ -54,6 +55,9 @@
 #define SCREEN_HEIGHT GAME_HEIGHT * 2
 #define FPS 60
 #define MS_PER_FRAME 1000 / FPS
+
+// We need this here so it can be used by the DOME module
+global_variable jmp_buf loop_exit;
 
 // Game code
 #include "math.c"
@@ -292,6 +296,7 @@ int main(int argc, char* args[])
     // SDL_SetWindowTitle(engine.window, buffer);
 
     elapsed = SDL_GetTicks() - currentTime;
+    setjmp(loop_exit);
   }
   if (makeGif) {
     jo_gif_end(&gif);
