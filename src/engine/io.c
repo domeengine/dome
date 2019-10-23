@@ -11,15 +11,34 @@ typedef struct {
   WrenHandle* bufferHandle;
 } ASYNCOP;
 
+global_variable WrenHandle* bufferClass = NULL;
 
 internal void
 ASYNCOP_allocate(WrenVM* vm) {
-  wrenEnsureSlots(vm, 2);
+  wrenEnsureSlots(vm, 3);
+  // Get a handle to the Stat class. We'll hang on to this so we don't have to
+  // look it up by name every time.
+  /*
+  if (bufferClass == NULL)
+  {
+    wrenGetVariable(vm, "io", "DataBuffer", 1);
+    bufferClass = wrenGetSlotHandle(vm, 1);
+  }
+  wrenSetSlotHandle(vm, 2, bufferClass);
+  DBUFFER* buffer = (DBUFFER*)wrenSetSlotNewForeign(vm, 2, 2, sizeof(DBUFFER));
+  buffer->data = NULL;
+  buffer->length = 0;
+  buffer->ready = false;
+  */
+
   ASYNCOP* op = (ASYNCOP*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(ASYNCOP));
   op->vm = vm;
+
+  // This is a handle to our specific buffer, not the DataBuffer class
   op->bufferHandle = wrenGetSlotHandle(vm, 1);
   op->complete = false;
   op->error = false;
+
 }
 
 internal void

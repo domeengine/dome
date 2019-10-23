@@ -30,6 +30,7 @@ class Game {
     __done = false
 
     __loadSettingsOp = FileSystem.load("setup.sh")
+    System.print(__loadSettingsOp)
     System.print(__loadSettingsOp.result.length)
   }
   static update() {

@@ -5,7 +5,7 @@ class FileSystem {
   // foreign f_append(path, buffer, op) {}
 
   static load(path) {
-    var operation = AsyncOperation.init(DataBuffer.create())
+    var operation = AsyncOperation.init(DataBuffer.init())
     f_load(path, operation)
     return operation
   }
@@ -33,7 +33,7 @@ class FileSystem {
 }
 
 foreign class AsyncOperation {
-  construct init(result) {}
+  construct init(buffer) {}
 
   foreign complete
   foreign result
@@ -43,7 +43,7 @@ foreign class AsyncOperation {
 
 // Stretchy buffer?
 foreign class DataBuffer {
-  construct create() {}
+  construct init() {}
   foreign ready
   foreign f_length
   foreign f_data
