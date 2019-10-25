@@ -1,3 +1,4 @@
+#include "dome.wren.inc"
 #include "audio.wren.inc"
 #include "graphics.wren.inc"
 #include "point.wren.inc"
@@ -59,6 +60,7 @@ ModuleMap_get(ModuleMap* map, const char* name) {
 internal void
 ModuleMap_init(ModuleMap* map) {
   map->head = NULL;
+  ModuleMap_add(map, "dome", domeModule);
   ModuleMap_add(map, "input", inputModule);
   ModuleMap_add(map, "io", ioModule);
   ModuleMap_add(map, "graphics", graphicsModule);
