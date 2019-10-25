@@ -10,6 +10,7 @@
 #include <string.h>
 #include <math.h>
 #include <libgen.h>
+#include <setjmp.h>
 
 #include <wren.h>
 #include <SDL2/SDL.h>
@@ -55,6 +56,9 @@
 #define FPS 60
 #define MS_PER_FRAME 1000 / FPS
 
+// We need this here so it can be used by the DOME module
+global_variable jmp_buf loop_exit;
+
 // Game code
 #include "math.c"
 #include "debug.c"
@@ -63,6 +67,7 @@
 #include "io.c"
 #include "engine/modules.c"
 #include "engine.c"
+#include "engine/dome.c"
 #include "engine/io.c"
 #include "engine/audio.c"
 #include "engine/graphics.c"
@@ -191,10 +196,9 @@ int main(int argc, char* args[])
 
   uint32_t previousTime = SDL_GetTicks();
   int32_t lag = 0;
-  bool running = true;
   SDL_Event event;
   SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
-  while (running) {
+  while (engine.running) {
     int32_t currentTime = SDL_GetTicks();
     int32_t elapsed = currentTime - previousTime;
     previousTime = currentTime;
@@ -205,16 +209,13 @@ int main(int argc, char* args[])
       switch (event.type)
       {
         case SDL_QUIT:
-          running = false;
+          engine.running = false;
           break;
         case SDL_KEYDOWN:
         case SDL_KEYUP:
           {
             SDL_Keycode keyCode = event.key.keysym.sym;
-            if(keyCode == SDLK_ESCAPE && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-              // TODO: Let Wren decide when to end game
-              running = false;
-            } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+            if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               for (size_t i = 0; i < imageSize; i++) {
                 uint32_t c = ((uint32_t*)engine.pixels)[i];
                 uint8_t a = (0xFF000000 & c) >> 24;
@@ -292,6 +293,7 @@ int main(int argc, char* args[])
     // SDL_SetWindowTitle(engine.window, buffer);
 
     elapsed = SDL_GetTicks() - currentTime;
+    result = setjmp(loop_exit);
   }
   if (makeGif) {
     jo_gif_end(&gif);

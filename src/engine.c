@@ -9,6 +9,8 @@ typedef struct {
   uint32_t width;
   uint32_t height;
   mtar_t* tar;
+  bool running;
+  int exit_status;
 } ENGINE;
 
 typedef enum {
@@ -120,6 +122,7 @@ ENGINE_init(ENGINE* engine) {
   engine->fifo.taskHandler = ENGINE_taskHandler;
 
   ModuleMap_init(&engine->moduleMap);
+  engine->running = true;
 
 engine_init_end:
   return result;

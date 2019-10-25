@@ -2,6 +2,7 @@ import "input" for Keyboard
 import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
+import "dome" for Process
 import "./test"
 
 import "io" for FileSystem
@@ -253,6 +254,9 @@ class MainGame {
       }
       if (Keyboard.isKeyDown("down")) {
         y = 1
+      }
+      if (Keyboard.isKeyDown("escape")) {
+        Process.exit()
       }
       if (Keyboard.isKeyDown("space")) {
         if ((__t - __lastFire) > 10) {
