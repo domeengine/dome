@@ -1,12 +1,20 @@
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
+SOURCE  = src
 CC = cc
-CFLAGS = -g -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags` 
+CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags`
 IFLAGS = -isystem $(SOURCE)/include
-
+MODE ?= debug
 
 SDLFLAGS=-lSDL2
-LDFLAGS = -L$(SOURCE)/lib $(SDLFLAGS) -lwren -lm
-SOURCE  = src
+LDFLAGS = -L$(SOURCE)/lib $(SDLFLAGS) -lm
+
+ifeq ($(MODE), debug)
+LDFLAGS += -lwrend
+CFLAGS += -g -fsanitize=address
+else
+	LDFLAGS += -lwren
+endif
+
 UTILS = $(SOURCE)/util
 ENGINESRC = $(SOURCE)/engine
 EXENAME = dome
@@ -20,7 +28,7 @@ endif
 ifneq (, $(findstring MSYS, $(SYS)))
 CFLAGS += -Wno-discarded-qualifiers
 ifdef ICON_OBJECT_FILE
-	CFLAGS += $(ICON_OBJECT_FILE)
+CFLAGS += $(ICON_OBJECT_FILE)
 endif
 SDLFLAGS := -lSDL2main -mwindows $(SDLFLAGS)
 endif
@@ -33,7 +41,7 @@ endif
 all: $(EXENAME)
 
 src/lib/libwren.a: 
-	./setup.sh
+	./setup.sh $(MODE)
 
 src/include/wren.h: src/lib/libwren.a
 	cp src/lib/wren/src/include/wren.h src/include/wren.h
@@ -49,7 +57,7 @@ endif
 
 .PHONY: clean clean-all
 clean-all:
-	    rm -rf $(EXENAME) $(SOURCE)/lib/wren $(SOURCE)/lib/libwren.a $(ENGINESRC)/*.inc $(SOURCE)/include/wren.h
+	    rm -rf $(EXENAME) $(SOURCE)/lib/wren $(SOURCE)/lib/libwren.a $(ENGINESRC)/*.inc $(SOURCE)/include/wren.h $(SOURCE)/lib/libwrend.a
 
 clean:
 	    rm -rf $(EXENAME) $(ENGINESRC)/*.inc

@@ -1,6 +1,7 @@
 dome
 nest
 libwren.a
+libwrend.a
 **/.DS_Store
 src/util/convert
 src/util/embed
