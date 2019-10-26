@@ -117,7 +117,7 @@ Apart from SDL2, all other dependancies are baked in or linked statically. DOME 
 - Bob Nystrom for creating Wren and inspiring me to make games, thanks to [Game Programming Patterns](http://gameprogrammingpatterns.com)
 - Glenn Fiedler for the most referenced [resources](https://gafferongames.com/) on Game Loops, Physics and Networking in games
 - Casey Muratori for creating [Handmade Hero](https://hero.handmade.network), an inspiration and educational resource that makes this project possible. 
-- Font comes from [here](https://opengameart.org/content/ascii-bitmap-font-cellphone)
+- Font comes from [here](https://opengameart.org/content/ascii-bitmap-font-cellphone) and [here](https://github.com/dhepper/font8x8).
 - Sean Barrett for [multiple libraries](https://github.com/nothings/stb)
 - rxi for [microtar](https://github.com/rxi/microtar)
 - Jon Olick for [jo_gif](https://www.jonolick.com/home/gif-writer)
