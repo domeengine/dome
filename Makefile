@@ -16,7 +16,7 @@ else
 endif
 
 UTILS = $(SOURCE)/util
-ENGINESRC = $(SOURCE)/engine
+ENGINESRC = $(SOURCE)/modules
 EXENAME = dome
 
 SYS=$(shell uname -s)
