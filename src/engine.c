@@ -198,25 +198,26 @@ ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
 
 internal void
 ENGINE_print(ENGINE* engine, char* text, uint16_t x, uint16_t y, uint32_t c) {
-  int fontWidth = 5;
-  int fontHeight = 7;
+  int fontWidth = 8;
+  int fontHeight = 8;
   int cursor = 0;
   for (size_t pos = 0; pos < strlen(text); pos++) {
-    char letter = text[pos];
+    uint8_t letter = text[pos];
 
-    uint8_t* glyph = (uint8_t*)font[letter - 32];
+    uint8_t* glyph = (uint8_t*)font8x8_basic[letter];
     if (*glyph == '\n') {
       break;
     }
     for (int j = 0; j < fontHeight; j++) {
       for (int i = 0; i < fontWidth; i++) {
-        uint8_t v = glyph[j * fontWidth + i];
+        uint8_t v = (glyph[j] >> i) & 1;
+        // uint8_t v = glyph[j * fontWidth + i];
         if (v != 0) {
           ENGINE_pset(engine, x + cursor + i, y + j, c);
         }
       }
     }
-    cursor += 6;
+    cursor += fontWidth;
   }
 }
 
