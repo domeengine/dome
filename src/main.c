@@ -58,11 +58,16 @@
 
 // We need this here so it can be used by the DOME module
 global_variable jmp_buf loop_exit;
+// Used in the io variable, but we need to catch it here
+global_variable WrenHandle* bufferClass = NULL;
 
 // Game code
 #include "math.c"
 #include "debug.c"
+/*
 #include "util/font.c"
+*/
+#include "util/font8x8.h"
 #include "map.c"
 #include "io.c"
 #include "engine/modules.c"
@@ -174,6 +179,11 @@ int main(int argc, char* args[])
   WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
   wrenGetVariable(vm, "main", "AudioEngine_internal", 0);
   WrenHandle* audioEngineClass = wrenGetSlotHandle(vm, 0);
+  if (bufferClass == NULL)
+  {
+    wrenGetVariable(vm, "io", "DataBuffer", 1);
+    bufferClass = wrenGetSlotHandle(vm, 1);
+  }
 
   // Initiate game loop
   wrenSetSlotHandle(vm, 0, gameClass);
@@ -254,7 +264,7 @@ int main(int argc, char* args[])
       }
     }
     while (lag >= MS_PER_FRAME) {
-      wrenEnsureSlots(vm, 3);
+      wrenEnsureSlots(vm, 8);
       wrenSetSlotHandle(vm, 0, gameClass);
       interpreterResult = wrenCall(vm, updateMethod);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -304,6 +314,10 @@ int main(int argc, char* args[])
   wrenReleaseHandle(vm, updateMethod);
   wrenReleaseHandle(vm, gameClass);
   wrenReleaseHandle(vm, audioEngineClass);
+
+  if (bufferClass != NULL) {
+    wrenReleaseHandle(vm, bufferClass);
+  }
 
 cleanup:
   // Free resources
