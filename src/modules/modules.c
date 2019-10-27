@@ -2,7 +2,6 @@
 #include "audio.wren.inc"
 #include "graphics.wren.inc"
 #include "point.wren.inc"
-#include "init.wren.inc"
 #include "input.wren.inc"
 #include "io.wren.inc"
 

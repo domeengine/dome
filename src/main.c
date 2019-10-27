@@ -68,8 +68,8 @@ global_variable WrenHandle* bufferClass = NULL;
 #include "util/font.c"
 */
 #include "util/font8x8.h"
-#include "map.c"
 #include "io.c"
+#include "map.c"
 #include "modules/modules.c"
 #include "engine.c"
 #include "modules/dome.c"
@@ -156,13 +156,6 @@ int main(int argc, char* args[])
   vm = VM_create(&engine);
   WrenInterpretResult interpreterResult;
 
-  // Run wren engine init()
-  interpreterResult = wrenInterpret(vm, "main", initModule);
-  if (interpreterResult != WREN_RESULT_SUCCESS) {
-    result = EXIT_FAILURE;
-    goto cleanup;
-  }
-
   // Load user game file
   interpreterResult = wrenInterpret(vm, "main", gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -177,7 +170,7 @@ int main(int argc, char* args[])
   WrenHandle* drawMethod = wrenMakeCallHandle(vm, "draw(_)");
   wrenGetVariable(vm, "main", "Game", 0);
   WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
-  wrenGetVariable(vm, "main", "AudioEngine_internal", 0);
+  wrenGetVariable(vm, "audio", "AudioEngine", 0);
   WrenHandle* audioEngineClass = wrenGetSlotHandle(vm, 0);
   if (bufferClass == NULL)
   {

@@ -23,8 +23,8 @@ foreign class AudioChannel {
   foreign volume=(volume)
 }
 
-foreign class AudioEngineImpl {
-  construct init() {
+class AudioEngine {
+  static init() {
     __files = {}
     __channels = {}
     __newChannelId = 0
@@ -33,28 +33,28 @@ foreign class AudioEngineImpl {
 
   // Loading and unloading
   // We only support loading WAV and OGG
-  load(name, path) {
+  static load(name, path) {
     if (!__files.containsKey(name)) {
       __files[name] = AudioData.fromFile(path)
     }
 
     return __files[name]
   }
-  unload(name) {
+  static unload(name) {
     if (__files.containsKey(name)) {
       __files[name] = null
     }
   }
 
-  unloadAll() {
+  static unloadAll() {
     __files = {}
   }
 
   // audio mix operations
-  play(name) { play(name, 1, false, 0) }
-  play(name, volume) { play(name, volume, false, 0) }
-  play(name, volume, loop) { play(name, volume, loop, 0) }
-  play(name, volume, loop, pan) {
+  static play(name) { play(name, 1, false, 0) }
+  static play(name, volume) { play(name, volume, false, 0) }
+  static play(name, volume, loop) { play(name, volume, loop, 0) }
+  static play(name, volume, loop, pan) {
     if (__files.containsKey(name)) {
       __newChannelId = __newChannelId + 1
       var channel = AudioChannel.new(__newChannelId, __files[name])
@@ -67,43 +67,44 @@ foreign class AudioEngineImpl {
     return __newChannelId
   }
 
-  stopChannel(channelId) {
+  static stopChannel(channelId) {
     if (__channels.containsKey(channelId)) {
       __channels[channelId].enabled = false
     }
   }
 
-  setChannelVolume(channelId, volume) {
+  static setChannelVolume(channelId, volume) {
     if (__channels.containsKey(channelId)) {
       __channels[channelId].volume = volume
     }
   }
 
-  setChannelPan(channelId, pan) {
+  static setChannelPan(channelId, pan) {
     if (__channels.containsKey(channelId)) {
       __channels[channelId].pan = pan
     }
   }
 
 
-  setChannelLoop(channelId, loop) {
+  static setChannelLoop(channelId, loop) {
     if (__channels.containsKey(channelId)) {
       __channels[channelId].loop = loop
     }
   }
 
-  stopAllChannels() {
+  static stopAllChannels() {
     __channels.values.each { |channel| channel.enabled = false }
   }
 
-  isPlaying(channelId) {
+  static isPlaying(channelId) {
     if (__channels.containsKey(channelId)) {
       return !__channels[channelId].isFinished
     }
     return false
   }
 
-  update() {
+  // This is called by DOME
+  static update() {
     var playing = __channels.values.where {|channel|
       var stillPlaying = !channel.isFinished
       if (!stillPlaying) {
@@ -113,12 +114,6 @@ foreign class AudioEngineImpl {
     }.toList
     f_update(playing)
   }
-  foreign f_update(list)
+  foreign static f_update(list)
 }
-
-// We only intend to expose this
-var AudioEngine = AudioEngineImpl.init()
-
-// We need the same engine under a different name so that we can
-// call it from C with a unique import.
-var AudioEngine_internal = AudioEngine
+AudioEngine.init()
