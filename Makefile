@@ -55,10 +55,12 @@ ifneq (, $(findstring Darwin, $(SYS)))
 	install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2.dylib $(EXENAME)
 endif
 
-.PHONY: clean clean-all
+.PHONY: clean clean-all cloc
 clean-all:
 	    rm -rf $(EXENAME) $(SOURCE)/lib/wren $(SOURCE)/lib/libwren.a $(ENGINESRC)/*.inc $(SOURCE)/include/wren.h $(SOURCE)/lib/libwrend.a
 
 clean:
 	    rm -rf $(EXENAME) $(ENGINESRC)/*.inc
 
+cloc:
+			cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util|include|lib" src
