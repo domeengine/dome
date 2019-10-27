@@ -9,14 +9,12 @@ void IMAGE_allocate(WrenVM* vm) {
 
   // TODO: We should read this from a "DataBuffer" which is file loaded, rather than loading ourselves.
   // So that we can defer the file loading to a thread.
-  const char* path = wrenGetSlotString(vm, 1);
-  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  size_t length;
-  uint8_t* fileBuffer = (uint8_t*)ENGINE_readFile(engine, path, &length);
+  int length;
+  const char* fileBuffer = wrenGetSlotBytes(vm, 1, &length);
   IMAGE* image = (IMAGE*)wrenSetSlotNewForeign(vm,
       0, 0, sizeof(IMAGE));
 
-  image->pixels = (uint32_t*)stbi_load_from_memory(fileBuffer, length,
+  image->pixels = (uint32_t*)stbi_load_from_memory((const stbi_uc*)fileBuffer, length,
       &image->width,
       &image->height,
       &image->channels,
@@ -27,10 +25,6 @@ void IMAGE_allocate(WrenVM* vm) {
     wrenSetSlotString(vm, 0, "A problem loading the file");
     wrenAbortFiber(vm, 0);
     return;
-  } else {
-
-    printf("Image loaded: %s\n", path);
-
   }
   uint32_t* pixel = (uint32_t*)image->pixels;
   for (int i = 0; i < image->height * image->width; i++) {
@@ -43,7 +37,6 @@ void IMAGE_allocate(WrenVM* vm) {
     *pixel = (a << 24) | (r << 16) | (g << 8) | b;
     pixel++;
   }
-  free(fileBuffer);
 }
 
 void IMAGE_finalize(void* data) {

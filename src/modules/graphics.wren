@@ -2,6 +2,7 @@
   @Module graphics
   The graphics module provides all the system functions required for drawing to the screen.
 */
+import "io" for FileSystem
 import "point" for Point
 
 /**
@@ -169,14 +170,15 @@ var AllColors = {
 }
 
 foreign class ImageData {
-  construct fromFile(path) {}
+  construct init(data) {}
   static loadFromFile(path) {
     if (!__cache) {
       __cache = {}
     }
 
     if (!__cache.containsKey(path)) {
-      __cache[path] = ImageData.fromFile(path)
+      var data = FileSystem.loadSync(path)
+      __cache[path] = ImageData.init(data)
     }
 
     return __cache[path]

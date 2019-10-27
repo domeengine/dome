@@ -7,7 +7,6 @@
 typedef uint8_t AUDIO_TYPE;
 
 typedef struct {
-  char name[256];
   SDL_AudioSpec spec;
   AUDIO_TYPE audioType;
   // Length is the number of LR samples
@@ -99,8 +98,8 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
 internal void AUDIO_allocate(WrenVM* vm) {
   wrenEnsureSlots(vm, 1);
   AUDIO_DATA* data = (AUDIO_DATA*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_DATA));
-  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  const char* path = wrenGetSlotString(vm, 1);
+  int length;
+  const char* fileBuffer = wrenGetSlotBytes(vm, 1, &length);
 
   /*
   char* base = SDL_GetBasePath();
@@ -110,19 +109,10 @@ internal void AUDIO_allocate(WrenVM* vm) {
   SDL_free(base);
   */
 
-  strncpy(data->name, path, 255);
-  data->name[255] = '\0';
-
-  // make internal file name lowercase
-  for(int i = 0; data->name[i]; i++){
-    data->name[i] = tolower(data->name[i]);
-  }
-
   int16_t* tempBuffer;
-  size_t length;
-  uint8_t* fileBuffer = (uint8_t*)ENGINE_readFile(engine, path, &length);
-
-  if (strstr(data->name, ".wav") != NULL) {
+  if (strncmp(fileBuffer, "RIFF", 4) == 0 &&
+      strncmp(&fileBuffer[8], "WAVE", 4) == 0) {
+    printf("WAV file detected\n");
     data->audioType = AUDIO_TYPE_WAV;
 
     // Loading the WAV file
@@ -130,13 +120,14 @@ internal void AUDIO_allocate(WrenVM* vm) {
     SDL_LoadWAV_RW(src, 1, &data->spec, ((uint8_t**)&tempBuffer), &data->length);
     // SDL_LoadWAV(pathBuf, &data->spec, ((uint8_t**)&tempBuffer), &data->length);
     data->length /= sizeof(int16_t) * data->spec.channels;
-  } else if (strstr(data->name, ".ogg") != NULL) {
+  } else if (strncmp(fileBuffer, "OggS", 4) == 0) {
+    printf("OGG file detected\n");
     data->audioType = AUDIO_TYPE_OGG;
 
     int channelsInFile = 0, freq = 0;
     memset(&data->spec, 0, sizeof(SDL_AudioSpec));
     // Loading the OGG file
-    data->length = stb_vorbis_decode_memory(fileBuffer, length, &channelsInFile, &freq, &tempBuffer);
+    data->length = stb_vorbis_decode_memory((const unsigned char*)fileBuffer, length, &channelsInFile, &freq, &tempBuffer);
 
     // data->length = stb_vorbis_decode_filename(pathBuf, &channelsInFile, &freq, &tempBuffer);
     data->spec.channels = channelsInFile;
@@ -163,8 +154,6 @@ internal void AUDIO_allocate(WrenVM* vm) {
     free(tempBuffer);
   }
   DEBUG_printAudioSpec(data->spec);
-  printf("Audio loaded: %s\n", path);
-  free(fileBuffer);
 }
 
 internal void AUDIO_finalize(void* data) {
@@ -174,7 +163,6 @@ internal void AUDIO_finalize(void* data) {
       free(audioData->buffer);
     }
     audioData->buffer = NULL;
-    printf("Audio unloaded: %s\n", audioData->name);
   }
 }
 internal void AUDIO_unload(WrenVM* vm) {
