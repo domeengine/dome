@@ -170,7 +170,9 @@ var AllColors = {
 }
 
 foreign class ImageData {
-  construct init(data) {}
+  // This constructor is private
+  construct initFromFile(data) {}
+
   static loadFromFile(path) {
     if (!__cache) {
       __cache = {}
@@ -178,7 +180,7 @@ foreign class ImageData {
 
     if (!__cache.containsKey(path)) {
       var data = FileSystem.loadSync(path)
-      __cache[path] = ImageData.init(data)
+      __cache[path] = ImageData.initFromFile(data)
     }
 
     return __cache[path]

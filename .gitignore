@@ -5,7 +5,7 @@ libwrend.a
 **/.DS_Store
 src/util/convert
 src/util/embed
-src/engine/*.inc
+src/modules/*.inc
 src/include/wren.h
 *.o
 *.swp
