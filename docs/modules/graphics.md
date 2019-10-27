@@ -104,6 +104,5 @@ DOME uses stb_image to load images, so it supports the same formats:
 #### `foreign width: Number`
 
 ### Instance Methods
-#### `construct fromFile(path: String)`
 #### `foreign draw(x: Number, y: Number)`
 #### `foreign drawArea(srcX: Number, srcY: Number, srcW: Number, srcH: Number, destX: Number, destY: Number)`
