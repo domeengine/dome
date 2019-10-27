@@ -30,12 +30,11 @@ typedef struct {
   AUDIO_DATA* audio;
 } AUDIO_CHANNEL;
 
-typedef struct {
+typedef struct AUDIO_ENGINE_t {
   SDL_AudioDeviceID deviceId;
   SDL_AudioSpec spec;
-  int16_t audioScale;
-  AUDIO_CHANNEL* channels[AUDIO_CHANNEL_MAX];
   uint8_t* outputBuffer;
+  AUDIO_CHANNEL* channels[AUDIO_CHANNEL_MAX];
 } AUDIO_ENGINE;
 
 const uint16_t channels = 2;
@@ -101,14 +100,6 @@ internal void AUDIO_allocate(WrenVM* vm) {
   int length;
   const char* fileBuffer = wrenGetSlotBytes(vm, 1, &length);
 
-  /*
-  char* base = SDL_GetBasePath();
-  char pathBuf[strlen(base)+strlen(path)+1];
-  strcpy(pathBuf, base);
-  strcat(pathBuf, path);
-  SDL_free(base);
-  */
-
   int16_t* tempBuffer;
   if (strncmp(fileBuffer, "RIFF", 4) == 0 &&
       strncmp(&fileBuffer[8], "WAVE", 4) == 0) {
@@ -170,10 +161,9 @@ internal void AUDIO_unload(WrenVM* vm) {
   AUDIO_finalize(data);
 }
 
-internal void AUDIO_ENGINE_allocate(WrenVM* vm) {
-  wrenEnsureSlots(vm, 1);
-  AUDIO_ENGINE* engine = (AUDIO_ENGINE*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_ENGINE));
-  engine->audioScale = 15;
+internal AUDIO_ENGINE*
+AUDIO_ENGINE_init(void) {
+  AUDIO_ENGINE* engine = malloc(sizeof(AUDIO_ENGINE));
   for (int i = 0; i < AUDIO_CHANNEL_MAX; i++) {
     engine->channels[i] = NULL;
   }
@@ -194,12 +184,15 @@ internal void AUDIO_ENGINE_allocate(WrenVM* vm) {
 
   // Unpause audio so we can begin taking over the buffer
   SDL_PauseAudioDevice(engine->deviceId, 0);
+  return engine;
 }
 
 internal void AUDIO_ENGINE_update(WrenVM* vm) {
   // We need additional slots to parse a list
   wrenEnsureSlots(vm, 3);
-  AUDIO_ENGINE* data = (AUDIO_ENGINE*)wrenGetSlotForeign(vm, 0);
+  ENGINE* engine = wrenGetUserData(vm);
+  AUDIO_ENGINE* data = engine->audioEngine;
+
   uint8_t soundCount = wrenGetListCount(vm, 1);
   for (int i = 0; i < AUDIO_CHANNEL_MAX; i++) {
     if (i < soundCount) {
@@ -214,9 +207,8 @@ internal void AUDIO_ENGINE_update(WrenVM* vm) {
   AUDIO_ENGINE_mix(data);
 }
 
-internal void AUDIO_ENGINE_finalize(void* audioEngine) {
+internal void AUDIO_ENGINE_free(AUDIO_ENGINE* engine) {
   // We might need to free contained audio here
-  AUDIO_ENGINE* engine = (AUDIO_ENGINE*)audioEngine;
   SDL_PauseAudioDevice(engine->deviceId, 1);
   SDL_CloseAudioDevice(engine->deviceId);
   free(engine->outputBuffer);

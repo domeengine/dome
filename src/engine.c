@@ -1,3 +1,9 @@
+// Forward-declaring some methods for interacting with the AudioEngine
+// for managing memory and initialization
+struct AUDIO_ENGINE_t;
+internal struct AUDIO_ENGINE_t* AUDIO_ENGINE_init(void);
+internal void AUDIO_ENGINE_free(struct AUDIO_ENGINE_t*);
+
 typedef struct {
   SDL_Window* window;
   SDL_Renderer *renderer;
@@ -11,6 +17,7 @@ typedef struct {
   mtar_t* tar;
   bool running;
   int exit_status;
+  struct AUDIO_ENGINE_t* audioEngine;
 } ENGINE;
 
 typedef enum {
@@ -116,12 +123,19 @@ ENGINE_init(ENGINE* engine) {
     goto engine_init_end;
   }
 
+  engine->audioEngine = AUDIO_ENGINE_init();
+  if (engine->audioEngine == NULL) {
+    result = EXIT_FAILURE;
+    goto engine_init_end;
+  }
+
   ENGINE_EVENT_TYPE = SDL_RegisterEvents(1);
 
   ABC_FIFO_create(&engine->fifo);
   engine->fifo.taskHandler = ENGINE_taskHandler;
 
   ModuleMap_init(&engine->moduleMap);
+
   engine->running = true;
 
 engine_init_end:
@@ -134,6 +148,12 @@ ENGINE_free(ENGINE* engine) {
 
   if (engine == NULL) {
     return;
+  }
+
+  if (engine->audioEngine) {
+    AUDIO_ENGINE_free(engine->audioEngine);
+    free(engine->audioEngine);
+    engine->audioEngine = NULL;
   }
 
   if (engine->tar != NULL) {

@@ -29,9 +29,6 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
     } else if (strcmp(className, "AudioChannel") == 0) {
       methods.allocate = AUDIO_CHANNEL_allocate;
       methods.finalize = AUDIO_CHANNEL_finalize;
-    } else if (strcmp(className, "AudioEngineImpl") == 0) {
-      methods.allocate = AUDIO_ENGINE_allocate;
-      methods.finalize = AUDIO_ENGINE_finalize;
     }
   }
 
@@ -130,7 +127,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "audio", "AudioChannel", "isFinished", false, AUDIO_CHANNEL_isFinished);
   MAP_add(&engine->fnMap, "audio", "AudioChannel", "id", false, AUDIO_CHANNEL_getId);
   MAP_add(&engine->fnMap, "audio", "AudioData", "unload()", false, AUDIO_unload);
-  MAP_add(&engine->fnMap, "audio", "AudioEngineImpl", "f_update(_)", false, AUDIO_ENGINE_update);
+  MAP_add(&engine->fnMap, "audio", "AudioEngine", "f_update(_)", true, AUDIO_ENGINE_update);
 
   // FileSystem
   MAP_add(&engine->fnMap, "io", "FileSystem", "f_load(_,_)", true, FILESYSTEM_load);
