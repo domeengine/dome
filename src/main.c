@@ -78,7 +78,6 @@ global_variable WrenHandle* bufferClass = NULL;
 #include "modules/graphics.c"
 #include "modules/image.c"
 #include "modules/input.c"
-#include "modules/point.c"
 #include "vm.c"
 
 int main(int argc, char* args[])
