@@ -63,4 +63,4 @@ clean:
 	    rm -rf $(EXENAME) $(ENGINESRC)/*.inc
 
 cloc:
-			cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util|include|lib" src
+			cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util|include|lib" -not-match-f ".inc" src
