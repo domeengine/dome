@@ -29,6 +29,7 @@ char* readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr) {
 }
 
 char* readEntireFile(char* path, size_t* lengthPtr) {
+  printf("Reading from filesystem: %s\n", path);
   FILE* file = fopen(path, "rb");
   if (file == NULL) {
     return NULL;

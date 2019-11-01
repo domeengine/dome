@@ -9,10 +9,9 @@ internal void DEBUG_printString(char* str) {
 }
 
 internal void DEBUG_printAudioSpec(SDL_AudioSpec spec) {
-  printf("Frequency: %i Hz\n", spec.freq);
-  printf("Samples: %i\n", spec.samples);
-  printf("Channels: %i\n", spec.channels);
-  printf("Format: ");
+  printf("Audio: %i Hz ", spec.freq);
+  printf("%s", spec.channels == 0 ? "Mono" : "Stereo");
+  printf(" - ");
   if (SDL_AUDIO_ISSIGNED(spec.format)) {
     printf("Signed ");
   } else {
