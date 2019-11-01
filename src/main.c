@@ -177,7 +177,7 @@ int main(int argc, char* args[])
 
   // Initiate game loop
   uint8_t FPS = 60;
-  float MS_PER_FRAME = 1000.0 / FPS;
+  double MS_PER_FRAME = 1000.0 / FPS;
 
   wrenSetSlotHandle(vm, 0, gameClass);
   interpreterResult = wrenCall(vm, initMethod);
