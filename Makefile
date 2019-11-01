@@ -1,7 +1,7 @@
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
 SOURCE  = src
 CC = cc
-CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags`
+CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags` -O3
 IFLAGS = -isystem $(SOURCE)/include
 MODE ?= debug
 

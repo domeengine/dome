@@ -53,7 +53,7 @@
 #define GAME_HEIGHT 240
 #define SCREEN_WIDTH GAME_WIDTH * 2
 #define SCREEN_HEIGHT GAME_HEIGHT * 2
-#define FPS 60
+#define FPS 30
 #define MS_PER_FRAME 1000 / FPS
 
 // We need this here so it can be used by the DOME module
@@ -287,7 +287,6 @@ int main(int argc, char* args[])
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
     // clear screen
-    SDL_RenderClear(engine.renderer);
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
     // char buffer[20];
