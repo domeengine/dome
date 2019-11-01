@@ -1,7 +1,7 @@
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
 SOURCE  = src
 CC = cc
-CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags` -O3
+CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags`
 IFLAGS = -isystem $(SOURCE)/include
 MODE ?= debug
 
@@ -12,6 +12,7 @@ ifeq ($(MODE), debug)
 LDFLAGS += -lwrend
 CFLAGS += -g -fsanitize=address
 else
+  CFLAGS += -O3
 	LDFLAGS += -lwren
 endif
 
@@ -40,16 +41,16 @@ endif
 
 all: $(EXENAME)
 
-src/lib/libwren.a: 
+$(SOURCE)/lib/wren: 
 	./setup.sh $(MODE)
 
-src/include/wren.h: src/lib/libwren.a
+$(SOURCE)/include/wren.h: $(SOURCE)/lib/wren
 	cp src/lib/wren/src/include/wren.h src/include/wren.h
 	
 $(ENGINESRC)/*.wren.inc: $(UTILS)/embed.c $(ENGINESRC)/*.wren
 	cd $(UTILS) && ./generateEmbedModules.sh
 
-$(EXENAME): $(SOURCE)/*.c src/lib/libwren.a $(ENGINESRC)/*.c $(UTILS)/font.c $(SOURCE)/include $(ENGINESRC)/*.wren.inc $(SOURCE)/include/wren.h
+$(EXENAME): $(SOURCE)/*.c $(SOURCE)/lib/wren $(ENGINESRC)/*.c $(UTILS)/font.c $(SOURCE)/include $(ENGINESRC)/*.wren.inc $(SOURCE)/include/wren.h
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(EXENAME) $(LDFLAGS) $(IFLAGS)
 ifneq (, $(findstring Darwin, $(SYS)))
 	install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2.dylib $(EXENAME)
