@@ -14,12 +14,13 @@ class Point {
 
   +(other) {
     if (!(other is Point)) Fiber.abort("Points can only be subtracted from other points.")
-    return Point.new(x + other.x, y + other.y)
+    return Point.new(_x + other.x, _y + other.y)
   }
   -(other) {
     if (!(other is Point)) Fiber.abort("Points can only be subtracted from other points.")
-    return Point.new(x - other.x, y - other.y)
+    return Point.new(_x - other.x, _y - other.y)
   }
 
-  toString { "{%(x), %(y)}" }
+  toString { "{%(_x), %(_y)}" }
+
 }

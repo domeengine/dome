@@ -93,8 +93,8 @@ class Star {
     }
   }
 
-  draw() {
-    Canvas.pset(_x, _y, Color.lightgray)
+  draw(dt) {
+    Canvas.pset(_x, _y + dt*(0.25+_s), Color.lightgray)
   }
 }
 
@@ -119,10 +119,11 @@ class Bullet {
     _y = _y - 3
   }
 
-  draw() {
+  draw(dt) {
     var color = Color.white
-    Canvas.rectfill(_x, _y, 2, 2, Color.white)
-    Canvas.rectfill(_x, _y+2, 2, 4, Color.darkgray)
+    var y = _y + 3*dt
+    Canvas.rectfill(_x, y, 2, 2, Color.white)
+    Canvas.rectfill(_x, y+2, 2, 4, Color.darkgray)
   }
 }
 
@@ -148,9 +149,9 @@ class Enemy {
     _y = _y + 1
   }
 
-  draw() {
+  draw(dt) {
     if (alive) {
-      Canvas.draw(_image, x, y)
+      Canvas.draw(_image, x, y+dt)
     }
   }
 }
@@ -337,9 +338,9 @@ class MainGame {
 
   static draw(dt) {
     Canvas.cls()
-    __stars.each {|star| star.draw() }
-    __enemies.each {|enemy| enemy.draw() }
-    __bullets.each {|bullet| bullet.draw() }
+    __stars.each {|star| star.draw(dt) }
+    __enemies.each {|enemy| enemy.draw(dt) }
+    __bullets.each {|bullet| bullet.draw(dt) }
     __ship.draw(__t)
     __explosions.each {|explosion| explosion.draw() }
 
