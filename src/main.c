@@ -315,6 +315,7 @@ int main(int argc, char* args[])
 cleanup:
   // Free resources
   // TODO: Lock the Audio Engine here.
+  AUDIO_ENGINE_halt(engine.audioEngine);
   VM_free(vm);
   ENGINE_free(&engine);
   //Quit SDL subsystems
