@@ -11,11 +11,9 @@ It contains the following classes:
 
 ## AudioEngine
 
-The `AudioEngine` is a singleton, whose lifecycle is partially managed by DOME. Treat it as a class with static methods.
+DOME only supports OGG and WAV files at the moment.
 
-DOME currently supports OGG and WAV files, and can play up to four audio channels simultaneously. 
-
-An audio file is loaded from disk into memory using the `load` function, and remains in memory until you call `unload` or `unloadAll`, or when DOME closes.
+An audio file is loaded from disk into memory using the `load` function, and remains in memory until you call `unload` or `unloadAll`, but all audio data is also unloaded when DOME closes.
 
 The API for DOME's audio engine is heavily influenced by [this talk](://www.youtube.com/watch?v=Vjm--AqG04Y) by Guy Somberg.
 
@@ -33,40 +31,40 @@ AudioEngine.unload("fire")
 
 ### Methods
 
-#### `isPlaying(channelId: Number): Boolean`
+#### `static isPlaying(channelId: Number): Boolean`
 Returns true if the channel _channelId_ is currently playing. A channel cannot restart once it stops playing.
-#### `load(name: String, path: String)`
+#### `static load(name: String, path: String)`
 Load the audio file from the specified _path_ and assign it a _name_ for future playback.
 
-#### `play(name: String): Number`
+#### `static play(name: String): Number`
 Plays the named audio sample once, at maximum volume, with equal pan.
-#### `play(name: String, volume: Number): Number`
+#### `static play(name: String, volume: Number): Number`
 Plays the named audio sample once, at _volume_, with equal pan.
-#### `play(name: String, volume: Number, loop: Boolean): Number`
+#### `static play(name: String, volume: Number, loop: Boolean): Number`
 Plays the named audio sample, at _volume_, with equal pan. If _loop_ is set, the sample will repeat once playback completes.
-#### `play(name: String, volume: Number, loop: Boolean, pan: Number): Number`
+#### `static play(name: String, volume: Number, loop: Boolean, pan: Number): Number`
 Play the named audio sample and return the channel id is plays on.
  * _volume_ - A value with minimum 0.0 for the volume.
  * _loop_ - If true, the audio channel will loop once it is complete.
  * _pan_ - A value between -1.0 and 1.0 which divides the audio playback between left and right stereo channels.
 
-#### `setChannelLoop(channelId: Number, loop: Boolean)`
+#### `static setChannelLoop(channelId: Number, loop: Boolean)`
 If true, the channel will loop once playback completes.
 
-#### `setChannelPan(channelId: Number, pan: Number)`
+#### `static setChannelPan(channelId: Number, pan: Number)`
 Pan divides the audio playback between left and right stereo channels, as a value of -1.0 to 1.0
 
-#### `setChannelVolume(channelId: Number, volume: Number)`
+#### `static setChannelVolume(channelId: Number, volume: Number)`
 Set the volume of the channel between 0.0 and 1.0.
 
-#### `stopChannel(channelId: Number)`
+#### `static stopChannel(channelId: Number)`
 If it is playing, stop the chosen audio channel.
 
-#### `stopAllChannels()`
+#### `static stopAllChannels()`
 Stop all playing audio channels.
 
-#### `unload(name: String)`
+#### `static unload(name: String)`
 Releases the resources of the chosen audio sample.
 
-#### `unloadAll()`
+#### `static unloadAll()`
 Release all audio samples.

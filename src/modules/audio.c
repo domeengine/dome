@@ -1,10 +1,11 @@
-#define AUDIO_CHANNEL_MAX 8
+#define AUDIO_CHANNEL_START 2
 
 #define AUDIO_TYPE_UNKNOWN 0
 #define AUDIO_TYPE_WAV 1
 #define AUDIO_TYPE_OGG 2
 
 typedef uint8_t AUDIO_TYPE;
+
 
 typedef struct {
   SDL_AudioSpec spec;
@@ -30,25 +31,31 @@ typedef struct {
   AUDIO_DATA* audio;
 } AUDIO_CHANNEL;
 
+typedef struct {
+  size_t count;
+  AUDIO_CHANNEL* channels[];
+} AUDIO_CHANNEL_LIST;
+
 typedef struct AUDIO_ENGINE_t {
   SDL_AudioDeviceID deviceId;
   SDL_AudioSpec spec;
-  uint8_t* outputBuffer;
-  AUDIO_CHANNEL* channels[AUDIO_CHANNEL_MAX];
+  AUDIO_CHANNEL_LIST* channelList;
 } AUDIO_ENGINE;
 
 const uint16_t channels = 2;
 const uint16_t bytesPerSample = 2 * 2 /* channels */;
 
 // audio callback function
-// here you have to copy the data of your audio buffer into the
-// requesting audio buffer (stream)
-// you should only copy as much as the requested length (len)
-void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
-  uint32_t totalSamples = audioEngine->spec.samples;
-  uint32_t outputBufferSize = totalSamples * bytesPerSample;
+// Allows SDL to "pull" data into the output buffer
+// on a seperate thread. We need to be pretty efficient
+// here as it holds a lock.
+void AUDIO_ENGINE_mix(void*  userdata,
+    Uint8* stream,
+    int    outputBufferSize) {
+  AUDIO_ENGINE* audioEngine = userdata;
+  uint32_t totalSamples = outputBufferSize / bytesPerSample;
 
-  int16_t* writeCursor = (int16_t*)(audioEngine->outputBuffer);
+  int16_t* writeCursor = (int16_t*)(stream);
   SDL_memset(writeCursor, 0, outputBufferSize);
 
   int32_t samplesQueued = SDL_GetQueuedAudioSize(audioEngine->deviceId) / bytesPerSample;
@@ -60,8 +67,8 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
     int totalEnabled = 0;
     float left = 0;
     float right = 0;
-    for (int c = 0; c < AUDIO_CHANNEL_MAX; c++) {
-      AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)(audioEngine->channels[c]);
+    for (size_t c = 0; c < audioEngine->channelList->count; c++) {
+      AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)(audioEngine->channelList->channels[c]);
       if (channel != NULL) {
         AUDIO_DATA* audio = channel->audio;
         if (channel->enabled) {
@@ -91,7 +98,6 @@ void AUDIO_ENGINE_mix(AUDIO_ENGINE* audioEngine) {
     }
     totalChannels = max(totalEnabled, totalChannels);
   }
-  SDL_QueueAudio(audioEngine->deviceId, audioEngine->outputBuffer, samplesToWrite*bytesPerSample);
 }
 
 internal void AUDIO_allocate(WrenVM* vm) {
@@ -109,7 +115,6 @@ internal void AUDIO_allocate(WrenVM* vm) {
     // Loading the WAV file
     SDL_RWops* src = SDL_RWFromConstMem(fileBuffer, length);
     SDL_LoadWAV_RW(src, 1, &data->spec, ((uint8_t**)&tempBuffer), &data->length);
-    // SDL_LoadWAV(pathBuf, &data->spec, ((uint8_t**)&tempBuffer), &data->length);
     data->length /= sizeof(int16_t) * data->spec.channels;
   } else if (strncmp(fileBuffer, "OggS", 4) == 0) {
     printf("OGG file detected\n");
@@ -120,7 +125,6 @@ internal void AUDIO_allocate(WrenVM* vm) {
     // Loading the OGG file
     data->length = stb_vorbis_decode_memory((const unsigned char*)fileBuffer, length, &channelsInFile, &freq, &tempBuffer);
 
-    // data->length = stb_vorbis_decode_filename(pathBuf, &channelsInFile, &freq, &tempBuffer);
     data->spec.channels = channelsInFile;
     data->spec.freq = freq;
     data->spec.format = AUDIO_S16LSB;
@@ -164,8 +168,10 @@ internal void AUDIO_unload(WrenVM* vm) {
 internal AUDIO_ENGINE*
 AUDIO_ENGINE_init(void) {
   AUDIO_ENGINE* engine = malloc(sizeof(AUDIO_ENGINE));
-  for (int i = 0; i < AUDIO_CHANNEL_MAX; i++) {
-    engine->channels[i] = NULL;
+  engine->channelList = malloc(sizeof(AUDIO_CHANNEL_LIST) + sizeof(AUDIO_CHANNEL*) * AUDIO_CHANNEL_START);
+  engine->channelList->count = AUDIO_CHANNEL_START;
+  for (int i = 0; i < AUDIO_CHANNEL_START; i++) {
+    engine->channelList->channels[i] = NULL;
   }
   // SETUP player
   // set the callback function
@@ -173,10 +179,8 @@ AUDIO_ENGINE_init(void) {
   (engine->spec).format = AUDIO_S16LSB;
   (engine->spec).channels = channels; // TODO: consider mono/stereo
   (engine->spec).samples = 4096;
-  (engine->spec).callback = NULL;
+  (engine->spec).callback = AUDIO_ENGINE_mix;
   (engine->spec).userdata = engine;
-
-  engine->outputBuffer = calloc(engine->spec.samples * channels * bytesPerSample, sizeof(uint8_t));
 
   // open audio device
   engine->deviceId = SDL_OpenAudioDevice(NULL, 0, &(engine->spec), NULL, 0);
@@ -187,31 +191,45 @@ AUDIO_ENGINE_init(void) {
   return engine;
 }
 
+internal AUDIO_CHANNEL_LIST*
+AUDIO_CHANNEL_LIST_resize(AUDIO_CHANNEL_LIST* list, size_t channels) {
+  if (list->count < channels) {
+    list = realloc(list, sizeof(AUDIO_CHANNEL_LIST) + sizeof(AUDIO_CHANNEL*) * channels);
+    list->count = channels;
+    for (int i = 0; i < AUDIO_CHANNEL_START; i++) {
+      list->channels[i] = NULL;
+    }
+  }
+  return list;
+}
+
 internal void AUDIO_ENGINE_update(WrenVM* vm) {
   // We need additional slots to parse a list
   wrenEnsureSlots(vm, 3);
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
 
+  SDL_LockAudioDevice(data->deviceId);
   uint8_t soundCount = wrenGetListCount(vm, 1);
-  for (int i = 0; i < AUDIO_CHANNEL_MAX; i++) {
+  data->channelList = AUDIO_CHANNEL_LIST_resize(data->channelList, soundCount);
+  for (size_t i = 0; i < data->channelList->count; i++) {
     if (i < soundCount) {
       wrenGetListElement(vm, 1, i, 2);
       if (wrenGetSlotType(vm, 2) != WREN_TYPE_NULL) {
-        data->channels[i] = wrenGetSlotForeign(vm, 2);
+        data->channelList->channels[i] = wrenGetSlotForeign(vm, 2);
       }
     } else {
-      data->channels[i] = NULL;
+      data->channelList->channels[i] = NULL;
     }
   }
-  AUDIO_ENGINE_mix(data);
+  SDL_UnlockAudioDevice(data->deviceId);
 }
 
 internal void AUDIO_ENGINE_free(AUDIO_ENGINE* engine) {
   // We might need to free contained audio here
   SDL_PauseAudioDevice(engine->deviceId, 1);
   SDL_CloseAudioDevice(engine->deviceId);
-  free(engine->outputBuffer);
+  free(engine->channelList);
 }
 
 internal void AUDIO_CHANNEL_allocate(WrenVM* vm) {
