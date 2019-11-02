@@ -46,7 +46,7 @@ ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
       strcpy(pathBuf, "./");
     }
     strcat(pathBuf, path);
-    printf("Reading tar: %s\n", pathBuf);
+    // printf("Reading tar: %s\n", pathBuf);
     mtar_header_t h;
     int success = mtar_find(engine->tar, pathBuf, &h);
     if (success == MTAR_ESUCCESS) {
@@ -187,7 +187,7 @@ ENGINE_free(ENGINE* engine) {
   }
 }
 
-internal void
+inline internal void
 ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
   // Draw pixel at (x,y)
   if ((c & (0xFF << 24)) == 0) {

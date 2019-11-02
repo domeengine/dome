@@ -53,8 +53,6 @@
 #define GAME_HEIGHT 240
 #define SCREEN_WIDTH GAME_WIDTH * 2
 #define SCREEN_HEIGHT GAME_HEIGHT * 2
-#define FPS 60
-#define MS_PER_FRAME 1000 / FPS
 
 // We need this here so it can be used by the DOME module
 global_variable jmp_buf loop_exit;
@@ -78,7 +76,6 @@ global_variable WrenHandle* bufferClass = NULL;
 #include "modules/graphics.c"
 #include "modules/image.c"
 #include "modules/input.c"
-#include "modules/point.c"
 #include "vm.c"
 
 int main(int argc, char* args[])
@@ -179,6 +176,9 @@ int main(int argc, char* args[])
   }
 
   // Initiate game loop
+  uint8_t FPS = 60;
+  double MS_PER_FRAME = 1000.0 / FPS;
+
   wrenSetSlotHandle(vm, 0, gameClass);
   interpreterResult = wrenCall(vm, initMethod);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -196,13 +196,12 @@ int main(int argc, char* args[])
 
   SDL_ShowWindow(engine.window);
 
-
   uint32_t previousTime = SDL_GetTicks();
   int32_t lag = 0;
   SDL_Event event;
   SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
   while (engine.running) {
-    int32_t currentTime = SDL_GetTicks();
+    uint32_t currentTime = SDL_GetTicks();
     int32_t elapsed = currentTime - previousTime;
     previousTime = currentTime;
     lag += elapsed;
@@ -272,11 +271,13 @@ int main(int argc, char* args[])
         result = EXIT_FAILURE;
         goto cleanup;
       }
+
       lag -= MS_PER_FRAME;
     }
 
+
     // render();
-    wrenEnsureSlots(vm, 3);
+    wrenEnsureSlots(vm, 8);
     wrenSetSlotHandle(vm, 0, gameClass);
     wrenSetSlotDouble(vm, 1, ((double)lag / MS_PER_FRAME));
     interpreterResult = wrenCall(vm, drawMethod);
@@ -288,7 +289,6 @@ int main(int argc, char* args[])
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
     // clear screen
-    SDL_RenderClear(engine.renderer);
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
     // char buffer[20];
@@ -302,11 +302,11 @@ int main(int argc, char* args[])
     jo_gif_end(&gif);
   }
 
+  wrenReleaseHandle(vm, audioEngineClass);
   wrenReleaseHandle(vm, initMethod);
   wrenReleaseHandle(vm, drawMethod);
   wrenReleaseHandle(vm, updateMethod);
   wrenReleaseHandle(vm, gameClass);
-  wrenReleaseHandle(vm, audioEngineClass);
 
   if (bufferClass != NULL) {
     wrenReleaseHandle(vm, bufferClass);
@@ -314,6 +314,8 @@ int main(int argc, char* args[])
 
 cleanup:
   // Free resources
+  // TODO: Lock the Audio Engine here.
+  AUDIO_ENGINE_halt(engine.audioEngine);
   VM_free(vm);
   ENGINE_free(&engine);
   //Quit SDL subsystems

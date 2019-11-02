@@ -225,10 +225,14 @@ internal void AUDIO_ENGINE_update(WrenVM* vm) {
   SDL_UnlockAudioDevice(data->deviceId);
 }
 
-internal void AUDIO_ENGINE_free(AUDIO_ENGINE* engine) {
-  // We might need to free contained audio here
+internal void AUDIO_ENGINE_halt(AUDIO_ENGINE* engine) {
   SDL_PauseAudioDevice(engine->deviceId, 1);
   SDL_CloseAudioDevice(engine->deviceId);
+}
+
+internal void AUDIO_ENGINE_free(AUDIO_ENGINE* engine) {
+  // We might need to free contained audio here
+  AUDIO_ENGINE_halt(engine);
   free(engine->channelList);
 }
 
