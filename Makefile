@@ -47,10 +47,10 @@ $(SOURCE)/lib/wren:
 $(SOURCE)/include/wren.h: $(SOURCE)/lib/wren
 	cp src/lib/wren/src/include/wren.h src/include/wren.h
 	
-$(ENGINESRC)/*.wren.inc: $(UTILS)/embed.c $(ENGINESRC)/*.wren
+$(ENGINESRC)/*.inc: $(UTILS)/embed.c $(ENGINESRC)/*.wren
 	cd $(UTILS) && ./generateEmbedModules.sh
 
-$(EXENAME): $(SOURCE)/*.c $(SOURCE)/lib/wren $(ENGINESRC)/*.c $(UTILS)/font.c $(SOURCE)/include $(ENGINESRC)/*.wren.inc $(SOURCE)/include/wren.h
+$(EXENAME): $(SOURCE)/*.c $(SOURCE)/lib/wren $(ENGINESRC)/*.c $(UTILS)/font.c $(SOURCE)/include $(ENGINESRC)/*.inc $(SOURCE)/include/wren.h
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(EXENAME) $(LDFLAGS) $(IFLAGS)
 ifneq (, $(findstring Darwin, $(SYS)))
 	install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2.dylib $(EXENAME)
