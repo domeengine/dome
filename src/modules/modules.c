@@ -1,10 +1,4 @@
-#include "dome.wren.inc"
-#include "audio.wren.inc"
-#include "graphics.wren.inc"
-#include "point.wren.inc"
-#include "input.wren.inc"
-#include "io.wren.inc"
-
+#include "modules.inc"
 
 typedef struct ModuleMapNode_t {
   const char* name;
@@ -59,10 +53,5 @@ ModuleMap_get(ModuleMap* map, const char* name) {
 internal void
 ModuleMap_init(ModuleMap* map) {
   map->head = NULL;
-  ModuleMap_add(map, "dome", domeModule);
-  ModuleMap_add(map, "input", inputModule);
-  ModuleMap_add(map, "io", ioModule);
-  ModuleMap_add(map, "graphics", graphicsModule);
-  ModuleMap_add(map, "audio", audioModule);
-  ModuleMap_add(map, "point", pointModule);
+#include "modulemap.c.inc"
 }

@@ -1,36 +1,36 @@
 typedef struct {
   double x;
   double y;
-} POINT;
+} VECTOR;
 
-void POINT_allocate(WrenVM* vm) {
-  POINT* point = (POINT*)wrenSetSlotNewForeign(vm,
-      0, 0, sizeof(POINT));
+void VECTOR_allocate(WrenVM* vm) {
+  VECTOR* point = (VECTOR*)wrenSetSlotNewForeign(vm,
+      0, 0, sizeof(VECTOR));
   point->x = wrenGetSlotDouble(vm, 1);
   point->y = wrenGetSlotDouble(vm, 2);
 }
 
-void POINT_finalize(void* data) {
-  // POINT* point = data;
+void VECTOR_finalize(void* data) {
+  // VECTOR* point = data;
 }
 
-void POINT_getX(WrenVM* vm) {
-  POINT* point = (POINT*)wrenGetSlotForeign(vm, 0);
+void VECTOR_getX(WrenVM* vm) {
+  VECTOR* point = (VECTOR*)wrenGetSlotForeign(vm, 0);
   wrenSetSlotDouble(vm, 0, point->x);
 }
 
-void POINT_getY(WrenVM* vm) {
-  POINT* point = (POINT*)wrenGetSlotForeign(vm, 0);
+void VECTOR_getY(WrenVM* vm) {
+  VECTOR* point = (VECTOR*)wrenGetSlotForeign(vm, 0);
   wrenSetSlotDouble(vm, 0, point->y);
 }
 
-void POINT_setX(WrenVM* vm) {
-  POINT* point = (POINT*)wrenGetSlotForeign(vm, 0);
+void VECTOR_setX(WrenVM* vm) {
+  VECTOR* point = (VECTOR*)wrenGetSlotForeign(vm, 0);
   point->x = wrenGetSlotDouble(vm, 1);
 }
 
-void POINT_setY(WrenVM* vm) {
-  POINT* point = (POINT*)wrenGetSlotForeign(vm, 0);
+void VECTOR_setY(WrenVM* vm) {
+  VECTOR* point = (VECTOR*)wrenGetSlotForeign(vm, 0);
   point->y = wrenGetSlotDouble(vm, 1);
 }
 

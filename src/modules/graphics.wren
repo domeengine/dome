@@ -3,7 +3,7 @@
   The graphics module provides all the system functions required for drawing to the screen.
 */
 import "io" for FileSystem
-import "point" for Point
+import "vector" for Point
 
 /**
     @Class Canvas
