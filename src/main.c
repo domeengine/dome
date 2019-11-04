@@ -196,15 +196,15 @@ int main(int argc, char* args[])
 
   SDL_ShowWindow(engine.window);
 
-  uint32_t previousTime = SDL_GetTicks();
+  uint64_t previousTime = SDL_GetPerformanceCounter();// SDL_GetTicks();
   int32_t lag = 0;
   SDL_Event event;
   SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
   SDL_RenderClear(engine.renderer);
   double avgFps = FPS;
   while (engine.running) {
-    uint32_t currentTime = SDL_GetTicks();
-    int32_t elapsed = currentTime - previousTime;
+    uint64_t currentTime = SDL_GetPerformanceCounter();
+    int32_t elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
     previousTime = currentTime;
     lag += elapsed;
 
