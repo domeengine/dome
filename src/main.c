@@ -81,9 +81,9 @@ global_variable WrenHandle* bufferClass = NULL;
 int main(int argc, char* args[])
 {
 
-  #if defined _WIN32
+#if defined _WIN32
   SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
-  #endif
+#endif
 
   bool makeGif = false;
   char* gifName = "test.gif";
@@ -177,7 +177,7 @@ int main(int argc, char* args[])
 
   // Initiate game loop
   uint8_t FPS = 60;
-  double MS_PER_FRAME = 1000.0 / FPS;
+  double MS_PER_FRAME = (1000.0 / FPS);
 
   wrenSetSlotHandle(vm, 0, gameClass);
   interpreterResult = wrenCall(vm, initMethod);
@@ -200,6 +200,8 @@ int main(int argc, char* args[])
   int32_t lag = 0;
   SDL_Event event;
   SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
+  SDL_RenderClear(engine.renderer);
+  double avgFps = FPS;
   while (engine.running) {
     uint32_t currentTime = SDL_GetTicks();
     int32_t elapsed = currentTime - previousTime;
@@ -271,10 +273,8 @@ int main(int argc, char* args[])
         result = EXIT_FAILURE;
         goto cleanup;
       }
-
       lag -= MS_PER_FRAME;
     }
-
 
     // render();
     wrenEnsureSlots(vm, 8);
@@ -286,14 +286,24 @@ int main(int argc, char* args[])
       goto cleanup;
     }
 
+    char buffer[20];
+    // Choose alpha depending on how fast or slow you want old averages to decay.
+    // 0.9 is usually a good choice.
+    double framesThisSecond = 1000.0 / (elapsed+1);
+    static double alpha = 0.9;
+    avgFps = alpha * avgFps + (1.0 - alpha) * framesThisSecond;
+    snprintf(buffer, sizeof(buffer), "%.01f fps", avgFps);   // here 2 means binary
+    ENGINE_print(&engine, buffer, GAME_WIDTH - 4*8, GAME_HEIGHT - 8, 0xFFFFFFFF);
+    // SDL_SetWindowTitle(engine.window, buffer);
+
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
     // clear screen
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
-    // char buffer[20];
-    // snprintf(buffer, sizeof(buffer), "DOME - %.02f fps", 1000.0 / (elapsed+1));   // here 2 means binary
-    // SDL_SetWindowTitle(engine.window, buffer);
+
+
+
 
     elapsed = SDL_GetTicks() - currentTime;
     result = setjmp(loop_exit);
