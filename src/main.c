@@ -177,7 +177,7 @@ int main(int argc, char* args[])
 
   // Initiate game loop
   uint8_t FPS = 60;
-  double MS_PER_FRAME = (1000.0 / FPS);
+  double MS_PER_FRAME = ceil(1000.0 / FPS);
 
   wrenSetSlotHandle(vm, 0, gameClass);
   interpreterResult = wrenCall(vm, initMethod);
@@ -196,17 +196,13 @@ int main(int argc, char* args[])
 
   SDL_ShowWindow(engine.window);
 
-  uint64_t previousTime = SDL_GetPerformanceCounter();// SDL_GetTicks();
+  uint64_t previousTime = SDL_GetPerformanceCounter();
   int32_t lag = 0;
   SDL_Event event;
   SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
   SDL_RenderClear(engine.renderer);
   double avgFps = FPS;
   while (engine.running) {
-    uint64_t currentTime = SDL_GetPerformanceCounter();
-    int32_t elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
-    previousTime = currentTime;
-    lag += elapsed;
 
     // processInput()
     while(SDL_PollEvent(&event)) {
@@ -241,6 +237,11 @@ int main(int argc, char* args[])
       }
     }
 
+    uint64_t currentTime = SDL_GetPerformanceCounter();
+    int32_t elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
+    previousTime = currentTime;
+    lag += elapsed;
+
     // update()
     if (lag >= MS_PER_FRAME) {
       t++;
@@ -257,7 +258,8 @@ int main(int argc, char* args[])
         jo_gif_frame(&gif, destroyableImage, 8, true);
       }
     }
-    while (lag >= MS_PER_FRAME) {
+
+    while (lag > MS_PER_FRAME) {
       wrenEnsureSlots(vm, 8);
       wrenSetSlotHandle(vm, 0, gameClass);
       interpreterResult = wrenCall(vm, updateMethod);
@@ -302,10 +304,6 @@ int main(int argc, char* args[])
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
 
-
-
-
-    elapsed = SDL_GetTicks() - currentTime;
     result = setjmp(loop_exit);
   }
   if (makeGif) {
