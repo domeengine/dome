@@ -200,6 +200,7 @@ int main(int argc, char* args[])
   int32_t lag = 0;
   SDL_Event event;
   SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0xFF);
+  result = setjmp(loop_exit);
   while (engine.running) {
 
     // processInput()
@@ -300,7 +301,6 @@ int main(int argc, char* args[])
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
 
-    result = setjmp(loop_exit);
   }
   if (makeGif) {
     jo_gif_end(&gif);
