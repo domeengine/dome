@@ -81,9 +81,9 @@ global_variable WrenHandle* bufferClass = NULL;
 int main(int argc, char* args[])
 {
 
-  #if defined _WIN32
+#if defined _WIN32
   SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
-  #endif
+#endif
 
   bool makeGif = false;
   char* gifName = "test.gif";
@@ -177,7 +177,7 @@ int main(int argc, char* args[])
 
   // Initiate game loop
   uint8_t FPS = 60;
-  double MS_PER_FRAME = 1000.0 / FPS;
+  double MS_PER_FRAME = ceil(1000.0 / FPS);
 
   wrenSetSlotHandle(vm, 0, gameClass);
   interpreterResult = wrenCall(vm, initMethod);
@@ -196,15 +196,12 @@ int main(int argc, char* args[])
 
   SDL_ShowWindow(engine.window);
 
-  uint32_t previousTime = SDL_GetTicks();
+  uint64_t previousTime = SDL_GetPerformanceCounter();
   int32_t lag = 0;
   SDL_Event event;
-  SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
+  SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0xFF);
+  result = setjmp(loop_exit);
   while (engine.running) {
-    uint32_t currentTime = SDL_GetTicks();
-    int32_t elapsed = currentTime - previousTime;
-    previousTime = currentTime;
-    lag += elapsed;
 
     // processInput()
     while(SDL_PollEvent(&event)) {
@@ -217,7 +214,9 @@ int main(int argc, char* args[])
         case SDL_KEYUP:
           {
             SDL_Keycode keyCode = event.key.keysym.sym;
-            if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+            if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+              engine.debugEnabled = !engine.debugEnabled;
+            } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               for (size_t i = 0; i < imageSize; i++) {
                 uint32_t c = ((uint32_t*)engine.pixels)[i];
                 uint8_t a = (0xFF000000 & c) >> 24;
@@ -239,6 +238,11 @@ int main(int argc, char* args[])
       }
     }
 
+    uint64_t currentTime = SDL_GetPerformanceCounter();
+    int32_t elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
+    previousTime = currentTime;
+    lag += elapsed;
+
     // update()
     if (lag >= MS_PER_FRAME) {
       t++;
@@ -255,7 +259,8 @@ int main(int argc, char* args[])
         jo_gif_frame(&gif, destroyableImage, 8, true);
       }
     }
-    while (lag >= MS_PER_FRAME) {
+
+    while (lag > MS_PER_FRAME) {
       wrenEnsureSlots(vm, 8);
       wrenSetSlotHandle(vm, 0, gameClass);
       interpreterResult = wrenCall(vm, updateMethod);
@@ -271,10 +276,8 @@ int main(int argc, char* args[])
         result = EXIT_FAILURE;
         goto cleanup;
       }
-
       lag -= MS_PER_FRAME;
     }
-
 
     // render();
     wrenEnsureSlots(vm, 8);
@@ -286,17 +289,18 @@ int main(int argc, char* args[])
       goto cleanup;
     }
 
+    if (engine.debugEnabled) {
+      engine.debug.elapsed = elapsed;
+      ENGINE_drawDebug(&engine);
+    }
+
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
     // clear screen
+    SDL_RenderClear(engine.renderer);
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
-    // char buffer[20];
-    // snprintf(buffer, sizeof(buffer), "DOME - %.02f fps", 1000.0 / (elapsed+1));   // here 2 means binary
-    // SDL_SetWindowTitle(engine.window, buffer);
 
-    elapsed = SDL_GetTicks() - currentTime;
-    result = setjmp(loop_exit);
   }
   if (makeGif) {
     jo_gif_end(&gif);
