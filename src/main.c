@@ -201,7 +201,6 @@ int main(int argc, char* args[])
   SDL_Event event;
   SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
   SDL_RenderClear(engine.renderer);
-  double avgFps = FPS;
   while (engine.running) {
 
     // processInput()
@@ -215,7 +214,9 @@ int main(int argc, char* args[])
         case SDL_KEYUP:
           {
             SDL_Keycode keyCode = event.key.keysym.sym;
-            if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+            if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+              engine.debugEnabled = !engine.debugEnabled;
+            } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               for (size_t i = 0; i < imageSize; i++) {
                 uint32_t c = ((uint32_t*)engine.pixels)[i];
                 uint8_t a = (0xFF000000 & c) >> 24;
@@ -288,15 +289,10 @@ int main(int argc, char* args[])
       goto cleanup;
     }
 
-    char buffer[20];
-    // Choose alpha depending on how fast or slow you want old averages to decay.
-    // 0.9 is usually a good choice.
-    double framesThisSecond = 1000.0 / (elapsed+1);
-    static double alpha = 0.9;
-    avgFps = alpha * avgFps + (1.0 - alpha) * framesThisSecond;
-    snprintf(buffer, sizeof(buffer), "%.01f fps", avgFps);   // here 2 means binary
-    ENGINE_print(&engine, buffer, GAME_WIDTH - 4*8, GAME_HEIGHT - 8, 0xFFFFFFFF);
-    // SDL_SetWindowTitle(engine.window, buffer);
+    if (engine.debugEnabled) {
+      engine.debug.elapsed = elapsed;
+      ENGINE_drawDebug(&engine);
+    }
 
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);

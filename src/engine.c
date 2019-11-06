@@ -5,6 +5,12 @@ internal struct AUDIO_ENGINE_t* AUDIO_ENGINE_init(void);
 internal void AUDIO_ENGINE_free(struct AUDIO_ENGINE_t*);
 
 typedef struct {
+  double avgFps;
+  double alpha;
+  int32_t elapsed;
+} ENGINE_DEBUG;
+
+typedef struct {
   SDL_Window* window;
   SDL_Renderer *renderer;
   SDL_Texture *texture;
@@ -18,6 +24,8 @@ typedef struct {
   bool running;
   int exit_status;
   struct AUDIO_ENGINE_t* audioEngine;
+  bool debugEnabled;
+  ENGINE_DEBUG debug;
 } ENGINE;
 
 typedef enum {
@@ -72,13 +80,13 @@ ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
 
 internal int
 ENGINE_taskHandler(ABC_TASK* task) {
-	if (task->type == TASK_PRINT) {
-		printf("%s\n", (char*)task->data);
-		task->resultCode = 0;
-		// TODO: Push to SDL Event Queue
-	} else if (task->type == TASK_LOAD_FILE) {
+  if (task->type == TASK_PRINT) {
+    printf("%s\n", (char*)task->data);
+    task->resultCode = 0;
+    // TODO: Push to SDL Event Queue
+  } else if (task->type == TASK_LOAD_FILE) {
     FILESYSTEM_loadEventHandler(task->data);
-	} else if (task->type == TASK_WRITE_FILE) {
+  } else if (task->type == TASK_WRITE_FILE) {
   }
   return 0;
 }
@@ -90,6 +98,8 @@ ENGINE_init(ENGINE* engine) {
   engine->renderer = NULL;
   engine->texture = NULL;
   engine->pixels = NULL;
+  engine->debugEnabled = false;
+  engine->debug.alpha = 0.9;
 
   //Create window
   engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
@@ -493,4 +503,21 @@ ENGINE_getKeyState(ENGINE* engine, char* keyName) {
   SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode);
   uint8_t* state = SDL_GetKeyboardState(NULL);
   return state[scancode];
+}
+
+internal void
+ENGINE_drawDebug(ENGINE* engine) {
+  char buffer[20];
+  ENGINE_DEBUG* debug = &engine->debug;
+  // Choose alpha depending on how fast or slow you want old averages to decay.
+  // 0.9 is usually a good choice.
+  double framesThisSecond = 1000.0 / (debug->elapsed+1);
+  double alpha = debug->alpha;
+  debug->avgFps = alpha * debug->avgFps + (1.0 - alpha) * framesThisSecond;
+  snprintf(buffer, sizeof(buffer), "%.01f fps", debug->avgFps);   // here 2 means binary
+  int16_t startX = GAME_WIDTH - 4*8-2;
+  int16_t startY = GAME_HEIGHT - 8-2;
+
+  ENGINE_rectfill(engine, startX, startY, 4*8+2, 10, 0x7F000000);
+  ENGINE_print(engine, buffer, startX+1,startY+1, 0xFFFFFFFF);
 }
