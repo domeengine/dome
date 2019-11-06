@@ -91,6 +91,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   config.bindForeignClassFn = VM_bind_foreign_class;
   config.loadModuleFn = VM_load_module;
   config.initialHeapSize = 1024 * 1024 * 100;
+  config.minHeapSize = 1024 * 1024 * 10;
 
   WrenVM* vm = wrenNewVM(&config);
   wrenSetUserData(vm, engine);
