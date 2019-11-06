@@ -199,8 +199,7 @@ int main(int argc, char* args[])
   uint64_t previousTime = SDL_GetPerformanceCounter();
   int32_t lag = 0;
   SDL_Event event;
-  SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0x00 );
-  SDL_RenderClear(engine.renderer);
+  SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0xFF);
   while (engine.running) {
 
     // processInput()
@@ -297,6 +296,7 @@ int main(int argc, char* args[])
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
     // clear screen
+    SDL_RenderClear(engine.renderer);
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
 
