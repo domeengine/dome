@@ -3,22 +3,22 @@ SOURCE  = src
 CC = cc
 CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags`
 IFLAGS = -isystem $(SOURCE)/include
-MODE ?= debug
-
 SDLFLAGS=-lSDL2
 LDFLAGS = -L$(SOURCE)/lib $(SDLFLAGS) -lm
 
-ifeq ($(MODE), debug)
-LDFLAGS += -lwrend
-CFLAGS += -g -fsanitize=address
-else
-  CFLAGS += -O3
-	LDFLAGS += -lwren
-endif
-
 UTILS = $(SOURCE)/util
 ENGINESRC = $(SOURCE)/modules
+
 EXENAME = dome
+MODE ?= release
+
+ifeq ($(MODE), debug)
+LDFLAGS += -lwrend
+CFLAGS += -g -fsanitize=address -O0
+else
+LDFLAGS += -lwren
+CFLAGS += -O3
+endif
 
 SYS=$(shell uname -s)
 
@@ -42,7 +42,7 @@ endif
 all: $(EXENAME)
 
 $(SOURCE)/lib/wren: 
-	./setup.sh $(MODE)
+	./setup.sh
 
 $(SOURCE)/include/wren.h: $(SOURCE)/lib/wren
 	cp src/lib/wren/src/include/wren.h src/include/wren.h
