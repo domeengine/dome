@@ -5,3 +5,19 @@ class Process {
     exit(0)
   }
 }
+
+
+
+foreign class ForeignModule {
+  construct load(moduleName, libName) {
+    if (!__modules) {
+      __modules = {}
+    }
+    __modules[moduleName] = this
+  }
+  static unload(moduleName) {
+    if (__modules) {
+      __modules[moduleName] = null
+    }
+  }
+}

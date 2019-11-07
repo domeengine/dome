@@ -5,14 +5,17 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   methods.allocate = NULL;
   methods.finalize = NULL;
 
-  if (strcmp(module, "graphics") == 0) {
+  if (strcmp(module, "dome") == 0) {
+    if (strcmp(className, "ForeignModule") == 0) {
+      methods.allocate = MODULE_allocate;
+      methods.finalize = MODULE_finalize;
+    }
+  } else if (strcmp(module, "graphics") == 0) {
     if (strcmp(className, "ImageData") == 0) {
       methods.allocate = IMAGE_allocate;
       methods.finalize = IMAGE_finalize;
     }
-  }
-
-  if (strcmp(module, "io") == 0) {
+  } else if (strcmp(module, "io") == 0) {
     if (strcmp(className, "DataBuffer") == 0) {
       methods.allocate = DBUFFER_allocate;
       methods.finalize = DBUFFER_finalize;
@@ -20,9 +23,7 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.allocate = ASYNCOP_allocate;
       methods.finalize = ASYNCOP_finalize;
     }
-  }
-
-  if (strcmp(module, "audio") == 0) {
+  } else if (strcmp(module, "audio") == 0) {
     if (strcmp(className, "AudioData") == 0) {
       methods.allocate = AUDIO_allocate;
       methods.finalize = AUDIO_finalize;
@@ -30,7 +31,11 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.allocate = AUDIO_CHANNEL_allocate;
       methods.finalize = AUDIO_CHANNEL_finalize;
     }
+  } else {
+    // TODO: Check if it's a module we lazy-loaded
+
   }
+
 
   return methods;
 }
@@ -100,6 +105,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // DOME
   MAP_add(&engine->fnMap, "dome", "Process", "f_exit(_)", true, PROCESS_exit);
+
   // Canvas
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_pset(_,_,_)", true, CANVAS_pset);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_rectfill(_,_,_,_,_)", true, CANVAS_rectfill);

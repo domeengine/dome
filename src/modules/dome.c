@@ -1,5 +1,6 @@
 // This informs the engine we want to stop running, and jumps to the end of the game loop if we have no errors to report.
-void PROCESS_exit(WrenVM* vm) {
+internal void
+PROCESS_exit(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   engine->running = false;
   engine->exit_status = floor(wrenGetSlotDouble(vm, 1));
@@ -9,4 +10,17 @@ void PROCESS_exit(WrenVM* vm) {
     longjmp(loop_exit, EXIT_SUCCESS);
   }
 }
+
+
+internal void
+MODULE_allocate(WrenVM* vm) {
+
+}
+
+internal void
+MODULE_finalize(void* obj) {
+
+}
+
+
 
