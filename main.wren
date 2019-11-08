@@ -2,8 +2,11 @@ import "input" for Keyboard
 import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
-import "dome" for Process
+import "dome" for Process, ForeignModule, WrenType
 import "./test"
+
+var module = ForeignModule.load("add", "libadd.so")
+module.call("add", WrenType.NUM, [1, 2])
 
 import "io" for FileSystem
 

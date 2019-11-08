@@ -1,3 +1,6 @@
 [submodule "src/lib/wren"]
 	path = src/lib/wren
 	url = https://github.com/wren-lang/wren.git
+[submodule "src/lib/libffi"]
+	path = src/lib/libffi
+	url = https://github.com/libffi/libffi

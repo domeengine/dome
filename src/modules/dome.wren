@@ -6,18 +6,36 @@ class Process {
   }
 }
 
+class WrenType {
+  static BOOL { 0 }
+  static NUM { 1 }
+  static FOREIGN { 2 }
+  static LIST { 3 }
+  static NULL { 4 }
+  static STRING { 5 }
+  static UNKNOWN { -1 }
+}
 
 
 foreign class ForeignModule {
-  construct load(moduleName, libName) {
+  construct init(moduleName, libName){}
+  static load(moduleName, libName) {
     if (!__modules) {
       __modules = {}
     }
-    __modules[moduleName] = this
+    __modules[moduleName] = ForeignModule.init(moduleName, libName)
+    return __modules[moduleName]
   }
   static unload(moduleName) {
     if (__modules) {
       __modules[moduleName] = null
     }
   }
+
+  call(fn, returnType, argPairs) {
+    // TODO type assertions
+    f_call(fn, returnType, argPairs)
+  }
+
+  foreign f_call(fnName, returnType, argPairs)
 }

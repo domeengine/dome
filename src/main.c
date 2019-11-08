@@ -15,6 +15,7 @@
 #include <wren.h>
 #include <SDL2/SDL.h>
 #include <jo_gif.h>
+#include <ffi.h>
 
 #include <microtar/microtar.h>
 #include <microtar/microtar.c>
