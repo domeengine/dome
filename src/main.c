@@ -48,6 +48,8 @@
   Type name;\
   memset(&name, 0, sizeof(Type));
 
+#define STRINGS_EQUAL(a, b) (strcmp(a, b) == 0)
+
 // Constants
 // Screen dimension constants
 #define GAME_WIDTH 320
@@ -72,6 +74,7 @@ global_variable WrenHandle* bufferClass = NULL;
 #include "modules/modules.c"
 #include "engine.c"
 #include "modules/dome.c"
+#include "modules/ffi.c"
 #include "modules/io.c"
 #include "modules/audio.c"
 #include "modules/graphics.c"

@@ -3,6 +3,7 @@ gcc embed.c -o embed -std=c99
 
 declare -a arr=(
 "dome" 
+"ffi" 
 "input" 
 "graphics"
 "io"

@@ -5,29 +5,32 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   methods.allocate = NULL;
   methods.finalize = NULL;
 
-  if (strcmp(module, "dome") == 0) {
-    if (strcmp(className, "ForeignModule") == 0) {
-      methods.allocate = MODULE_allocate;
-      methods.finalize = MODULE_finalize;
+  if (STRINGS_EQUAL(module, "ffi")) {
+    if (STRINGS_EQUAL(className, "ModuleHandle")) {
+      methods.allocate = MODULE_HANDLE_allocate;
+      methods.finalize = MODULE_HANDLE_finalize;
+    } else if (STRINGS_EQUAL(className, "Function")) {
+      methods.allocate = FUNCTION_allocate;
+      methods.finalize = FUNCTION_finalize;
     }
-  } else if (strcmp(module, "graphics") == 0) {
-    if (strcmp(className, "ImageData") == 0) {
+  } else if (STRINGS_EQUAL(module, "graphics")) {
+    if (STRINGS_EQUAL(className, "ImageData")) {
       methods.allocate = IMAGE_allocate;
       methods.finalize = IMAGE_finalize;
     }
-  } else if (strcmp(module, "io") == 0) {
-    if (strcmp(className, "DataBuffer") == 0) {
+  } else if (STRINGS_EQUAL(module, "io")) {
+    if (STRINGS_EQUAL(className, "DataBuffer")) {
       methods.allocate = DBUFFER_allocate;
       methods.finalize = DBUFFER_finalize;
-    } else if (strcmp(className, "AsyncOperation") == 0) {
+    } else if (STRINGS_EQUAL(className, "AsyncOperation")) {
       methods.allocate = ASYNCOP_allocate;
       methods.finalize = ASYNCOP_finalize;
     }
-  } else if (strcmp(module, "audio") == 0) {
-    if (strcmp(className, "AudioData") == 0) {
+  } else if (STRINGS_EQUAL(module, "audio")) {
+    if (STRINGS_EQUAL(className, "AudioData")) {
       methods.allocate = AUDIO_allocate;
       methods.finalize = AUDIO_finalize;
-    } else if (strcmp(className, "AudioChannel") == 0) {
+    } else if (STRINGS_EQUAL(className, "AudioChannel")) {
       methods.allocate = AUDIO_CHANNEL_allocate;
       methods.finalize = AUDIO_CHANNEL_finalize;
     }
@@ -105,7 +108,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // DOME
   MAP_add(&engine->fnMap, "dome", "Process", "f_exit(_)", true, PROCESS_exit);
-  MAP_add(&engine->fnMap, "dome", "ForeignModule", "f_call(_,_,_)", false, MODULE_call);
+
+  // FFI
+  MAP_add(&engine->fnMap, "ffi", "Function", "f_call(_)", false, FUNCTION_call);
 
   // Canvas
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_pset(_,_,_)", true, CANVAS_pset);
