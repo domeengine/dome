@@ -55,3 +55,45 @@ foreign class Function {
 
   foreign f_call(argsList)
 }
+
+// foreign class StructHandle {}
+foreign class StructTypeData {
+  construct bind(list, empty) {}
+  foreign getMemberOffset(elementIndex)
+}
+
+var struct = StructTypeData.bind(["uint"], null)
+/*
+class StructType {
+  construct declare(typeName, elementList) {
+    if (!__types) {
+      __types = {}
+    }
+    _elementNames = []
+    var elementTypes = []
+    var iter_ = null
+    if (_elementNames.count % 2 != 0) {
+      Fiber.abort("Invalid key/type pairs provided.")
+    }
+    _elementIndexes = {}
+
+    var i = 0
+    while (iter_ = elementList.iterate(iter_)) {
+      var key = elementList.iteratorValue(iter_)
+      var value = elementList.iteratorValue(iter_)
+      _elementIndex[key] = i
+      elementTypes.add(value)
+      i = i + 1
+    }
+    _type = StructTypeData.bind(elementTypes)
+    __types[typeName] = this
+  }
+
+  getMemberOffset(elementName) {
+    return _type.getMemberOffset(_elementIndex[elementName])
+  }
+
+}
+
+
+ */

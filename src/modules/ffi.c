@@ -42,8 +42,9 @@ DEBUG_printWrenType(WrenType type) {
 }
 
 typedef struct {
-  ffi_cif cif;
   void* methodPtr;
+  ffi_cif cif;
+  ffi_type* argTypes[];
 } FUNCTION;
 
 ffi_type* toFFIType(char* name) {
@@ -67,20 +68,21 @@ internal void
 FUNCTION_allocate(WrenVM* vm) {
   MODULE_HANDLE* module = wrenGetSlotForeign(vm, 1);
   char* fnName = wrenGetSlotString(vm, 2);
+  printf("%s\n", fnName);
   char* returnType = wrenGetSlotString(vm, 3);
+  size_t argCount = wrenGetListCount(vm, 4);
   // TODO: Variadic functions
-  FUNCTION* function = wrenSetSlotNewForeign(vm, 0, 0, sizeof(FUNCTION));
+  FUNCTION* function = wrenSetSlotNewForeign(vm, 0, 0, sizeof(FUNCTION) + sizeof(ffi_type*) * argCount);
   function->methodPtr = SDL_LoadFunction(module->handle, fnName);
   if (function->methodPtr == NULL) {
     wrenSetSlotString(vm, 1, "Could not bind to function");
     wrenAbortFiber(vm, 1);
   }
 
-  int argCount = wrenGetListCount(vm, 4);
   ffi_type* retType = toFFIType(returnType);
 
-  ffi_type* argTypes[argCount];
-  for (int i = 0; i < argCount; i++) {
+  ffi_type** argTypes = function->argTypes;
+  for (size_t i = 0; i < argCount; i++) {
     // Move element i from List to slot 3
     wrenGetListElement(vm, 4, i, 3);
     char* typeName = wrenGetSlotString(vm, 3);
@@ -119,14 +121,54 @@ FUNCTION_call(WrenVM* vm) {
   }
 
   for (unsigned int i = 0; i < argCount; i++) {
-    // Move element i from List to slot 3
+    // Move element i from List to slot 2
     wrenGetListElement(vm, 1, i, 2);
-    args[i] = alloca(sizeof(argTypes[i]->size));
-    // TODO: Cast to type and store
-
-    int* value = args[i];
-    *value = (int)wrenGetSlotDouble(vm, 2);
-    printf("arg; %i\n", *value);
+    ffi_type* ffiType = argTypes[i];
+    args[i] = alloca(sizeof(ffiType->size));
+    switch (ffiType->type) {
+      case FFI_TYPE_FLOAT: {
+        if (wrenGetSlotType(vm, 2) != WREN_TYPE_NUM) {
+          goto fail_cast;
+        }
+        float* value = args[i];
+        *value = wrenGetSlotDouble(vm, 2);
+      } break;
+      case FFI_TYPE_DOUBLE: {
+        if (wrenGetSlotType(vm, 2) != WREN_TYPE_NUM) {
+          goto fail_cast;
+        }
+        double* value = args[i];
+        *value = wrenGetSlotDouble(vm, 2);
+      } break;
+      case FFI_TYPE_INT:
+      case FFI_TYPE_SINT32: {
+        if (wrenGetSlotType(vm, 2) != WREN_TYPE_NUM) {
+          goto fail_cast;
+        }
+        int32_t* value = args[i];
+        *value = floor(wrenGetSlotDouble(vm, 2));
+      } break;
+      case FFI_TYPE_POINTER:
+      case FFI_TYPE_STRUCT: {
+        if (wrenGetSlotType(vm, 2) == WREN_TYPE_STRING) {
+          char** ptr = (char**)args[i];
+          char* text = wrenGetSlotString(vm, 2);
+          *ptr = text;
+        } else if (wrenGetSlotType(vm, 2) == WREN_TYPE_FOREIGN) {
+          // TODO: Test handling this
+          args[i] = wrenGetSlotForeign(vm, 2);
+        } else {
+          goto fail_cast;
+        }
+      } break;
+      case FFI_TYPE_COMPLEX:
+      default: {
+        fail_cast:
+        wrenSetSlotString(vm, 1, "FFI: Argument mismatch");
+        wrenAbortFiber(vm, 1);
+        return;
+      }
+    }
   }
 
   void* returnValue = alloca(function->cif.rtype->size);
@@ -182,3 +224,50 @@ FUNCTION_call(WrenVM* vm) {
     default: wrenSetSlotNull(vm, 0); break;
   }
 }
+
+typedef struct {
+  size_t elementCount;
+  ffi_type typeData;
+  ffi_type* elements[];
+} STRUCT_TYPE;
+
+internal void
+STRUCT_TYPE_allocate(WrenVM* vm) {
+  wrenEnsureSlots(vm, 3);
+  size_t elementCount = wrenGetListCount(vm, 1);
+
+  STRUCT_TYPE* type = wrenSetSlotNewForeign(vm, 0, 0, sizeof(STRUCT_TYPE) + elementCount * sizeof(ffi_type*));
+  type->elementCount = elementCount;
+  for (size_t i = 0; i < elementCount; i++) {
+    wrenGetListElement(vm, 1, i, 2);
+    WrenType slotType = wrenGetSlotType(vm, 2);
+    printf("%s\n", DEBUG_printWrenType(slotType));
+    if (slotType == WREN_TYPE_STRING) {
+      char* typeName = wrenGetSlotString(vm, 2);
+      type->elements[i] = toFFIType(typeName);
+    } else if (slotType == WREN_TYPE_FOREIGN) {
+      STRUCT_TYPE* structType = wrenGetSlotForeign(vm, 2);
+      type->elements[i] = &(structType->typeData);
+    } else {
+      wrenSetSlotString(vm, 1, "Invalid Struct Element");
+      wrenAbortFiber(vm, 1);
+      return;
+    }
+  }
+  // Set up struct
+  type->typeData.size = 0;
+  type->typeData.alignment = 0;
+  type->typeData.elements = type->elements;
+  type->typeData.type = FFI_TYPE_STRUCT;
+}
+
+internal void
+STRUCT_TYPE_finalize(void* data) {
+
+}
+
+internal void
+STRUCT_TYPE_getOffset(WrenVM* vm) {
+
+}
+

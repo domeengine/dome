@@ -67,6 +67,6 @@ cloc:
 	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util|include|lib" -not-match-f ".inc" src
 
 libadd.so: test/add.c
-	$(CC) -O -fno-common -c test/add.c $(IFLAGS) -o test/add.o
+	$(CC) -O -fno-common -c test/add.c $(IFLAGS) -o test/add.o -g
 	$(CC) -flat_namespace -bundle -undefined suppress -o libadd.so test/add.o
 	rm test/add.o

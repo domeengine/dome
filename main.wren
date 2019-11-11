@@ -9,6 +9,8 @@ import "./test"
 var module = Module.load("add", "libadd.so")
 module.bind("add", "sint", ["sint", "sint"])
 System.print(module.call("add", [1, 2]))
+module.bind("printOut", "void", ["pointer"])
+module.call("printOut", ["Hello world\n\0"])
 
 import "io" for FileSystem
 
