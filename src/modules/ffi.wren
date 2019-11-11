@@ -42,7 +42,7 @@ class Module {
     if (!_functions) {
       _functions = {}
     }
-    _functions[fnName] = Function.bind(this, fnName, retType, paramTypeList)
+    _functions[fnName] = Function.bind(_handle, fnName, retType, paramTypeList)
   }
 }
 

@@ -7,8 +7,8 @@ import "ffi" for Module
 import "./test"
 
 var module = Module.load("add", "libadd.so")
-// module.bind("add", "int", ["int", "int"])
-// module.call("add", [1, 2])
+module.bind("add", "sint", ["sint", "sint"])
+System.print(module.call("add", [1, 2]))
 
 import "io" for FileSystem
 
