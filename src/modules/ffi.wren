@@ -62,7 +62,6 @@ foreign class StructTypeData {
   foreign getMemberOffset(elementIndex)
 }
 
-var struct = StructTypeData.bind(["uint"], null)
 /*
 class StructType {
   construct declare(typeName, elementList) {
@@ -97,3 +96,7 @@ class StructType {
 
 
  */
+
+foreign class Struct {
+  construct init(type, values) {}
+}

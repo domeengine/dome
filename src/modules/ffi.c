@@ -3,6 +3,17 @@ typedef struct {
   char name[];
 } MODULE_HANDLE;
 
+typedef struct {
+  size_t elementCount;
+  ffi_type typeData;
+  ffi_type* elements[];
+} STRUCT_TYPE;
+
+typedef struct {
+  STRUCT_TYPE* dataType;
+  char blob[];
+} STRUCT;
+
 internal void
 MODULE_HANDLE_allocate(WrenVM* vm) {
   char* libraryName = wrenGetSlotString(vm, 1);
@@ -85,9 +96,17 @@ FUNCTION_allocate(WrenVM* vm) {
   for (size_t i = 0; i < argCount; i++) {
     // Move element i from List to slot 3
     wrenGetListElement(vm, 4, i, 3);
-    char* typeName = wrenGetSlotString(vm, 3);
-    printf("%s\n", typeName);
-    argTypes[i] = toFFIType(typeName);
+    if (wrenGetSlotType(vm, 3) == WREN_TYPE_STRING) {
+      char* typeName = wrenGetSlotString(vm, 3);
+      printf("%s\n", typeName);
+      argTypes[i] = toFFIType(typeName);
+    } else if (wrenGetSlotType(vm, 3) == WREN_TYPE_FOREIGN) {
+      STRUCT_TYPE* data = (STRUCT_TYPE*)wrenGetSlotForeign(vm, 3);
+      argTypes[i] = &(data->typeData);
+    } else {
+      VM_ABORT(vm, "Invalid argument type");
+      return;
+    }
   }
 
   ffi_status result = ffi_prep_cif(&function->cif, FFI_DEFAULT_ABI, argCount, retType, argTypes);
@@ -156,7 +175,8 @@ FUNCTION_call(WrenVM* vm) {
           *ptr = text;
         } else if (wrenGetSlotType(vm, 2) == WREN_TYPE_FOREIGN) {
           // TODO: Test handling this
-          args[i] = wrenGetSlotForeign(vm, 2);
+          STRUCT* data = (STRUCT*)wrenGetSlotForeign(vm, 2);
+          args[i] = &(data->blob);
         } else {
           goto fail_cast;
         }
@@ -225,18 +245,13 @@ FUNCTION_call(WrenVM* vm) {
   }
 }
 
-typedef struct {
-  size_t elementCount;
-  ffi_type typeData;
-  ffi_type* elements[];
-} STRUCT_TYPE;
 
 internal void
 STRUCT_TYPE_allocate(WrenVM* vm) {
   wrenEnsureSlots(vm, 3);
   size_t elementCount = wrenGetListCount(vm, 1);
 
-  STRUCT_TYPE* type = wrenSetSlotNewForeign(vm, 0, 0, sizeof(STRUCT_TYPE) + elementCount * sizeof(ffi_type*));
+  STRUCT_TYPE* type = wrenSetSlotNewForeign(vm, 0, 0, sizeof(STRUCT_TYPE) + (elementCount + 1) * sizeof(ffi_type*));
   type->elementCount = elementCount;
   for (size_t i = 0; i < elementCount; i++) {
     wrenGetListElement(vm, 1, i, 2);
@@ -254,11 +269,16 @@ STRUCT_TYPE_allocate(WrenVM* vm) {
       return;
     }
   }
+  type->elements[elementCount] = NULL;
   // Set up struct
   type->typeData.size = 0;
   type->typeData.alignment = 0;
   type->typeData.elements = type->elements;
   type->typeData.type = FFI_TYPE_STRUCT;
+
+  if (ffi_get_struct_offsets(FFI_DEFAULT_ABI, &(type->typeData), NULL) != FFI_OK) {
+    VM_ABORT(vm, "Improper Struct Type");
+  }
 }
 
 internal void
@@ -268,6 +288,49 @@ STRUCT_TYPE_finalize(void* data) {
 
 internal void
 STRUCT_TYPE_getOffset(WrenVM* vm) {
+
+}
+
+
+internal void
+STRUCT_allocate(WrenVM* vm) {
+  STRUCT_TYPE* dataType = wrenGetSlotForeign(vm, 1);
+  printf("%li\n", dataType->typeData.size);
+  STRUCT* data = wrenSetSlotNewForeign(vm, 0, 0, sizeof(STRUCT) + dataType->typeData.size);
+  data->dataType = dataType;
+  size_t elementCount = dataType->elementCount;
+  size_t offsets[elementCount];
+
+  int status = ffi_get_struct_offsets(FFI_DEFAULT_ABI, &(dataType->typeData), offsets);
+  if (status != FFI_OK) {
+    VM_ABORT(vm, "Invalid Struct");
+    return;
+  }
+  for (size_t i = 0; i < elementCount; i++) {
+    // Move element i from List to slot 3
+    wrenGetListElement(vm, 2, i, 1);
+    if (wrenGetSlotType(vm, 1) != WREN_TYPE_FOREIGN &&
+        wrenGetSlotType(vm, 1) != WREN_TYPE_UNKNOWN) {
+      ffi_type* element = dataType->elements[i];
+      switch(element->type) {
+        case FFI_TYPE_SINT32: {
+          int32_t* ptr = (int32_t*)data->blob + offsets[i];
+          *ptr = floor(wrenGetSlotDouble(vm, 1));
+        } break;
+        default:
+          VM_ABORT(vm, "Unsupported");
+          return;
+      }
+    } else if (wrenGetSlotType(vm, 1) == WREN_TYPE_FOREIGN) {
+      VM_ABORT(vm, "Unsupported");
+    } else {
+      VM_ABORT(vm, "Invalid initialiser value");
+    }
+  }
+}
+
+internal void
+STRUCT_finalize(void* data) {
 
 }
 

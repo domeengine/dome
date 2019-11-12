@@ -1,3 +1,4 @@
+
 internal WrenForeignClassMethods
 VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   WrenForeignClassMethods methods;
@@ -15,6 +16,9 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
     } else if (STRINGS_EQUAL(className, "StructTypeData")) {
       methods.allocate = STRUCT_TYPE_allocate;
       methods.finalize = STRUCT_TYPE_finalize;
+    } else if (STRINGS_EQUAL(className, "Struct")) {
+      methods.allocate = STRUCT_allocate;
+      methods.finalize = STRUCT_finalize;
     }
   } else if (STRINGS_EQUAL(module, "graphics")) {
     if (STRINGS_EQUAL(className, "ImageData")) {

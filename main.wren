@@ -3,14 +3,20 @@ import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
 import "dome" for Process
-import "ffi" for Module
+import "ffi" for Module, StructTypeData, Struct
 import "./test"
 
 var module = Module.load("add", "libadd.so")
 module.bind("add", "sint", ["sint", "sint"])
+var structType = StructTypeData.bind(["sint"], null)
 System.print(module.call("add", [1, 2]))
 module.bind("printOut", "void", ["pointer"])
 module.call("printOut", ["Hello world\n\0"])
+
+module.bind("printData", "void", [structType])
+var struct = Struct.init(structType, [42])
+module.call("printData", [struct])
+
 
 import "io" for FileSystem
 
