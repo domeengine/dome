@@ -8,13 +8,15 @@ import "./test"
 
 var module = Module.load("add", "libadd.so")
 module.bind("add", "sint", ["sint", "sint"])
-var structType = StructTypeData.bind(["sint", "sint"], null)
+var miniStructType = StructTypeData.bind(["sint"], null)
+var structType = StructTypeData.bind(["sint", miniStructType], null)
 System.print(module.call("add", [1, 2]))
 module.bind("printOut", "void", ["pointer"])
 module.call("printOut", ["Hello world\n\0"])
 
 module.bind("printData", "void", [structType])
-var struct = Struct.init(structType, [42, 1024])
+var miniStruct = Struct.init(miniStructType, [1024])
+var struct = Struct.init(structType, [42, miniStruct])
 module.call("printData", [struct])
 
 

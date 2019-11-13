@@ -311,20 +311,64 @@ STRUCT_allocate(WrenVM* vm) {
   for (size_t i = 0; i < elementCount; i++) {
     // Move element i from List to slot 3
     wrenGetListElement(vm, 2, i, 1);
-    if (wrenGetSlotType(vm, 1) != WREN_TYPE_FOREIGN &&
-        wrenGetSlotType(vm, 1) != WREN_TYPE_UNKNOWN) {
+    if (wrenGetSlotType(vm, 1) != WREN_TYPE_UNKNOWN) {
       ffi_type* element = dataType->elements[i];
       switch(element->type) {
+        case FFI_TYPE_FLOAT: {
+          float* ptr = (float*)(data->start + offsets[i]);
+          *ptr = wrenGetSlotDouble(vm, 1);
+        } break;
+        case FFI_TYPE_DOUBLE: {
+          double* ptr = (double*)(data->start + offsets[i]);
+          *ptr = wrenGetSlotDouble(vm, 1);
+        } break;
+        case FFI_TYPE_INT: {
+          int* ptr = (int*)(data->start + offsets[i]);
+          *ptr = floor(wrenGetSlotDouble(vm, 1));
+        } break;
+        case FFI_TYPE_UINT8: {
+          uint8_t* ptr = (uint8_t*)(data->start + offsets[i]);
+          *ptr = floor(wrenGetSlotDouble(vm, 1));
+        } break;
+        case FFI_TYPE_SINT8: {
+          int8_t* ptr = (int8_t*)(data->start + offsets[i]);
+          *ptr = floor(wrenGetSlotDouble(vm, 1));
+        } break;
+        case FFI_TYPE_UINT16: {
+          uint16_t* ptr = (uint16_t*)(data->start + offsets[i]);
+          *ptr = floor(wrenGetSlotDouble(vm, 1));
+        } break;
+        case FFI_TYPE_SINT16: {
+          int16_t* ptr = (int16_t*)(data->start + offsets[i]);
+          *ptr = floor(wrenGetSlotDouble(vm, 1));
+        } break;
+        case FFI_TYPE_UINT32: {
+          uint32_t* ptr = (uint32_t*)(data->start + offsets[i]);
+          *ptr = floor(wrenGetSlotDouble(vm, 1));
+        } break;
         case FFI_TYPE_SINT32: {
           int32_t* ptr = (int32_t*)(data->start + offsets[i]);
           *ptr = floor(wrenGetSlotDouble(vm, 1));
         } break;
+        case FFI_TYPE_UINT64: {
+          uint64_t* ptr = (uint64_t*)(data->start + offsets[i]);
+          *ptr = floor(wrenGetSlotDouble(vm, 1));
+        } break;
+        case FFI_TYPE_SINT64: {
+          int64_t* ptr = (int64_t*)(data->start + offsets[i]);
+          *ptr = floor(wrenGetSlotDouble(vm, 1));
+        } break;
+        case FFI_TYPE_STRUCT: {
+          uint8_t* ptr = (uint8_t*)(data->start + offsets[i]);
+          STRUCT* param = wrenGetSlotForeign(vm, 1);
+          memcpy(ptr, param->start, param->dataType->typeData.size);
+        } break;
+        case FFI_TYPE_POINTER:
+        case FFI_TYPE_COMPLEX:
         default:
           VM_ABORT(vm, "Unsupported");
           return;
       }
-    } else if (wrenGetSlotType(vm, 1) == WREN_TYPE_FOREIGN) {
-      VM_ABORT(vm, "Unsupported");
     } else {
       VM_ABORT(vm, "Invalid initialiser value");
     }
