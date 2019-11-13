@@ -42,6 +42,19 @@ class Module {
     if (!_functions) {
       _functions = {}
     }
+
+    // handle struct binding
+    paramTypeList = paramTypeList.map {|typeName|
+      if (typeName is String && Struct.getType(typeName)) {
+        return Struct.getType(typeName)
+      }
+      return typeName
+    }.toList
+
+    if (retType is String && Struct.getType(retType)) {
+      retType = Struct.getType(retType)
+    }
+
     _functions[fnName] = Function.bind(_handle, fnName, retType, paramTypeList)
   }
 }
@@ -56,47 +69,40 @@ foreign class Function {
   foreign f_call(argsList)
 }
 
-// foreign class StructHandle {}
 foreign class StructTypeData {
   construct bind(list, empty) {}
-  foreign getMemberOffset(elementIndex)
 }
 
-/*
-class StructType {
-  construct declare(typeName, elementList) {
+foreign class Struct {
+  construct bind(type, values) {}
+  static init(type, values) {
+    if (type is String) {
+      type = __types[type]
+    }
+    if (!type || !(type is StructTypeData)) {
+      Fiber.abort("Invalid Struct Type")
+    }
+    return Struct.bind(type, values)
+  }
+
+  static declare(name, types) {
     if (!__types) {
       __types = {}
     }
-    _elementNames = []
-    var elementTypes = []
-    var iter_ = null
-    if (_elementNames.count % 2 != 0) {
-      Fiber.abort("Invalid key/type pairs provided.")
-    }
-    _elementIndexes = {}
-
-    var i = 0
-    while (iter_ = elementList.iterate(iter_)) {
-      var key = elementList.iteratorValue(iter_)
-      var value = elementList.iteratorValue(iter_)
-      _elementIndex[key] = i
-      elementTypes.add(value)
-      i = i + 1
-    }
-    _type = StructTypeData.bind(elementTypes)
-    __types[typeName] = this
+    types = types.map {|typeName|
+      if (typeName is String && __types[typeName]) {
+        return __types[typeName]
+      }
+      return typeName
+    }.toList
+    __types[name] = StructTypeData.bind(types, null)
+    return __types[name]
   }
 
-  getMemberOffset(elementName) {
-    return _type.getMemberOffset(_elementIndex[elementName])
+  static getType(name) {
+    if (!__types) {
+      __types = {}
+    }
+    return __types[name]
   }
-
-}
-
-
- */
-
-foreign class Struct {
-  construct init(type, values) {}
 }

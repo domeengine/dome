@@ -3,20 +3,22 @@ import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
 import "dome" for Process
-import "ffi" for Module, StructTypeData, Struct
+import "ffi" for Module, Struct
 import "./test"
 
 var module = Module.load("add", "libadd.so")
 module.bind("add", "sint", ["sint", "sint"])
-var miniStructType = StructTypeData.bind(["sint"], null)
-var structType = StructTypeData.bind(["sint", miniStructType], null)
+
 System.print(module.call("add", [1, 2]))
 module.bind("printOut", "void", ["pointer"])
-module.call("printOut", ["Hello world\n\0"])
+module.call("printOut", ["Hello world\n"])
 
-module.bind("printData", "void", [structType])
-var miniStruct = Struct.init(miniStructType, [1024])
-var struct = Struct.init(structType, [42, miniStruct])
+Struct.declare("MiniBlob", ["sint"])
+Struct.declare("Blob", ["sint", "MiniBlob"])
+module.bind("printData", "void", ["Blob"])
+
+var miniStruct = Struct.init("MiniBlob", [1024])
+var struct = Struct.init("Blob", [42, miniStruct])
 module.call("printData", [struct])
 
 
