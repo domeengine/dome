@@ -11,6 +11,7 @@ typedef struct {
 
 typedef struct {
   STRUCT_TYPE* dataType;
+  uint8_t* start;
   char blob[];
 } STRUCT;
 
@@ -298,6 +299,7 @@ STRUCT_allocate(WrenVM* vm) {
   printf("%li\n", dataType->typeData.size);
   STRUCT* data = wrenSetSlotNewForeign(vm, 0, 0, sizeof(STRUCT) + dataType->typeData.size);
   data->dataType = dataType;
+  data->start = (uint8_t*)&data->blob;
   size_t elementCount = dataType->elementCount;
   size_t offsets[elementCount];
 
@@ -314,7 +316,7 @@ STRUCT_allocate(WrenVM* vm) {
       ffi_type* element = dataType->elements[i];
       switch(element->type) {
         case FFI_TYPE_SINT32: {
-          int32_t* ptr = (int32_t*)data->blob + offsets[i];
+          int32_t* ptr = (int32_t*)(data->start + offsets[i]);
           *ptr = floor(wrenGetSlotDouble(vm, 1));
         } break;
         default:
