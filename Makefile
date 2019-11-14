@@ -1,3 +1,6 @@
+MODE_FILE=.mode
+MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
+
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
 SOURCE  = src
 CC = cc
@@ -10,14 +13,15 @@ UTILS = $(SOURCE)/util
 ENGINESRC = $(SOURCE)/modules
 
 EXENAME = dome
-MODE ?= release
 
 ifeq ($(MODE), debug)
 	LDFLAGS += -lwrend
 	CFLAGS += -g -fsanitize=address -O0
+  $(shell echo $(MODE) > .mode)
 else
 	LDFLAGS += -lwren
 	CFLAGS += -O3
+  $(shell echo $(MODE) > .mode)
 endif
 
 SYS=$(shell uname -s)
@@ -52,6 +56,7 @@ $(ENGINESRC)/*.inc: $(UTILS)/embed.c $(ENGINESRC)/*.wren
 
 $(EXENAME): $(SOURCE)/*.c $(SOURCE)/lib/wren $(ENGINESRC)/*.c $(UTILS)/font.c $(SOURCE)/include $(ENGINESRC)/*.inc $(SOURCE)/include/wren.h
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(EXENAME) $(LDFLAGS) $(IFLAGS)
+	$(warning $(MODE))
 ifneq (, $(findstring Darwin, $(SYS)))
 	install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2.dylib $(EXENAME)
 endif
