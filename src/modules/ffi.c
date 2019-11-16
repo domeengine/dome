@@ -62,10 +62,42 @@ typedef struct {
 ffi_type* toFFIType(char* name) {
   if (STRINGS_EQUAL(name, "void")) {
     return &ffi_type_void;
-  } else if (STRINGS_EQUAL(name, "uint")) {
+  } else if (STRINGS_EQUAL(name, "long")) {
+    return &ffi_type_slong;
+  } else if (STRINGS_EQUAL(name, "unsigned long")) {
+    return &ffi_type_ulong;
+  } else if (STRINGS_EQUAL(name, "short")) {
+    return &ffi_type_sshort;
+  } else if (STRINGS_EQUAL(name, "unsigned short")) {
+    return &ffi_type_ushort;
+  } else if (STRINGS_EQUAL(name, "char")) {
+    return &ffi_type_schar;
+  } else if (STRINGS_EQUAL(name, "unsigned char")) {
+    return &ffi_type_uchar;
+  } else if (STRINGS_EQUAL(name, "int8_t")) {
+    return &ffi_type_sint8;
+  } else if (STRINGS_EQUAL(name, "uint8_t")) {
+    return &ffi_type_uint8;
+  } else if (STRINGS_EQUAL(name, "int16_t")) {
+    return &ffi_type_sint16;
+  } else if (STRINGS_EQUAL(name, "uint16_t")) {
+    return &ffi_type_uint16;
+  } else if (STRINGS_EQUAL(name, "int32_t")) {
+    return &ffi_type_sint32;
+  } else if (STRINGS_EQUAL(name, "uint32_t")) {
+    return &ffi_type_uint32;
+  } else if (STRINGS_EQUAL(name, "int64_t")) {
+    return &ffi_type_sint64;
+  } else if (STRINGS_EQUAL(name, "uint64_t")) {
+    return &ffi_type_uint64;
+  } else if (STRINGS_EQUAL(name, "unsigned int")) {
     return &ffi_type_uint;
-  } else if (STRINGS_EQUAL(name, "sint")) {
+  } else if (STRINGS_EQUAL(name, "int")) {
     return &ffi_type_sint;
+  } else if (STRINGS_EQUAL(name, "float")) {
+    return &ffi_type_float;
+  } else if (STRINGS_EQUAL(name, "double")) {
+    return &ffi_type_double;
   } else if (STRINGS_EQUAL(name, "pointer")) {
     return &ffi_type_pointer;
     // TODO: handle other types
@@ -241,6 +273,12 @@ FUNCTION_call(WrenVM* vm) {
       long double* ptr = returnValue;
       wrenSetSlotDouble(vm, 0, *ptr);
     } break;
+    case FFI_TYPE_POINTER: {
+      void** ptr = returnValue;
+      wrenGetVariable(vm, "ffi", "Pointer", 0);
+      void** obj = wrenSetSlotNewForeign(vm, 0, 0, sizeof(void*));
+      *obj = *ptr;
+    } break;
     case FFI_TYPE_VOID:
     default: wrenSetSlotNull(vm, 0); break;
   }
@@ -376,7 +414,88 @@ STRUCT_allocate(WrenVM* vm) {
 }
 
 internal void
+STRUCT_getValue(WrenVM* vm) {
+  STRUCT* data = wrenGetSlotForeign(vm, 0);
+  STRUCT_TYPE* dataType = data->dataType;
+  size_t index = wrenGetSlotDouble(vm, 1);
+  size_t offsets[dataType->elementCount];
+
+  int status = ffi_get_struct_offsets(FFI_DEFAULT_ABI, &(dataType->typeData), offsets);
+  if (status != FFI_OK) {
+    VM_ABORT(vm, "Invalid Struct");
+    return;
+  }
+
+  ffi_type* element = dataType->elements[index];
+  switch(element->type) {
+    case FFI_TYPE_LONGDOUBLE: {
+      long double* ptr = (long double*)(data->start + offsets[index]);
+      wrenSetSlotDouble(vm, 0, *ptr);
+    } break;
+    case FFI_TYPE_DOUBLE: {
+      double* ptr = (double*)(data->start + offsets[index]);
+      wrenSetSlotDouble(vm, 0, *ptr);
+    } break;
+    case FFI_TYPE_FLOAT: {
+      float* ptr = (float*)(data->start + offsets[index]);
+      wrenSetSlotDouble(vm, 0, *ptr);
+    } break;
+    case FFI_TYPE_SINT8: {
+      int8_t* ptr = (int8_t*)(data->start + offsets[index]);
+      wrenSetSlotDouble(vm, 0, *ptr);
+    } break;
+    case FFI_TYPE_UINT8: {
+      uint8_t* ptr = (uint8_t*)(data->start + offsets[index]);
+      wrenSetSlotDouble(vm, 0, *ptr);
+    } break;
+    case FFI_TYPE_SINT16: {
+      int16_t* ptr = (int16_t*)(data->start + offsets[index]);
+      wrenSetSlotDouble(vm, 0, *ptr);
+    } break;
+    case FFI_TYPE_UINT16: {
+      uint16_t* ptr = (uint16_t*)(data->start + offsets[index]);
+      wrenSetSlotDouble(vm, 0, *ptr);
+    } break;
+    case FFI_TYPE_SINT32: {
+      int32_t* ptr = (int32_t*)(data->start + offsets[index]);
+      wrenSetSlotDouble(vm, 0, *ptr);
+    } break;
+    case FFI_TYPE_UINT32: {
+      uint32_t* ptr = (uint32_t*)(data->start + offsets[index]);
+      wrenSetSlotDouble(vm, 0, *ptr);
+    } break;
+    case FFI_TYPE_SINT64: {
+      int64_t* ptr = (int64_t*)(data->start + offsets[index]);
+      wrenSetSlotDouble(vm, 0, *ptr);
+    } break;
+    case FFI_TYPE_UINT64: {
+      uint64_t* ptr = (uint64_t*)(data->start + offsets[index]);
+      wrenSetSlotDouble(vm, 0, *ptr);
+    } break;
+
+    case FFI_TYPE_POINTER: {
+      void* ptr = (data->start + offsets[index]);
+      wrenGetVariable(vm, "ffi", "Pointer", 0);
+      void** obj = wrenSetSlotNewForeign(vm, 0, 0, sizeof(void*));
+      *obj = ptr;
+    } break;
+
+    case FFI_TYPE_COMPLEX:
+    case FFI_TYPE_STRUCT: // handle nested structs
+    case FFI_TYPE_VOID:
+    default: wrenSetSlotNull(vm, 0); break;
+
+  }
+
+}
+
+internal void
 STRUCT_finalize(void* data) {
 
 }
 
+internal void
+POINTER_asString(WrenVM* vm) {
+  void** obj = wrenGetSlotForeign(vm, 0);
+  wrenSetSlotString(vm, 0, *obj);
+}

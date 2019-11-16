@@ -105,4 +105,11 @@ foreign class Struct {
     }
     return __types[name]
   }
+
+  foreign getValue(memberIndex)
+}
+
+foreign class Pointer {
+  foreign asString()
+  // foreign asBytes(size)
 }

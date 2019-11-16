@@ -119,6 +119,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // FFI
   MAP_add(&engine->fnMap, "ffi", "Function", "f_call(_)", false, FUNCTION_call);
   MAP_add(&engine->fnMap, "ffi", "StructTypeData", "getMemberOffset(_)", false, STRUCT_TYPE_getOffset);
+  MAP_add(&engine->fnMap, "ffi", "Struct", "getValue(_)", false, STRUCT_getValue);
+  MAP_add(&engine->fnMap, "ffi", "Pointer", "asString()", false, POINTER_asString);
 
   // Canvas
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_pset(_,_,_)", true, CANVAS_pset);
