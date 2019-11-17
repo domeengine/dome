@@ -4,8 +4,8 @@ typedef struct {
 } MODULE_HANDLE;
 
 typedef struct {
-  size_t elementCount;
   ffi_type typeData;
+  size_t elementCount;
   ffi_type* elements[];
 } STRUCT_TYPE;
 
@@ -200,14 +200,22 @@ FUNCTION_call(WrenVM* vm) {
         int32_t* value = args[i];
         *value = floor(wrenGetSlotDouble(vm, 2));
       } break;
-      case FFI_TYPE_POINTER:
-      case FFI_TYPE_STRUCT: {
+      case FFI_TYPE_POINTER: {
         if (wrenGetSlotType(vm, 2) == WREN_TYPE_STRING) {
           char** ptr = (char**)args[i];
           char* text = wrenGetSlotString(vm, 2);
           *ptr = text;
         } else if (wrenGetSlotType(vm, 2) == WREN_TYPE_FOREIGN) {
-          // TODO: Test handling this
+          // ASSUME POINTER
+         void** ptr = (void**)wrenGetSlotForeign(vm, 2);
+         void** value = args[i];
+         *value = *ptr;
+        } else {
+          goto fail_cast;
+        }
+      } break;
+      case FFI_TYPE_STRUCT: {
+        if (wrenGetSlotType(vm, 2) == WREN_TYPE_FOREIGN) {
           STRUCT* data = (STRUCT*)wrenGetSlotForeign(vm, 2);
           args[i] = &(data->blob);
         } else {
@@ -401,7 +409,11 @@ STRUCT_allocate(WrenVM* vm) {
           STRUCT* param = wrenGetSlotForeign(vm, 1);
           memcpy(ptr, param->start, param->dataType->typeData.size);
         } break;
-        case FFI_TYPE_POINTER:
+        case FFI_TYPE_POINTER: {
+          void** ptr = (void**)(data->start + offsets[i]);
+          void** param = wrenGetSlotForeign(vm, 1);
+          *ptr = *param;
+        } break;
         case FFI_TYPE_COMPLEX:
         default:
           VM_ABORT(vm, "Unsupported");
@@ -480,8 +492,16 @@ STRUCT_getValue(WrenVM* vm) {
       *obj = ptr;
     } break;
 
+    case FFI_TYPE_STRUCT: { // handle nested structs
+      void* ptr = (data->start + offsets[index]);
+      wrenGetVariable(vm, "ffi", "Struct", 0);
+      STRUCT_TYPE* newType = (STRUCT_TYPE*)dataType->elements[index];
+      STRUCT* newStruct = (STRUCT*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(STRUCT) + newType->typeData.size);
+      newStruct->dataType = newType;
+      newStruct->start = (uint8_t*)&newStruct->blob;
+      memcpy(newStruct->start, ptr, newType->typeData.size);
+    } break;
     case FFI_TYPE_COMPLEX:
-    case FFI_TYPE_STRUCT: // handle nested structs
     case FFI_TYPE_VOID:
     default: wrenSetSlotNull(vm, 0); break;
 
@@ -495,7 +515,36 @@ STRUCT_finalize(void* data) {
 }
 
 internal void
+POINTER_allocate(WrenVM* vm) {
+  void** obj = wrenSetSlotNewForeign(vm, 0, 0, sizeof(void*));
+  *obj = NULL;
+}
+
+internal void
+POINTER_reserve(WrenVM* vm) {
+  POINTER_allocate(vm);
+  void** obj = wrenGetSlotForeign(vm, 0);
+  size_t bytes = wrenGetSlotDouble(vm, 1);
+  *obj = malloc(bytes);
+  memset(*obj, 0, bytes);
+}
+
+internal void
+POINTER_free(WrenVM* vm) {
+  void** obj = wrenGetSlotForeign(vm, 0);
+  free(*obj);
+  wrenSetSlotNull(vm, 0);
+}
+
+internal void
 POINTER_asString(WrenVM* vm) {
   void** obj = wrenGetSlotForeign(vm, 0);
   wrenSetSlotString(vm, 0, *obj);
+}
+
+internal void
+POINTER_asBytes(WrenVM* vm) {
+  void** obj = wrenGetSlotForeign(vm, 0);
+  size_t size = wrenGetSlotDouble(vm, 1);
+  wrenSetSlotBytes(vm, 0, *obj, size);
 }

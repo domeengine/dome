@@ -19,6 +19,8 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
     } else if (STRINGS_EQUAL(className, "Struct")) {
       methods.allocate = STRUCT_allocate;
       methods.finalize = STRUCT_finalize;
+    } else if (STRINGS_EQUAL(className, "Pointer")) {
+      methods.allocate = POINTER_allocate;
     }
   } else if (STRINGS_EQUAL(module, "graphics")) {
     if (STRINGS_EQUAL(className, "ImageData")) {
@@ -121,6 +123,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "ffi", "StructTypeData", "getMemberOffset(_)", false, STRUCT_TYPE_getOffset);
   MAP_add(&engine->fnMap, "ffi", "Struct", "getValue(_)", false, STRUCT_getValue);
   MAP_add(&engine->fnMap, "ffi", "Pointer", "asString()", false, POINTER_asString);
+  MAP_add(&engine->fnMap, "ffi", "Pointer", "asBytes(_)", false, POINTER_asBytes);
+  MAP_add(&engine->fnMap, "ffi", "Pointer", "reserve(_)", true, POINTER_reserve);
+  MAP_add(&engine->fnMap, "ffi", "Pointer", "free()", false, POINTER_free);
 
   // Canvas
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_pset(_,_,_)", true, CANVAS_pset);
