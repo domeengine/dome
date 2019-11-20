@@ -58,7 +58,7 @@ class Game {
     __state.init()
     __done = false
 
-    __loadSettingsOp = FileSystem.load("setup.sh")
+    __loadSettingsOp = FileSystem.load("setup_wren.sh")
     System.print(__loadSettingsOp.result.length)
   }
   static update() {

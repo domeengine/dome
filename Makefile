@@ -1,16 +1,18 @@
 MODE_FILE=.mode
 MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
 
-BUILD_VALUE=$(shell git rev-parse --short HEAD)
 SOURCE  = src
+UTILS = $(SOURCE)/util
+LIBS = $(SOURCE)/lib
+INCLUDES = $(SOURCE)/include
+MODULES = $(SOURCE)/modules
+
+BUILD_VALUE=$(shell git rev-parse --short HEAD)
 CC = cc
 CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags`
-IFLAGS = -isystem $(SOURCE)/include
+IFLAGS = -isystem $(INCLUDES)
 SDLFLAGS=-lSDL2
-LDFLAGS = -L$(SOURCE)/lib $(SDLFLAGS) -lm -lffi
-
-UTILS = $(SOURCE)/util
-ENGINESRC = $(SOURCE)/modules
+LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm -lffi
 
 EXENAME = dome
 
@@ -45,16 +47,22 @@ endif
 
 all: $(EXENAME)
 
-$(SOURCE)/lib/wren: 
-	./setup.sh
+$(LIBS)/libffi.a: 
+	./setup_ffi.sh
 
-$(SOURCE)/include/wren.h: $(SOURCE)/lib/wren
+$(LIBS)/libwren.a: 
+	./setup_wren.sh
+
+$(INCLUDES)/ffi.h: $(LIBS)/libffi.a
+$(INCLUDES)/ffitarget.h: $(LIBS)/libffi.a
+	
+$(INCLUDES)/wren.h: $(LIBS)/libwren.a
 	cp src/lib/wren/src/include/wren.h src/include/wren.h
 
-$(ENGINESRC)/*.inc: $(UTILS)/embed.c $(ENGINESRC)/*.wren
+$(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
 	cd $(UTILS) && ./generateEmbedModules.sh
 
-$(EXENAME): $(SOURCE)/*.c $(SOURCE)/lib/wren $(ENGINESRC)/*.c $(UTILS)/font.c $(SOURCE)/include $(ENGINESRC)/*.inc $(SOURCE)/include/wren.h
+$(EXENAME): $(SOURCE)/*.c $(MODULES)/*.c $(UTILS)/font.c $(INCLUDES) $(MODULES)/*.inc $(INCLUDES)/wren.h $(INCLUDES)/ffi.h $(LIBS)/libwren.a $(LIBS)/libffi.a
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(EXENAME) $(LDFLAGS) $(IFLAGS)
 	$(warning $(MODE))
 ifneq (, $(findstring Darwin, $(SYS)))
@@ -63,10 +71,10 @@ endif
 
 .PHONY: clean clean-all cloc
 clean-all:
-	rm -rf $(EXENAME) $(SOURCE)/lib/wren $(SOURCE)/lib/libwren.a $(ENGINESRC)/*.inc $(SOURCE)/include/wren.h $(SOURCE)/lib/libwrend.a
+	rm -rf $(EXENAME) $(LIBS)/wren $(LIBS)/libwren.a $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwrend.a $(LIBS)/libffi  $(LIBS)/libffi.a $(INCLUDES)/ffi.h $(INCLUDES)/ffitarget..a
 
 clean:
-	rm -rf $(EXENAME) $(ENGINESRC)/*.inc
+	rm -rf $(EXENAME) $(MODULES)/*.inc
 
 cloc:
 	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util|include|lib" -not-match-f ".inc" src
