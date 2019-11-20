@@ -29,7 +29,10 @@ module.bind("printData", "void", ["Blob"])
 
 var miniStruct = Struct.init("MiniBlob", [1024])
 var struct = Struct.init("Blob", [42, miniStruct])
-System.print("Struct value: %(struct.getValue(1))")
+
+var sameStruct = struct.getValue(1).getValue(0)
+System.print(sameStruct)
+System.print("Struct value: %(struct.getValue(0))")
 module.call("printData", [struct])
 
 // Consider moving Box to "graphics"
