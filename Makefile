@@ -47,10 +47,15 @@ endif
 
 all: $(EXENAME)
 
-$(LIBS)/libffi.a: 
+$(LIBS)/libffi: 
+$(LIBS)/wren: 
+	git submodule init
+	git submodule update
+	
+$(LIBS)/libffi.a: $(LIBS)/libffi
 	./setup_ffi.sh
 
-$(LIBS)/libwren.a: 
+$(LIBS)/libwren.a: $(LIBS)/wren
 	./setup_wren.sh
 
 $(INCLUDES)/ffi.h: $(LIBS)/libffi.a

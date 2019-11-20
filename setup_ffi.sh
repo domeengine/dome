@@ -1,6 +1,5 @@
 #!/bin/bash
 
-git submodule update
 cd src/lib/libffi
 ./autogen.sh
 ./configure --prefix=$PWD
