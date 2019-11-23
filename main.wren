@@ -4,7 +4,11 @@ import "audio" for AudioEngine
 import "random" for Random
 import "dome" for Process
 import "io" for FileSystem
-import "./test/test"
+
+// ONLY ENABLE THIS IF FFI IS ENABLED
+// ---------------------------------
+// import "./test/test"
+// ---------------------------------
 
 // Consider moving Box to "graphics"
 class Box {
