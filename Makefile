@@ -7,14 +7,22 @@ LIBS = $(SOURCE)/lib
 INCLUDES = $(SOURCE)/include
 MODULES = $(SOURCE)/modules
 
+# Optional Module Switches
+DOME_OPT_FFI=0
+DOME_OPTS=""
+ifeq ($(DOME_OPT_FFI),1)
+	DOME_OPTS += -D DOME_OPT_FFI=1
+endif
+
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
 CC = cc
-CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags`
+CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags`
 IFLAGS = -isystem $(INCLUDES)
 SDLFLAGS=-lSDL2
 LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm -lffi
 
 EXENAME = dome
+
 
 ifeq ($(MODE), debug)
 	LDFLAGS += -lwrend

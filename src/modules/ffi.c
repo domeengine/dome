@@ -1,3 +1,5 @@
+#if DOME_OPT_FFI
+
 typedef struct {
   void* handle;
   char name[];
@@ -548,3 +550,5 @@ POINTER_asBytes(WrenVM* vm) {
   size_t size = wrenGetSlotDouble(vm, 1);
   wrenSetSlotBytes(vm, 0, *obj, size);
 }
+
+#endif
