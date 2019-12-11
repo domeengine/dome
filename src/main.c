@@ -13,7 +13,7 @@
 #include <setjmp.h>
 
 #include <wren.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <jo_gif.h>
 
 #if DOME_OPT_FFI

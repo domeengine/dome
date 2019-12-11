@@ -1,40 +1,42 @@
-class WrenType {
-  static BOOL { 0 }
-  static NUM { 1 }
-  static FOREIGN { 2 }
-  static LIST { 3 }
-  static NULL { 4 }
-  static STRING { 5 }
-  static UNKNOWN { -1 }
-}
+// FFI Library
 
-foreign class ModuleHandle {
+// Private
+foreign class LibraryHandle {
   construct init(libName) {}
 }
 
-class Module {
+class Library {
   construct init(libName){
     _functions = {}
-    _handle = ModuleHandle.init(libName)
+    _handle = LibraryHandle.init(libName)
   }
 
-  static load(moduleName, libName) {
-    if (!__modules) {
-      __modules = {}
+  static get(libraryName) {
+    if (!__libraries) {
+      __libraries = {}
     }
-    __modules[moduleName] = Module.init(libName)
-    return __modules[moduleName]
+    return __libraries[libraryName]
   }
 
-  static unload(moduleName) {
-    if (__modules) {
-      __modules[moduleName] = null
+  static load(libraryName, libName) {
+    if (!__libraries) {
+      __libraries = {}
+    }
+    if (!__libraries[libraryName]) {
+      __libraries[libraryName] = Library.init(libName)
+    }
+    return __libraries[libraryName]
+  }
+
+  static unload(libraryName) {
+    if (__libraries) {
+      __libraries[libraryName] = null
     }
   }
 
-  call(fnName, argPairs) {
+  call(fnName, params) {
     if (_functions[fnName]) {
-      return _functions[fnName].call(argPairs)
+      return _functions[fnName].call(params)
     }
   }
 
@@ -59,8 +61,9 @@ class Module {
   }
 }
 
+// Private
 foreign class Function {
-  construct bind(module, fnName, returnType, args) {}
+  construct bind(library, fnName, returnType, args) {}
   call(args) {
     // TODO: Type assert
     return f_call(args)
@@ -69,6 +72,7 @@ foreign class Function {
   foreign f_call(argsList)
 }
 
+// Private
 foreign class StructTypeData {
   construct bind(list, empty) {}
 }
