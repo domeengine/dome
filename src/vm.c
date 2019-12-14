@@ -9,7 +9,7 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   #if DOME_OPT_FFI
 
   if (STRINGS_EQUAL(module, "ffi")) {
-    if (STRINGS_EQUAL(className, "ModuleHandle")) {
+    if (STRINGS_EQUAL(className, "LibraryHandle")) {
       methods.allocate = MODULE_HANDLE_allocate;
       methods.finalize = MODULE_HANDLE_finalize;
     } else if (STRINGS_EQUAL(className, "Function")) {
