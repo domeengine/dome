@@ -18,7 +18,11 @@ CC = cc
 CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags`
 IFLAGS = -isystem $(INCLUDES)
 SDLFLAGS= `sdl2-config --libs`
-LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm -lffi
+LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm
+
+ifeq ($(DOME_OPT_FFI),1)
+	LDFLAGS  += -lffi
+endif
 
 EXENAME = dome
 
