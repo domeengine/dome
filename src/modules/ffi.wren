@@ -117,7 +117,8 @@ foreign class Pointer {
   construct new() {}
 
   foreign asString()
+  foreign asBytes(size)
+
   foreign static reserve(bytes)
   foreign free()
-  foreign asBytes(size)
 }
