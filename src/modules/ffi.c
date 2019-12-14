@@ -3,7 +3,7 @@
 typedef struct {
   void* handle;
   char name[];
-} MODULE_HANDLE;
+} LIBRARY_HANDLE;
 
 typedef struct {
   ffi_type typeData;
@@ -18,7 +18,7 @@ typedef struct {
 } STRUCT;
 
 internal void
-MODULE_HANDLE_allocate(WrenVM* vm) {
+LIBRARY_HANDLE_allocate(WrenVM* vm) {
   char* libraryName = wrenGetSlotString(vm, 1);
   void* handle = SDL_LoadObject(libraryName);
   if (handle == NULL) {
@@ -26,19 +26,19 @@ MODULE_HANDLE_allocate(WrenVM* vm) {
     wrenAbortFiber(vm, 1);
     return;
   }
-  MODULE_HANDLE* module = (MODULE_HANDLE*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(MODULE_HANDLE) + sizeof(char) * strlen(libraryName) + 1);
+  LIBRARY_HANDLE* library = (LIBRARY_HANDLE*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(LIBRARY_HANDLE) + sizeof(char) * strlen(libraryName) + 1);
 
-  module->handle = handle;
-  strcpy(module->name, libraryName);
+  library->handle = handle;
+  strcpy(library->name, libraryName);
 
-  // TODO: Register module in module map
+  // TODO: Register library in library map
   // and functionmap
 }
 
 internal void
-MODULE_HANDLE_finalize(void* ptr) {
-  MODULE_HANDLE* handle = ptr;
-  printf("SDL Unload Module: %s", handle->name);
+LIBRARY_HANDLE_finalize(void* ptr) {
+  LIBRARY_HANDLE* handle = ptr;
+  printf("SDL Unload Library: %s", handle->name);
   SDL_UnloadObject(handle);
 }
 
@@ -112,14 +112,14 @@ ffi_type* toFFIType(char* name) {
 
 internal void
 FUNCTION_allocate(WrenVM* vm) {
-  MODULE_HANDLE* module = wrenGetSlotForeign(vm, 1);
+  LIBRARY_HANDLE* library = wrenGetSlotForeign(vm, 1);
   char* fnName = wrenGetSlotString(vm, 2);
   printf("%s\n", fnName);
   char* returnType = wrenGetSlotString(vm, 3);
   size_t argCount = wrenGetListCount(vm, 4);
   // TODO: Variadic functions
   FUNCTION* function = wrenSetSlotNewForeign(vm, 0, 0, sizeof(FUNCTION) + sizeof(ffi_type*) * argCount);
-  function->methodPtr = SDL_LoadFunction(module->handle, fnName);
+  function->methodPtr = SDL_LoadFunction(library->handle, fnName);
   if (function->methodPtr == NULL) {
     wrenSetSlotString(vm, 1, "Could not bind to function");
     wrenAbortFiber(vm, 1);

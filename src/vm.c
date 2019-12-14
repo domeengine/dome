@@ -10,8 +10,8 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
 
   if (STRINGS_EQUAL(module, "ffi")) {
     if (STRINGS_EQUAL(className, "LibraryHandle")) {
-      methods.allocate = MODULE_HANDLE_allocate;
-      methods.finalize = MODULE_HANDLE_finalize;
+      methods.allocate = LIBRARY_HANDLE_allocate;
+      methods.finalize = LIBRARY_HANDLE_finalize;
     } else if (STRINGS_EQUAL(className, "Function")) {
       methods.allocate = FUNCTION_allocate;
       methods.finalize = FUNCTION_finalize;
