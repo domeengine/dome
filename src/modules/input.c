@@ -18,16 +18,23 @@ internal void MOUSE_getY(WrenVM* vm) {
 }
 
 internal void MOUSE_isButtonPressed(WrenVM* vm) {
-  /*
-  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   WrenType type = wrenGetSlotType(vm, 1);
+  int buttonIndex = 0;
   if (type == WREN_TYPE_STRING) {
-
-  } else if (type == WREN_TYPE_DOUBLE) {
-    int
-    ENGINE_getMouseButton()
-
+    char* buttonName = wrenGetSlotString(vm, 1);
+    if (STRINGS_EQUAL(buttonName, "left")) {
+      buttonIndex = SDL_BUTTON_LEFT;
+    } else if (STRINGS_EQUAL(buttonName, "middle")) {
+      buttonIndex = SDL_BUTTON_MIDDLE;
+    } else if (STRINGS_EQUAL(buttonName, "right")) {
+      buttonIndex = SDL_BUTTON_RIGHT;
+    } else {
+      VM_ABORT(vm, "Unknown mouse button name");
+      return;
+    }
+  } else if (type == WREN_TYPE_NUM) {
+    buttonIndex = wrenGetSlotDouble(vm, 1);
   }
-  */
-  wrenSetSlotBool(vm, 0, false);
+
+  wrenSetSlotBool(vm, 0, ENGINE_getMouseButton(buttonIndex));
 }

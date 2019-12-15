@@ -225,6 +225,12 @@ int main(int argc, char* args[])
         case SDL_QUIT:
           engine.running = false;
           break;
+        case SDL_WINDOWEVENT:
+          {
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+              SDL_RenderGetViewport(engine.renderer, &(engine.viewport));
+            }
+          } break;
         case SDL_KEYDOWN:
         case SDL_KEYUP:
           {

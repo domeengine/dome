@@ -14,6 +14,7 @@ typedef struct {
   SDL_Window* window;
   SDL_Renderer *renderer;
   SDL_Texture *texture;
+  SDL_Rect viewport;
   void* pixels;
   ABC_FIFO fifo;
   ForeignFunctionMap fnMap;
@@ -507,9 +508,7 @@ ENGINE_getKeyState(ENGINE* engine, char* keyName) {
 
 internal float
 ENGINE_getMouseX(ENGINE* engine) {
-
-  SDL_Rect viewport;
-  SDL_RenderGetViewport(engine->renderer, &viewport);
+  SDL_Rect viewport = engine->viewport;
 
   int mouseX;
   int mouseY;
@@ -522,9 +521,7 @@ ENGINE_getMouseX(ENGINE* engine) {
 
 internal float
 ENGINE_getMouseY(ENGINE* engine) {
-
-  SDL_Rect viewport;
-  SDL_RenderGetViewport(engine->renderer, &viewport);
+  SDL_Rect viewport = engine->viewport;
 
   int mouseX;
   int mouseY;
@@ -533,6 +530,11 @@ ENGINE_getMouseY(ENGINE* engine) {
   SDL_GetMouseState(&mouseX, &mouseY);
   SDL_GetWindowSize(engine->window, &winX, &winY);
   return mouseY * max(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.y;
+}
+
+internal bool
+ENGINE_getMouseButton(int button) {
+  return SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(button);
 }
 
 internal void

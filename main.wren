@@ -56,9 +56,9 @@ class Game {
   }
   static draw(dt) {
     __state.draw(dt)
-    //if (Mouse.isButtonPressed("left")) {
+    if (Mouse.isButtonPressed("right")) {
       Canvas.pset(__x, __y, Color.orange)
-    //}
+    }
   }
 }
 
