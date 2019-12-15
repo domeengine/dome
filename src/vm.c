@@ -173,6 +173,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // Input
   MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, KEYBOARD_isKeyDown);
+  MAP_add(&engine->fnMap, "input", "Mouse", "x", true, MOUSE_getX);
+  MAP_add(&engine->fnMap, "input", "Mouse", "y", true, MOUSE_getY);
+  MAP_add(&engine->fnMap, "input", "Mouse", "isButtonPressed(_)", true, MOUSE_isButtonPressed);
 
   return vm;
 }

@@ -1,4 +1,4 @@
-import "input" for Keyboard
+import "input" for Keyboard, Mouse
 import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
@@ -45,6 +45,8 @@ class Game {
       System.print("loaded")
       System.print(__settingsFile.data)
     }
+    __x = Mouse.x
+    __y = Mouse.y
 
     __state.update()
     if (__state.next) {
@@ -54,6 +56,9 @@ class Game {
   }
   static draw(dt) {
     __state.draw(dt)
+    //if (Mouse.isButtonPressed("left")) {
+      Canvas.pset(__x, __y, Color.orange)
+    //}
   }
 }
 

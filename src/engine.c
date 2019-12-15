@@ -505,6 +505,36 @@ ENGINE_getKeyState(ENGINE* engine, char* keyName) {
   return state[scancode];
 }
 
+internal float
+ENGINE_getMouseX(ENGINE* engine) {
+
+  SDL_Rect viewport;
+  SDL_RenderGetViewport(engine->renderer, &viewport);
+
+  int mouseX;
+  int mouseY;
+  int winX;
+  int winY;
+  SDL_GetMouseState(&mouseX, &mouseY);
+  SDL_GetWindowSize(engine->window, &winX, &winY);
+  return mouseX * max(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.x;
+}
+
+internal float
+ENGINE_getMouseY(ENGINE* engine) {
+
+  SDL_Rect viewport;
+  SDL_RenderGetViewport(engine->renderer, &viewport);
+
+  int mouseX;
+  int mouseY;
+  int winX;
+  int winY;
+  SDL_GetMouseState(&mouseX, &mouseY);
+  SDL_GetWindowSize(engine->window, &winX, &winY);
+  return mouseY * max(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.y;
+}
+
 internal void
 ENGINE_drawDebug(ENGINE* engine) {
   char buffer[20];
