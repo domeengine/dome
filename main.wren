@@ -3,9 +3,13 @@ import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
 import "dome" for Process
-import "./test"
-
 import "io" for FileSystem
+
+// ONLY ENABLE THIS IF FFI IS ENABLED
+// Make sure to run `make libadd.so` before running this
+// ---------------------------------
+// import "./test/test"
+// ---------------------------------
 
 // Consider moving Box to "graphics"
 class Box {
@@ -30,7 +34,7 @@ class Game {
     __state.init()
     __done = false
 
-    __loadSettingsOp = FileSystem.load("setup.sh")
+    __loadSettingsOp = FileSystem.load("setup_wren.sh")
     System.print(__loadSettingsOp.result.length)
   }
   static update() {

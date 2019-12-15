@@ -1,7 +1,10 @@
+.mode
 dome
 nest
 libwren.a
 libwrend.a
+libffi.a
+libadd.so
 **/.DS_Store
 src/util/convert
 src/util/embed
@@ -10,5 +13,8 @@ src/include/wren.h
 *.o
 *.swp
 *.dSYM
+
+ffi.h
+ffitarget.h
 
 node_modules

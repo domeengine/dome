@@ -13,8 +13,12 @@
 #include <setjmp.h>
 
 #include <wren.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <jo_gif.h>
+
+#if DOME_OPT_FFI
+#include <ffi.h>
+#endif
 
 #include <microtar/microtar.h>
 #include <microtar/microtar.c>
@@ -47,6 +51,14 @@
   Type name;\
   memset(&name, 0, sizeof(Type));
 
+#define STRINGS_EQUAL(a, b) (strcmp(a, b) == 0)
+
+#define VM_ABORT(vm, error) do {\
+    wrenSetSlotString(vm, 1, error);\
+    wrenAbortFiber(vm, 1); \
+} while(false);
+
+
 // Constants
 // Screen dimension constants
 #define GAME_WIDTH 320
@@ -71,6 +83,9 @@ global_variable WrenHandle* bufferClass = NULL;
 #include "modules/modules.c"
 #include "engine.c"
 #include "modules/dome.c"
+#if DOME_OPT_FFI
+#include "modules/ffi.c"
+#endif
 #include "modules/io.c"
 #include "modules/audio.c"
 #include "modules/graphics.c"

@@ -1,67 +1,107 @@
-BUILD_VALUE=$(shell git rev-parse --short HEAD)
-SOURCE  = src
-CC = cc
-CFLAGS = -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags`
-IFLAGS = -isystem $(SOURCE)/include
-SDLFLAGS=-lSDL2
-LDFLAGS = -L$(SOURCE)/lib $(SDLFLAGS) -lm
+MODE_FILE=.mode
+MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
 
+SOURCE  = src
 UTILS = $(SOURCE)/util
-ENGINESRC = $(SOURCE)/modules
+LIBS = $(SOURCE)/lib
+INCLUDES = $(SOURCE)/include
+MODULES = $(SOURCE)/modules
+
+# Optional Module Switches
+DOME_OPT_FFI=0
+ifeq ($(DOME_OPT_FFI),1)
+	DOME_OPTS ?= -D DOME_OPT_FFI=1
+endif
+
+BUILD_VALUE=$(shell git rev-parse --short HEAD)
+CC = cc
+CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags`
+IFLAGS = -isystem $(INCLUDES)
+SDLFLAGS= `sdl2-config --libs`
+LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm
+
+ifeq ($(DOME_OPT_FFI),1)
+  LDFLAGS  += -lffi
+  FFI_DEPS = $(LIBS)/libffi $(LIBS)/libffi.a $(INCLUDES)/ffi.h
+endif
 
 EXENAME = dome
-MODE ?= release
+
 
 ifeq ($(MODE), debug)
-LDFLAGS += -lwrend
-CFLAGS += -g -fsanitize=address -O0
+	LDFLAGS += -lwrend
+	CFLAGS += -g -fsanitize=address -O0
+  $(shell echo $(MODE) > .mode)
 else
-LDFLAGS += -lwren
-CFLAGS += -O3
+	LDFLAGS += -lwren
+	CFLAGS += -O3
+  $(shell echo $(MODE) > .mode)
 endif
 
 SYS=$(shell uname -s)
 
 ifneq (, $(findstring Darwin, $(SYS)))
-CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
+	CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
 endif
 
-ifneq (, $(findstring MSYS, $(SYS)))
-CFLAGS += -Wno-discarded-qualifiers
-ifdef ICON_OBJECT_FILE
-CFLAGS += $(ICON_OBJECT_FILE)
+ifneq (, $(findstring MINGW, $(SYS)))
+	CFLAGS += -Wno-discarded-qualifiers
+	ifdef ICON_OBJECT_FILE
+	CFLAGS += $(ICON_OBJECT_FILE)
 endif
-SDLFLAGS := -lSDL2main -mwindows $(SDLFLAGS)
+SDLFLAGS := -mwindows $(SDLFLAGS)
 endif
 
 ifneq (, $(findstring Linux, $(SYS)))
-CFLAGS += -Wno-discarded-qualifiers
+	CFLAGS += -Wno-discarded-qualifiers
 endif
+
 
 
 all: $(EXENAME)
 
-$(SOURCE)/lib/wren: 
-	./setup.sh
+$(LIBS)/libffi: 
+	git submodule update --init -- $(LIBS)/libffi
 
-$(SOURCE)/include/wren.h: $(SOURCE)/lib/wren
-	cp src/lib/wren/src/include/wren.h src/include/wren.h
+$(LIBS)/wren: 
+	git submodule update --init -- $(LIBS)/wren
 	
-$(ENGINESRC)/*.inc: $(UTILS)/embed.c $(ENGINESRC)/*.wren
+$(LIBS)/libffi.a: $(LIBS)/libffi
+	./setup_ffi.sh
+
+$(LIBS)/libwren.a: $(LIBS)/wren
+	./setup_wren.sh
+
+$(INCLUDES)/ffi.h: $(LIBS)/libffi.a
+$(INCLUDES)/ffitarget.h: $(LIBS)/libffi.a
+	
+$(INCLUDES)/wren.h: $(LIBS)/libwren.a
+	cp src/lib/wren/src/include/wren.h src/include/wren.h
+
+$(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
 	cd $(UTILS) && ./generateEmbedModules.sh
 
-$(EXENAME): $(SOURCE)/*.c $(SOURCE)/lib/wren $(ENGINESRC)/*.c $(UTILS)/font.c $(SOURCE)/include $(ENGINESRC)/*.inc $(SOURCE)/include/wren.h
+$(EXENAME): $(SOURCE)/*.c $(MODULES)/*.c $(UTILS)/font.c $(INCLUDES) $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwren.a $(FFI_DEPS)
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(EXENAME) $(LDFLAGS) $(IFLAGS)
+	$(warning $(MODE))
 ifneq (, $(findstring Darwin, $(SYS)))
 	install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2.dylib $(EXENAME)
 endif
 
+# Used for the example game FFI test
+libadd.so: test/add.c
+	$(CC) -O -fno-common -c test/add.c $(IFLAGS) -o test/add.o -g
+	$(CC) -flat_namespace -bundle -undefined suppress -o libadd.so test/add.o
+	rm test/add.o
+
 .PHONY: clean clean-all cloc
 clean-all:
-	    rm -rf $(EXENAME) $(SOURCE)/lib/wren $(SOURCE)/lib/libwren.a $(ENGINESRC)/*.inc $(SOURCE)/include/wren.h $(SOURCE)/lib/libwrend.a
+	rm -rf $(EXENAME) $(LIBS)/wren $(LIBS)/libwren.a $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwrend.a $(LIBS)/libffi $(LIBS)/libffi.a $(INCLUDES)/ffi.h $(INCLUDES)/ffitarget.h
 
 clean:
-	    rm -rf $(EXENAME) $(ENGINESRC)/*.inc
+	rm -rf $(EXENAME) $(MODULES)/*.inc
 
+# Counts the number of lines used, for vanity
 cloc:
-			cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util|include|lib" -not-match-f ".inc" src
+	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util|include|lib" -not-match-f ".inc" src
+

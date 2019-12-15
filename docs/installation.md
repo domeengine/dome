@@ -9,23 +9,11 @@ DOME should build fine on Mac OS X and most flavors of linux, so long as gcc, gi
 
 Windows is supported, but it's only been tested using a MinGW-w64 MSYS2 environment. For information on setting this up, follow [this guide.](https://github.com/orlp/dev-on-windows/wiki/Installing-GCC--&-MSYS2)
 
-1. You can clone the repository by doing the following in your terminal:
+You can clone the repository and build DOME by doing the following in your terminal:
 
 ```
 > git clone https://github.com/avivbeeri/dome.git
-```
-
-2. Initialise the sub-modules DOME depends on (Wren):
-
-```
 > cd dome
-> git submodule init
-> git submodule update
-```
-
-3. Build using GNU Make:
-
-```
 > make
 ```
 

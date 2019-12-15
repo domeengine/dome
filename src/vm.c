@@ -1,3 +1,4 @@
+
 internal WrenForeignClassMethods
 VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   WrenForeignClassMethods methods;
@@ -5,32 +6,52 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   methods.allocate = NULL;
   methods.finalize = NULL;
 
-  if (strcmp(module, "graphics") == 0) {
-    if (strcmp(className, "ImageData") == 0) {
+  #if DOME_OPT_FFI
+
+  if (STRINGS_EQUAL(module, "ffi")) {
+    if (STRINGS_EQUAL(className, "LibraryHandle")) {
+      methods.allocate = LIBRARY_HANDLE_allocate;
+      methods.finalize = LIBRARY_HANDLE_finalize;
+    } else if (STRINGS_EQUAL(className, "Function")) {
+      methods.allocate = FUNCTION_allocate;
+      methods.finalize = FUNCTION_finalize;
+    } else if (STRINGS_EQUAL(className, "StructTypeData")) {
+      methods.allocate = STRUCT_TYPE_allocate;
+      methods.finalize = STRUCT_TYPE_finalize;
+    } else if (STRINGS_EQUAL(className, "Struct")) {
+      methods.allocate = STRUCT_allocate;
+      methods.finalize = STRUCT_finalize;
+    } else if (STRINGS_EQUAL(className, "Pointer")) {
+      methods.allocate = POINTER_allocate;
+    }
+  }
+  #endif
+  if (STRINGS_EQUAL(module, "graphics")) {
+    if (STRINGS_EQUAL(className, "ImageData")) {
       methods.allocate = IMAGE_allocate;
       methods.finalize = IMAGE_finalize;
     }
-  }
-
-  if (strcmp(module, "io") == 0) {
-    if (strcmp(className, "DataBuffer") == 0) {
+  } else if (STRINGS_EQUAL(module, "io")) {
+    if (STRINGS_EQUAL(className, "DataBuffer")) {
       methods.allocate = DBUFFER_allocate;
       methods.finalize = DBUFFER_finalize;
-    } else if (strcmp(className, "AsyncOperation") == 0) {
+    } else if (STRINGS_EQUAL(className, "AsyncOperation")) {
       methods.allocate = ASYNCOP_allocate;
       methods.finalize = ASYNCOP_finalize;
     }
-  }
-
-  if (strcmp(module, "audio") == 0) {
-    if (strcmp(className, "AudioData") == 0) {
+  } else if (STRINGS_EQUAL(module, "audio")) {
+    if (STRINGS_EQUAL(className, "AudioData")) {
       methods.allocate = AUDIO_allocate;
       methods.finalize = AUDIO_finalize;
-    } else if (strcmp(className, "AudioChannel") == 0) {
+    } else if (STRINGS_EQUAL(className, "AudioChannel")) {
       methods.allocate = AUDIO_CHANNEL_allocate;
       methods.finalize = AUDIO_CHANNEL_finalize;
     }
+  } else {
+    // TODO: Check if it's a module we lazy-loaded
+
   }
+
 
   return methods;
 }
@@ -100,6 +121,18 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // DOME
   MAP_add(&engine->fnMap, "dome", "Process", "f_exit(_)", true, PROCESS_exit);
+
+#if DOME_OPT_FFI
+  // FFI
+  MAP_add(&engine->fnMap, "ffi", "Function", "f_call(_)", false, FUNCTION_call);
+  MAP_add(&engine->fnMap, "ffi", "StructTypeData", "getMemberOffset(_)", false, STRUCT_TYPE_getOffset);
+  MAP_add(&engine->fnMap, "ffi", "Struct", "getValue(_)", false, STRUCT_getValue);
+  MAP_add(&engine->fnMap, "ffi", "Pointer", "asString()", false, POINTER_asString);
+  MAP_add(&engine->fnMap, "ffi", "Pointer", "asBytes(_)", false, POINTER_asBytes);
+  MAP_add(&engine->fnMap, "ffi", "Pointer", "reserve(_)", true, POINTER_reserve);
+  MAP_add(&engine->fnMap, "ffi", "Pointer", "free()", false, POINTER_free);
+#endif
+
   // Canvas
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_pset(_,_,_)", true, CANVAS_pset);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_rectfill(_,_,_,_,_)", true, CANVAS_rectfill);
