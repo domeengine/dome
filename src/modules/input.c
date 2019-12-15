@@ -28,6 +28,10 @@ internal void MOUSE_isButtonPressed(WrenVM* vm) {
       buttonIndex = SDL_BUTTON_MIDDLE;
     } else if (STRINGS_EQUAL(buttonName, "right")) {
       buttonIndex = SDL_BUTTON_RIGHT;
+    } else if (STRINGS_EQUAL(buttonName, "X1")) {
+      buttonIndex = SDL_BUTTON_X1;
+    } else if (STRINGS_EQUAL(buttonName, "X2")) {
+      buttonIndex = SDL_BUTTON_X2;
     } else {
       VM_ABORT(vm, "Unknown mouse button name");
       return;
