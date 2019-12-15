@@ -22,7 +22,7 @@ It contains the following classes:
 
 * [Library](#library)
 * [Struct](#struct)
-* [pointer](#pointer)
+* [Pointer](#pointer)
 
 ## Library
 
