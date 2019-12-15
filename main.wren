@@ -6,6 +6,7 @@ import "dome" for Process
 import "io" for FileSystem
 
 // ONLY ENABLE THIS IF FFI IS ENABLED
+// Make sure to run `make libadd.so` before running this
 // ---------------------------------
 // import "./test/test"
 // ---------------------------------

@@ -21,7 +21,8 @@ SDLFLAGS= `sdl2-config --libs`
 LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm
 
 ifeq ($(DOME_OPT_FFI),1)
-	LDFLAGS  += -lffi
+  LDFLAGS  += -lffi
+  FFI_DEPS = $(LIBS)/libffi $(LIBS)/libffi.a $(INCLUDES)/ffi.h
 endif
 
 EXENAME = dome
@@ -56,12 +57,14 @@ ifneq (, $(findstring Linux, $(SYS)))
 endif
 
 
+
 all: $(EXENAME)
 
 $(LIBS)/libffi: 
+	git submodule update --init -- $(LIBS)/libffi
+
 $(LIBS)/wren: 
-	git submodule init
-	git submodule update
+	git submodule update --init -- $(LIBS)/wren
 	
 $(LIBS)/libffi.a: $(LIBS)/libffi
 	./setup_ffi.sh
@@ -78,24 +81,27 @@ $(INCLUDES)/wren.h: $(LIBS)/libwren.a
 $(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
 	cd $(UTILS) && ./generateEmbedModules.sh
 
-$(EXENAME): $(SOURCE)/*.c $(MODULES)/*.c $(UTILS)/font.c $(INCLUDES) $(MODULES)/*.inc $(INCLUDES)/wren.h $(INCLUDES)/ffi.h $(LIBS)/libwren.a $(LIBS)/libffi.a
+$(EXENAME): $(SOURCE)/*.c $(MODULES)/*.c $(UTILS)/font.c $(INCLUDES) $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwren.a $(FFI_DEPS)
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(EXENAME) $(LDFLAGS) $(IFLAGS)
 	$(warning $(MODE))
 ifneq (, $(findstring Darwin, $(SYS)))
 	install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2.dylib $(EXENAME)
 endif
 
-.PHONY: clean clean-all cloc
-clean-all:
-	rm -rf $(EXENAME) $(LIBS)/wren $(LIBS)/libwren.a $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwrend.a $(LIBS)/libffi  $(LIBS)/libffi.a $(INCLUDES)/ffi.h $(INCLUDES)/ffitarget..a
-
-clean:
-	rm -rf $(EXENAME) $(MODULES)/*.inc
-
-cloc:
-	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util|include|lib" -not-match-f ".inc" src
-
+# Used for the example game FFI test
 libadd.so: test/add.c
 	$(CC) -O -fno-common -c test/add.c $(IFLAGS) -o test/add.o -g
 	$(CC) -flat_namespace -bundle -undefined suppress -o libadd.so test/add.o
 	rm test/add.o
+
+.PHONY: clean clean-all cloc
+clean-all:
+	rm -rf $(EXENAME) $(LIBS)/wren $(LIBS)/libwren.a $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwrend.a $(LIBS)/libffi $(LIBS)/libffi.a $(INCLUDES)/ffi.h $(INCLUDES)/ffitarget.h
+
+clean:
+	rm -rf $(EXENAME) $(MODULES)/*.inc
+
+# Counts the number of lines used, for vanity
+cloc:
+	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util|include|lib" -not-match-f ".inc" src
+

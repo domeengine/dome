@@ -3,12 +3,12 @@
 ffi
 ================
 
-The `ffi` module provides an interface to dynamically loaded libraries (DLLs) written and compiled from other languages.
-It uses `libffi` so you can define the functions provided by the DLL and then call methods from it.
+The `ffi` module provides an interface to dynamically loaded libraries (DLLs) written and compiled from other languages, allowing you to extend the functionality of DOME.
 
-The purpose is to allow you to hook into other libraries to extend the functionality of DOME, when needed.
+You do this by first declaring the API that the functions within the DLL expect, and then calling it appropriately.
+This module depends on `libffi` and is considered optional, so it is only included if DOME is built using `DOME_OPTS_FFI=1` when running `make`.
 
-Accessing DLLs and using libffi calls is a very low level operation, and comes with certain caveats:
+Accessing methods using this module is a very low level operation, and comes with certain caveats:
  * Calls using FFI will not be very performant.
  * There is no type-checking between your function definition and the function being called. Mistakes will lead to crashes and unexpected behaviour.
  * You will have to be aware of the memory implications of your calls into the DLL.
@@ -16,7 +16,7 @@ Accessing DLLs and using libffi calls is a very low level operation, and comes w
 
 # Types
 
-Types are referred to as a string of the C type, except for "pointer" and the names of pre-defined structs.
+Types are referred to as a string of the C type, except for "pointer" and the names of user-defined structs.
 
 It contains the following classes:
 
