@@ -58,13 +58,16 @@ endif
 
 
 
+.PHONY: all clean reset cloc $(lIBS)/libffi $(LIBS)/wren
 all: $(EXENAME)
 
-$(LIBS)/libffi: 
+$(LIBS)/libffi/autogen.sh:
 	git submodule update --init -- $(LIBS)/libffi
+$(LIBS)/libffi: $(LIBS)/libffi/autogen.sh
 
-$(LIBS)/wren: 
+$(LIBS)/wren/Makefile: 
 	git submodule update --init -- $(LIBS)/wren
+$(LIBS)/wren: $(LIBS)/wren/Makefile
 	
 $(LIBS)/libffi.a: $(LIBS)/libffi
 	./setup_ffi.sh
@@ -94,9 +97,9 @@ libadd.so: test/add.c
 	$(CC) -flat_namespace -bundle -undefined suppress -o libadd.so test/add.o
 	rm test/add.o
 
-.PHONY: clean clean-all cloc
-clean-all:
-	rm -rf $(EXENAME) $(LIBS)/wren $(LIBS)/libwren.a $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwrend.a $(LIBS)/libffi $(LIBS)/libffi.a $(INCLUDES)/ffi.h $(INCLUDES)/ffitarget.h
+reset:
+	git submodule foreach --recursive git clean -xfd
+	rm -rf .mode $(EXENAME) $(LIBS)/libwren.a $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwrend.a $(LIBS)/libffi.a $(INCLUDES)/ffi.h $(INCLUDES)/ffitarget.h
 
 clean:
 	rm -rf $(EXENAME) $(MODULES)/*.inc
