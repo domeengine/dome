@@ -47,6 +47,11 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.allocate = AUDIO_CHANNEL_allocate;
       methods.finalize = AUDIO_CHANNEL_finalize;
     }
+  } else if (STRINGS_EQUAL(module, "input")) {
+    if (STRINGS_EQUAL(className, "GamePad")) {
+      methods.allocate = GAMEPAD_allocate;
+      methods.finalize = GAMEPAD_finalize;
+    }
   } else {
     // TODO: Check if it's a module we lazy-loaded
 
@@ -176,6 +181,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "input", "Mouse", "x", true, MOUSE_getX);
   MAP_add(&engine->fnMap, "input", "Mouse", "y", true, MOUSE_getY);
   MAP_add(&engine->fnMap, "input", "Mouse", "isButtonPressed(_)", true, MOUSE_isButtonPressed);
+  MAP_add(&engine->fnMap, "input", "GamePad", "isButtonPressed(_)", false, GAMEPAD_isButtonPressed);
 
   return vm;
 }

@@ -54,8 +54,8 @@
 #define STRINGS_EQUAL(a, b) (strcmp(a, b) == 0)
 
 #define VM_ABORT(vm, error) do {\
-    wrenSetSlotString(vm, 1, error);\
-    wrenAbortFiber(vm, 1); \
+    wrenSetSlotString(vm, 0, error);\
+    wrenAbortFiber(vm, 0); \
 } while(false);
 
 
