@@ -74,7 +74,7 @@ GAMEPAD_finalize(void* data) {
 
 internal void
 GAMEPAD_isButtonPressed(WrenVM* vm) {
-  GAMEPAD* gamepad = wrenGetSlotForeign(vm, 1);
+  GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
   int buttonIndex = 0;
   WrenType type = wrenGetSlotType(vm, 1);
   if (type == WREN_TYPE_STRING) {

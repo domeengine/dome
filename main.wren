@@ -1,4 +1,4 @@
-import "input" for Keyboard, Mouse
+import "input" for Keyboard, Mouse, GamePad
 import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
@@ -253,22 +253,22 @@ class MainGame {
     var y = 0
     AudioEngine.setChannelPan(__channel, (((__t / 60) % 20) * 0.1) - 1 )
     if (__ship.health > 0) {
-      if (Keyboard.isKeyDown("left")) {
+      if (Keyboard.isKeyDown("left") || GamePad[0].isButtonPressed("left")) {
         x = -1
       }
-      if (Keyboard.isKeyDown("right")) {
+      if (Keyboard.isKeyDown("right") || GamePad[0].isButtonPressed("right")) {
         x = 1
       }
-      if (Keyboard.isKeyDown("up")) {
+      if (Keyboard.isKeyDown("up") || GamePad[0].isButtonPressed("up")) {
         y = -1
       }
-      if (Keyboard.isKeyDown("down")) {
+      if (Keyboard.isKeyDown("down") || GamePad[0].isButtonPressed("down")) {
         y = 1
       }
       if (Keyboard.isKeyDown("escape")) {
         Process.exit()
       }
-      if (Keyboard.isKeyDown("space")) {
+      if (Keyboard.isKeyDown("space") || GamePad[0].isButtonPressed("A")) {
         if ((__t - __lastFire) > 10) {
           __bullets.add(Bullet.fire(__ship.x+2, __ship.y))
           __lastFire = __t
