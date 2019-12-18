@@ -3,4 +3,5 @@
 	url = https://github.com/wren-lang/wren.git
 [submodule "libffi"]
 	path = src/lib/libffi
+  ignore = dirty
 	url = https://github.com/libffi/libffi

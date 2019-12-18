@@ -58,7 +58,7 @@ endif
 
 
 
-.PHONY: all clean reset cloc $(lIBS)/libffi $(LIBS)/wren
+.PHONY: all clean reset cloc
 all: $(EXENAME)
 
 $(LIBS)/libffi/autogen.sh:
