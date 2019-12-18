@@ -265,10 +265,10 @@ class MainGame {
       if (Keyboard.isKeyDown("down") || GamePad[0].isButtonPressed("down") || GamePad[0].getAnalogStick("left").y > 0.25) {
         y = 1
       }
-      if (Keyboard.isKeyDown("escape")) {
+      if (Keyboard.isKeyDown("escape") || GamePad[0].isButtonPressed("guide")) {
         Process.exit()
       }
-      if (Keyboard.isKeyDown("space") || GamePad[0].isButtonPressed("A")) {
+      if (Keyboard.isKeyDown("space") || GamePad[0].isButtonPressed("A") || GamePad[0].getTrigger("right") > 0.75) {
         if ((__t - __lastFire) > 10) {
           __bullets.add(Bullet.fire(__ship.x+2, __ship.y))
           __lastFire = __t

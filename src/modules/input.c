@@ -91,6 +91,8 @@ GAMEPAD_isButtonPressed(WrenVM* vm) {
       buttonIndex = SDL_CONTROLLER_BUTTON_START;
     } else if (STRINGS_EQUAL(buttonName, "back")) {
       buttonIndex = SDL_CONTROLLER_BUTTON_BACK;
+    } else if (STRINGS_EQUAL(buttonName, "guide")) {
+      buttonIndex = SDL_CONTROLLER_BUTTON_GUIDE;
     } else if (STRINGS_EQUAL(buttonName, "left_shoulder")) {
       buttonIndex = SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
     } else if (STRINGS_EQUAL(buttonName, "right_shoulder")) {
