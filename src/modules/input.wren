@@ -1,3 +1,5 @@
+import "vector" for Vector
+
 class Keyboard {
   foreign static isKeyDown(key)
 }
@@ -11,6 +13,12 @@ class Mouse {
 foreign class GamePad {
   construct open(index) {}
   foreign isButtonPressed(key)
+  foreign f_getAnalogStick(side)
+  foreign getTrigger(side)
+  getAnalogStick(side) {
+    var stick = f_getAnalogStick(side)
+    return Vector.new(stick[0], stick[1])
+  }
 
   static s_initialise() {
     System.print("Gamepad activation")
