@@ -253,16 +253,16 @@ class MainGame {
     var y = 0
     AudioEngine.setChannelPan(__channel, (((__t / 60) % 20) * 0.1) - 1 )
     if (__ship.health > 0) {
-      if (Keyboard.isKeyDown("left") || GamePad[0].isButtonPressed("left")) {
+      if (Keyboard.isKeyDown("left") || GamePad[0].isButtonPressed("left") || GamePad[0].getAnalogStick("left").x < -0.25) {
         x = -1
       }
-      if (Keyboard.isKeyDown("right") || GamePad[0].isButtonPressed("right")) {
+      if (Keyboard.isKeyDown("right") || GamePad[0].isButtonPressed("right") || GamePad[0].getAnalogStick("left").x > 0.25) {
         x = 1
       }
-      if (Keyboard.isKeyDown("up") || GamePad[0].isButtonPressed("up")) {
+      if (Keyboard.isKeyDown("up") || GamePad[0].isButtonPressed("up") || GamePad[0].getAnalogStick("left").y < -0.25) {
         y = -1
       }
-      if (Keyboard.isKeyDown("down") || GamePad[0].isButtonPressed("down")) {
+      if (Keyboard.isKeyDown("down") || GamePad[0].isButtonPressed("down") || GamePad[0].getAnalogStick("left").y > 0.25) {
         y = 1
       }
       if (Keyboard.isKeyDown("escape")) {
