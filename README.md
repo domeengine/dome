@@ -76,6 +76,9 @@ DOME provides the following modules/methods/classes:
 - ImageData
   - Draw sprites loaded from files
 - Input
+  - Keyboard
+  - Mouse
+  - Gamepads
 - IO
   - Asynchronous
   - File reading
@@ -95,7 +98,6 @@ You can follow my progress on implementing DOME on [my twitter](https://twitter.
   - HTTP client (optional)
 - Math (Better API for Num class functions)
 - Robust error checking and sandboxing
-- Documentation
 - Memory leak checks
 
 ## Dependencies
