@@ -191,7 +191,16 @@ GAMEPAD_getName(WrenVM* vm) {
     return;
   }
   wrenSetSlotString(vm, 0, SDL_GameControllerName(gamepad->controller));
+}
 
+internal void
+GAMEPAD_getId(WrenVM* vm) {
+  GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
+  if (gamepad->controller == NULL) {
+    wrenSetSlotDouble(vm, 0, -1);
+    return;
+  }
+  wrenSetSlotDouble(vm, 0, gamepad->id);
 }
 
 internal void

@@ -13,6 +13,7 @@ class Mouse {
 foreign class GamePad {
   construct open(index) {}
   foreign attached
+  foreign id
   foreign name
   foreign f_isButtonPressed(key)
   isButtonPressed(key) {
@@ -48,6 +49,15 @@ foreign class GamePad {
       __pads[n] = GamePad.open(-1)
     }
     return __pads[n]
+  }
+
+  static close(n) {
+    if (!__pads) {
+      __pads = {}
+    }
+    if (__pads[n]) {
+      __pads[n] = null
+    }
   }
 }
 
