@@ -28,10 +28,16 @@ foreign class GamePad {
 
   foreign static f_getGamePadIds()
   static discover() {
-    return f_getGamePadIds().map {|id|
-      GamePad[id]
-      return id
+    if (!__pads) {
+      __pads = {}
+      var i = 0
+      f_getGamePadIds().each {|id|
+        __pads[i] = GamePad.open(id)
+        System.print("Registered %(id) as %(i)")
+        i = i + 1
+      }
     }
+    return __pads.count
   }
 
   static [n] {
@@ -39,8 +45,7 @@ foreign class GamePad {
       __pads = {}
     }
     if (!__pads[n]) {
-      __pads[n] = GamePad.open(n)
-      System.print(n)
+      __pads[n] = GamePad.open(-1)
     }
     return __pads[n]
   }
