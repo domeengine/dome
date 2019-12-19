@@ -21,7 +21,7 @@ internal void MOUSE_isButtonPressed(WrenVM* vm) {
   WrenType type = wrenGetSlotType(vm, 1);
   int buttonIndex = 0;
   if (type == WREN_TYPE_STRING) {
-    char* buttonName = wrenGetSlotString(vm, 1);
+    char* buttonName = strToLower(wrenGetSlotString(vm, 1));
     if (STRINGS_EQUAL(buttonName, "left")) {
       buttonIndex = SDL_BUTTON_LEFT;
     } else if (STRINGS_EQUAL(buttonName, "middle")) {
@@ -36,6 +36,7 @@ internal void MOUSE_isButtonPressed(WrenVM* vm) {
       VM_ABORT(vm, "Unknown mouse button name");
       return;
     }
+    free(buttonName);
   } else if (type == WREN_TYPE_NUM) {
     buttonIndex = wrenGetSlotDouble(vm, 1);
   }
@@ -78,14 +79,14 @@ GAMEPAD_finalize(void* data) {
 internal void
 GAMEPAD_isButtonPressed(WrenVM* vm) {
   GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
-  if (gamepad->controller != NULL) {
+  if (gamepad->controller == NULL) {
     wrenSetSlotBool(vm, 0, false);
     return;
   }
   int buttonIndex = 0;
   WrenType type = wrenGetSlotType(vm, 1);
   if (type == WREN_TYPE_STRING) {
-    char* buttonName = wrenGetSlotString(vm, 1);
+    char* buttonName = strToLower(wrenGetSlotString(vm, 1));
     if (STRINGS_EQUAL(buttonName, "up")) {
       buttonIndex = SDL_CONTROLLER_BUTTON_DPAD_UP;
     } else if (STRINGS_EQUAL(buttonName, "left")) {
@@ -100,22 +101,27 @@ GAMEPAD_isButtonPressed(WrenVM* vm) {
       buttonIndex = SDL_CONTROLLER_BUTTON_BACK;
     } else if (STRINGS_EQUAL(buttonName, "guide")) {
       buttonIndex = SDL_CONTROLLER_BUTTON_GUIDE;
-    } else if (STRINGS_EQUAL(buttonName, "left_shoulder")) {
+    } else if (STRINGS_EQUAL(buttonName, "leftstick")) {
+      buttonIndex = SDL_CONTROLLER_BUTTON_LEFTSTICK;
+    } else if (STRINGS_EQUAL(buttonName, "rightstick")) {
+      buttonIndex = SDL_CONTROLLER_BUTTON_RIGHTSTICK;
+    } else if (STRINGS_EQUAL(buttonName, "leftshoulder")) {
       buttonIndex = SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
-    } else if (STRINGS_EQUAL(buttonName, "right_shoulder")) {
+    } else if (STRINGS_EQUAL(buttonName, "rightshoulder")) {
       buttonIndex = SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
-    } else if (STRINGS_EQUAL(buttonName, "A")) {
+    } else if (STRINGS_EQUAL(buttonName, "a")) {
       buttonIndex = SDL_CONTROLLER_BUTTON_A;
-    } else if (STRINGS_EQUAL(buttonName, "B")) {
+    } else if (STRINGS_EQUAL(buttonName, "b")) {
       buttonIndex = SDL_CONTROLLER_BUTTON_B;
-    } else if (STRINGS_EQUAL(buttonName, "X")) {
+    } else if (STRINGS_EQUAL(buttonName, "x")) {
       buttonIndex = SDL_CONTROLLER_BUTTON_X;
-    } else if (STRINGS_EQUAL(buttonName, "Y")) {
+    } else if (STRINGS_EQUAL(buttonName, "y")) {
       buttonIndex = SDL_CONTROLLER_BUTTON_Y;
     } else {
       VM_ABORT(vm, "Unknown controller button name");
       return;
     }
+    free(buttonName);
   } else if (type == WREN_TYPE_NUM) {
     buttonIndex = wrenGetSlotDouble(vm, 1);
   }
@@ -126,19 +132,18 @@ GAMEPAD_isButtonPressed(WrenVM* vm) {
 internal void
 GAMEPAD_getAnalogStick(WrenVM* vm) {
   GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
-  if (gamepad->controller != NULL) {
-    wrenSetSlotDouble(vm, 0, 0.0);
-    return;
-  }
-  char* side = wrenGetSlotString(vm, 1);
   int16_t x = 0;
   int16_t y = 0;
-  if (STRINGS_EQUAL(side, "left")) {
-    x = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_LEFTX);
-    y = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_LEFTY);
-  } else if (STRINGS_EQUAL(side, "right")) {
-    x = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_RIGHTX);
-    y = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_RIGHTY);
+  if (gamepad->controller != NULL) {
+    char* side = strToLower(wrenGetSlotString(vm, 1));
+    if (STRINGS_EQUAL(side, "left")) {
+      x = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_LEFTX);
+      y = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_LEFTY);
+    } else if (STRINGS_EQUAL(side, "right")) {
+      x = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_RIGHTX);
+      y = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_RIGHTY);
+    }
+    free(side);
   }
 
   wrenSetSlotNewList(vm, 0);
@@ -151,17 +156,18 @@ GAMEPAD_getAnalogStick(WrenVM* vm) {
 internal void
 GAMEPAD_getTrigger(WrenVM* vm) {
   GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
-  if (gamepad->controller != NULL) {
+  if (gamepad->controller == NULL) {
     wrenSetSlotDouble(vm, 0, 0.0);
     return;
   }
-  char* side = wrenGetSlotString(vm, 1);
+  char* side = strToLower(wrenGetSlotString(vm, 1));
   int triggerIndex = SDL_CONTROLLER_AXIS_INVALID;
   if (STRINGS_EQUAL(side, "left")) {
     triggerIndex = SDL_CONTROLLER_AXIS_TRIGGERLEFT;
   } else if (STRINGS_EQUAL(side, "right")) {
     triggerIndex = SDL_CONTROLLER_AXIS_TRIGGERRIGHT;
   }
+  free(side);
 
   int16_t value = SDL_GameControllerGetAxis(gamepad->controller, triggerIndex);
   wrenSetSlotDouble(vm, 0, (double)value / SHRT_MAX);
@@ -170,9 +176,20 @@ GAMEPAD_getTrigger(WrenVM* vm) {
 internal void
 GAMEPAD_isAttached(WrenVM* vm) {
   GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
-  if (gamepad->controller != NULL) {
+  if (gamepad->controller == NULL) {
     wrenSetSlotBool(vm, 0, false);
     return;
   }
   wrenSetSlotBool(vm, 0, SDL_GameControllerGetAttached(gamepad->controller) == SDL_TRUE);
+}
+
+internal void
+GAMEPAD_getName(WrenVM* vm) {
+  GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
+  if (gamepad->controller == NULL) {
+    wrenSetSlotString(vm, 0, "NONE");
+    return;
+  }
+  wrenSetSlotString(vm, 0, SDL_GameControllerName(gamepad->controller));
+
 }

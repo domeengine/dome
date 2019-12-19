@@ -13,7 +13,12 @@ class Mouse {
 foreign class GamePad {
   construct open(index) {}
   foreign attached
-  foreign isButtonPressed(key)
+  foreign name
+  foreign f_isButtonPressed(key)
+  isButtonPressed(key) {
+    return f_isButtonPressed(key)
+  }
+
   foreign f_getAnalogStick(side)
   foreign getTrigger(side)
   getAnalogStick(side) {

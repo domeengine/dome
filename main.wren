@@ -252,23 +252,24 @@ class MainGame {
     var x = 0
     var y = 0
     AudioEngine.setChannelPan(__channel, (((__t / 60) % 20) * 0.1) - 1 )
+    var gamepad = GamePad[0]
     if (__ship.health > 0) {
-      if (Keyboard.isKeyDown("left") || GamePad[0].isButtonPressed("left") || GamePad[0].getAnalogStick("left").x < -0.25) {
+      if (Keyboard.isKeyDown("left") || gamepad.isButtonPressed("left") || gamepad.getAnalogStick("left").x < -0.25) {
         x = -1
       }
-      if (Keyboard.isKeyDown("right") || GamePad[0].isButtonPressed("right") || GamePad[0].getAnalogStick("left").x > 0.25) {
+      if (Keyboard.isKeyDown("right") || gamepad.isButtonPressed("right") || gamepad.getAnalogStick("left").x > 0.25) {
         x = 1
       }
-      if (Keyboard.isKeyDown("up") || GamePad[0].isButtonPressed("up") || GamePad[0].getAnalogStick("left").y < -0.25) {
+      if (Keyboard.isKeyDown("up") || gamepad.isButtonPressed("up") || gamepad.getAnalogStick("left").y < -0.25) {
         y = -1
       }
-      if (Keyboard.isKeyDown("down") || GamePad[0].isButtonPressed("down") || GamePad[0].getAnalogStick("left").y > 0.25) {
+      if (Keyboard.isKeyDown("down") || gamepad.isButtonPressed("down") || gamepad.getAnalogStick("left").y > 0.25) {
         y = 1
       }
-      if (Keyboard.isKeyDown("escape") || GamePad[0].isButtonPressed("guide")) {
+      if (Keyboard.isKeyDown("escape") || gamepad.isButtonPressed("guide")) {
         Process.exit()
       }
-      if (Keyboard.isKeyDown("space") || GamePad[0].isButtonPressed("A") || GamePad[0].getTrigger("right") > 0.75) {
+      if (Keyboard.isKeyDown("space") || gamepad.isButtonPressed("A") || gamepad.getTrigger("right") > 0.75) {
         if ((__t - __lastFire) > 10) {
           __bullets.add(Bullet.fire(__ship.x+2, __ship.y))
           __lastFire = __t

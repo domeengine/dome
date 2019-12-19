@@ -73,6 +73,7 @@ global_variable WrenHandle* bufferClass = NULL;
 
 // Game code
 #include "math.c"
+#include "strings.c"
 #include "debug.c"
 /*
 #include "util/font.c"
