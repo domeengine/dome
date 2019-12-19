@@ -43,6 +43,8 @@ You can use an index from 1-5 (button 0 is invalid) or a lowercase name:
 
 You can use a game pad as input for your games. DOME expects a game pad similar to those used by popular games consoles, with a D-Pad, face buttons, triggers and analog sticks.
 
+DOME does not support hot-plugging. A gamepad has to be plugged in before the application starts up in order to be read. If it is disconnected, the game will no longer be able to read it's values, even if it is plugged in.
+
 ### Static Methods
 
 #### `static discover(): List<Number>`
