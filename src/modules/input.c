@@ -51,8 +51,11 @@ typedef struct {
 internal void
 GAMEPAD_allocate(WrenVM* vm) {
   int joystickId = floor(wrenGetSlotDouble(vm, 1));
+  GAMEPAD* gamepad = wrenSetSlotNewForeign(vm, 0, 0, sizeof(GAMEPAD));
+  gamepad->id = joystickId;
+
   if (SDL_IsGameController(joystickId) == SDL_FALSE) {
-    VM_ABORT(vm, "Invalid game controller id");
+    gamepad->controller = NULL;
     return;
   }
   SDL_GameController* controller = SDL_GameControllerOpen(joystickId);
@@ -60,21 +63,25 @@ GAMEPAD_allocate(WrenVM* vm) {
     VM_ABORT(vm, "Could not open gamepad");
     return;
   }
-  GAMEPAD* gamepad = wrenSetSlotNewForeign(vm, 0, 0, sizeof(GAMEPAD));
   gamepad->controller = controller;
-  gamepad->id = joystickId;
   printf("%i", gamepad->id);
 }
 
 internal void
 GAMEPAD_finalize(void* data) {
   GAMEPAD* gamepad = data;
-  SDL_GameControllerClose(gamepad->controller);
+  if (gamepad->controller != NULL) {
+    SDL_GameControllerClose(gamepad->controller);
+  }
 }
 
 internal void
 GAMEPAD_isButtonPressed(WrenVM* vm) {
   GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
+  if (gamepad->controller != NULL) {
+    wrenSetSlotBool(vm, 0, false);
+    return;
+  }
   int buttonIndex = 0;
   WrenType type = wrenGetSlotType(vm, 1);
   if (type == WREN_TYPE_STRING) {
@@ -119,6 +126,10 @@ GAMEPAD_isButtonPressed(WrenVM* vm) {
 internal void
 GAMEPAD_getAnalogStick(WrenVM* vm) {
   GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
+  if (gamepad->controller != NULL) {
+    wrenSetSlotDouble(vm, 0, 0.0);
+    return;
+  }
   char* side = wrenGetSlotString(vm, 1);
   int16_t x = 0;
   int16_t y = 0;
@@ -136,9 +147,14 @@ GAMEPAD_getAnalogStick(WrenVM* vm) {
   wrenSetSlotDouble(vm, 1, (double)y / SHRT_MAX);
   wrenInsertInList(vm, 0, 1, 1);
 }
+
 internal void
 GAMEPAD_getTrigger(WrenVM* vm) {
   GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
+  if (gamepad->controller != NULL) {
+    wrenSetSlotDouble(vm, 0, 0.0);
+    return;
+  }
   char* side = wrenGetSlotString(vm, 1);
   int triggerIndex = SDL_CONTROLLER_AXIS_INVALID;
   if (STRINGS_EQUAL(side, "left")) {
@@ -149,4 +165,14 @@ GAMEPAD_getTrigger(WrenVM* vm) {
 
   int16_t value = SDL_GameControllerGetAxis(gamepad->controller, triggerIndex);
   wrenSetSlotDouble(vm, 0, (double)value / SHRT_MAX);
+}
+
+internal void
+GAMEPAD_isAttached(WrenVM* vm) {
+  GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
+  if (gamepad->controller != NULL) {
+    wrenSetSlotBool(vm, 0, false);
+    return;
+  }
+  wrenSetSlotBool(vm, 0, SDL_GameControllerGetAttached(gamepad->controller) == SDL_TRUE);
 }
