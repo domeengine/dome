@@ -193,3 +193,20 @@ GAMEPAD_getName(WrenVM* vm) {
   wrenSetSlotString(vm, 0, SDL_GameControllerName(gamepad->controller));
 
 }
+
+internal void
+GAMEPAD_getGamePadIds(WrenVM* vm) {
+  int maxJoysticks = SDL_NumJoysticks();
+  int listCount = 0;
+  wrenEnsureSlots(vm, 2);
+  wrenSetSlotNewList(vm, 0);
+  for(int joystickId = 0; joystickId < maxJoysticks; joystickId++) {
+    if (!SDL_IsGameController(joystickId)) {
+      continue;
+    }
+    wrenSetSlotDouble(vm, 1, joystickId);
+    wrenInsertInList(vm, 0, listCount, 1);
+    listCount++;
+  }
+}
+

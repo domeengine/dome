@@ -26,8 +26,12 @@ foreign class GamePad {
     return Vector.new(stick[0], stick[1])
   }
 
-  static s_initialise() {
-    System.print("Gamepad activation")
+  foreign static f_getGamePadIds()
+  static discover() {
+    return f_getGamePadIds().each {|id|
+      GamePad[id]
+      return id
+    }
 
   }
 
@@ -44,7 +48,7 @@ foreign class GamePad {
 }
 
 
-GamePad.s_initialise()
+GamePad.discover()
 System.print(GamePad[0].isButtonPressed("X"))
 
 

@@ -181,6 +181,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "input", "Mouse", "x", true, MOUSE_getX);
   MAP_add(&engine->fnMap, "input", "Mouse", "y", true, MOUSE_getY);
   MAP_add(&engine->fnMap, "input", "Mouse", "isButtonPressed(_)", true, MOUSE_isButtonPressed);
+  MAP_add(&engine->fnMap, "input", "GamePad", "f_getGamePadIds()", true, GAMEPAD_getGamePadIds);
   MAP_add(&engine->fnMap, "input", "GamePad", "f_isButtonPressed(_)", false, GAMEPAD_isButtonPressed);
   MAP_add(&engine->fnMap, "input", "GamePad", "getTrigger(_)", false, GAMEPAD_getTrigger);
   MAP_add(&engine->fnMap, "input", "GamePad", "f_getAnalogStick(_)", false, GAMEPAD_getAnalogStick);
