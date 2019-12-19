@@ -28,11 +28,10 @@ foreign class GamePad {
 
   foreign static f_getGamePadIds()
   static discover() {
-    return f_getGamePadIds().each {|id|
+    return f_getGamePadIds().map {|id|
       GamePad[id]
       return id
     }
-
   }
 
   static [n] {
@@ -47,8 +46,5 @@ foreign class GamePad {
   }
 }
 
-
 GamePad.discover()
-System.print(GamePad[0].isButtonPressed("X"))
-
 
