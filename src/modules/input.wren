@@ -31,14 +31,13 @@ foreign class GamePad {
   static discover() {
     if (!__pads) {
       __pads = {}
-      var i = 0
       f_getGamePadIds().each {|id|
-        __pads[i] = GamePad.open(id)
-        System.print("Registered %(id) as %(i)")
-        i = i + 1
+        var pad = GamePad.open(id)
+        __pads[pad.instanceId] = pad
+        System.print("Registered %(id) as %(pad.instanceId)")
       }
     }
-    return __pads.count
+    return __pads.keys
   }
 
   static [n] {

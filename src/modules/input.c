@@ -45,7 +45,8 @@ internal void MOUSE_isButtonPressed(WrenVM* vm) {
 }
 
 typedef struct {
-  int id;
+  int joystickId;
+  int instanceId;
   SDL_GameController* controller;
 } GAMEPAD;
 
@@ -53,7 +54,7 @@ internal void
 GAMEPAD_allocate(WrenVM* vm) {
   int joystickId = floor(wrenGetSlotDouble(vm, 1));
   GAMEPAD* gamepad = wrenSetSlotNewForeign(vm, 0, 0, sizeof(GAMEPAD));
-  gamepad->id = joystickId;
+  gamepad->joystickId = joystickId;
 
   if (SDL_IsGameController(joystickId) == SDL_FALSE) {
     gamepad->controller = NULL;
@@ -64,8 +65,9 @@ GAMEPAD_allocate(WrenVM* vm) {
     VM_ABORT(vm, "Could not open gamepad");
     return;
   }
+  gamepad->instanceId = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller));
   gamepad->controller = controller;
-  printf("%i", gamepad->id);
+  printf("%i", gamepad->joystickId);
 }
 
 internal void
@@ -200,7 +202,16 @@ GAMEPAD_getId(WrenVM* vm) {
     wrenSetSlotDouble(vm, 0, -1);
     return;
   }
-  wrenSetSlotDouble(vm, 0, gamepad->id);
+  wrenSetSlotDouble(vm, 0, gamepad->joystickId);
+}
+internal void
+GAMEPAD_getInstanceId(WrenVM* vm) {
+  GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
+  if (gamepad->controller == NULL) {
+    wrenSetSlotDouble(vm, 0, -1);
+    return;
+  }
+  wrenSetSlotDouble(vm, 0, gamepad->instanceId);
 }
 
 internal void
