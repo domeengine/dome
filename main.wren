@@ -245,9 +245,6 @@ class MainGame {
     // AudioEngine.load("music", "res/music.wav")
 
     __channel = AudioEngine.play("music", 1, true, -0.5)
-
-    __gamepad = GamePad[0]
-    __attached = __gamepad.attached
   }
 
   static update() {
@@ -255,14 +252,7 @@ class MainGame {
     var x = 0
     var y = 0
     AudioEngine.setChannelPan(__channel, (((__t / 60) % 20) * 0.1) - 1 )
-    var gamepad = __gamepad
-    if (__attached && !gamepad.attached) {
-      var ids = GamePad.discover().where {|id| GamePad[id].attached }.toList
-      if (ids.count > 0) {
-        __gamepad = GamePad[ids[0]]
-      }
-
-    }
+    var gamepad = GamePad.next
     if (__ship.health > 0) {
       if (Keyboard.isKeyDown("left") || gamepad.isButtonPressed("left") || gamepad.getAnalogStick("left").x < -0.25) {
         x = -1

@@ -67,15 +67,26 @@ GAMEPAD_allocate(WrenVM* vm) {
   }
   gamepad->instanceId = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller));
   gamepad->controller = controller;
-  printf("%i", gamepad->joystickId);
 }
 
 internal void
-GAMEPAD_finalize(void* data) {
-  GAMEPAD* gamepad = data;
+closeController(GAMEPAD* gamepad) {
   if (gamepad->controller != NULL) {
     SDL_GameControllerClose(gamepad->controller);
+    gamepad->controller = NULL;
   }
+}
+
+internal void
+GAMEPAD_close(WrenVM* vm) {
+  GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
+  closeController(gamepad);
+}
+
+
+internal void
+GAMEPAD_finalize(void* data) {
+  closeController((GAMEPAD*)data);
 }
 
 internal void

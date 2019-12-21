@@ -252,15 +252,19 @@ int main(int argc, char* args[])
           } break;
         case SDL_CONTROLLERDEVICEADDED:
           {
-            printf("Controller %i Added\n", event.cdevice.which);
+            WrenHandle* addedMethod = wrenMakeCallHandle(vm, "addGamePad(_)");
+            wrenSetSlotDouble(vm, 1, event.cdevice.which);
+            wrenGetVariable(vm, "input", "GamePad", 0);
+            wrenCall(vm, addedMethod);
+            wrenReleaseHandle(vm, addedMethod);
           } break;
         case SDL_CONTROLLERDEVICEREMOVED:
           {
-            printf("Controller %i Removed\n", event.cdevice.which);
-          } break;
-        case SDL_JOYDEVICEREMOVED:
-          {
-            printf("Joystick %i Removed\n", event.jdevice.which);
+            WrenHandle* removeMethod = wrenMakeCallHandle(vm, "removeGamePad(_)");
+            wrenSetSlotDouble(vm, 1, event.cdevice.which);
+            wrenGetVariable(vm, "input", "GamePad", 0);
+            wrenCall(vm, removeMethod);
+            wrenReleaseHandle(vm, removeMethod);
           } break;
         case SDL_USEREVENT:
           {

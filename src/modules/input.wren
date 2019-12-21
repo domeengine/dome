@@ -11,47 +11,63 @@ class Mouse {
 }
 
 foreign class GamePad {
+
   construct open(index) {}
+  foreign close()
+
   foreign attached
   foreign id
   foreign instanceId
   foreign name
-  foreign f_isButtonPressed(key)
   isButtonPressed(key) {
     return f_isButtonPressed(key)
   }
 
+  foreign f_isButtonPressed(key)
   foreign f_getAnalogStick(side)
   foreign getTrigger(side)
+
   getAnalogStick(side) {
     var stick = f_getAnalogStick(side)
     return Vector.new(stick[0], stick[1])
   }
 
-  foreign static f_getGamePadIds()
-  static discover() {
-    if (!__pads) {
-      __pads = {}
-    }
+  static init_() {
+    __pads = {}
+    __dummy = GamePad.open(-1)
     f_getGamePadIds().each {|id|
-      var pad = GamePad.open(id)
-      __pads[pad.instanceId] = pad
-      System.print("Registered %(id) as %(pad.instanceId)")
+      addGamePad(id)
     }
-    return __pads.keys
   }
 
   static [n] {
-    if (!__pads) {
-      __pads = {}
-      __pads[-1] = GamePad.open(-1)
-    }
     if (!__pads[n]) {
-      return __pads[-1]
+      return __dummy
     }
     return __pads[n]
   }
+
+  static all { __pads.values }
+  static next {
+    if (__pads.count > 0) {
+      return __pads.values.where {|pad| pad.attached }.toList[0]
+    } else {
+      return __dummy
+    }
+  }
+
+  static addGamePad(joystickId) {
+    var pad = GamePad.open(joystickId)
+    __pads[pad.instanceId] = pad
+  }
+
+  static removeGamePad(instanceId) {
+    __pads[instanceId].close()
+    __pads.remove(instanceId)
+  }
+
+  foreign static f_getGamePadIds()
 }
 
-GamePad.discover()
+GamePad.init_()
 
