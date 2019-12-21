@@ -252,19 +252,11 @@ int main(int argc, char* args[])
           } break;
         case SDL_CONTROLLERDEVICEADDED:
           {
-            WrenHandle* addedMethod = wrenMakeCallHandle(vm, "addGamePad(_)");
-            wrenSetSlotDouble(vm, 1, event.cdevice.which);
-            wrenGetVariable(vm, "input", "GamePad", 0);
-            wrenCall(vm, addedMethod);
-            wrenReleaseHandle(vm, addedMethod);
+            GAMEPAD_eventAdded(vm, event.cdevice.which);
           } break;
         case SDL_CONTROLLERDEVICEREMOVED:
           {
-            WrenHandle* removeMethod = wrenMakeCallHandle(vm, "removeGamePad(_)");
-            wrenSetSlotDouble(vm, 1, event.cdevice.which);
-            wrenGetVariable(vm, "input", "GamePad", 0);
-            wrenCall(vm, removeMethod);
-            wrenReleaseHandle(vm, removeMethod);
+            GAMEPAD_eventRemoved(vm, event.cdevice.which);
           } break;
         case SDL_USEREVENT:
           {

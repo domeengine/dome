@@ -241,3 +241,21 @@ GAMEPAD_getGamePadIds(WrenVM* vm) {
   }
 }
 
+internal void
+GAMEPAD_eventAdded(WrenVM* vm, int joystickId) {
+  WrenHandle* addedMethod = wrenMakeCallHandle(vm, "addGamePad(_)");
+  wrenSetSlotDouble(vm, 1, joystickId);
+  wrenGetVariable(vm, "input", "GamePad", 0);
+  wrenCall(vm, addedMethod);
+  wrenReleaseHandle(vm, addedMethod);
+}
+
+
+internal void
+GAMEPAD_eventRemoved(WrenVM* vm, int instanceId) {
+  WrenHandle* removeMethod = wrenMakeCallHandle(vm, "removeGamePad(_)");
+  wrenSetSlotDouble(vm, 1, instanceId);
+  wrenGetVariable(vm, "input", "GamePad", 0);
+  wrenCall(vm, removeMethod);
+  wrenReleaseHandle(vm, removeMethod);
+}
