@@ -1,4 +1,4 @@
-import "input" for Keyboard
+import "input" for Keyboard, Mouse, GamePad
 import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
@@ -45,6 +45,8 @@ class Game {
       System.print("loaded")
       System.print(__settingsFile.data)
     }
+    __x = Mouse.x
+    __y = Mouse.y
 
     __state.update()
     if (__state.next) {
@@ -54,6 +56,9 @@ class Game {
   }
   static draw(dt) {
     __state.draw(dt)
+    if (Mouse.isButtonPressed("right")) {
+      Canvas.pset(__x, __y, Color.orange)
+    }
   }
 }
 
@@ -247,23 +252,24 @@ class MainGame {
     var x = 0
     var y = 0
     AudioEngine.setChannelPan(__channel, (((__t / 60) % 20) * 0.1) - 1 )
+    var gamepad = GamePad.next
     if (__ship.health > 0) {
-      if (Keyboard.isKeyDown("left")) {
+      if (Keyboard.isKeyDown("left") || gamepad.isButtonPressed("left") || gamepad.getAnalogStick("left").x < -0.25) {
         x = -1
       }
-      if (Keyboard.isKeyDown("right")) {
+      if (Keyboard.isKeyDown("right") || gamepad.isButtonPressed("right") || gamepad.getAnalogStick("left").x > 0.25) {
         x = 1
       }
-      if (Keyboard.isKeyDown("up")) {
+      if (Keyboard.isKeyDown("up") || gamepad.isButtonPressed("up") || gamepad.getAnalogStick("left").y < -0.25) {
         y = -1
       }
-      if (Keyboard.isKeyDown("down")) {
+      if (Keyboard.isKeyDown("down") || gamepad.isButtonPressed("down") || gamepad.getAnalogStick("left").y > 0.25) {
         y = 1
       }
-      if (Keyboard.isKeyDown("escape")) {
+      if (Keyboard.isKeyDown("escape") || gamepad.isButtonPressed("guide")) {
         Process.exit()
       }
-      if (Keyboard.isKeyDown("space")) {
+      if (Keyboard.isKeyDown("space") || gamepad.isButtonPressed("A") || gamepad.getTrigger("right") > 0.75) {
         if ((__t - __lastFire) > 10) {
           __bullets.add(Bullet.fire(__ship.x+2, __ship.y))
           __lastFire = __t

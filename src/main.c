@@ -54,8 +54,8 @@
 #define STRINGS_EQUAL(a, b) (strcmp(a, b) == 0)
 
 #define VM_ABORT(vm, error) do {\
-    wrenSetSlotString(vm, 1, error);\
-    wrenAbortFiber(vm, 1); \
+    wrenSetSlotString(vm, 0, error);\
+    wrenAbortFiber(vm, 0); \
 } while(false);
 
 
@@ -73,6 +73,7 @@ global_variable WrenHandle* bufferClass = NULL;
 
 // Game code
 #include "math.c"
+#include "strings.c"
 #include "debug.c"
 /*
 #include "util/font.c"
@@ -225,6 +226,12 @@ int main(int argc, char* args[])
         case SDL_QUIT:
           engine.running = false;
           break;
+        case SDL_WINDOWEVENT:
+          {
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+              SDL_RenderGetViewport(engine.renderer, &(engine.viewport));
+            }
+          } break;
         case SDL_KEYDOWN:
         case SDL_KEYUP:
           {
@@ -242,6 +249,14 @@ int main(int argc, char* args[])
               }
               stbi_write_png("screenshot.png", engine.width, engine.height, 4, destroyableImage, engine.width * 4);
             }
+          } break;
+        case SDL_CONTROLLERDEVICEADDED:
+          {
+            GAMEPAD_eventAdded(vm, event.cdevice.which);
+          } break;
+        case SDL_CONTROLLERDEVICEREMOVED:
+          {
+            GAMEPAD_eventRemoved(vm, event.cdevice.which);
           } break;
         case SDL_USEREVENT:
           {

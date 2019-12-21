@@ -47,6 +47,11 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.allocate = AUDIO_CHANNEL_allocate;
       methods.finalize = AUDIO_CHANNEL_finalize;
     }
+  } else if (STRINGS_EQUAL(module, "input")) {
+    if (STRINGS_EQUAL(className, "GamePad")) {
+      methods.allocate = GAMEPAD_allocate;
+      methods.finalize = GAMEPAD_finalize;
+    }
   } else {
     // TODO: Check if it's a module we lazy-loaded
 
@@ -173,6 +178,17 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // Input
   MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, KEYBOARD_isKeyDown);
+  MAP_add(&engine->fnMap, "input", "Mouse", "x", true, MOUSE_getX);
+  MAP_add(&engine->fnMap, "input", "Mouse", "y", true, MOUSE_getY);
+  MAP_add(&engine->fnMap, "input", "Mouse", "isButtonPressed(_)", true, MOUSE_isButtonPressed);
+  MAP_add(&engine->fnMap, "input", "GamePad", "f_getGamePadIds()", true, GAMEPAD_getGamePadIds);
+  MAP_add(&engine->fnMap, "input", "GamePad", "f_isButtonPressed(_)", false, GAMEPAD_isButtonPressed);
+  MAP_add(&engine->fnMap, "input", "GamePad", "getTrigger(_)", false, GAMEPAD_getTrigger);
+  MAP_add(&engine->fnMap, "input", "GamePad", "close()", false, GAMEPAD_close);
+  MAP_add(&engine->fnMap, "input", "GamePad", "f_getAnalogStick(_)", false, GAMEPAD_getAnalogStick);
+  MAP_add(&engine->fnMap, "input", "GamePad", "attached", false, GAMEPAD_isAttached);
+  MAP_add(&engine->fnMap, "input", "GamePad", "name", false, GAMEPAD_getName);
+  MAP_add(&engine->fnMap, "input", "GamePad", "id", false, GAMEPAD_getId);
 
   return vm;
 }
