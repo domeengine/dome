@@ -43,12 +43,15 @@ You can use an index from 1-5 (button 0 is invalid) or a lowercase name:
 
 You can use a game pad as input for your games. DOME expects a game pad similar to those used by popular games consoles, with a D-Pad, face buttons, triggers and analog sticks.
 
-DOME does not support hot-plugging. A gamepad has to be plugged in before the application starts up in order to be read. If it is disconnected, the game will no longer be able to read it's values, even if it is plugged in.
+### Static Fields
+
+#### `all: List<GamePad>`
+Returns a list of GamePad objects representing all attached gamepads.
+
+#### `next: GamePad`
+Returns a GamePad representing an arbitrary attached gamepad. This isn't guarenteed to return the same object every time, so you should cache it.
 
 ### Static Methods
-
-#### `static discover(): List<Number>`
-This is called at start up and initialises all connected game pads. You can call it to fetch the total number of discovered gamepads
 
 #### `[id]: GamePad`
 This will return an object representing a GamePad. You can then read the state of that gamepad using the instance methods below.
@@ -58,6 +61,8 @@ If no gamepads are attached, you will receive a "dummy" object which will report
 ### Instance Fields
 #### `attached: Boolean`
 This returns true if the gamepad is still attached to the system.
+#### `instanceId: Number`
+Returns the instance id for this gamepad, which can be used to fetch it using `GamePad[instanceId]`.
 #### `name: String`
 If the gamepad is attached, this returns the SDL internal name for that device.
 
