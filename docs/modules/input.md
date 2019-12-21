@@ -61,8 +61,8 @@ If no gamepads are attached, you will receive a "dummy" object which will report
 ### Instance Fields
 #### `attached: Boolean`
 This returns true if the gamepad is still attached to the system.
-#### `instanceId: Number`
-Returns the instance id for this gamepad, which can be used to fetch it using `GamePad[instanceId]`.
+#### `id: Number`
+Returns the instance id for this gamepad, which can be used to fetch it using `GamePad[id]`.
 #### `name: String`
 If the gamepad is attached, this returns the SDL internal name for that device.
 
