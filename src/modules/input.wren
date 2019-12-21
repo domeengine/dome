@@ -14,6 +14,7 @@ foreign class GamePad {
   construct open(index) {}
   foreign attached
   foreign id
+  foreign instanceId
   foreign name
   foreign f_isButtonPressed(key)
   isButtonPressed(key) {
@@ -31,11 +32,11 @@ foreign class GamePad {
   static discover() {
     if (!__pads) {
       __pads = {}
-      f_getGamePadIds().each {|id|
-        var pad = GamePad.open(id)
-        __pads[pad.instanceId] = pad
-        System.print("Registered %(id) as %(pad.instanceId)")
-      }
+    }
+    f_getGamePadIds().each {|id|
+      var pad = GamePad.open(id)
+      __pads[pad.instanceId] = pad
+      System.print("Registered %(id) as %(pad.instanceId)")
     }
     return __pads.keys
   }
@@ -43,20 +44,12 @@ foreign class GamePad {
   static [n] {
     if (!__pads) {
       __pads = {}
+      __pads[-1] = GamePad.open(-1)
     }
     if (!__pads[n]) {
-      __pads[n] = GamePad.open(-1)
+      return __pads[-1]
     }
     return __pads[n]
-  }
-
-  static close(n) {
-    if (!__pads) {
-      __pads = {}
-    }
-    if (__pads[n]) {
-      __pads[n] = null
-    }
   }
 }
 

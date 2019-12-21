@@ -250,6 +250,18 @@ int main(int argc, char* args[])
               stbi_write_png("screenshot.png", engine.width, engine.height, 4, destroyableImage, engine.width * 4);
             }
           } break;
+        case SDL_CONTROLLERDEVICEADDED:
+          {
+            printf("Controller %i Added\n", event.cdevice.which);
+          } break;
+        case SDL_CONTROLLERDEVICEREMOVED:
+          {
+            printf("Controller %i Removed\n", event.cdevice.which);
+          } break;
+        case SDL_JOYDEVICEREMOVED:
+          {
+            printf("Joystick %i Removed\n", event.jdevice.which);
+          } break;
         case SDL_USEREVENT:
           {
             printf("Event code %i\n", event.user.code);
