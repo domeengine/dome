@@ -17,7 +17,6 @@ foreign class GamePad {
 
   foreign attached
   foreign id
-  foreign instanceId
   foreign name
   isButtonPressed(key) {
     return f_isButtonPressed(key)
@@ -58,7 +57,7 @@ foreign class GamePad {
 
   static addGamePad(joystickId) {
     var pad = GamePad.open(joystickId)
-    __pads[pad.instanceId] = pad
+    __pads[pad.id] = pad
   }
 
   static removeGamePad(instanceId) {

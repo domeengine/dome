@@ -189,7 +189,6 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "input", "GamePad", "attached", false, GAMEPAD_isAttached);
   MAP_add(&engine->fnMap, "input", "GamePad", "name", false, GAMEPAD_getName);
   MAP_add(&engine->fnMap, "input", "GamePad", "id", false, GAMEPAD_getId);
-  MAP_add(&engine->fnMap, "input", "GamePad", "instanceId", false, GAMEPAD_getInstanceId);
 
   return vm;
 }
