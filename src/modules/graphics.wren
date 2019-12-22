@@ -13,6 +13,19 @@ class Canvas {
   foreign static f_resize(width, height, color)
   static resize(width, height) { resize(width, height, Color.black) }
   static resize(width, height, c) {
+    if (width < 0) {
+      Fiber.abort("Window can't have a negative width")
+    }
+    if (height < 0) {
+      Fiber.abort("Window can't have a negative height")
+    }
+
+    if (width > 4096) {
+      Fiber.abort("Window can't be wider than 4096")
+    }
+    if (height > 2160) {
+      Fiber.abort("Window can't be wider than 2160")
+    }
     if (c is Color) {
       f_resize(width, height, c.rgb)
     } else {
