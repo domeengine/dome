@@ -8,8 +8,9 @@ DOME includes a number of modules to interact with the user through graphics and
 The modules you can import are here:
 
 * [audio](audio)
-* [graphics](graphics)
+* [dome](dome)
 * [ffi](ffi)
+* [graphics](graphics)
 * [input](input)
 * [io](io)
 
