@@ -31,6 +31,7 @@ class Box {
 class Game {
   static init() {
     Window.title = "Example Game"
+    System.print(Window.title)
     __state = MainGame
     __state.init()
     __done = false

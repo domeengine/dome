@@ -26,3 +26,9 @@ WINDOW_setTitle(WrenVM* vm) {
   char* title = wrenGetSlotString(vm, 1);
   SDL_SetWindowTitle(engine->window, title);
 }
+
+internal void
+WINDOW_getTitle(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotString(vm, 0, SDL_GetWindowTitle(engine->window));
+}
