@@ -101,6 +101,8 @@ ENGINE_init(ENGINE* engine) {
   engine->pixels = NULL;
   engine->debugEnabled = false;
   engine->debug.alpha = 0.9;
+  engine->width = GAME_WIDTH;
+  engine->height = GAME_HEIGHT;
 
   //Create window
   engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
@@ -118,17 +120,15 @@ ENGINE_init(ENGINE* engine) {
     result = EXIT_FAILURE;
     goto engine_init_end;
   }
-  SDL_RenderSetLogicalSize(engine->renderer, GAME_WIDTH, GAME_HEIGHT);
+  SDL_RenderSetLogicalSize(engine->renderer, engine->width, engine->height);
 
-  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, GAME_WIDTH, GAME_HEIGHT);
+  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, engine->width, engine->height);
   if (engine->texture == NULL) {
     result = EXIT_FAILURE;
     goto engine_init_end;
   }
 
-  engine->pixels = malloc(GAME_WIDTH * GAME_HEIGHT * 4);
-  engine->width = GAME_WIDTH;
-  engine->height = GAME_HEIGHT;
+  engine->pixels = malloc(engine->width * engine->height * 4);
   if (engine->pixels == NULL) {
     result = EXIT_FAILURE;
     goto engine_init_end;
@@ -201,11 +201,13 @@ ENGINE_free(ENGINE* engine) {
 inline internal void
 ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
   // Draw pixel at (x,y)
+  int32_t width = engine->width;
+  int32_t height = engine->height;
   if ((c & (0xFF << 24)) == 0) {
     return;
-  } else if (0 <= x && x < GAME_WIDTH && 0 <= y && y < GAME_HEIGHT) {
+  } else if (0 <= x && x < width && 0 <= y && y < height) {
     if (((c & (0xFF << 24)) >> 24) < 0xFF) {
-      uint32_t current = ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x];
+      uint32_t current = ((uint32_t*)(engine->pixels))[width * y + x];
 
       // uint16_t oldA = (0xFF000000 & current) >> 24;
       uint16_t newA = (0xFF000000 & c) >> 24;
@@ -223,7 +225,7 @@ ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
 
       c = (a << 24) | (r << 16) | (g << 8) | b;
     }
-    ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x] = c;
+    ((uint32_t*)(engine->pixels))[width * y + x] = c;
   }
 }
 
@@ -486,10 +488,12 @@ ENGINE_rect(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t
 
 internal void
 ENGINE_rectfill(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t c) {
-  int16_t x1 = mid(0, x, GAME_WIDTH);
-  int16_t y1 = mid(0, y, GAME_HEIGHT);
-  int16_t x2 = mid(0, x + w, GAME_WIDTH);
-  int16_t y2 = mid(0, y + h, GAME_HEIGHT);
+  int32_t width = engine->width;
+  int32_t height = engine->height;
+  int16_t x1 = mid(0, x, width);
+  int16_t y1 = mid(0, y, height);
+  int16_t x2 = mid(0, x + w, width);
+  int16_t y2 = mid(0, y + h, height);
 
   for (uint16_t j = y1; j < y2; j++) {
     for (uint16_t i = x1; i < x2; i++) {
@@ -547,9 +551,33 @@ ENGINE_drawDebug(ENGINE* engine) {
   double alpha = debug->alpha;
   debug->avgFps = alpha * debug->avgFps + (1.0 - alpha) * framesThisSecond;
   snprintf(buffer, sizeof(buffer), "%.01f fps", debug->avgFps);   // here 2 means binary
-  int16_t startX = GAME_WIDTH - 4*8-2;
-  int16_t startY = GAME_HEIGHT - 8-2;
+  int32_t width = engine->width;
+  int32_t height = engine->height;
+  int16_t startX = width - 4*8-2;
+  int16_t startY = height - 8-2;
 
   ENGINE_rectfill(engine, startX, startY, 4*8+2, 10, 0x7F000000);
   ENGINE_print(engine, buffer, startX+1,startY+1, 0xFFFFFFFF);
+}
+
+internal bool
+ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint32_t color) {
+  engine->width = newWidth;
+  engine->height = newHeight;
+  SDL_RenderSetLogicalSize(engine->renderer, newWidth, newHeight);
+
+  // TODO: Destroy old texture
+  SDL_DestroyTexture(engine->texture);
+  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, newWidth, newHeight);
+  if (engine->texture == NULL) {
+    return false;
+  }
+
+  engine->pixels = realloc(engine->pixels, engine->width * engine->height * 4);
+  if (engine->pixels == NULL) {
+    return false;
+  }
+  ENGINE_rectfill(engine, 0, 0, engine->width, engine->height, color);
+
+  return true;
 }

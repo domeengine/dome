@@ -59,6 +59,11 @@ Draw a rectangle with the top-left corner at (_x, y_), with a width of _w_ and _
 #### `static rectfill(x: Number, y: Number, w: Number, h: Number, c: Color) `
 Draw a filled rectangle with the top-left corner at (_x, y_), with a width of _w_ and _h_ in color _c_.
 
+#### `static resize(width: Number, height: Number)`
+#### `static resize(width: Number, height: Number, c: Color)`
+Resize the canvas to the given `width` and `height`, and reset the color of the canvas to `c`.
+If `c` isn't provided, we default to black.
+
 ## Color
 
 An instance of the `Color` class represents a single color which can be used for drawing.

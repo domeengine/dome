@@ -245,6 +245,7 @@ class MainGame {
     // AudioEngine.load("music", "res/music.wav")
 
     __channel = AudioEngine.play("music", 1, true, -0.5)
+    Canvas.resize(320, 240)
   }
 
   static update() {

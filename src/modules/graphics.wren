@@ -10,15 +10,24 @@ import "vector" for Point
       This class provides static methods for drawing primitives and images.
 */
 class Canvas {
- foreign static f_pset(x, y, c)
- foreign static f_line(x1, y1, x2, y2, c)
- foreign static f_rectfill(x, y, w, h, c)
- foreign static f_rect(x, y, w, h, c)
- foreign static f_print(str, x, y, c)
- foreign static f_circle(x, y, r, c)
- foreign static f_circlefill(x, y, r, c)
- foreign static f_ellipse(x1, y1, x2, y2, c)
- foreign static f_ellipsefill(x1, y1, x2, y2, c)
+  foreign static f_resize(width, height, color)
+  static resize(width, height) { resize(width, height, Color.black) }
+  static resize(width, height, c) {
+    if (c is Color) {
+      f_resize(width, height, c.rgb)
+    } else {
+      f_resize(width, height, c)
+    }
+  }
+  foreign static f_pset(x, y, c)
+  foreign static f_line(x1, y1, x2, y2, c)
+  foreign static f_rectfill(x, y, w, h, c)
+  foreign static f_rect(x, y, w, h, c)
+  foreign static f_print(str, x, y, c)
+  foreign static f_circle(x, y, r, c)
+  foreign static f_circlefill(x, y, r, c)
+  foreign static f_ellipse(x1, y1, x2, y2, c)
+  foreign static f_ellipsefill(x1, y1, x2, y2, c)
 
  /**
      @Method pset
@@ -36,88 +45,88 @@ class Canvas {
          @Type Color | number
          The 32-bit value or Color object representing the color the pixel should be set to.
  */
- static pset(x, y, c) {
-   if (c is Color) {
-     f_pset(x, y, c.rgb)
-   } else {
-     f_pset(x, y, c)
-   }
+  static pset(x, y, c) {
+    if (c is Color) {
+      f_pset(x, y, c.rgb)
+    } else {
+      f_pset(x, y, c)
+    }
+  }
 
- }
- static line(x0, y0, x1, y1, c) {
-   if (c is Color) {
-     f_line(x0, y0, x1, y1, c.rgb)
-   } else {
-     f_line(x0, y0, x1, y1, c)
-   }
- }
- static ellipse(x0, y0, x1, y1, c) {
-   if (c is Color) {
-     f_ellipse(x0, y0, x1, y1, c.rgb)
-   } else {
-     f_ellipse(x0, y0, x1, y1, c)
-   }
- }
- static ellipsefill(x0, y0, x1, y1, c) {
-   if (c is Color) {
-     f_ellipsefill(x0, y0, x1, y1, c.rgb)
-   } else {
-     f_ellipsefill(x0, y0, x1, y1, c)
-   }
- }
- static rect(x, y, w, h, c) {
-   if (c is Color) {
-     f_rect(x, y, w, h, c.rgb)
-   } else {
-     f_rect(x, y, w, h, c)
-   }
- }
- static rectfill(x, y, w, h, c) {
-   if (c is Color) {
-     f_rectfill(x, y, w, h, c.rgb)
-   } else {
-     f_rectfill(x, y, w, h, c)
-   }
- }
- static circle(x, y, r, c) {
-   if (c is Color) {
-     f_circle(x, y, r, c.rgb)
-   } else {
-     f_circle(x, y, r, c)
-   }
- }
- static circlefill(x, y, r, c) {
-   if (c is Color) {
-     f_circlefill(x, y, r, c.rgb)
-   } else {
-     f_circlefill(x, y, r, c)
-   }
- }
- static print(str, x, y, c) {
-   var color = Color.white
-   if (c is Color) {
-     color = c
-   }
-   f_print(str, x, y, color.rgb)
- }
- static cls() {
-   cls(Color.black)
- }
- static cls(c) {
-   var color = Color.black
-   if (c is Color) {
-     color = c
-   }
-   rectfill(0, 0, Canvas.width, Canvas.height, color.rgb)
- }
- static width { 320 }
- static height { 240 }
+  static line(x0, y0, x1, y1, c) {
+    if (c is Color) {
+      f_line(x0, y0, x1, y1, c.rgb)
+    } else {
+      f_line(x0, y0, x1, y1, c)
+    }
+  }
+  static ellipse(x0, y0, x1, y1, c) {
+    if (c is Color) {
+      f_ellipse(x0, y0, x1, y1, c.rgb)
+    } else {
+      f_ellipse(x0, y0, x1, y1, c)
+    }
+  }
+  static ellipsefill(x0, y0, x1, y1, c) {
+    if (c is Color) {
+      f_ellipsefill(x0, y0, x1, y1, c.rgb)
+    } else {
+      f_ellipsefill(x0, y0, x1, y1, c)
+    }
+  }
+  static rect(x, y, w, h, c) {
+    if (c is Color) {
+      f_rect(x, y, w, h, c.rgb)
+    } else {
+      f_rect(x, y, w, h, c)
+    }
+  }
+  static rectfill(x, y, w, h, c) {
+    if (c is Color) {
+      f_rectfill(x, y, w, h, c.rgb)
+    } else {
+      f_rectfill(x, y, w, h, c)
+    }
+  }
+  static circle(x, y, r, c) {
+    if (c is Color) {
+      f_circle(x, y, r, c.rgb)
+    } else {
+      f_circle(x, y, r, c)
+    }
+  }
+  static circlefill(x, y, r, c) {
+    if (c is Color) {
+      f_circlefill(x, y, r, c.rgb)
+    } else {
+      f_circlefill(x, y, r, c)
+    }
+  }
+  static print(str, x, y, c) {
+    var color = Color.white
+    if (c is Color) {
+      color = c
+    }
+    f_print(str, x, y, color.rgb)
+  }
+  static cls() {
+    cls(Color.black)
+  }
+  static cls(c) {
+    var color = Color.black
+    if (c is Color) {
+      color = c
+    }
+    rectfill(0, 0, Canvas.width, Canvas.height, color.rgb)
+  }
+  foreign static width
+  foreign static height
 
- static draw(object, x, y) {
-   if (object is ImageData) {
-     object.draw(x, y)
-   }
- }
+  static draw(object, x, y) {
+    if (object is ImageData) {
+      object.draw(x, y)
+    }
+  }
 }
 
 /**

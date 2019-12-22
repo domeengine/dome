@@ -148,6 +148,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_ellipse(_,_,_,_,_)", true, CANVAS_ellipse);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_ellipsefill(_,_,_,_,_)", true, CANVAS_ellipsefill);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_print(_,_,_,_)", true, CANVAS_print);
+  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_resize(_,_,_)", true, CANVAS_resize);
+  MAP_add(&engine->fnMap, "graphics", "Canvas", "width", true, CANVAS_getWidth);
+  MAP_add(&engine->fnMap, "graphics", "Canvas", "height", true, CANVAS_getHeight);
   MAP_add(&engine->fnMap, "graphics", "ImageData", "draw(_,_)", false, IMAGE_draw);
   MAP_add(&engine->fnMap, "graphics", "ImageData", "width", false, IMAGE_getWidth);
   MAP_add(&engine->fnMap, "graphics", "ImageData", "height", false, IMAGE_getHeight);
