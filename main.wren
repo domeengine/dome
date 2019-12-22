@@ -2,7 +2,7 @@ import "input" for Keyboard, Mouse, GamePad
 import "graphics" for Canvas, Color, ImageData, Point
 import "audio" for AudioEngine
 import "random" for Random
-import "dome" for Process
+import "dome" for Process, Window
 import "io" for FileSystem
 
 // ONLY ENABLE THIS IF FFI IS ENABLED
@@ -30,6 +30,7 @@ class Box {
 
 class Game {
   static init() {
+    Window.title = "Example Game"
     __state = MainGame
     __state.init()
     __done = false
@@ -254,6 +255,20 @@ class MainGame {
     var y = 0
     AudioEngine.setChannelPan(__channel, (((__t / 60) % 20) * 0.1) - 1 )
     var gamepad = GamePad.next
+    if (!__resized && Keyboard.isKeyDown("c")) {
+      __resized = true
+      if (Canvas.width != 64) {
+        Canvas.resize(64, 64)
+        Window.resize(64 * 2, 64 * 2)
+      } else {
+        Canvas.resize(320, 240)
+        Window.resize(320 * 2, 240 * 2)
+      }
+    } else if (!Keyboard.isKeyDown("c")) {
+      __resized = false
+
+    }
+
     if (__ship.health > 0) {
       if (Keyboard.isKeyDown("left") || gamepad.isButtonPressed("left") || gamepad.getAnalogStick("left").x < -0.25) {
         x = -1
