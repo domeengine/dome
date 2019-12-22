@@ -12,11 +12,9 @@ As of 03/07/2018, DOME is in a pre-alpha state. None of the API is stable and it
 
 ### Build
 
-Ensure you have the shared SDL2 libraries installed on your system first.
+Ensure you have the shared SDL2 libraries installed on your system first, then to build, run:
 
 ```bash
-> git submodule init
-> git submodule update
 > make
 ```
 
@@ -69,7 +67,7 @@ class Game {
 DOME provides the following modules/methods/classes:
 - Graphics
   - Color
-  - Rectfill
+  - Rect
   - Point
   - Circle
   - Lines
@@ -104,7 +102,7 @@ You can follow my progress on implementing DOME on [my twitter](https://twitter.
 
 DOME currently depends on a few libraries to achieve it's functions.
 - Wren (This is built by `make` automatically)
-- SDL2 (version 2.0.4 or newer, 2.0.8 may crash)
+- SDL2 (version 2.0.4 or newer)
 - libffi (version 3.3 or newer, but optional)
 - stb_image
 - stb_image_write
