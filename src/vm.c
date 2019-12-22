@@ -126,6 +126,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // DOME
   MAP_add(&engine->fnMap, "dome", "Process", "f_exit(_)", true, PROCESS_exit);
+  MAP_add(&engine->fnMap, "dome", "Window", "resize(_,_)", true, WINDOW_resize);
+  MAP_add(&engine->fnMap, "dome", "Window", "title=(_)", true, WINDOW_setTitle);
 
 #if DOME_OPT_FFI
   // FFI

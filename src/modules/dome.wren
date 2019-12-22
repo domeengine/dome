@@ -6,3 +6,8 @@ class Process {
   }
 }
 
+class Window {
+  foreign static resize(width, height)
+  foreign static title=(value)
+}
+
