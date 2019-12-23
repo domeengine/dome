@@ -150,6 +150,13 @@ FILESYSTEM_loadSync(WrenVM* vm) {
 
   size_t length;
   char* data = ENGINE_readFile(engine, path, &length);
+  if (data == NULL) {
+    size_t len = 22 + strlen(path);
+    char message[len];
+    snprintf(message, len, "Could not find file: %s", path);
+    VM_ABORT(vm, message);
+    return;
+  }
   wrenEnsureSlots(vm, 1);
   wrenSetSlotBytes(vm, 0, data, length);
   free(data);

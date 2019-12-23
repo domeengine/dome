@@ -55,14 +55,13 @@ ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
       strcpy(pathBuf, "./");
     }
     strcat(pathBuf, path);
-    // printf("Reading tar: %s\n", pathBuf);
     mtar_header_t h;
     int success = mtar_find(engine->tar, pathBuf, &h);
     if (success == MTAR_ESUCCESS) {
       return readFileFromTar(engine->tar, pathBuf, lengthPtr);
     } else if (success != MTAR_ENOTFOUND) {
       printf("Error: There was a problem reading %s from the bundle.\n", pathBuf);
-      abort();
+      return NULL;
     }
     printf("Couldn't find %s in bundle, falling back.\n", pathBuf);
   }
