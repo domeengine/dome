@@ -1,5 +1,7 @@
 // TODO: We need this for realpath in BSD, but it won't be available in windows (_fullpath)
+#define DOME_VERSION "1.0.0-ALPHA"
 #define _DEFAULT_SOURCE
+
 
 // Standard libs
 #include <stdio.h>
@@ -19,6 +21,9 @@
 #if DOME_OPT_FFI
 #include <ffi.h>
 #endif
+
+#define OPTPARSE_IMPLEMENTATION
+#include <optparse.h>
 
 #include <microtar/microtar.h>
 #include <microtar/microtar.c>
@@ -93,6 +98,21 @@ global_variable WrenHandle* bufferClass = NULL;
 #include "modules/input.c"
 #include "vm.c"
 
+internal void
+printVersion(void) {
+  printf("DOME - Dynamic Opinionated Mini Engine\n");
+  printf("Version: " DOME_VERSION " - " HASH"\n");
+}
+
+
+internal void
+printUsage(void) {
+  printVersion();
+  printf("No entry path was provided.\n");
+  printf("Usage: \n");
+  printf("  ./dome [entry path]\n");
+}
+
 int main(int argc, char* args[])
 {
 
@@ -117,46 +137,70 @@ int main(int argc, char* args[])
   }
 
   // TODO: Use getopt to parse the arguments better
-  if (argc >= 2 && argc <= 3) {
-    gameFile = ENGINE_readFile(&engine, args[1], &gameFileLength);
-    if (gameFile == NULL) {
-      printf("%s does not exist.\n", args[1]);
-      result = EXIT_FAILURE;
-      goto cleanup;
+  struct optparse_long longopts[] = {
+        {"version", 'v', OPTPARSE_NONE},
+        {"record", 'r', OPTPARSE_NONE},
+        {0}
+    };
+  // char *arg;
+  int option;
+  struct optparse options;
+  optparse_init(&options, args);
+  while ((option = optparse_long(&options, longopts, NULL)) != -1) {
+    switch (option) {
+      case 'v':
+        printVersion();
+        goto cleanup;
+      case 'r':
+        makeGif = true;
+        if (options.optarg != NULL) {
+          gifName = options.optarg;
+        } else {
+          gifName = "dome.gif";
+        }
+        printf("GIF Recording is enabled: Saving to %s\n", gifName);
+        break;
+      case '?':
+        fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
+        result = EXIT_FAILURE;
+        goto cleanup;
     }
-    if (argc == 3) {
-      printf("GIF Recording is enabled\n");
-      makeGif = true;
-      gifName = args[2];
-    }
-  } else {
-    // Test for game.egg first
-    char* base = SDL_GetBasePath();
+  }
+
+  {
     char* fileName = "game.egg";
     char* mainFileName = "main.wren";
+    char* base = SDL_GetBasePath();
+    char* arg = optparse_arg(&options);
+    if (arg != NULL) {
+      fileName = arg;
+    }
     char pathBuf[strlen(base)+strlen(fileName)+1];
     strcpy(pathBuf, base);
     strcat(pathBuf, fileName);
-    if (doesFileExist(pathBuf)) {
-      printf("Loading bundle %s\n", pathBuf);
-      engine.tar = malloc(sizeof(mtar_t));
-      mtar_open(engine.tar, pathBuf, "r");
-      gameFile = ENGINE_readFile(&engine, mainFileName, &gameFileLength);
-    } else {
-      fileName = mainFileName;
-      char pathBuf[strlen(base)+strlen(fileName)+1];
-      strcpy(pathBuf, base);
-      strcat(pathBuf, fileName);
-      gameFile = ENGINE_readFile(&engine, fileName, &gameFileLength);
-      if (gameFile == NULL) {
-        // file doesn't exist
-        printf("No entry path was provided.\n");
-        printf("Usage: ./dome [entry path]\n");
-        result = EXIT_FAILURE;
-        goto cleanup;
-      }
-    }
     SDL_free(base);
+
+    if (doesFileExist(pathBuf)) {
+      engine.tar = malloc(sizeof(mtar_t));
+      int tarResult = mtar_open(engine.tar, pathBuf, "r");
+      if (tarResult != MTAR_ESUCCESS) {
+        mtar_close(engine.tar);
+        fileName = arg;
+        engine.tar = NULL;
+      } else {
+        printf("Loading bundle %s\n", pathBuf);
+        fileName = mainFileName;
+      }
+    } else if (arg == NULL) {
+      fileName = mainFileName;
+    }
+    gameFile = ENGINE_readFile(&engine, fileName, &gameFileLength);
+    if (gameFile == NULL) {
+      printUsage();
+      printf("Error: %s does not exist.\n", fileName);
+      result = EXIT_FAILURE;
+      goto cleanup;
+    }
   }
 
   result = ENGINE_init(&engine);
