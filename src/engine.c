@@ -112,7 +112,11 @@ ENGINE_init(ENGINE* engine) {
     goto engine_init_end;
   }
 
+  #if ENABLE_VSYNC
   engine->renderer = SDL_CreateRenderer(engine->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  #else
+  engine->renderer = SDL_CreateRenderer(engine->window, -1, SDL_RENDERER_ACCELERATED /*| SDL_RENDERER_PRESENTVSYNC */);
+  #endif
   if (engine->renderer == NULL)
   {
     SDL_Log("Could not create a renderer: %s", SDL_GetError());
