@@ -7,8 +7,9 @@ DOME is a framework for making 2D games using the Wren programming language whic
 * [Getting Started](getting-started)
 * [Modules](modules/)
   * [audio](modules/audio)
-  * [graphics](modules/graphics)
+  * [dome](modules/dome)
   * [ffi](modules/ffi)
+  * [graphics](modules/graphics)
   * [input](modules/input)
   * [io](modules/io)
 * Guides

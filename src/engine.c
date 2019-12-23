@@ -101,6 +101,8 @@ ENGINE_init(ENGINE* engine) {
   engine->pixels = NULL;
   engine->debugEnabled = false;
   engine->debug.alpha = 0.9;
+  engine->width = GAME_WIDTH;
+  engine->height = GAME_HEIGHT;
 
   //Create window
   engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
@@ -118,17 +120,15 @@ ENGINE_init(ENGINE* engine) {
     result = EXIT_FAILURE;
     goto engine_init_end;
   }
-  SDL_RenderSetLogicalSize(engine->renderer, GAME_WIDTH, GAME_HEIGHT);
+  SDL_RenderSetLogicalSize(engine->renderer, engine->width, engine->height);
 
-  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, GAME_WIDTH, GAME_HEIGHT);
+  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, engine->width, engine->height);
   if (engine->texture == NULL) {
     result = EXIT_FAILURE;
     goto engine_init_end;
   }
 
-  engine->pixels = malloc(GAME_WIDTH * GAME_HEIGHT * 4);
-  engine->width = GAME_WIDTH;
-  engine->height = GAME_HEIGHT;
+  engine->pixels = malloc(engine->width * engine->height * 4);
   if (engine->pixels == NULL) {
     result = EXIT_FAILURE;
     goto engine_init_end;
@@ -199,13 +199,15 @@ ENGINE_free(ENGINE* engine) {
 }
 
 inline internal void
-ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
+ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
   // Draw pixel at (x,y)
+  int32_t width = engine->width;
+  int32_t height = engine->height;
   if ((c & (0xFF << 24)) == 0) {
     return;
-  } else if (0 <= x && x < GAME_WIDTH && 0 <= y && y < GAME_HEIGHT) {
+  } else if (0 <= x && x < width && 0 <= y && y < height) {
     if (((c & (0xFF << 24)) >> 24) < 0xFF) {
-      uint32_t current = ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x];
+      uint32_t current = ((uint32_t*)(engine->pixels))[width * y + x];
 
       // uint16_t oldA = (0xFF000000 & current) >> 24;
       uint16_t newA = (0xFF000000 & c) >> 24;
@@ -223,12 +225,12 @@ ENGINE_pset(ENGINE* engine, int16_t x, int16_t y, uint32_t c) {
 
       c = (a << 24) | (r << 16) | (g << 8) | b;
     }
-    ((uint32_t*)(engine->pixels))[GAME_WIDTH * y + x] = c;
+    ((uint32_t*)(engine->pixels))[width * y + x] = c;
   }
 }
 
 internal void
-ENGINE_print(ENGINE* engine, char* text, uint16_t x, uint16_t y, uint32_t c) {
+ENGINE_print(ENGINE* engine, char* text, int64_t x, int64_t y, uint32_t c) {
   int fontWidth = 8;
   int fontHeight = 8;
   int cursor = 0;
@@ -253,18 +255,18 @@ ENGINE_print(ENGINE* engine, char* text, uint16_t x, uint16_t y, uint32_t c) {
 }
 
 internal void
-ENGINE_line_high(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint32_t c) {
-  int16_t dx = x2 - x1;
-  int16_t dy = y2 - y1;
-  int16_t xi = 1;
+ENGINE_line_high(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c) {
+  int64_t dx = x2 - x1;
+  int64_t dy = y2 - y1;
+  int64_t xi = 1;
   if (dx < 0) {
     xi = -1;
     dx = -dx;
   }
-  int16_t p = 2 * dx - dy;
+  int64_t p = 2 * dx - dy;
 
-  int16_t y = y1;
-  int16_t x = x1;
+  int64_t y = y1;
+  int64_t x = x1;
   while(y <= y2) {
     ENGINE_pset(engine, x, y, c);
     if (p > 0) {
@@ -278,18 +280,18 @@ ENGINE_line_high(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2,
 }
 
 internal void
-ENGINE_line_low(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint32_t c) {
-  int16_t dx = x2 - x1;
-  int16_t dy = y2 - y1;
-  int16_t yi = 1;
+ENGINE_line_low(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c) {
+  int64_t dx = x2 - x1;
+  int64_t dy = y2 - y1;
+  int64_t yi = 1;
   if (dy < 0) {
     yi = -1;
     dy = -dy;
   }
-  int16_t p = 2 * dy - dx;
+  int64_t p = 2 * dy - dx;
 
-  int16_t y = y1;
-  int16_t x = x1;
+  int64_t y = y1;
+  int64_t x = x1;
   while(x <= x2) {
     ENGINE_pset(engine, x, y, c);
     if (p > 0) {
@@ -303,8 +305,8 @@ ENGINE_line_low(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, 
 }
 
 internal void
-ENGINE_line(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint32_t c) {
-  if (abs(y2 - y1) < abs(x2 - x1)) {
+ENGINE_line(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c) {
+  if (llabs(y2 - y1) < llabs(x2 - x1)) {
     if (x1 > x2) {
       ENGINE_line_low(engine, x2, y2, x1, y1, c);
     } else {
@@ -322,10 +324,10 @@ ENGINE_line(ENGINE* engine, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint
 }
 
 internal void
-ENGINE_circle_filled(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c) {
-  int16_t x = 0;
-  int16_t y = r;
-  int16_t d = round(M_PI - (2*r));
+ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t c) {
+  int64_t x = 0;
+  int64_t y = r;
+  int64_t d = round(M_PI - (2*r));
 
   while (x <= y) {
     ENGINE_line(engine, x0 - x, y0 + y, x0 + x, y0 + y, c);
@@ -344,10 +346,10 @@ ENGINE_circle_filled(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t
 }
 
 internal void
-ENGINE_circle(ENGINE* engine, int16_t x0, int16_t y0, int16_t r, uint32_t c) {
-  int16_t x = 0;
-  int16_t y = r;
-  int16_t d = round(M_PI - (2*r));
+ENGINE_circle(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t c) {
+  int64_t x = 0;
+  int64_t y = r;
+  int64_t d = round(M_PI - (2*r));
 
   while (x <= y) {
     ENGINE_pset(engine, x0 + x, y0 + y, c);
@@ -378,7 +380,7 @@ ellipse_getRegion(double x, double y, int32_t rx, int32_t ry) {
 }
 
 internal void
-ENGINE_ellipsefill(ENGINE* engine, int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint32_t c) {
+ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, uint32_t c) {
 
   // Calculate radius
   int32_t rx = (x1 - x0) / 2; // Radius on x
@@ -424,11 +426,11 @@ ENGINE_ellipsefill(ENGINE* engine, int16_t x0, int16_t y0, int16_t x1, int16_t y
 }
 
 internal void
-ENGINE_ellipse(ENGINE* engine, int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint32_t c) {
+ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, uint32_t c) {
 
   // Calcularte radius
-  int32_t rx = abs(x1 - x0) / 2; // Radius on x
-  int32_t ry = abs(y1 - y0) / 2; // Radius on y
+  int32_t rx = llabs(x1 - x0) / 2; // Radius on x
+  int32_t ry = llabs(y1 - y0) / 2; // Radius on y
   int32_t rxSquare = rx*rx;
   int32_t rySquare = ry*ry;
   int32_t rx2ry2 = rxSquare * rySquare;
@@ -477,7 +479,7 @@ ENGINE_ellipse(ENGINE* engine, int16_t x0, int16_t y0, int16_t x1, int16_t y1, u
 }
 
 internal void
-ENGINE_rect(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t c) {
+ENGINE_rect(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint32_t c) {
   ENGINE_line(engine, x, y, x, y+h-1, c);
   ENGINE_line(engine, x, y, x+w-1, y, c);
   ENGINE_line(engine, x, y+h-1, x+w-1, y+h-1, c);
@@ -485,14 +487,16 @@ ENGINE_rect(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t
 }
 
 internal void
-ENGINE_rectfill(ENGINE* engine, int16_t x, int16_t y, int16_t w, int16_t h, uint32_t c) {
-  int16_t x1 = mid(0, x, GAME_WIDTH);
-  int16_t y1 = mid(0, y, GAME_HEIGHT);
-  int16_t x2 = mid(0, x + w, GAME_WIDTH);
-  int16_t y2 = mid(0, y + h, GAME_HEIGHT);
+ENGINE_rectfill(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint32_t c) {
+  int32_t width = engine->width;
+  int32_t height = engine->height;
+  int64_t x1 = mid(0, x, width);
+  int64_t y1 = mid(0, y, height);
+  int64_t x2 = mid(0, x + w, width);
+  int64_t y2 = mid(0, y + h, height);
 
-  for (uint16_t j = y1; j < y2; j++) {
-    for (uint16_t i = x1; i < x2; i++) {
+  for (int64_t j = y1; j < y2; j++) {
+    for (int64_t i = x1; i < x2; i++) {
       ENGINE_pset(engine, i, j, c);
     }
   }
@@ -547,9 +551,33 @@ ENGINE_drawDebug(ENGINE* engine) {
   double alpha = debug->alpha;
   debug->avgFps = alpha * debug->avgFps + (1.0 - alpha) * framesThisSecond;
   snprintf(buffer, sizeof(buffer), "%.01f fps", debug->avgFps);   // here 2 means binary
-  int16_t startX = GAME_WIDTH - 4*8-2;
-  int16_t startY = GAME_HEIGHT - 8-2;
+  int32_t width = engine->width;
+  int32_t height = engine->height;
+  int64_t startX = width - 4*8-2;
+  int64_t startY = height - 8-2;
 
   ENGINE_rectfill(engine, startX, startY, 4*8+2, 10, 0x7F000000);
   ENGINE_print(engine, buffer, startX+1,startY+1, 0xFFFFFFFF);
+}
+
+internal bool
+ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint32_t color) {
+  engine->width = newWidth;
+  engine->height = newHeight;
+  SDL_RenderSetLogicalSize(engine->renderer, newWidth, newHeight);
+
+  // TODO: Destroy old texture
+  SDL_DestroyTexture(engine->texture);
+  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, newWidth, newHeight);
+  if (engine->texture == NULL) {
+    return false;
+  }
+
+  engine->pixels = realloc(engine->pixels, engine->width * engine->height * 4);
+  if (engine->pixels == NULL) {
+    return false;
+  }
+  ENGINE_rectfill(engine, 0, 0, engine->width, engine->height, color);
+
+  return true;
 }

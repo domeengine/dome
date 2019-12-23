@@ -11,3 +11,24 @@ PROCESS_exit(WrenVM* vm) {
   }
 }
 
+
+internal void
+WINDOW_resize(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  uint32_t width = wrenGetSlotDouble(vm, 1);
+  uint32_t height = wrenGetSlotDouble(vm, 2);
+  SDL_SetWindowSize(engine->window, width, height);
+}
+
+internal void
+WINDOW_setTitle(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  char* title = wrenGetSlotString(vm, 1);
+  SDL_SetWindowTitle(engine->window, title);
+}
+
+internal void
+WINDOW_getTitle(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotString(vm, 0, SDL_GetWindowTitle(engine->window));
+}

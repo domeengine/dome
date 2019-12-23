@@ -203,7 +203,7 @@ int main(int argc, char* args[])
   }
 
   jo_gif_t gif;
-  size_t imageSize = engine.width*engine.height;
+  size_t imageSize = engine.width * engine.height;
   uint8_t t = 0;
   uint8_t* destroyableImage = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
   if (makeGif) {
@@ -325,7 +325,7 @@ int main(int argc, char* args[])
     }
 
     // Flip Buffer to Screen
-    SDL_UpdateTexture(engine.texture, 0, engine.pixels, GAME_WIDTH * 4);
+    SDL_UpdateTexture(engine.texture, 0, engine.pixels, engine.width * 4);
     // clear screen
     SDL_RenderClear(engine.renderer);
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
