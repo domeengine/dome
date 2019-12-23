@@ -32,3 +32,16 @@ WINDOW_getTitle(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   wrenSetSlotString(vm, 0, SDL_GetWindowTitle(engine->window));
 }
+
+internal void
+WINDOW_setVsync(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  bool value = wrenGetSlotBool(vm, 1);
+  ENGINE_setupRenderer(engine, value);
+}
+
+internal void
+WINDOW_setLockStep(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  engine->lockstep = wrenGetSlotBool(vm, 1);
+}

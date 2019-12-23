@@ -256,6 +256,12 @@ class MainGame {
     var y = 0
     AudioEngine.setChannelPan(__channel, (((__t / 60) % 20) * 0.1) - 1 )
     var gamepad = GamePad.next
+    if (Keyboard.isKeyDown("l")) {
+      Window.lockstep = true
+    }
+    if (Keyboard.isKeyDown("v")) {
+      Window.vsync = false
+    }
     if (!__resized && Keyboard.isKeyDown("c")) {
       __resized = true
       if (Canvas.width != 64) {

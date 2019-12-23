@@ -23,7 +23,6 @@
 #include <microtar/microtar.h>
 #include <microtar/microtar.c>
 
-
 // Set up STB_IMAGE
 #define STBI_NO_STDIO
 #define STBI_ONLY_JPEG
@@ -199,7 +198,7 @@ int main(int argc, char* args[])
   interpreterResult = wrenCall(vm, initMethod);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
-    goto cleanup;
+    goto vm_cleanup;
   }
 
   jo_gif_t gif;
@@ -271,6 +270,16 @@ int main(int argc, char* args[])
     uint64_t currentTime = SDL_GetPerformanceCounter();
     int32_t elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
     previousTime = currentTime;
+
+    if(fabs(elapsed - 1.0/120.0) < .0002){
+      elapsed = 1.0/120.0;
+    }
+    if(fabs(elapsed - 1.0/60.0) < .0002){
+      elapsed = 1.0/60.0;
+    }
+    if(fabs(elapsed - 1.0/30.0) < .0002){
+      elapsed = 1.0/30.0;
+    }
     lag += elapsed;
 
     // update()
@@ -296,7 +305,7 @@ int main(int argc, char* args[])
       interpreterResult = wrenCall(vm, updateMethod);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
         result = EXIT_FAILURE;
-        goto cleanup;
+        goto vm_cleanup;
       }
       // updateAudio()
       wrenEnsureSlots(vm, 3);
@@ -304,9 +313,13 @@ int main(int argc, char* args[])
       interpreterResult = wrenCall(vm, updateMethod);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
         result = EXIT_FAILURE;
-        goto cleanup;
+        goto vm_cleanup;
       }
       lag -= MS_PER_FRAME;
+
+      if (engine.lockstep) {
+        break;
+      }
     }
 
     // render();
@@ -316,7 +329,7 @@ int main(int argc, char* args[])
     interpreterResult = wrenCall(vm, drawMethod);
     if (interpreterResult != WREN_RESULT_SUCCESS) {
       result = EXIT_FAILURE;
-      goto cleanup;
+      goto vm_cleanup;
     }
 
     if (engine.debugEnabled) {
@@ -326,16 +339,24 @@ int main(int argc, char* args[])
 
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, engine.width * 4);
+
     // clear screen
     SDL_RenderClear(engine.renderer);
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
 
+    if (!engine.vsyncEnabled) {
+      SDL_Delay(1);
+    }
+
+
   }
+
   if (makeGif) {
     jo_gif_end(&gif);
   }
 
+vm_cleanup:
   wrenReleaseHandle(vm, audioEngineClass);
   wrenReleaseHandle(vm, initMethod);
   wrenReleaseHandle(vm, drawMethod);
