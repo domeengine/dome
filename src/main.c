@@ -198,7 +198,7 @@ int main(int argc, char* args[])
   interpreterResult = wrenCall(vm, initMethod);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
-    goto cleanup;
+    goto vm_cleanup;
   }
 
   jo_gif_t gif;
@@ -305,7 +305,7 @@ int main(int argc, char* args[])
       interpreterResult = wrenCall(vm, updateMethod);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
         result = EXIT_FAILURE;
-        goto cleanup;
+        goto vm_cleanup;
       }
       // updateAudio()
       wrenEnsureSlots(vm, 3);
@@ -313,7 +313,7 @@ int main(int argc, char* args[])
       interpreterResult = wrenCall(vm, updateMethod);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
         result = EXIT_FAILURE;
-        goto cleanup;
+        goto vm_cleanup;
       }
       lag -= MS_PER_FRAME;
 
@@ -329,7 +329,7 @@ int main(int argc, char* args[])
     interpreterResult = wrenCall(vm, drawMethod);
     if (interpreterResult != WREN_RESULT_SUCCESS) {
       result = EXIT_FAILURE;
-      goto cleanup;
+      goto vm_cleanup;
     }
 
     if (engine.debugEnabled) {
@@ -351,10 +351,12 @@ int main(int argc, char* args[])
 
 
   }
+
   if (makeGif) {
     jo_gif_end(&gif);
   }
 
+vm_cleanup:
   wrenReleaseHandle(vm, audioEngineClass);
   wrenReleaseHandle(vm, initMethod);
   wrenReleaseHandle(vm, drawMethod);
