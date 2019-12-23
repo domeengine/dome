@@ -23,8 +23,6 @@
 #include <microtar/microtar.h>
 #include <microtar/microtar.c>
 
-#define ENABLE_VSYNC 1
-
 // Set up STB_IMAGE
 #define STBI_NO_STDIO
 #define STBI_ONLY_JPEG
@@ -318,6 +316,10 @@ int main(int argc, char* args[])
         goto cleanup;
       }
       lag -= MS_PER_FRAME;
+
+      if (engine.lockstep) {
+        break;
+      }
     }
 
     // render();
@@ -343,9 +345,9 @@ int main(int argc, char* args[])
     SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
     SDL_RenderPresent(engine.renderer);
 
-    #if ENABLE_VSYNC == 0
-    SDL_Delay(1);
-    #endif
+    if (!engine.vsyncEnabled) {
+      SDL_Delay(1);
+    }
 
 
   }

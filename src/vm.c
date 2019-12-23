@@ -128,6 +128,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "dome", "Process", "f_exit(_)", true, PROCESS_exit);
   MAP_add(&engine->fnMap, "dome", "Window", "resize(_,_)", true, WINDOW_resize);
   MAP_add(&engine->fnMap, "dome", "Window", "title=(_)", true, WINDOW_setTitle);
+  MAP_add(&engine->fnMap, "dome", "Window", "vsync=(_)", true, WINDOW_setVsync);
+  MAP_add(&engine->fnMap, "dome", "Window", "lockstep=(_)", true, WINDOW_setLockStep);
   MAP_add(&engine->fnMap, "dome", "Window", "title", true, WINDOW_getTitle);
 
 #if DOME_OPT_FFI

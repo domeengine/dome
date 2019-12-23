@@ -23,9 +23,11 @@ typedef struct {
   uint32_t height;
   mtar_t* tar;
   bool running;
+  bool lockstep;
   int exit_status;
   struct AUDIO_ENGINE_t* audioEngine;
   bool debugEnabled;
+  bool vsyncEnabled;
   ENGINE_DEBUG debug;
 } ENGINE;
 
@@ -91,6 +93,30 @@ ENGINE_taskHandler(ABC_TASK* task) {
   return 0;
 }
 
+internal bool
+ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
+  engine->vsyncEnabled = vsync;
+  if (engine->renderer != NULL) {
+    SDL_DestroyRenderer(engine->renderer);
+  }
+
+  int flags = SDL_RENDERER_ACCELERATED;
+  if (vsync) {
+    flags |= SDL_RENDERER_PRESENTVSYNC;
+  }
+  engine->renderer = SDL_CreateRenderer(engine->window, -1, flags);
+  if (engine->renderer == NULL) {
+    return false;
+  }
+  SDL_RenderSetLogicalSize(engine->renderer, engine->width, engine->height);
+
+  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, engine->width, engine->height);
+  if (engine->texture == NULL) {
+    return false;
+  }
+  return true;
+}
+
 internal int
 ENGINE_init(ENGINE* engine) {
   int result = EXIT_SUCCESS;
@@ -98,6 +124,7 @@ ENGINE_init(ENGINE* engine) {
   engine->renderer = NULL;
   engine->texture = NULL;
   engine->pixels = NULL;
+  engine->lockstep = false;
   engine->debugEnabled = false;
   engine->debug.alpha = 0.9;
   engine->width = GAME_WIDTH;
@@ -112,21 +139,10 @@ ENGINE_init(ENGINE* engine) {
     goto engine_init_end;
   }
 
-  #if ENABLE_VSYNC
-  engine->renderer = SDL_CreateRenderer(engine->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-  #else
-  engine->renderer = SDL_CreateRenderer(engine->window, -1, SDL_RENDERER_ACCELERATED /*| SDL_RENDERER_PRESENTVSYNC */);
-  #endif
+  ENGINE_setupRenderer(engine, true);
   if (engine->renderer == NULL)
   {
     SDL_Log("Could not create a renderer: %s", SDL_GetError());
-    result = EXIT_FAILURE;
-    goto engine_init_end;
-  }
-  SDL_RenderSetLogicalSize(engine->renderer, engine->width, engine->height);
-
-  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, engine->width, engine->height);
-  if (engine->texture == NULL) {
     result = EXIT_FAILURE;
     goto engine_init_end;
   }
@@ -561,6 +577,19 @@ ENGINE_drawDebug(ENGINE* engine) {
 
   ENGINE_rectfill(engine, startX, startY, 4*8+2, 10, 0x7F000000);
   ENGINE_print(engine, buffer, startX+1,startY+1, 0xFFFFFFFF);
+
+  startX = width - 9*8 - 2;
+  if (engine->vsyncEnabled) {
+    ENGINE_print(engine, "VSync On", startX, startY - 8, 0xFFFFFFFF);
+  } else {
+    ENGINE_print(engine, "VSync Off", startX, startY - 8, 0xFFFFFFFF);
+  }
+
+  if (engine->lockstep) {
+    ENGINE_print(engine, "Lockstep", startX, startY - 16, 0xFFFFFFFF);
+  } else {
+    ENGINE_print(engine, "Catchup", startX, startY - 16, 0xFFFFFFFF);
+  }
 }
 
 internal bool
