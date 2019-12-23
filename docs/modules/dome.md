@@ -24,8 +24,12 @@ Allows you to programmatically close DOME. This command behaves a little differe
 
 ### Static Fields
 
+#### `static lockstep: Boolean`
+Setting this to true will disable "catch up" game loop behaviour. This is useful for lighter games, or on systems where you experience a little stuttering at 60fps.
 #### `static title: String`
 This allows you to set and get the title of the DOME window.
+#### `static vsync: String`
+Setting this to true will make the renderer wait for VSync before presenting to the display. Changing this value is an expensive operation and so shouldn't be done frequently.
 
 ### Static Methods
 
