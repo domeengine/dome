@@ -613,3 +613,19 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
 
   return true;
 }
+
+internal void
+ENGINE_takeScreenshot(ENGINE* engine) {
+  size_t imageSize = engine->width * engine->height;
+  uint8_t* destroyableImage = (uint8_t*)malloc(imageSize * 4 * sizeof(uint8_t));
+  for (size_t i = 0; i < imageSize; i++) {
+    uint32_t c = ((uint32_t*)engine->pixels)[i];
+    uint8_t a = (0xFF000000 & c) >> 24;
+    uint8_t r = (0x00FF0000 & c) >> 16;
+    uint8_t g = (0x0000FF00 & c) >> 8;
+    uint8_t b = (0x000000FF & c);
+    ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
+  }
+  stbi_write_png("screenshot.png", engine->width, engine->height, 4, destroyableImage, engine->width * 4);
+  free(destroyableImage);
+}

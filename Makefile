@@ -14,6 +14,7 @@ ifeq ($(DOME_OPT_FFI),1)
 endif
 
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
+DOME_OPTS += -DHASH="\"$(BUILD_VALUE)\""
 CC = cc
 CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags`
 IFLAGS = -isystem $(INCLUDES)

@@ -1,6 +1,8 @@
 // TODO: We need this for realpath in BSD, but it won't be available in windows (_fullpath)
 #define _DEFAULT_SOURCE
 
+#define DOME_VERSION "1.0.0-alpha"
+
 // Standard libs
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +21,9 @@
 #if DOME_OPT_FFI
 #include <ffi.h>
 #endif
+
+#define OPTPARSE_IMPLEMENTATION
+#include <optparse.h>
 
 #include <microtar/microtar.h>
 #include <microtar/microtar.c>
@@ -93,6 +98,32 @@ global_variable WrenHandle* bufferClass = NULL;
 #include "modules/input.c"
 #include "vm.c"
 
+internal void
+printTitle(void) {
+  printf("DOME - Dynamic Opinionated Mini Engine\n");
+}
+
+internal void
+printVersion(void) {
+  printf("Version: " DOME_VERSION " - " HASH"\n");
+}
+
+
+internal void
+printUsage(void) {
+
+  printf("\nUsage: \n");
+  printf("  dome [entry path]\n");
+  printf("  dome --record=<gif> [entry path]\n");
+  printf("  dome -h | --help\n");
+  printf("  dome -v | --version\n");
+  printf("\nOptions: \n");
+  printf("  -h --help          Show this screen.\n");
+  printf("  -v --version       Show version.\n");
+  printf("  -r --record=<gif>  Record video to <gif>.\n");
+
+}
+
 int main(int argc, char* args[])
 {
 
@@ -117,46 +148,82 @@ int main(int argc, char* args[])
   }
 
   // TODO: Use getopt to parse the arguments better
-  if (argc >= 2 && argc <= 3) {
-    gameFile = ENGINE_readFile(&engine, args[1], &gameFileLength);
-    if (gameFile == NULL) {
-      printf("%s does not exist.\n", args[1]);
-      result = EXIT_FAILURE;
-      goto cleanup;
+  struct optparse_long longopts[] = {
+        {"help", 'h', OPTPARSE_NONE},
+        {"version", 'v', OPTPARSE_NONE},
+        {"record", 'r', OPTPARSE_NONE},
+        {0}
+    };
+  // char *arg;
+  int option;
+  struct optparse options;
+  optparse_init(&options, args);
+  while ((option = optparse_long(&options, longopts, NULL)) != -1) {
+    switch (option) {
+      case 'h':
+        printTitle();
+        printUsage();
+        goto cleanup;
+      case 'v':
+        printTitle();
+        printVersion();
+        goto cleanup;
+      case 'r':
+        makeGif = true;
+        if (options.optarg != NULL) {
+          gifName = options.optarg;
+        } else {
+          gifName = "dome.gif";
+        }
+        printf("GIF Recording is enabled: Saving to %s\n", gifName);
+        break;
+      case '?':
+        fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
+        result = EXIT_FAILURE;
+        goto cleanup;
     }
-    if (argc == 3) {
-      printf("GIF Recording is enabled\n");
-      makeGif = true;
-      gifName = args[2];
-    }
-  } else {
-    // Test for game.egg first
-    char* base = SDL_GetBasePath();
+  }
+
+  {
     char* fileName = "game.egg";
     char* mainFileName = "main.wren";
+    char* base = SDL_GetBasePath();
+    char* arg = optparse_arg(&options);
+    if (arg != NULL) {
+      fileName = arg;
+    }
     char pathBuf[strlen(base)+strlen(fileName)+1];
     strcpy(pathBuf, base);
     strcat(pathBuf, fileName);
-    if (doesFileExist(pathBuf)) {
-      printf("Loading bundle %s\n", pathBuf);
-      engine.tar = malloc(sizeof(mtar_t));
-      mtar_open(engine.tar, pathBuf, "r");
-      gameFile = ENGINE_readFile(&engine, mainFileName, &gameFileLength);
-    } else {
-      fileName = mainFileName;
-      char pathBuf[strlen(base)+strlen(fileName)+1];
-      strcpy(pathBuf, base);
-      strcat(pathBuf, fileName);
-      gameFile = ENGINE_readFile(&engine, fileName, &gameFileLength);
-      if (gameFile == NULL) {
-        // file doesn't exist
-        printf("No entry path was provided.\n");
-        printf("Usage: ./dome [entry path]\n");
-        result = EXIT_FAILURE;
-        goto cleanup;
-      }
-    }
     SDL_free(base);
+
+    if (doesFileExist(pathBuf)) {
+      engine.tar = malloc(sizeof(mtar_t));
+      int tarResult = mtar_open(engine.tar, pathBuf, "r");
+      if (tarResult != MTAR_ESUCCESS) {
+        mtar_close(engine.tar);
+        fileName = arg;
+        engine.tar = NULL;
+      } else {
+        printf("Loading bundle %s\n", pathBuf);
+        fileName = mainFileName;
+      }
+    } else if (arg == NULL) {
+      fileName = mainFileName;
+    }
+    gameFile = ENGINE_readFile(&engine, fileName, &gameFileLength);
+    if (gameFile == NULL) {
+      if (engine.tar != NULL) {
+        printf("Error: Could not load main.wren in bundle.\n\n");
+      } else if (arg == NULL) {
+        printf("Error: Could not find a default entry path.\n\n");
+      } else {
+        printf("Error: %s does not exist.\n", arg);
+      }
+      printUsage();
+      result = EXIT_FAILURE;
+      goto cleanup;
+    }
   }
 
   result = ENGINE_init(&engine);
@@ -238,15 +305,7 @@ int main(int argc, char* args[])
             if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               engine.debugEnabled = !engine.debugEnabled;
             } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-              for (size_t i = 0; i < imageSize; i++) {
-                uint32_t c = ((uint32_t*)engine.pixels)[i];
-                uint8_t a = (0xFF000000 & c) >> 24;
-                uint8_t r = (0x00FF0000 & c) >> 16;
-                uint8_t g = (0x0000FF00 & c) >> 8;
-                uint8_t b = (0x000000FF & c);
-                ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
-              }
-              stbi_write_png("screenshot.png", engine.width, engine.height, 4, destroyableImage, engine.width * 4);
+              ENGINE_takeScreenshot(&engine);
             }
           } break;
         case SDL_CONTROLLERDEVICEADDED:
@@ -318,6 +377,7 @@ int main(int argc, char* args[])
       lag -= MS_PER_FRAME;
 
       if (engine.lockstep) {
+        lag = mid(0, lag, MS_PER_FRAME);
         break;
       }
     }
@@ -348,15 +408,14 @@ int main(int argc, char* args[])
     if (!engine.vsyncEnabled) {
       SDL_Delay(1);
     }
-
-
-  }
-
-  if (makeGif) {
-    jo_gif_end(&gif);
   }
 
 vm_cleanup:
+  if (makeGif) {
+    jo_gif_end(&gif);
+    free(destroyableImage);
+  }
+
   wrenReleaseHandle(vm, audioEngineClass);
   wrenReleaseHandle(vm, initMethod);
   wrenReleaseHandle(vm, drawMethod);
