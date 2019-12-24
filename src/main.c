@@ -1,7 +1,7 @@
 // TODO: We need this for realpath in BSD, but it won't be available in windows (_fullpath)
-#define DOME_VERSION "1.0.0-ALPHA"
 #define _DEFAULT_SOURCE
 
+#define DOME_VERSION "1.0.0-alpha"
 
 // Standard libs
 #include <stdio.h>
@@ -99,18 +99,29 @@ global_variable WrenHandle* bufferClass = NULL;
 #include "vm.c"
 
 internal void
-printVersion(void) {
+printTitle(void) {
   printf("DOME - Dynamic Opinionated Mini Engine\n");
+}
+
+internal void
+printVersion(void) {
   printf("Version: " DOME_VERSION " - " HASH"\n");
 }
 
 
 internal void
 printUsage(void) {
-  printVersion();
-  printf("No entry path was provided.\n");
-  printf("Usage: \n");
-  printf("  ./dome [entry path]\n");
+
+  printf("\nUsage: \n");
+  printf("  dome [entry path]\n");
+  printf("  dome --record=<gif> [entry path]\n");
+  printf("  dome -h | --help\n");
+  printf("  dome -v | --version\n");
+  printf("\nOptions: \n");
+  printf("  -h --help          Show this screen.\n");
+  printf("  -v --version       Show version.\n");
+  printf("  -r --record=<gif>  Record video to <gif>.\n");
+
 }
 
 int main(int argc, char* args[])
@@ -138,6 +149,7 @@ int main(int argc, char* args[])
 
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
+        {"help", 'h', OPTPARSE_NONE},
         {"version", 'v', OPTPARSE_NONE},
         {"record", 'r', OPTPARSE_NONE},
         {0}
@@ -148,7 +160,12 @@ int main(int argc, char* args[])
   optparse_init(&options, args);
   while ((option = optparse_long(&options, longopts, NULL)) != -1) {
     switch (option) {
+      case 'h':
+        printTitle();
+        printUsage();
+        goto cleanup;
       case 'v':
+        printTitle();
         printVersion();
         goto cleanup;
       case 'r':
@@ -196,8 +213,14 @@ int main(int argc, char* args[])
     }
     gameFile = ENGINE_readFile(&engine, fileName, &gameFileLength);
     if (gameFile == NULL) {
+      if (engine.tar != NULL) {
+        printf("Error: Could not load main.wren in bundle.\n\n");
+      } else if (arg == NULL) {
+        printf("Error: Could not find a default entry path.\n\n");
+      } else {
+        printf("Error: %s does not exist.\n", arg);
+      }
       printUsage();
-      printf("Error: %s does not exist.\n", fileName);
       result = EXIT_FAILURE;
       goto cleanup;
     }
@@ -282,15 +305,7 @@ int main(int argc, char* args[])
             if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               engine.debugEnabled = !engine.debugEnabled;
             } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-              for (size_t i = 0; i < imageSize; i++) {
-                uint32_t c = ((uint32_t*)engine.pixels)[i];
-                uint8_t a = (0xFF000000 & c) >> 24;
-                uint8_t r = (0x00FF0000 & c) >> 16;
-                uint8_t g = (0x0000FF00 & c) >> 8;
-                uint8_t b = (0x000000FF & c);
-                ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
-              }
-              stbi_write_png("screenshot.png", engine.width, engine.height, 4, destroyableImage, engine.width * 4);
+              ENGINE_takeScreenshot(&engine);
             }
           } break;
         case SDL_CONTROLLERDEVICEADDED:
@@ -362,6 +377,7 @@ int main(int argc, char* args[])
       lag -= MS_PER_FRAME;
 
       if (engine.lockstep) {
+        lag = mid(0, lag, MS_PER_FRAME);
         break;
       }
     }
@@ -392,15 +408,14 @@ int main(int argc, char* args[])
     if (!engine.vsyncEnabled) {
       SDL_Delay(1);
     }
-
-
-  }
-
-  if (makeGif) {
-    jo_gif_end(&gif);
   }
 
 vm_cleanup:
+  if (makeGif) {
+    jo_gif_end(&gif);
+    free(destroyableImage);
+  }
+
   wrenReleaseHandle(vm, audioEngineClass);
   wrenReleaseHandle(vm, initMethod);
   wrenReleaseHandle(vm, drawMethod);
