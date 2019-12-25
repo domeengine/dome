@@ -114,7 +114,11 @@ internal void AUDIO_allocate(WrenVM* vm) {
 
     // Loading the WAV file
     SDL_RWops* src = SDL_RWFromConstMem(fileBuffer, length);
-    SDL_LoadWAV_RW(src, 1, &data->spec, ((uint8_t**)&tempBuffer), &data->length);
+    void* result = SDL_LoadWAV_RW(src, 1, &data->spec, ((uint8_t**)&tempBuffer), &data->length);
+    if (result == NULL) {
+      VM_ABORT(vm, "Invalid WAVE file");
+      return;
+    }
     data->length /= sizeof(int16_t) * data->spec.channels;
   } else if (strncmp(fileBuffer, "OggS", 4) == 0) {
     printf("OGG file detected\n");
@@ -123,11 +127,19 @@ internal void AUDIO_allocate(WrenVM* vm) {
     int channelsInFile = 0, freq = 0;
     memset(&data->spec, 0, sizeof(SDL_AudioSpec));
     // Loading the OGG file
-    data->length = stb_vorbis_decode_memory((const unsigned char*)fileBuffer, length, &channelsInFile, &freq, &tempBuffer);
+    int32_t result = stb_vorbis_decode_memory((const unsigned char*)fileBuffer, length, &channelsInFile, &freq, &tempBuffer);
+    if (result == -1) {
+      VM_ABORT(vm, "Invalid OGG file");
+      return;
+    }
+    data->length = result;
 
     data->spec.channels = channelsInFile;
     data->spec.freq = freq;
     data->spec.format = AUDIO_S16LSB;
+  } else {
+    VM_ABORT(vm, "Audio file was of an incompatible format");
+    return;
   }
 
   data->buffer = calloc(channels * data->length, sizeof(float));
