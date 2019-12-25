@@ -22,7 +22,11 @@ void IMAGE_allocate(WrenVM* vm) {
 
   if (image->pixels == NULL)
   {
-    wrenSetSlotString(vm, 0, "A problem loading the file");
+    char* errorMsg = stbi_failure_reason();
+    size_t errorLength = strlen(errorMsg);
+    char buf[errorLength + 8];
+    snprintf(buf, errorLength + 8, "Error: %s\n", errorMsg);
+    wrenSetSlotString(vm, 0, buf);
     wrenAbortFiber(vm, 0);
     return;
   }
