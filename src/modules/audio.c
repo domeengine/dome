@@ -178,7 +178,7 @@ AUDIO_ENGINE_init(void) {
   (engine->spec).freq = 44100;
   (engine->spec).format = AUDIO_S16LSB;
   (engine->spec).channels = channels; // TODO: consider mono/stereo
-  (engine->spec).samples = 8192;
+  (engine->spec).samples = 4096; // Consider making this configurable
   (engine->spec).callback = AUDIO_ENGINE_mix;
   (engine->spec).userdata = engine;
 
