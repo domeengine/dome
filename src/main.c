@@ -106,6 +106,19 @@ printTitle(void) {
 internal void
 printVersion(void) {
   printf("Version: " DOME_VERSION " - " HASH"\n");
+  SDL_version compiled;
+  SDL_version linked;
+
+  SDL_VERSION(&compiled);
+  SDL_GetVersion(&linked);
+  printf("SDL version: %d.%d.%d (Compiled)\n", compiled.major, compiled.minor, compiled.patch);
+  printf("SDL version %d.%d.%d (Linked)\n", linked.major, linked.minor, linked.patch);
+
+  #if DOME_OPT_FFI
+  printf("FFI module is available");
+  #else
+  printf("FFI module is unavailable");
+  #endif
 }
 
 
