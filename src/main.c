@@ -430,6 +430,16 @@ vm_cleanup:
     free(destroyableImage);
   }
 
+  // Finish processing async threads so we can release resources
+  ENGINE_finishAsync(&engine);
+  while(SDL_PollEvent(&event)) {
+    if (event.type == SDL_USEREVENT) {
+      if (event.user.code == EVENT_LOAD_FILE) {
+        FILESYSTEM_loadEventComplete(&event);
+      }
+    }
+  }
+
   wrenReleaseHandle(vm, audioEngineClass);
   wrenReleaseHandle(vm, initMethod);
   wrenReleaseHandle(vm, drawMethod);

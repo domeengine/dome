@@ -172,6 +172,12 @@ engine_init_end:
   return result;
 }
 
+internal void
+ENGINE_finishAsync(ENGINE* engine) {
+  if (!engine->fifo.shutdown) {
+    ABC_FIFO_close(&engine->fifo);
+  }
+}
 
 internal void
 ENGINE_free(ENGINE* engine) {
@@ -179,6 +185,8 @@ ENGINE_free(ENGINE* engine) {
   if (engine == NULL) {
     return;
   }
+
+  ENGINE_finishAsync(engine);
 
   if (engine->audioEngine) {
     AUDIO_ENGINE_free(engine->audioEngine);
@@ -190,8 +198,6 @@ ENGINE_free(ENGINE* engine) {
     mtar_finalize(engine->tar);
     free(engine->tar);
   }
-
-  ABC_FIFO_close(&engine->fifo);
 
   if (engine->fnMap.head != NULL) {
     MAP_free(&engine->fnMap);
