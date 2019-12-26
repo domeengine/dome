@@ -606,9 +606,9 @@ internal bool
 ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint32_t color) {
   engine->width = newWidth;
   engine->height = newHeight;
+  SDL_DestroyTexture(engine->texture);
   SDL_RenderSetLogicalSize(engine->renderer, newWidth, newHeight);
 
-  SDL_DestroyTexture(engine->texture);
   engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, newWidth, newHeight);
   if (engine->texture == NULL) {
     return false;
