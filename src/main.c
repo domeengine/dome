@@ -283,6 +283,8 @@ int main(int argc, char* args[])
       result = EXIT_FAILURE;
       goto vm_cleanup;
     }
+    SDL_ShowWindow(engine.window);
+    SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0xFF);
   }
 
   jo_gif_t gif;
@@ -294,12 +296,9 @@ int main(int argc, char* args[])
     gif = jo_gif_start(gifName, engine.width, engine.height, 0, 31);
   }
 
-  SDL_ShowWindow(engine.window);
-
   uint64_t previousTime = SDL_GetPerformanceCounter();
   int32_t lag = 0;
   SDL_Event event;
-  SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0xFF);
   if (setjmp(loop_exit) == 0) {
 
     while (engine.running) {
