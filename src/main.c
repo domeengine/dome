@@ -289,8 +289,9 @@ int main(int argc, char* args[])
   jo_gif_t gif;
   size_t imageSize = engine.width * engine.height;
   uint8_t t = 0;
-  uint8_t* destroyableImage = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
+  uint8_t* destroyableImage = NULL;
   if (makeGif) {
+    destroyableImage = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
     gif = jo_gif_start(gifName, engine.width, engine.height, 0, 31);
   }
 
@@ -433,7 +434,9 @@ int main(int argc, char* args[])
 vm_cleanup:
   if (makeGif) {
     jo_gif_end(&gif);
-    free(destroyableImage);
+    if (destroyableImage != NULL) {
+      free(destroyableImage);
+    }
   }
 
   // Finish processing async threads so we can release resources
