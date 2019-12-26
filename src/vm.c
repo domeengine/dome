@@ -87,6 +87,7 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
   strcpy(path, name); /* add the extension */
   strcat(path, extension); /* add the extension */
 
+  // This pointer becomes owned by the WrenVM and freed later.
   char* file = ENGINE_readFile(engine, path, NULL);
   free(path);
   return file;

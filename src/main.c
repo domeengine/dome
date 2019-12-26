@@ -251,6 +251,7 @@ int main(int argc, char* args[])
 
   // Load user game file
   interpreterResult = wrenInterpret(vm, "main", gameFile);
+  free(gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
     goto cleanup;
