@@ -276,11 +276,13 @@ int main(int argc, char* args[])
   uint8_t FPS = 60;
   double MS_PER_FRAME = ceil(1000.0 / FPS);
 
-  wrenSetSlotHandle(vm, 0, gameClass);
-  interpreterResult = wrenCall(vm, initMethod);
-  if (interpreterResult != WREN_RESULT_SUCCESS) {
-    result = EXIT_FAILURE;
-    goto vm_cleanup;
+  if (setjmp(loop_exit) == 0) {
+    wrenSetSlotHandle(vm, 0, gameClass);
+    interpreterResult = wrenCall(vm, initMethod);
+    if (interpreterResult != WREN_RESULT_SUCCESS) {
+      result = EXIT_FAILURE;
+      goto vm_cleanup;
+    }
   }
 
   jo_gif_t gif;
