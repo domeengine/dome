@@ -215,7 +215,6 @@ int main(int argc, char* args[])
       engine.tar = malloc(sizeof(mtar_t));
       int tarResult = mtar_open(engine.tar, pathBuf, "r");
       if (tarResult != MTAR_ESUCCESS) {
-        mtar_finalize(engine.tar);
         free(engine.tar);
         engine.tar = NULL;
         fileName = arg;

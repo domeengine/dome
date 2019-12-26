@@ -74,9 +74,12 @@ ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
   strcat(fullPath, path); /* add the extension */
   SDL_free(base);
   if (!doesFileExist(fullPath)) {
+    free(fullPath);
     return NULL;
   } else {
-    return readEntireFile(fullPath, lengthPtr);
+    char* data = readEntireFile(fullPath, lengthPtr);
+    free(fullPath);
+    return data;
   }
 }
 
