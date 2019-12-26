@@ -54,7 +54,7 @@ SDLFLAGS := -mwindows $(SDLFLAGS)
 endif
 
 ifneq (, $(findstring Linux, $(SYS)))
-	CFLAGS += -Wno-discarded-qualifiers
+	CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
 endif
 
 
