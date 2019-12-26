@@ -67,8 +67,9 @@ void AUDIO_ENGINE_mix(void*  userdata,
     int totalEnabled = 0;
     float left = 0;
     float right = 0;
-    for (size_t c = 0; c < audioEngine->channelList->count; c++) {
-      AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)(audioEngine->channelList->channels[c]);
+    AUDIO_CHANNEL_LIST* channelList = audioEngine->channelList;
+    for (size_t c = 0; c < channelList->count; c++) {
+      AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)(channelList->channels[c]);
       if (channel != NULL) {
         AUDIO_DATA* audio = channel->audio;
         if (channel->enabled) {
@@ -190,7 +191,7 @@ AUDIO_ENGINE_init(void) {
   (engine->spec).freq = 44100;
   (engine->spec).format = AUDIO_S16LSB;
   (engine->spec).channels = channels; // TODO: consider mono/stereo
-  (engine->spec).samples = 4096; // Consider making this configurable
+  (engine->spec).samples = 1024; // Consider making this configurable
   (engine->spec).callback = AUDIO_ENGINE_mix;
   (engine->spec).userdata = engine;
 
