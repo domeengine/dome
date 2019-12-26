@@ -214,13 +214,14 @@ ENGINE_free(ENGINE* engine) {
     free(engine->pixels);
   }
 
-  if (engine->texture) {
+  if (engine->texture != NULL) {
     SDL_DestroyTexture(engine->texture);
   }
 
   if (engine->renderer != NULL) {
     SDL_DestroyRenderer(engine->renderer);
   }
+
   if (engine->window != NULL) {
     SDL_DestroyWindow(engine->window);
   }
@@ -607,7 +608,6 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
   engine->height = newHeight;
   SDL_RenderSetLogicalSize(engine->renderer, newWidth, newHeight);
 
-  // TODO: Destroy old texture
   SDL_DestroyTexture(engine->texture);
   engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, newWidth, newHeight);
   if (engine->texture == NULL) {
