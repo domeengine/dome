@@ -59,8 +59,8 @@
 #define STRINGS_EQUAL(a, b) (strcmp(a, b) == 0)
 
 #define VM_ABORT(vm, error) do {\
-    wrenSetSlotString(vm, 0, error);\
-    wrenAbortFiber(vm, 0); \
+  wrenSetSlotString(vm, 0, error);\
+  wrenAbortFiber(vm, 0); \
 } while(false);
 
 
@@ -115,11 +115,11 @@ printVersion(void) {
   printf("SDL version: %d.%d.%d (Compiled)\n", compiled.major, compiled.minor, compiled.patch);
   printf("SDL version %d.%d.%d (Linked)\n", linked.major, linked.minor, linked.patch);
 
-  #if DOME_OPT_FFI
+#if DOME_OPT_FFI
   printf("FFI module is available");
-  #else
+#else
   printf("FFI module is unavailable");
-  #endif
+#endif
 }
 
 
@@ -163,11 +163,11 @@ int main(int argc, char* args[])
 
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
-        {"help", 'h', OPTPARSE_NONE},
-        {"version", 'v', OPTPARSE_NONE},
-        {"record", 'r', OPTPARSE_NONE},
-        {0}
-    };
+    {"help", 'h', OPTPARSE_NONE},
+    {"version", 'v', OPTPARSE_NONE},
+    {"record", 'r', OPTPARSE_NONE},
+    {0}
+  };
   // char *arg;
   int option;
   struct optparse options;
@@ -296,131 +296,133 @@ int main(int argc, char* args[])
   int32_t lag = 0;
   SDL_Event event;
   SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0xFF);
-  result = setjmp(loop_exit);
-  while (engine.running) {
+  if (setjmp(loop_exit) == 0) {
 
-    // processInput()
-    while(SDL_PollEvent(&event)) {
-      switch (event.type)
-      {
-        case SDL_QUIT:
-          engine.running = false;
-          break;
-        case SDL_WINDOWEVENT:
-          {
-            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-              SDL_RenderGetViewport(engine.renderer, &(engine.viewport));
+    while (engine.running) {
+
+      // processInput()
+      while(SDL_PollEvent(&event)) {
+        switch (event.type)
+        {
+          case SDL_QUIT:
+            engine.running = false;
+            break;
+          case SDL_WINDOWEVENT:
+            {
+              if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                SDL_RenderGetViewport(engine.renderer, &(engine.viewport));
+              }
+            } break;
+          case SDL_KEYDOWN:
+          case SDL_KEYUP:
+            {
+              SDL_Keycode keyCode = event.key.keysym.sym;
+              if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+                engine.debugEnabled = !engine.debugEnabled;
+              } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+                ENGINE_takeScreenshot(&engine);
+              }
+            } break;
+          case SDL_CONTROLLERDEVICEADDED:
+            {
+              GAMEPAD_eventAdded(vm, event.cdevice.which);
+            } break;
+          case SDL_CONTROLLERDEVICEREMOVED:
+            {
+              GAMEPAD_eventRemoved(vm, event.cdevice.which);
+            } break;
+          case SDL_USEREVENT:
+            {
+              printf("Event code %i\n", event.user.code);
+              if (event.user.code == EVENT_LOAD_FILE) {
+                FILESYSTEM_loadEventComplete(&event);
+              }
             }
-          } break;
-        case SDL_KEYDOWN:
-        case SDL_KEYUP:
-          {
-            SDL_Keycode keyCode = event.key.keysym.sym;
-            if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-              engine.debugEnabled = !engine.debugEnabled;
-            } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-              ENGINE_takeScreenshot(&engine);
-            }
-          } break;
-        case SDL_CONTROLLERDEVICEADDED:
-          {
-            GAMEPAD_eventAdded(vm, event.cdevice.which);
-          } break;
-        case SDL_CONTROLLERDEVICEREMOVED:
-          {
-            GAMEPAD_eventRemoved(vm, event.cdevice.which);
-          } break;
-        case SDL_USEREVENT:
-          {
-            printf("Event code %i\n", event.user.code);
-            if (event.user.code == EVENT_LOAD_FILE) {
-              FILESYSTEM_loadEventComplete(&event);
-            }
-          }
-      }
-    }
-
-    uint64_t currentTime = SDL_GetPerformanceCounter();
-    int32_t elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
-    previousTime = currentTime;
-
-    if(fabs(elapsed - 1.0/120.0) < .0002){
-      elapsed = 1.0/120.0;
-    }
-    if(fabs(elapsed - 1.0/60.0) < .0002){
-      elapsed = 1.0/60.0;
-    }
-    if(fabs(elapsed - 1.0/30.0) < .0002){
-      elapsed = 1.0/30.0;
-    }
-    lag += elapsed;
-
-    // update()
-    if (lag >= MS_PER_FRAME) {
-      t++;
-      if (makeGif && t > 3) {
-        t = 0;
-        for (size_t i = 0; i < imageSize; i++) {
-          uint32_t c = ((uint32_t*)engine.pixels)[i];
-          uint8_t a = (0xFF000000 & c) >> 24;
-          uint8_t r = (0x00FF0000 & c) >> 16;
-          uint8_t g = (0x0000FF00 & c) >> 8;
-          uint8_t b = (0x000000FF & c);
-          ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
         }
-        jo_gif_frame(&gif, destroyableImage, 8, true);
       }
-    }
 
-    while (lag > MS_PER_FRAME) {
+      uint64_t currentTime = SDL_GetPerformanceCounter();
+      int32_t elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
+      previousTime = currentTime;
+
+      if(fabs(elapsed - 1.0/120.0) < .0002){
+        elapsed = 1.0/120.0;
+      }
+      if(fabs(elapsed - 1.0/60.0) < .0002){
+        elapsed = 1.0/60.0;
+      }
+      if(fabs(elapsed - 1.0/30.0) < .0002){
+        elapsed = 1.0/30.0;
+      }
+      lag += elapsed;
+
+      // update()
+      if (lag >= MS_PER_FRAME) {
+        t++;
+        if (makeGif && t > 3) {
+          t = 0;
+          for (size_t i = 0; i < imageSize; i++) {
+            uint32_t c = ((uint32_t*)engine.pixels)[i];
+            uint8_t a = (0xFF000000 & c) >> 24;
+            uint8_t r = (0x00FF0000 & c) >> 16;
+            uint8_t g = (0x0000FF00 & c) >> 8;
+            uint8_t b = (0x000000FF & c);
+            ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
+          }
+          jo_gif_frame(&gif, destroyableImage, 8, true);
+        }
+      }
+
+      while (lag > MS_PER_FRAME) {
+        wrenEnsureSlots(vm, 8);
+        wrenSetSlotHandle(vm, 0, gameClass);
+        interpreterResult = wrenCall(vm, updateMethod);
+        if (interpreterResult != WREN_RESULT_SUCCESS) {
+          result = EXIT_FAILURE;
+          goto vm_cleanup;
+        }
+        // updateAudio()
+        wrenEnsureSlots(vm, 3);
+        wrenSetSlotHandle(vm, 0, audioEngineClass);
+        interpreterResult = wrenCall(vm, updateMethod);
+        if (interpreterResult != WREN_RESULT_SUCCESS) {
+          result = EXIT_FAILURE;
+          goto vm_cleanup;
+        }
+        lag -= MS_PER_FRAME;
+
+        if (engine.lockstep) {
+          lag = mid(0, lag, MS_PER_FRAME);
+          break;
+        }
+      }
+
+      // render();
       wrenEnsureSlots(vm, 8);
       wrenSetSlotHandle(vm, 0, gameClass);
-      interpreterResult = wrenCall(vm, updateMethod);
+      wrenSetSlotDouble(vm, 1, ((double)lag / MS_PER_FRAME));
+      interpreterResult = wrenCall(vm, drawMethod);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
         result = EXIT_FAILURE;
         goto vm_cleanup;
       }
-      // updateAudio()
-      wrenEnsureSlots(vm, 3);
-      wrenSetSlotHandle(vm, 0, audioEngineClass);
-      interpreterResult = wrenCall(vm, updateMethod);
-      if (interpreterResult != WREN_RESULT_SUCCESS) {
-        result = EXIT_FAILURE;
-        goto vm_cleanup;
+
+      if (engine.debugEnabled) {
+        engine.debug.elapsed = elapsed;
+        ENGINE_drawDebug(&engine);
       }
-      lag -= MS_PER_FRAME;
 
-      if (engine.lockstep) {
-        lag = mid(0, lag, MS_PER_FRAME);
-        break;
+      // Flip Buffer to Screen
+      SDL_UpdateTexture(engine.texture, 0, engine.pixels, engine.width * 4);
+
+      // clear screen
+      SDL_RenderClear(engine.renderer);
+      SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
+      SDL_RenderPresent(engine.renderer);
+
+      if (!engine.vsyncEnabled) {
+        SDL_Delay(1);
       }
-    }
-
-    // render();
-    wrenEnsureSlots(vm, 8);
-    wrenSetSlotHandle(vm, 0, gameClass);
-    wrenSetSlotDouble(vm, 1, ((double)lag / MS_PER_FRAME));
-    interpreterResult = wrenCall(vm, drawMethod);
-    if (interpreterResult != WREN_RESULT_SUCCESS) {
-      result = EXIT_FAILURE;
-      goto vm_cleanup;
-    }
-
-    if (engine.debugEnabled) {
-      engine.debug.elapsed = elapsed;
-      ENGINE_drawDebug(&engine);
-    }
-
-    // Flip Buffer to Screen
-    SDL_UpdateTexture(engine.texture, 0, engine.pixels, engine.width * 4);
-
-    // clear screen
-    SDL_RenderClear(engine.renderer);
-    SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
-    SDL_RenderPresent(engine.renderer);
-
-    if (!engine.vsyncEnabled) {
-      SDL_Delay(1);
     }
   }
 
