@@ -54,8 +54,9 @@ GAMEPAD_allocate(WrenVM* vm) {
   int joystickId = floor(wrenGetSlotDouble(vm, 1));
   GAMEPAD* gamepad = wrenSetSlotNewForeign(vm, 0, 0, sizeof(GAMEPAD));
 
-  if (SDL_IsGameController(joystickId) == SDL_FALSE) {
+  if (joystickId == -1 || SDL_IsGameController(joystickId) == SDL_FALSE) {
     gamepad->controller = NULL;
+    gamepad->instanceId = -1;
     return;
   }
   SDL_GameController* controller = SDL_GameControllerOpen(joystickId);
