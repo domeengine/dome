@@ -604,6 +604,10 @@ ENGINE_drawDebug(ENGINE* engine) {
 
 internal bool
 ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint32_t color) {
+  if (engine->width == newWidth && engine->height == newHeight) {
+    return true;
+  }
+
   engine->width = newWidth;
   engine->height = newHeight;
   SDL_DestroyTexture(engine->texture);
