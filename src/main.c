@@ -215,9 +215,10 @@ int main(int argc, char* args[])
       engine.tar = malloc(sizeof(mtar_t));
       int tarResult = mtar_open(engine.tar, pathBuf, "r");
       if (tarResult != MTAR_ESUCCESS) {
-        mtar_close(engine.tar);
-        fileName = arg;
+        mtar_finalize(engine.tar);
+        free(engine.tar);
         engine.tar = NULL;
+        fileName = arg;
       } else {
         printf("Loading bundle %s\n", pathBuf);
         fileName = mainFileName;
