@@ -46,7 +46,7 @@ ifneq (, $(findstring Darwin, $(SYS)))
 endif
 
 ifneq (, $(findstring MINGW, $(SYS)))
-	CFLAGS += -Wno-discarded-qualifiers
+	CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
 	ifdef ICON_OBJECT_FILE
 	CFLAGS += $(ICON_OBJECT_FILE)
 endif
