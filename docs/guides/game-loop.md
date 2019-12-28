@@ -20,7 +20,7 @@ DOME also starts with VSync enabled by default, so it will wait under the VBlank
 
 ## Options
 
-There is no way for DOME to detect if it is running on a system which supports VSync, so you can disable it programmatically using the `Window.vsync` setting in the [`dome`](/modules/dome) module.
+There is no way for DOME to detect if it is running on a system which supports VSync, so you can disable it programmatically using the `Window.vsync` setting in the `[dome](/modules/dome)` module.
 
 It's possible that you spot a single-frame stutter while the game is running at a high framerate. This is due to slight errors in frame time counting, and so DOME catches up unnecessarily. You can disable the catchup behaviour using `Window.lockstep = true`.
 
