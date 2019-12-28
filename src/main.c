@@ -13,6 +13,11 @@
 #include <math.h>
 #include <libgen.h>
 #include <setjmp.h>
+#ifdef __MINGW32__
+#define setjmp __builtin_setjmp
+#define longjmp __builtin_longjmp
+#endif
+
 
 #include <wren.h>
 #include <SDL.h>
