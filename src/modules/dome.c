@@ -7,7 +7,7 @@ PROCESS_exit(WrenVM* vm) {
   if (engine->exit_status != 0) {
     wrenAbortFiber(vm, 1);
   } else {
-    LONG_JMP(loop_exit, EXIT_SUCCESS);
+    LONG_JMP(loop_exit, 1);
   }
 }
 
