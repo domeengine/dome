@@ -14,8 +14,11 @@
 #include <libgen.h>
 #include <setjmp.h>
 #ifdef __MINGW32__
-#define setjmp __builtin_setjmp
-#define longjmp __builtin_longjmp
+#define SET_JMP __builtin_setjmp
+#define LONG_JMP __builtin_longjmp
+#else
+#define SET_JMP setjmp
+#define LONG_JMP longjmp
 #endif
 
 
@@ -302,7 +305,7 @@ int main(int argc, char* args[])
   uint8_t FPS = 60;
   double MS_PER_FRAME = ceil(1000.0 / FPS);
 
-  if (setjmp(loop_exit) == 0) {
+  if (SET_JMP(loop_exit) == 0) {
     wrenSetSlotHandle(vm, 0, gameClass);
     interpreterResult = wrenCall(vm, initMethod);
     if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -325,7 +328,7 @@ int main(int argc, char* args[])
   uint64_t previousTime = SDL_GetPerformanceCounter();
   int32_t lag = 0;
   SDL_Event event;
-  if (setjmp(loop_exit) == 0) {
+  if (SET_JMP(loop_exit) == 0) {
 
     while (engine.running) {
 
