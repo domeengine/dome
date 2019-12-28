@@ -50,7 +50,7 @@ ifneq (, $(findstring MINGW, $(SYS)))
 	ifdef ICON_OBJECT_FILE
 	CFLAGS += $(ICON_OBJECT_FILE)
 endif
-SDLFLAGS := -mwindows $(SDLFLAGS)
+SDLFLAGS= -mwindows `sdl2-config --static-libs` -static
 endif
 
 ifneq (, $(findstring Linux, $(SYS)))
