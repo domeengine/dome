@@ -40,7 +40,7 @@ ModuleMap_get(ModuleMap* map, const char* name) {
     if (strcmp(node->name, name) == 0) {
       size_t sourceLen = strlen(node->module);
       char* file = calloc(sourceLen + 1, sizeof(char));
-      strncpy(file, node->module, sourceLen);
+      strcpy(file, node->module);
       file[sourceLen] = '\0';
       return file;
     } else {
