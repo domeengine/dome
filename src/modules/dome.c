@@ -2,6 +2,7 @@
 internal void
 PROCESS_exit(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "code");
   engine->running = false;
   engine->exit_status = floor(wrenGetSlotDouble(vm, 1));
   if (engine->exit_status != 0) {
