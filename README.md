@@ -79,24 +79,22 @@ DOME provides the following modules/methods/classes:
   - Mouse
   - Gamepads
 - Filesystem
-  - File reading
-  - Asynchronous (Unstable API)
+  - File reading and writing
 - Audio (stereo and mono OGG and WAV files only)
 
 ## TODO
 You can follow my progress on implementing DOME on [my twitter](https://twitter.com/avivbeeri/status/1012448692119457798).
 
 - IO
-  - Writing to files
+  - Asynchronous Operations (Unstable API)
 - Loading Audio and Graphics asynchronously
 - Graphics 
   - Triangles
 - Network Access
   - UDP
   - HTTP client (optional)
-- Math (Better API for Num class functions)
+- Math (More intuitive API for Num class functions)
 - Robust error checking and sandboxing
-- Memory leak checks
 
 ## Dependencies
 
