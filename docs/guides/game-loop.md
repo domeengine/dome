@@ -18,7 +18,7 @@ However, DOME can ask your game to render at arbitrary times between frames. It 
 
 DOME also starts with VSync enabled by default, so it will wait under the VBlank before executing the next frame's game loop.
 
-## Options
+## Options
 
 There is no way for DOME to detect if it is running on a system which supports VSync, so you can disable it programmatically using the `Window.vsync` setting in the [dome](/modules/dome) module.
 
