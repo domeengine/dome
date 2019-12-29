@@ -201,7 +201,7 @@ foreign class ImageData {
     }
 
     if (!__cache.containsKey(path)) {
-      var data = FileSystem.loadSync(path)
+      var data = FileSystem.load(path)
       __cache[path] = ImageData.initFromFile(data)
     }
 

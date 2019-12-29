@@ -1,12 +1,5 @@
 #define AUDIO_CHANNEL_START 2
 
-#define AUDIO_TYPE_UNKNOWN 0
-#define AUDIO_TYPE_WAV 1
-#define AUDIO_TYPE_OGG 2
-
-typedef uint8_t AUDIO_TYPE;
-
-
 typedef struct {
   SDL_AudioSpec spec;
   AUDIO_TYPE audioType;
@@ -110,7 +103,6 @@ internal void AUDIO_allocate(WrenVM* vm) {
   int16_t* tempBuffer;
   if (strncmp(fileBuffer, "RIFF", 4) == 0 &&
       strncmp(&fileBuffer[8], "WAVE", 4) == 0) {
-    printf("WAV file detected\n");
     data->audioType = AUDIO_TYPE_WAV;
 
     // Loading the WAV file
@@ -122,7 +114,6 @@ internal void AUDIO_allocate(WrenVM* vm) {
     }
     data->length /= sizeof(int16_t) * data->spec.channels;
   } else if (strncmp(fileBuffer, "OggS", 4) == 0) {
-    printf("OGG file detected\n");
     data->audioType = AUDIO_TYPE_OGG;
 
     int channelsInFile = 0, freq = 0;
@@ -161,7 +152,9 @@ internal void AUDIO_allocate(WrenVM* vm) {
   } else if (data->audioType == AUDIO_TYPE_OGG) {
     free(tempBuffer);
   }
-  DEBUG_printAudioSpec(data->spec);
+  if (DEBUG_MODE) {
+    DEBUG_printAudioSpec(data->spec, data->audioType);
+  }
 }
 
 internal void AUDIO_finalize(void* data) {

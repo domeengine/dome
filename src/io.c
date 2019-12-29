@@ -28,6 +28,17 @@ char* readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr) {
   return p;
 }
 
+int writeEntireFile(char* path, char* data, size_t length) {
+  printf("Writing to filesystem: %s\n", path);
+  FILE* file = fopen(path, "wb+");
+  if (file == NULL) {
+    return errno;
+  }
+  fwrite(data, sizeof(char), length, file);
+  fclose(file);
+  return 0;
+}
+
 char* readEntireFile(char* path, size_t* lengthPtr) {
   printf("Reading from filesystem: %s\n", path);
   FILE* file = fopen(path, "rb");

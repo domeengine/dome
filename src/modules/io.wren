@@ -1,35 +1,22 @@
 class FileSystem {
-  foreign static f_load(path, op)
-  // foreign static f_write_buffer(path, buffer, op) {}
-  // foreign static f_write_string(path, str, op) {}
-  // foreign f_append(path, buffer, op) {}
+  static loadSync(path) {
+    System.print("WARN: 'loadSync(_)' is depreciated. Use 'load(_)' instead.")
+    return load(path)
+  }
+  static saveSync(path, buffer) {
+    System.print("WARN: 'saveSync(_, _)' is depreciated. Use 'save(_, _)' instead.")
+    return save(path, buffer)
+  }
+  foreign static load(path)
+  foreign static save(path, buffer)
 
-  static load(path) {
+  // @Unstable - DO NOT USE
+  foreign static f_load(path, op)
+  static loadAsync(path) {
     var operation = AsyncOperation.init(null)
     f_load(path, operation)
     return operation
   }
-
-  foreign static loadSync(path)
-
-  /*
-  // Overwrites entire path
-  static write(path, buffer) {
-    operation = AsyncOperation.init()
-    operation.create(DataBuffer.create())
-    if (buffer is String) {
-      f_write_string(path, buffer, operation)
-    } else if (buffer is DataBuffer) {
-      f_write_buffer(path, buffer, operation)
-    } else {
-      Fiber.abort("Attempted to write unknown buffer type")
-    }
-    return operation
-  }
-  */
-
-  // Append
-
 }
 
 foreign class AsyncOperation {

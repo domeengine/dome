@@ -143,8 +143,23 @@ FILESYSTEM_loadEventHandler(void* data) {
 }
 
 internal void
+FILESYSTEM_saveSync(WrenVM* vm) {
+  int length;
+  const char* path = wrenGetSlotString(vm, 1);
+  const char* data = wrenGetSlotBytes(vm, 2, &length);
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ENGINE_WRITE_RESULT result = ENGINE_writeFile(engine, path, data, length);
+  if (result == ENGINE_WRITE_PATH_INVALID) {
+    size_t len = 22 + strlen(path);
+    char message[len];
+    snprintf(message, len, "Could not find file: %s", path);
+    VM_ABORT(vm, message);
+    return;
+  }
+}
+
+internal void
 FILESYSTEM_loadSync(WrenVM* vm) {
-  // TODO: We should return a DataBuffer object rather than a string
   const char* path = wrenGetSlotString(vm, 1);
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
 

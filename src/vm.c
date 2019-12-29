@@ -74,12 +74,16 @@ internal WrenForeignMethodFn VM_bind_foreign_method(
 }
 
 internal char* VM_load_module(WrenVM* vm, const char* name) {
-  printf("Loading module %s\n", name);
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ModuleMap moduleMap = engine->moduleMap;
   if (strncmp("./", name, 2) != 0) {
+    if (DEBUG_MODE) {
+      printf("Loading module %s\n", name);
+    }
     return (char*)ModuleMap_get(&moduleMap, name);
   }
+
+  printf("Loading module %s\n", name);
 
   char* extension = ".wren";
   char* path;
@@ -100,6 +104,16 @@ internal void VM_write(WrenVM* vm, const char* text) {
 
 internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
     int line, const char* message) {
+
+  if (DEBUG_MODE == false) {
+    ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+    ModuleMap moduleMap = engine->moduleMap;
+
+    if (module != NULL && ModuleMap_get(&moduleMap, module) != NULL) {
+      return;
+    }
+  }
+
   if (type == WREN_ERROR_COMPILE) {
     printf("%s:%d: %s\n", module, line, message);
   } else if (type == WREN_ERROR_RUNTIME) {
@@ -174,7 +188,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // FileSystem
   MAP_add(&engine->fnMap, "io", "FileSystem", "f_load(_,_)", true, FILESYSTEM_load);
-  MAP_add(&engine->fnMap, "io", "FileSystem", "loadSync(_)", true, FILESYSTEM_loadSync);
+  MAP_add(&engine->fnMap, "io", "FileSystem", "load(_)", true, FILESYSTEM_loadSync);
+  MAP_add(&engine->fnMap, "io", "FileSystem", "save(_,_)", true, FILESYSTEM_saveSync);
 
   // Buffer
   MAP_add(&engine->fnMap, "io", "DataBuffer", "f_data", false, DBUFFER_getData);

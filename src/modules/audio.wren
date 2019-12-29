@@ -5,7 +5,7 @@ import "io" for FileSystem
 foreign class AudioData {
   construct init(buffer) {}
   static fromFile(path) {
-    var data = AudioData.init(FileSystem.loadSync(path))
+    var data = AudioData.init(FileSystem.load(path))
     System.print("Audio loaded: " + path)
     return data
   }
