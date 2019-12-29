@@ -1,0 +1,6 @@
+typedef enum {
+  AUDIO_TYPE_UNKNOWN,
+  AUDIO_TYPE_WAV,
+  AUDIO_TYPE_OGG
+} AUDIO_TYPE;
+

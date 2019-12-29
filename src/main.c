@@ -86,13 +86,18 @@ global_variable jmp_buf loop_exit;
 global_variable WrenHandle* bufferClass = NULL;
 
 // These are set by cmd arguments
+#ifdef DEBUG
+global_variable bool DEBUG_MODE = true;
+#else
 global_variable bool DEBUG_MODE = false;
+#endif
 global_variable size_t INITIAL_HEAP_SIZE = 1024 * 1024 * 100;
 global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 
 // Game code
 #include "math.c"
 #include "strings.c"
+#include "audio_types.c"
 #include "debug.c"
 /*
 #include "util/font.c"

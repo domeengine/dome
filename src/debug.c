@@ -8,7 +8,14 @@ internal void DEBUG_printString(char* str) {
   printf("%s\n", str);
 }
 
-internal void DEBUG_printAudioSpec(SDL_AudioSpec spec) {
+internal void DEBUG_printAudioSpec(SDL_AudioSpec spec, AUDIO_TYPE type) {
+  if (type == AUDIO_TYPE_WAV) {
+    printf("WAV ");
+  } else if (type == AUDIO_TYPE_WAV) {
+    printf("OGG ");
+  } else {
+    printf("Unknown audio file detected\n");
+  }
   printf("Audio: %i Hz ", spec.freq);
   printf("%s", spec.channels == 0 ? "Mono" : "Stereo");
   printf(" - ");

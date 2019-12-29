@@ -152,6 +152,7 @@ ENGINE_init(ENGINE* engine) {
   engine->texture = NULL;
   engine->pixels = NULL;
   engine->lockstep = false;
+  engine->debug.avgFps = 58;
   engine->debugEnabled = false;
   engine->debug.alpha = 0.9;
   engine->width = GAME_WIDTH;
