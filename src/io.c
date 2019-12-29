@@ -12,7 +12,7 @@ char* readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr) {
 
 //
 
-  printf("Reading from tar: %s\n", path);
+  printf("Reading from bundle: %s\n", path);
   mtar_header_t h;
   mtar_find(tar, path, &h);
   size_t length = h.size;
