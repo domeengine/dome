@@ -1,5 +1,9 @@
 internal void
 CANVAS_print(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "text");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "y");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "color");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   char* text = (char*)wrenGetSlotString(vm, 1);
   int64_t x = round(wrenGetSlotDouble(vm, 2));
@@ -12,6 +16,9 @@ CANVAS_print(WrenVM* vm) {
 internal void
 CANVAS_pset(WrenVM* vm)
 {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "color");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int64_t x = round(wrenGetSlotDouble(vm, 1));
   int64_t y = round(wrenGetSlotDouble(vm, 2));
@@ -22,6 +29,10 @@ CANVAS_pset(WrenVM* vm)
 internal void
 CANVAS_circle_filled(WrenVM* vm)
 {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "radius");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "color");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int64_t x = round(wrenGetSlotDouble(vm, 1));
   int64_t y = round(wrenGetSlotDouble(vm, 2));
@@ -33,6 +44,10 @@ CANVAS_circle_filled(WrenVM* vm)
 internal void
 CANVAS_circle(WrenVM* vm)
 {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "radius");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "color");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int64_t x = round(wrenGetSlotDouble(vm, 1));
   int64_t y = round(wrenGetSlotDouble(vm, 2));
@@ -43,6 +58,11 @@ CANVAS_circle(WrenVM* vm)
 internal void
 CANVAS_line(WrenVM* vm)
 {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x1");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y1");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "x2");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "y2");
+  ASSERT_SLOT_TYPE(vm, 5, NUM, "color");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int64_t x1 = round(wrenGetSlotDouble(vm, 1));
   int64_t y1 = round(wrenGetSlotDouble(vm, 2));
@@ -55,6 +75,11 @@ CANVAS_line(WrenVM* vm)
 internal void
 CANVAS_ellipse(WrenVM* vm)
 {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x1");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y1");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "x2");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "y2");
+  ASSERT_SLOT_TYPE(vm, 5, NUM, "color");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int64_t x1 = round(wrenGetSlotDouble(vm, 1));
   int64_t y1 = round(wrenGetSlotDouble(vm, 2));
@@ -67,6 +92,11 @@ CANVAS_ellipse(WrenVM* vm)
 internal void
 CANVAS_ellipsefill(WrenVM* vm)
 {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x1");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y1");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "x2");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "y2");
+  ASSERT_SLOT_TYPE(vm, 5, NUM, "color");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int64_t x1 = round(wrenGetSlotDouble(vm, 1));
   int64_t y1 = round(wrenGetSlotDouble(vm, 2));
@@ -79,6 +109,11 @@ CANVAS_ellipsefill(WrenVM* vm)
 internal void
 CANVAS_rect(WrenVM* vm)
 {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x1");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y1");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "x2");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "y2");
+  ASSERT_SLOT_TYPE(vm, 5, NUM, "color");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int64_t x = round(wrenGetSlotDouble(vm, 1));
   int64_t y = round(wrenGetSlotDouble(vm, 2));
@@ -91,6 +126,11 @@ CANVAS_rect(WrenVM* vm)
 internal void
 CANVAS_rectfill(WrenVM* vm)
 {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x1");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y1");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "x2");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "y2");
+  ASSERT_SLOT_TYPE(vm, 5, NUM, "color");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int64_t x = round(wrenGetSlotDouble(vm, 1));
   int64_t y = round(wrenGetSlotDouble(vm, 2));
@@ -113,6 +153,9 @@ CANVAS_getHeight(WrenVM* vm) {
 
 internal void
 CANVAS_resize(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "width");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "height");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "color");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   uint32_t width = wrenGetSlotDouble(vm, 1);
   uint32_t height = wrenGetSlotDouble(vm, 2);

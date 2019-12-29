@@ -101,7 +101,8 @@ typedef struct {
 } TASK_DATA;
 
 internal void
-FILESYSTEM_load(WrenVM* vm) {
+FILESYSTEM_loadAsync(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "file path");
   // Thread: main
   INIT_TO_ZERO(ABC_TASK, task);
   TASK_DATA* taskData = malloc(sizeof(TASK_DATA));
@@ -145,6 +146,8 @@ FILESYSTEM_loadEventHandler(void* data) {
 internal void
 FILESYSTEM_saveSync(WrenVM* vm) {
   int length;
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "file path");
+  ASSERT_SLOT_TYPE(vm, 2, STRING, "file data");
   const char* path = wrenGetSlotString(vm, 1);
   const char* data = wrenGetSlotBytes(vm, 2, &length);
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
@@ -160,6 +163,7 @@ FILESYSTEM_saveSync(WrenVM* vm) {
 
 internal void
 FILESYSTEM_loadSync(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "file path");
   const char* path = wrenGetSlotString(vm, 1);
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
 

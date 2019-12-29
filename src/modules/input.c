@@ -1,5 +1,6 @@
 internal void KEYBOARD_isKeyDown(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "key name");
   const char* keyName = wrenGetSlotString(vm, 1);
   bool result = ENGINE_getKeyState(engine, keyName);
   wrenSetSlotBool(vm, 0, result);
@@ -39,6 +40,9 @@ internal void MOUSE_isButtonPressed(WrenVM* vm) {
     free(buttonName);
   } else if (type == WREN_TYPE_NUM) {
     buttonIndex = wrenGetSlotDouble(vm, 1);
+  } else {
+    VM_ABORT(vm, "Invalid button index given")
+    return;
   }
 
   wrenSetSlotBool(vm, 0, ENGINE_getMouseButton(buttonIndex));
@@ -51,6 +55,7 @@ typedef struct {
 
 internal void
 GAMEPAD_allocate(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "joystick id");
   int joystickId = floor(wrenGetSlotDouble(vm, 1));
   GAMEPAD* gamepad = wrenSetSlotNewForeign(vm, 0, 0, sizeof(GAMEPAD));
 
@@ -136,6 +141,9 @@ GAMEPAD_isButtonPressed(WrenVM* vm) {
     free(buttonName);
   } else if (type == WREN_TYPE_NUM) {
     buttonIndex = wrenGetSlotDouble(vm, 1);
+  } else {
+    VM_ABORT(vm, "Invalid controller button index")
+    return;
   }
   bool isPressed = SDL_GameControllerGetButton(gamepad->controller, buttonIndex);
   wrenSetSlotBool(vm, 0, isPressed);
@@ -147,6 +155,7 @@ GAMEPAD_getAnalogStick(WrenVM* vm) {
   int16_t x = 0;
   int16_t y = 0;
   if (gamepad->controller != NULL) {
+    ASSERT_SLOT_TYPE(vm, 1, STRING, "analog stick side");
     char* side = strToLower(wrenGetSlotString(vm, 1));
     if (STRINGS_EQUAL(side, "left")) {
       x = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_LEFTX);
@@ -172,6 +181,7 @@ GAMEPAD_getTrigger(WrenVM* vm) {
     wrenSetSlotDouble(vm, 0, 0.0);
     return;
   }
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "trigger side");
   char* side = strToLower(wrenGetSlotString(vm, 1));
   int triggerIndex = SDL_CONTROLLER_AXIS_INVALID;
   if (STRINGS_EQUAL(side, "left")) {

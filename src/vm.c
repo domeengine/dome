@@ -187,7 +187,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "audio", "AudioEngine", "f_update(_)", true, AUDIO_ENGINE_update);
 
   // FileSystem
-  MAP_add(&engine->fnMap, "io", "FileSystem", "f_load(_,_)", true, FILESYSTEM_load);
+  MAP_add(&engine->fnMap, "io", "FileSystem", "f_load(_,_)", true, FILESYSTEM_loadAsync);
   MAP_add(&engine->fnMap, "io", "FileSystem", "load(_)", true, FILESYSTEM_loadSync);
   MAP_add(&engine->fnMap, "io", "FileSystem", "save(_,_)", true, FILESYSTEM_saveSync);
 
