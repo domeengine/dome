@@ -34,19 +34,12 @@ class Game {
     System.print(Window.title)
     __state = MainGame
     __state.init()
-    __done = false
 
-    __loadSettingsOp = FileSystem.load("setup_wren.sh")
-    System.print(__loadSettingsOp.result.length)
+    __settingsFile = FileSystem.load("setup_wren.sh")
+    System.print(__settingsFile)
   }
   static update() {
 
-    if (__loadSettingsOp.complete && !__done) {
-      __settingsFile = __loadSettingsOp.result
-      __done = true
-      System.print("loaded")
-      System.print(__settingsFile.data)
-    }
     __x = Mouse.x
     __y = Mouse.y
 

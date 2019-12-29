@@ -101,14 +101,14 @@ internal void VM_write(WrenVM* vm, const char* text) {
 internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
     int line, const char* message) {
 
-  #ifndef DEBUG
-  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  ModuleMap moduleMap = engine->moduleMap;
+  if (DEBUG_MODE == false) {
+    ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+    ModuleMap moduleMap = engine->moduleMap;
 
-  if (module != NULL && ModuleMap_get(&moduleMap, module) != NULL) {
-    return;
+    if (module != NULL && ModuleMap_get(&moduleMap, module) != NULL) {
+      return;
+    }
   }
-  #endif
 
   if (type == WREN_ERROR_COMPILE) {
     printf("%s:%d: %s\n", module, line, message);

@@ -86,6 +86,7 @@ global_variable jmp_buf loop_exit;
 global_variable WrenHandle* bufferClass = NULL;
 
 // These are set by cmd arguments
+global_variable bool DEBUG_MODE = false;
 global_variable size_t INITIAL_HEAP_SIZE = 1024 * 1024 * 100;
 global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 
@@ -139,12 +140,12 @@ printVersion(void) {
 internal void
 printUsage(void) {
   printf("\nUsage: \n");
-  printf("  dome [entry path]\n");
-  printf("  dome [-r<gif> | --record=<gif>] [-b<buf> | --buffer=<buf>] [-i<size> | --initial-heap=<size>] [entry path]\n");
+  printf("  dome [-d | --debug] [-r<gif> | --record=<gif>] [-b<buf> | --buffer=<buf>] [-i<size> | --initial-heap=<size>] [entry path]\n");
   printf("  dome -h | --help\n");
   printf("  dome -v | --version\n");
   printf("\nOptions: \n");
   printf("  -b --buffer=<buf>   Set the audio buffer size (default: 11)\n");
+  printf("  -d --debug          Enables debug mode\n");
   printf("  -h --help           Show this screen.\n");
   printf("  -v --version        Show version.\n");
   printf("  -r --record=<gif>   Record video to <gif>.\n");
@@ -176,6 +177,7 @@ int main(int argc, char* args[])
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
     {"buffer", 'b', OPTPARSE_REQUIRED},
+    {"debug", 'd', OPTPARSE_NONE},
     {"initial", 'i', OPTPARSE_REQUIRED},
     {"help", 'h', OPTPARSE_NONE},
     {"version", 'v', OPTPARSE_NONE},
@@ -197,6 +199,10 @@ int main(int argc, char* args[])
           }
           AUDIO_BUFFER_SIZE = 1 << shift;
         } break;
+      case 'd':
+        DEBUG_MODE = true;
+        printf("Debug Mode enabled\n");
+        break;
       case 'h':
         printTitle();
         printUsage();
