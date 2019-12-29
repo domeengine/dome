@@ -7,6 +7,7 @@ typedef struct {
 
 void IMAGE_allocate(WrenVM* vm) {
 
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "image");
   // TODO: We should read this from a "DataBuffer" which is file loaded, rather than loading ourselves.
   // So that we can defer the file loading to a thread.
   int length;
@@ -53,6 +54,8 @@ void IMAGE_finalize(void* data) {
 }
 
 void IMAGE_draw(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
   IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
 
@@ -78,6 +81,12 @@ void IMAGE_getHeight(WrenVM* vm) {
 }
 
 void IMAGE_drawArea(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "source x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "source y");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "source width");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "source height");
+  ASSERT_SLOT_TYPE(vm, 5, NUM, "destination x");
+  ASSERT_SLOT_TYPE(vm, 6, NUM, "destination y");
   IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
   int32_t srcX = wrenGetSlotDouble(vm, 1);
   int32_t srcY = wrenGetSlotDouble(vm, 2);
