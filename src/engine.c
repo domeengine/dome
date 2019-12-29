@@ -46,7 +46,31 @@ typedef enum {
   TASK_WRITE_FILE_APPEND
 } TASK_TYPE;
 
+typedef enum {
+  ENGINE_WRITE_SUCCESS,
+  ENGINE_WRITE_PATH_INVALID
+} ENGINE_WRITE_RESULT;
+
 global_variable uint32_t ENGINE_EVENT_TYPE;
+
+internal ENGINE_WRITE_RESULT
+ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
+  char* base = SDL_GetBasePath();
+  char* fullPath = malloc(strlen(base)+strlen(path)+1);
+  strcpy(fullPath, base); /* copy name into the new var */
+  strcat(fullPath, path); /* add the extension */
+  SDL_free(base);
+
+  int result = writeEntireFile(fullPath, buffer, length);
+  if (result == ENOENT) {
+    result = ENGINE_WRITE_PATH_INVALID;
+  } else {
+    result = ENGINE_WRITE_SUCCESS;
+  }
+  free(fullPath);
+
+  return result;
+}
 
 internal char*
 ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {

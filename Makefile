@@ -32,6 +32,7 @@ EXENAME = dome
 ifeq ($(MODE), debug)
 	LDFLAGS += -lwrend
 	CFLAGS += -g -fsanitize=address -O0
+  DOME_OPTS += -DDEBUG=1
   $(shell echo $(MODE) > .mode)
 else
 	LDFLAGS += -lwren
