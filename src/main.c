@@ -72,6 +72,13 @@
   wrenAbortFiber(vm, 0); \
 } while(false);
 
+#define ASSERT_SLOT_TYPE(vm, slot, type, fieldName) \
+  if (wrenGetSlotType(vm, slot) != WREN_TYPE_##type) { \
+    VM_ABORT(vm, "'" #fieldName "' was not " #type); \
+    return; \
+  }
+
+
 
 // Constants
 // Screen dimension constants

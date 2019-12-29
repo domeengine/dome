@@ -17,12 +17,15 @@ WINDOW_resize(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   uint32_t width = wrenGetSlotDouble(vm, 1);
   uint32_t height = wrenGetSlotDouble(vm, 2);
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "width");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "height");
   SDL_SetWindowSize(engine->window, width, height);
 }
 
 internal void
 WINDOW_setTitle(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "title");
   char* title = wrenGetSlotString(vm, 1);
   SDL_SetWindowTitle(engine->window, title);
 }

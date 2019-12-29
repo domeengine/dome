@@ -8,6 +8,19 @@ internal void DEBUG_printString(char* str) {
   printf("%s\n", str);
 }
 
+internal char*
+DEBUG_printWrenType(WrenType type) {
+  switch (type) {
+    case WREN_TYPE_BOOL: return "boolean"; break;
+    case WREN_TYPE_NUM: return "number"; break;
+    case WREN_TYPE_FOREIGN: return "foreign"; break;
+    case WREN_TYPE_LIST: return "list"; break;
+    case WREN_TYPE_NULL: return "null"; break;
+    case WREN_TYPE_STRING: return "string"; break;
+    default: return "unknown";
+  }
+}
+
 internal void DEBUG_printAudioSpec(SDL_AudioSpec spec, AUDIO_TYPE type) {
   if (type == AUDIO_TYPE_WAV) {
     printf("WAV ");

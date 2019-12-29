@@ -42,18 +42,6 @@ LIBRARY_HANDLE_finalize(void* ptr) {
   SDL_UnloadObject(handle);
 }
 
-internal char*
-DEBUG_printWrenType(WrenType type) {
-  switch (type) {
-    case WREN_TYPE_BOOL: return "boolean"; break;
-    case WREN_TYPE_NUM: return "number"; break;
-    case WREN_TYPE_FOREIGN: return "foreign"; break;
-    case WREN_TYPE_LIST: return "list"; break;
-    case WREN_TYPE_NULL: return "Null"; break;
-    case WREN_TYPE_STRING: return "string"; break;
-    default: return "unknown";
-  }
-}
 
 typedef struct {
   void* methodPtr;
