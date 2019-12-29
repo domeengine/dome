@@ -17,7 +17,8 @@ Install NEST, and then navigate to your main game directory, before running the 
 > nest -z -o game.egg -- [files | directories]
 ```
 
-## Packaging and Dependancies
+## Cross-Platform Distribution
+This section discusses the needs of various platforms when distributing games with DOME.
 
 ### Windows
 
