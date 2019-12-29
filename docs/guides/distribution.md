@@ -17,13 +17,13 @@ Install NEST, and then navigate to your main game directory, before running the 
 > nest -z -o game.egg -- [files | directories]
 ```
 
-# Packaging and Dependancies
+## Packaging and Dependancies
 
-## Windows
+### Windows
 
 On Windows, DOME comes compiled with all it's dependancies, so you just need to provide your game files.
 
-## Mac OS X
+### Mac OS X
 
 On Mac, the SDL2 library needs to be provided. This can either be globally installed, or you can package it as part of an application bundle, using the following layout:
 
@@ -67,7 +67,7 @@ The .app bundle, runscript and the `CFBundleExecutable` must all be named the sa
 
 Doing this results in a self contained and easy to distribute application bundle.
 
-## Linux
+### Linux
 
 To run your game on linux, make sure SDL2 is installed, then run the dome executable with a `game.egg` file in the same directory.
 
