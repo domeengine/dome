@@ -18,10 +18,7 @@ jobs:
       uses: actions/setup-ruby@v1.0.0
     - run: /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     - run: brew install sdl2
-    - run:
-        brew install llvm &&
-        echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> ~/.bash_profile &&
-        source ~/.bash_profile
+    - run: sudo xcode-select -switch /Applications/Xcode_11.3.app
     - run: make
     - uses: actions/upload-artifact@v1
       with:
