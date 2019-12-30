@@ -1,5 +1,4 @@
-name: CI
-
+name: Mac Build Release
 on:
   push:
     tags: 
