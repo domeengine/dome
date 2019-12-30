@@ -18,6 +18,10 @@ jobs:
       uses: actions/setup-ruby@v1.0.0
     - run: /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     - run: brew install sdl2
+    - run:
+        brew install llvm
+        mv /usr/local/opt/emscripten/libexec/llvm/bin/llvm-ar /usr/local/opt/emscripten/libexec/llvm/bin/llvm-ar.old
+        ln -s /usr/local/opt/llvm/bin/llvm-ar /usr/local/opt/emscripten/libexec/llvm/bin/llvm-ar 
     - run: make
     - uses: actions/upload-artifact@v1
       with:
