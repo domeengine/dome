@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    tags: 
+      - release/*
+
+jobs:
+  build:
+
+    runs-on: [macos-latest]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+    - name: GitHub Action for Homebrew
+      uses: artemnovichkov/action-homebrew@0.1.0
+    - run: brew install sdl2
+    - run: make
