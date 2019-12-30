@@ -20,7 +20,8 @@ jobs:
     - run: brew install sdl2
     - run:
         brew install llvm &&
-        echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> ~/.bash_profile
+        echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> ~/.bash_profile &&
+        source ~/.bash_profile
     - run: make
     - uses: actions/upload-artifact@v1
       with:
