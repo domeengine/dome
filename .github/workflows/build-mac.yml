@@ -1,6 +1,8 @@
 name: Mac Build Release
 on:
   push:
+    branches: 
+      - actions
     tags: 
       - release/*
 
