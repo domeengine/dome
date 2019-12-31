@@ -5,19 +5,12 @@ Installation
 
 You can either download the compiled binaries from GitHub, or you can build the DOME executable from source.
 
-## Pre-requistes
-
-You need to make sure a version of SDL2 is installed. On a Mac, you can either use a package manager like [Homebrew](https://brew.sh), or install the SDL2 framework manually from [here](https://www.libsdl.org/download-2.0.php). If you are going to build DOME from source, you will need the developer library.
-
-On linux, you can use your package manager to install SDL2, or build `libSDL2.so` from source.
-
-Windows is more difficult, and we recommend using the pre-compiled binaries for DOME, as it includes SDL2.
-
-## Download
+## Method 1: Download
 
 Go to the [Github](https://github.com/avivbeeri/dome/releases) release for the version of DOME you want, and select a zip file from the "assets" matching your computer's architecture to download.
 
 Once it's downloaded to your computer, unzip it, and place it in the directory you want to make your game in.
+For linux and Mac OS X, you will need a version of SDL2 installed as well.
 
 At this point, you should have an executable named `dome` in your current directory. Test your installation by running:
 
@@ -28,9 +21,9 @@ It should print out its version, SDL versions and whether FFI is available (comp
 
 You can also download the example `game.egg` from the GitHub repository to test dome. Place it in the same folder as your executable and then run dome, and it should begin playing.
 
-## Build from Source
+## Method 2: Build from Source
 
-DOME should build fine on Mac OS X and most flavors of linux, so long as gcc, git and SDL2 are installed. 
+DOME should build fine on Mac OS X and most flavors of linux, so long as gcc, git and SDL2 are installed. On Mac OS X, you should install SDL2 using [Homebrew](https://brew.sh) using the command `brew install sdl2`.
 
 Windows is supported, but it's only been tested using a MinGW-w64 MSYS2 environment. For information on setting this up, follow [this guide.](https://github.com/orlp/dev-on-windows/wiki/Installing-GCC--&-MSYS2)
 
