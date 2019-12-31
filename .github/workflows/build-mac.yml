@@ -17,8 +17,12 @@ jobs:
     - name: Setup Ruby for use with actions
       uses: actions/setup-ruby@v1.0.0
     - run: /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    - run: 
+        brew install gtar && 
+        curl https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.12.sdk.tar.xz -o MacOSX10.12.sdk.tar.xz &&
+        gtar xz MacOSX10.12.sdk.tar.xz
+        sudo xcode-select -s ./MacOSX10.12.sdk
     - run: brew install sdl2
-    - run: sudo xcode-select -switch /Applications/Xcode_11.3.app
     - run: make
     - uses: actions/upload-artifact@v1
       with:
