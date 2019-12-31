@@ -1,5 +1,6 @@
 MODE_FILE=.mode
 MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
+FRAMEWORK = unix
 
 SOURCE  = src
 UTILS = $(SOURCE)/util
@@ -16,9 +17,9 @@ endif
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
 DOME_OPTS += -DHASH="\"$(BUILD_VALUE)\""
 CC = cc
-CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `sdl2-config --cflags`
+CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `which sdl2-config 1>/dev/null && sdl2-config --cflags`
 IFLAGS = -isystem $(INCLUDES)
-SDLFLAGS= `sdl2-config --libs`
+SDLFLAGS= `which sdl2-config 1>/dev/null && sdl2-config --libs`
 LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm
 
 ifeq ($(DOME_OPT_FFI),1)
@@ -47,7 +48,12 @@ endif
 SYS=$(shell uname -s)
 
 ifneq (, $(findstring Darwin, $(SYS)))
+	FRAMEWORK = $(shell which sdl2-config && echo unix || echo framework)
+	
 	CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
+  ifeq ($(FRAMEWORK), framework)
+	CFLAGS +=  -I /Library/Frameworks/SDL2.framework/Headers -framework SDL2
+  endif
 endif
 
 ifneq (, $(findstring MINGW, $(SYS)))
