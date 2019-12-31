@@ -15,7 +15,7 @@ DOME only supports OGG and WAV files at the moment.
 
 An audio file is loaded from disk into memory using the `load` function, and remains in memory until you call `unload` or `unloadAll`, but all audio data is also unloaded when DOME closes.
 
-The API for DOME's audio engine is heavily influenced by [this talk](://www.youtube.com/watch?v=Vjm--AqG04Y) by Guy Somberg.
+The API for DOME's audio engine is heavily influenced by [this talk](https://www.youtube.com/watch?v=Vjm--AqG04Y) by Guy Somberg.
 
 ### Example
 
