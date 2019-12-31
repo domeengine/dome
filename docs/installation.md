@@ -5,6 +5,14 @@ Installation
 
 You can either download the compiled binaries from GitHub, or you can build the DOME executable from source.
 
+## Pre-requistes
+
+You need to make sure a version of SDL2 is installed. On a Mac, you can either use a package manager like [Homebrew](https://brew.sh), or install the SDL2 framework manually from [here](https://www.libsdl.org/download-2.0.php). If you are going to build DOME from source, you will need the developer library.
+
+On linux, you can use your package manager to install SDL2, or build `libSDL2.so` from source.
+
+Windows is more difficult, and we recommend using the pre-compiled binaries for DOME, as it includes SDL2.
+
 ## Download
 
 Go to the [Github](https://github.com/avivbeeri/dome/releases) release for the version of DOME you want, and select a zip file from the "assets" matching your computer's architecture to download.
