@@ -21,7 +21,7 @@ jobs:
         brew install gnu-tar && 
         curl -L https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.12.sdk.tar.xz | gtar zx &&
         sudo mkdir /Applications/Xcode.app/Contents/Developer/SDKs &&
-        ln -r MacOSX10.12.sdk /Applications/Xcode.app/Contents/Developer/SDKs/MacOSX10.12.sdk &&
+        sudo ln -s MacOSX10.12.sdk /Applications/Xcode.app/Contents/Developer/SDKs/MacOSX10.12.sdk &&
         sudo xcode-select -s /Applications/Xcode.app/Contents/Developer/SDKs/MacOSX10.12.sdk
     - run: brew install sdl2
     - run: make
