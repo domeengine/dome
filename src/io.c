@@ -9,8 +9,11 @@ char* getBasePath(void) {
   char *ptr = NULL;
 
   if (basePath == NULL) {
-
+#ifdef __MINGW32__
+    path_max = PATH_MAX;
+#else
     path_max = pathconf(".", _PC_PATH_MAX);
+#endif
     if (path_max == -1) {
       size = 1024;
     } else if (path_max > 10240) {
