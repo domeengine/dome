@@ -51,6 +51,9 @@ ifneq (, $(findstring Darwin, $(SYS)))
 	FRAMEWORK = $(shell which sdl2-config && echo unix || echo framework)
 	
 	CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
+ifdef MIN_MAC_VERSION
+	CFLAGS += -mmacosx-version-min=$(MIN_MAC_VERSION)
+endif
   ifeq ($(FRAMEWORK), framework)
 	CFLAGS +=  -I /Library/Frameworks/SDL2.framework/Headers -framework SDL2
   endif
