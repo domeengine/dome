@@ -33,12 +33,19 @@ char* getBasePath(void) {
       }
     }
     basePath = ptr;
-    size_t len = strlen(basePath);
-    *(basePath + len) = '/';
-    *(basePath + len + 1) = '\0';
-    for (size_t i = 0; i < len + 2; i++) {
-      if (basePath[i] == '\\') {
-        basePath[i] = '/';
+
+    if (strstr(basePath, ".app/") != NULL) {
+      // If this is a MAC bundle, we need to use the exe location
+      free(basePath);
+      basePath = SDL_GetBasePath();
+    } else {
+      size_t len = strlen(basePath);
+      *(basePath + len) = '/';
+      *(basePath + len + 1) = '\0';
+      for (size_t i = 0; i < len + 2; i++) {
+        if (basePath[i] == '\\') {
+          basePath[i] = '/';
+        }
       }
     }
   }
