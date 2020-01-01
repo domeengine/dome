@@ -3,12 +3,22 @@ internal void FILESYSTEM_loadEventHandler(void* task);
 global_variable char* basePath = NULL;
 char* getBasePath(void) {
 
-  long path_max;
-  size_t size;
-  char *buf = NULL;
-  char *ptr = NULL;
 
   if (basePath == NULL) {
+    if (STRINGS_EQUAL(SDL_GetPlatform(), "Mac OS X")) {
+      basePath = SDL_GetBasePath();
+      if (strstr(basePath, ".app/") != NULL) {
+        // If this is a MAC bundle, we need to use the exe location
+        return basePath;
+      } else {
+        // Free the SDL path and fall back
+        free(basePath);
+      }
+    }
+    long path_max;
+    size_t size;
+    char *buf = NULL;
+    char *ptr = NULL;
 #ifdef __MINGW32__
     path_max = PATH_MAX;
 #else
@@ -33,19 +43,12 @@ char* getBasePath(void) {
       }
     }
     basePath = ptr;
-
-    if (STRINGS_EQUAL(SDL_GetPlatform(), "Mac OS X") && strstr(basePath, ".app/") != NULL) {
-      // If this is a MAC bundle, we need to use the exe location
-      free(basePath);
-      basePath = SDL_GetBasePath();
-    } else {
-      size_t len = strlen(basePath);
-      *(basePath + len) = '/';
-      *(basePath + len + 1) = '\0';
-      for (size_t i = 0; i < len + 2; i++) {
-        if (basePath[i] == '\\') {
-          basePath[i] = '/';
-        }
+    size_t len = strlen(basePath);
+    *(basePath + len) = '/';
+    *(basePath + len + 1) = '\0';
+    for (size_t i = 0; i < len + 2; i++) {
+      if (basePath[i] == '\\') {
+        basePath[i] = '/';
       }
     }
   }
