@@ -34,12 +34,13 @@ char* getBasePath(void) {
     }
     basePath = ptr;
     size_t len = strlen(basePath);
-#ifdef __MINGW32__
-    *(basePath + len) = '\';
-#else
     *(basePath + len) = '/';
-#endif
     *(basePath + len + 1) = '\0';
+    for (size_t i = 0; i < len + 2; i++) {
+      if (basePath[i] == '\\') {
+        basePath[i] = '/';
+      }
+    }
   }
   return basePath;
 }
