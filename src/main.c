@@ -297,6 +297,13 @@ int main(int argc, char* args[])
   vm = VM_create(&engine);
   WrenInterpretResult interpreterResult;
 
+  // Set up the audio engine
+  interpreterResult = wrenInterpret(vm, "main", "import \"audio\"");
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    result = EXIT_FAILURE;
+    goto cleanup;
+  }
+
   // Load user game file
   interpreterResult = wrenInterpret(vm, "main", gameFile);
   free(gameFile);
