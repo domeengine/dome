@@ -1,5 +1,48 @@
 internal void FILESYSTEM_loadEventHandler(void* task);
 
+global_variable char* basePath = NULL;
+char* getBasePath(void) {
+
+  long path_max;
+  size_t size;
+  char *buf = NULL;
+  char *ptr = NULL;
+
+  if (basePath == NULL) {
+
+    path_max = pathconf(".", _PC_PATH_MAX);
+    if (path_max == -1) {
+      size = 1024;
+    } else if (path_max > 10240) {
+      size = 10240;
+    } else {
+      size = path_max;
+    }
+
+    for (buf = ptr = NULL; ptr == NULL; size *= 2) {
+      if ((buf = realloc(buf, size + sizeof(char) * 2)) == NULL) {
+        abort();
+      }
+
+      ptr = getcwd(buf, size);
+      if (ptr == NULL && errno != ERANGE) {
+        abort();
+      }
+    }
+    basePath = ptr;
+    size_t len = strlen(basePath);
+    *(basePath + len) = '/';
+    *(basePath + len + 1) = '\0';
+  }
+  return basePath;
+}
+
+void freeBasePath(void) {
+  if (basePath != NULL) {
+    free(basePath);
+  }
+}
+
 bool doesFileExist(char* path) {
   return access(path, F_OK) != -1;
 }
@@ -10,7 +53,7 @@ char* readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr) {
   // mtar_t tar;
   // mtar_open(tar, "game.egg", "r");
 
-//
+  //
 
   printf("Reading from bundle: %s\n", path);
   mtar_header_t h;

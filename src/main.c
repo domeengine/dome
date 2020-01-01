@@ -249,7 +249,7 @@ int main(int argc, char* args[])
   {
     char* fileName = "game.egg";
     char* mainFileName = "main.wren";
-    char* base = SDL_GetBasePath();
+    char* base = getBasePath();
     char* arg = optparse_arg(&options);
     if (arg != NULL) {
       fileName = arg;
@@ -257,7 +257,6 @@ int main(int argc, char* args[])
     char pathBuf[strlen(base)+strlen(fileName)+1];
     strcpy(pathBuf, base);
     strcat(pathBuf, fileName);
-    SDL_free(base);
 
     if (doesFileExist(pathBuf)) {
       engine.tar = malloc(sizeof(mtar_t));
@@ -515,6 +514,7 @@ vm_cleanup:
 cleanup:
   // Free resources
   // TODO: Lock the Audio Engine here.
+  freeBasePath();
   AUDIO_ENGINE_halt(engine.audioEngine);
   VM_free(vm);
   ENGINE_free(&engine);
