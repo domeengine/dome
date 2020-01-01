@@ -34,7 +34,7 @@ char* getBasePath(void) {
     }
     basePath = ptr;
 
-    if (strstr(basePath, ".app/") != NULL) {
+    if (STRINGS_EQUAL(SDL_GetPlatform(), "Mac OS X") && strstr(basePath, ".app/") != NULL) {
       // If this is a MAC bundle, we need to use the exe location
       free(basePath);
       basePath = SDL_GetBasePath();
