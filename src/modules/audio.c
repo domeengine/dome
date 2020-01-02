@@ -51,7 +51,6 @@ void AUDIO_ENGINE_mix(void*  userdata,
   int16_t* writeCursor = (int16_t*)(stream);
   SDL_memset(writeCursor, 0, outputBufferSize);
 
-  int32_t samplesQueued = SDL_GetQueuedAudioSize(audioEngine->deviceId) / bytesPerSample;
   int32_t samplesToWrite = totalSamples;//  - samplesQueued;
   int totalChannels = 0;
 
