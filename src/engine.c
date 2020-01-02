@@ -55,7 +55,7 @@ global_variable uint32_t ENGINE_EVENT_TYPE;
 
 internal ENGINE_WRITE_RESULT
 ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
-  char* base = getBasePath();
+  char* base = BASEPATH_get();
   char* fullPath = malloc(strlen(base)+strlen(path)+1);
   strcpy(fullPath, base); /* copy name into the new var */
   strcat(fullPath, path); /* add the extension */
@@ -91,7 +91,7 @@ ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
     printf("Couldn't find %s in bundle, falling back.\n", pathBuf);
   }
 
-  char* base = getBasePath();
+  char* base = BASEPATH_get();
   char* fullPath = malloc(strlen(base)+strlen(path)+1);
   strcpy(fullPath, base); /* copy name into the new var */
   strcat(fullPath, path); /* add the extension */

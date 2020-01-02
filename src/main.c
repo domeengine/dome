@@ -249,7 +249,7 @@ int main(int argc, char* args[])
   {
     char* fileName = "game.egg";
     char* mainFileName = "main.wren";
-    char* base = getBasePath();
+    char* base = BASEPATH_get();
     char* arg = optparse_arg(&options);
     if (arg != NULL) {
       fileName = arg;
@@ -514,7 +514,7 @@ vm_cleanup:
 cleanup:
   // Free resources
   // TODO: Lock the Audio Engine here.
-  freeBasePath();
+  BASEPATH_free();
   AUDIO_ENGINE_halt(engine.audioEngine);
   VM_free(vm);
   ENGINE_free(&engine);

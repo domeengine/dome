@@ -1,9 +1,9 @@
 internal void FILESYSTEM_loadEventHandler(void* task);
 
 global_variable char* basePath = NULL;
-char* getBasePath(void) {
 
-
+internal char*
+BASEPATH_get(void) {
   if (basePath == NULL) {
     if (STRINGS_EQUAL(SDL_GetPlatform(), "Mac OS X")) {
       basePath = SDL_GetBasePath();
@@ -55,30 +55,28 @@ char* getBasePath(void) {
   return basePath;
 }
 
-void freeBasePath(void) {
+internal void
+BASEPATH_free(void) {
   if (basePath != NULL) {
     free(basePath);
   }
 }
 
+internal inline
 bool doesFileExist(char* path) {
   return access(path, F_OK) != -1;
 }
 
-char* readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr) {
+internal char*
+readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr) {
   // We assume the tar open has been done already
-  /* Open archive for reading */
-  // mtar_t tar;
-  // mtar_open(tar, "game.egg", "r");
-
-  //
 
   printf("Reading from bundle: %s\n", path);
   mtar_header_t h;
   mtar_find(tar, path, &h);
   size_t length = h.size;
-  char* p = calloc(1, length + 1);
-  if (mtar_read_data(tar, p, length) != MTAR_ESUCCESS) {
+  char* buffer = calloc(1, length + 1);
+  if (mtar_read_data(tar, buffer, length) != MTAR_ESUCCESS) {
     printf("Error: Couldn't read the data from the bundle.");
     abort();
   }
@@ -86,10 +84,12 @@ char* readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr) {
   if (lengthPtr != NULL) {
     *lengthPtr = length;
   }
-  return p;
+
+  return buffer;
 }
 
-int writeEntireFile(char* path, char* data, size_t length) {
+internal int
+writeEntireFile(char* path, char* data, size_t length) {
   printf("Writing to filesystem: %s\n", path);
   FILE* file = fopen(path, "wb+");
   if (file == NULL) {
@@ -100,7 +100,8 @@ int writeEntireFile(char* path, char* data, size_t length) {
   return 0;
 }
 
-char* readEntireFile(char* path, size_t* lengthPtr) {
+internal char*
+readEntireFile(char* path, size_t* lengthPtr) {
   printf("Reading from filesystem: %s\n", path);
   FILE* file = fopen(path, "rb");
   if (file == NULL) {
