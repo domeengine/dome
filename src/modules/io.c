@@ -52,6 +52,13 @@ ASYNCOP_getResult(WrenVM* vm) {
   wrenSetSlotHandle(vm, 0, op->bufferHandle);
 }
 
+internal void
+DBUFFER_capture(WrenVM* vm) {
+  if (bufferClass == NULL) {
+    wrenGetVariable(vm, "io", "DataBuffer", 0);
+    bufferClass = wrenGetSlotHandle(vm, 0);
+  }
+}
 
 internal void
 DBUFFER_allocate(WrenVM* vm) {

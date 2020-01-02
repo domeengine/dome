@@ -51,7 +51,10 @@ foreign class DataBuffer {
     }
   }
   // TODO: Index value read and write
+
+  foreign static f_capture()
 }
+DataBuffer.f_capture()
 
 /*
 
