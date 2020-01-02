@@ -103,7 +103,12 @@ $(EXENAME): $(SOURCE)/*.c $(MODULES)/*.c $(UTILS)/font.c $(INCLUDES) $(MODULES)/
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(EXENAME) $(LDFLAGS) $(IFLAGS)
 	$(warning $(MODE))
 ifneq (, $(findstring Darwin, $(SYS)))
-	install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2.dylib $(EXENAME)
+ifneq ($(FRAMEWORK), framework)
+	install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(EXENAME)
+	install_name_tool -change /usr/local/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(EXENAME)
+else
+	install_name_tool -add_rpath \@executable_path/libSDL2-2.0.0.dylib $(EXENAME)
+endif
 endif
 
 # Used for the example game FFI test
