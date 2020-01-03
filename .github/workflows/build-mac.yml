@@ -16,8 +16,8 @@ jobs:
       uses: actions/checkout@v2.0.0
     
     - run: 
-        curl https://www.libsdl.org/release/SDL2-2.0.1.tar.gz -o SDL2-2.0.1.tar.gz ;
-        tar -xzv SDL2-2.0.1.tar.gz ;
+        curl -L https://www.libsdl.org/release/SDL2-2.0.1.tar.gz -o SDL2-2.0.1.tar.gz ;
+        tar -zxvf SDL2-2.0.1.tar.gz ;
         cd SDL2-2.0.1 ;
         mkdir build ;
         cd build ;
