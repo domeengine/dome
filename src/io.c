@@ -2,6 +2,15 @@ internal void FILESYSTEM_loadEventHandler(void* task);
 
 global_variable char* basePath = NULL;
 
+internal void
+BASEPATH_set(char* path) {
+  size_t len = strlen(path);
+  basePath = realloc(basePath, sizeof(char) * (len + 2));
+  strcpy(basePath, path);
+  basePath[len] = '/';
+  basePath[len + 1] = '\0';
+}
+
 internal char*
 BASEPATH_get(void) {
   if (basePath == NULL) {

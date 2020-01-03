@@ -258,6 +258,7 @@ int main(int argc, char* args[])
     char pathBuf[strlen(base)+strlen(fileName)+1];
     strcpy(pathBuf, base);
     strcat(pathBuf, fileName);
+    BASEPATH_set(dirname(pathBuf));
 
     if (doesFileExist(pathBuf)) {
       engine.tar = malloc(sizeof(mtar_t));
@@ -265,7 +266,8 @@ int main(int argc, char* args[])
       if (tarResult != MTAR_ESUCCESS) {
         free(engine.tar);
         engine.tar = NULL;
-        fileName = arg;
+        // fileName = arg;
+        fileName = basename(pathBuf);
       } else {
         printf("Loading bundle %s\n", pathBuf);
         fileName = mainFileName;
