@@ -71,8 +71,17 @@ BASEPATH_free(void) {
   }
 }
 
-internal inline
-bool doesFileExist(char* path) {
+internal inline bool
+isDirectory(const char *path) {
+   struct stat statbuf;
+   if (stat(path, &statbuf) != 0) {
+       return false;
+   }
+   return S_ISDIR(statbuf.st_mode) == 1;
+}
+
+internal inline bool
+doesFileExist(char* path) {
   return access(path, F_OK) != -1;
 }
 
@@ -129,7 +138,7 @@ readEntireFile(char* path, size_t* lengthPtr) {
     /* Read the entire file into memory. */
     size_t newLen = fread(source, sizeof(char), bufsize, file);
     if ( ferror( file ) != 0 ) {
-      fputs("Error reading file", stderr);
+      fputs("Error reading file\n", stderr);
     } else {
       if (lengthPtr != NULL) {
         *lengthPtr = newLen;
