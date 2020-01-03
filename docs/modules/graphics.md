@@ -9,8 +9,8 @@ It contains the following classes:
 
 * [Canvas](#canvas)
 * [Color](#color)
-* [Point](#point)
 * [ImageData](#imagedata)
+* [Vector](#vector)
 
 ## Canvas
 
@@ -81,25 +81,14 @@ An instance of the `Color` class represents a single color which can be used for
 #### `static red: Color`
 #### `static white: Color`
 
-## Point
-
-The `Point` class is a 2-dimensional vector
-
-`TODO`
 
 ## ImageData
 
 This class represents the data from an image, such as a sprite or tilemap. 
-DOME uses stb_image to load images, so it supports the same formats:
+DOME supports the following formats:
  * JPEG baseline & progressive (12 bpc/arithmetic not supported, same as stock IJG lib)
  * PNG 1/2/4/8/16-bit-per-channel
- * TGA (not sure what subset, if a subset)
  * BMP non-1bpp, non-RLE
- * PSD (composited view only, no extra channels, 8/16 bit-per-channel)
- * GIF (*comp always reports as 4-channel)
- * HDR (radiance rgbE format)
- * PIC (Softimage PIC)
- * PNM (PPM and PGM binary only)
 
 ### Static Methods
 #### `static loadFromFile(path: String): ImageData`
@@ -111,3 +100,27 @@ DOME uses stb_image to load images, so it supports the same formats:
 ### Instance Methods
 #### `foreign draw(x: Number, y: Number)`
 #### `foreign drawArea(srcX: Number, srcY: Number, srcW: Number, srcH: Number, destX: Number, destY: Number)`
+
+
+## Vector
+
+The `Vector` class works as a 2-dimensional vector. You can also refer to it as a `Point` or `Vec`.
+
+### Constructor
+
+#### `Vector.new(): Vector`
+#### `Vector.new(x, y): Vector`
+
+Create a vector. If `x` and `y` aren't provided, they are set to `(0, 0)`.
+
+### Instance Fields
+#### `x: Number`
+#### `y: Number`
+
+
+### Operators
+#### `Vector + Vector: Vector`
+Returns an element-wise addition of the two Vectors. This will error if you try to add a Vector to something other than a Vector.
+
+#### `Vector - Vector: Vector`
+Returns an element-wise subtraction of the two Vectors. This will error if you try to subtract a Vector from something other than a Vector, or vice versa.

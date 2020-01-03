@@ -185,6 +185,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "audio", "AudioChannel", "id", false, AUDIO_CHANNEL_getId);
   MAP_add(&engine->fnMap, "audio", "AudioData", "unload()", false, AUDIO_unload);
   MAP_add(&engine->fnMap, "audio", "AudioEngine", "f_update(_)", true, AUDIO_ENGINE_update);
+  MAP_add(&engine->fnMap, "audio", "AudioEngine", "f_captureVariable()", true, AUDIO_ENGINE_capture);
 
   // FileSystem
   MAP_add(&engine->fnMap, "io", "FileSystem", "f_load(_,_)", true, FILESYSTEM_loadAsync);
@@ -192,6 +193,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "io", "FileSystem", "save(_,_)", true, FILESYSTEM_saveSync);
 
   // Buffer
+  MAP_add(&engine->fnMap, "io", "DataBuffer", "f_capture()", true, DBUFFER_capture);
   MAP_add(&engine->fnMap, "io", "DataBuffer", "f_data", false, DBUFFER_getData);
   MAP_add(&engine->fnMap, "io", "DataBuffer", "ready", false, DBUFFER_getReady);
   MAP_add(&engine->fnMap, "io", "DataBuffer", "f_length", false, DBUFFER_getLength);

@@ -38,7 +38,7 @@ You can clone the repository and build DOME by doing the following in your termi
 At this point, you should have an executable named `dome` in your current directory. Test your installation by running:
 
 ```
-> ./dome
+> ./dome examples/spaceshooter
 ```
 
 If all is well, you should see the example game:

@@ -2,7 +2,6 @@
   @Module graphics
   The graphics module provides all the system functions required for drawing to the screen.
 */
-import "io" for FileSystem
 import "vector" for Point
 
 /**
@@ -201,6 +200,7 @@ foreign class ImageData {
     }
 
     if (!__cache.containsKey(path)) {
+      import "io" for FileSystem
       var data = FileSystem.load(path)
       __cache[path] = ImageData.initFromFile(data)
     }
