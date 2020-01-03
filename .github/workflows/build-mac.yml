@@ -14,10 +14,17 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2.0.0
-    - name: Setup Ruby for use with actions
-      uses: actions/setup-ruby@v1.0.0
-    - run: /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    - run: brew install sdl2
+    
+    - run: 
+        curl https://www.libsdl.org/release/SDL2-2.0.1.tar.gz -o SDL2-2.0.1.tar.gz
+        tar -xzv SDL2-2.0.1.tar.gz
+        cd SDL2-2.0.1
+        mkdir build
+        cd build
+        CC=$GITHUB_WORKSPACE/SDL2-2.0.1/build-scripts/gcc-fat.sh 
+        ../configure
+        make
+        make install
     - run: make MIN_MAC_VERSION=10.12
     - uses: actions/upload-artifact@v1
       with:
