@@ -17,16 +17,8 @@ jobs:
     - name: Setup Ruby for use with actions
       uses: actions/setup-ruby@v1.0.0
     - run: /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    - run: 
-        xcode-select --install &&
-        brew install gnu-tar && 
-        curl -L https://github.com/phracker/MacOSX-SDKs/releases/download/10.13/MacOSX10.12.sdk.tar.xz | gtar zx && 
-        sudo mkdir /Applications/Xcode.app/Contents/Developer/SDKs &&
-        cd /Applications/Xcode.app/Contents/Developer/SDKs/ &&
-        sudo ln -s $GITHUB_WORKSPACE/MacOSX10.12.sdk . &&
-        sudo xcode-select -s /Applications/Xcode.app/Contents/Developer/SDKs/MacOSX10.12.sdk
     - run: brew install sdl2
-    - run: make
+    - run: make MIN_MAC_VERSION=10.12
     - uses: actions/upload-artifact@v1
       with:
         name: dome-macosx
