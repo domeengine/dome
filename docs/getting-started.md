@@ -3,11 +3,11 @@
 Getting Started
 =================
 
-To get started, make sure you've built DOME using the [installation](installation) instructions.
+To get started, make sure you've acquired DOME using the [installation](installation) instructions.
 
-Copy the `dome` executable to a new directory which will serve as your workspace.
+Place the `dome` executable to a directory which will serve as your workspace.
 
-Next, create a new file in your workspace directory named `main.wren`. DOME looks by default for a `main.wren` as the entry point to your game.
+Next, create a new file in your workspace directory named `main.wren`. DOME looks by default for a `main.wren` or `game.egg` file (see [Game Distribution](guides/distribution)) as the entry point to your game.
 
 Open `main.wren` in your favourite text editor and enter the following:
 
