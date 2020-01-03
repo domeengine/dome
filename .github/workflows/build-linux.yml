@@ -14,7 +14,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2.0.0
-    - run: sudo DEBIAN_FRONTEND=noninteractive  apt-get -yp install libsdl2-dev 
+    - run: sudo DEBIAN_FRONTEND=noninteractive  apt-get -yq install libsdl2-dev 
     - run: make
     - uses: actions/upload-artifact@v1
       with:
