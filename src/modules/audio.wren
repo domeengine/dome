@@ -1,10 +1,10 @@
-import "io" for FileSystem
 // Represents the data of an audio file
 // which can be loaded and unloaded
 // It is otherwise opaque Wren-side
 foreign class AudioData {
   construct init(buffer) {}
   static fromFile(path) {
+    import "io" for FileSystem
     var data = AudioData.init(FileSystem.load(path))
     System.print("Audio loaded: " + path)
     return data

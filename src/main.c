@@ -10,6 +10,7 @@
 #include <ctype.h>
 
 #include <unistd.h>
+#include <sys/stat.h>
 #include <string.h>
 #include <math.h>
 #include <libgen.h>
@@ -248,16 +249,41 @@ int main(int argc, char* args[])
   }
 
   {
-    char* fileName = "game.egg";
+    char* defaultEggName = "game.egg";
     char* mainFileName = "main.wren";
+    char* fileName = defaultEggName;
+
     char* base = BASEPATH_get();
     char* arg = optparse_arg(&options);
     if (arg != NULL) {
       fileName = arg;
+    } else {
+      fileName = defaultEggName;
     }
-    char pathBuf[strlen(base)+strlen(fileName)+1];
+
+    size_t baseLen = strlen(base);
+    size_t fileNameLen = strlen(fileName);
+    char* pathBuf = calloc(baseLen + fileNameLen + 1, sizeof(char));
     strcpy(pathBuf, base);
     strcat(pathBuf, fileName);
+    // Re-target basepath to the argument given
+    if (isDirectory(pathBuf)) {
+      BASEPATH_set(pathBuf);
+      fileName = defaultEggName;
+      fileNameLen = strlen(fileName);
+      arg = NULL;
+    } else {
+      BASEPATH_set(dirname(pathBuf));
+    }
+    base = BASEPATH_get();
+    baseLen = strlen(base);
+
+    if (isDirectory(pathBuf)) {
+      pathBuf = realloc(pathBuf, (baseLen + fileNameLen + 1) *  sizeof(char));
+      strcpy(pathBuf, base);
+      strcat(pathBuf, defaultEggName);
+    }
+
 
     if (doesFileExist(pathBuf)) {
       engine.tar = malloc(sizeof(mtar_t));
@@ -265,7 +291,7 @@ int main(int argc, char* args[])
       if (tarResult != MTAR_ESUCCESS) {
         free(engine.tar);
         engine.tar = NULL;
-        fileName = arg;
+        fileName = basename(pathBuf);
       } else {
         printf("Loading bundle %s\n", pathBuf);
         fileName = mainFileName;
@@ -273,6 +299,7 @@ int main(int argc, char* args[])
     } else if (arg == NULL) {
       fileName = mainFileName;
     }
+    free(pathBuf);
     gameFile = ENGINE_readFile(&engine, fileName, &gameFileLength);
     if (gameFile == NULL) {
       if (engine.tar != NULL) {
