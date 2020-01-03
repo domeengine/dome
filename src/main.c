@@ -249,7 +249,7 @@ int main(int argc, char* args[])
   {
     char* fileName = "game.egg";
     char* mainFileName = "main.wren";
-    char* base = SDL_GetBasePath();
+    char* base = BASEPATH_get();
     char* arg = optparse_arg(&options);
     if (arg != NULL) {
       fileName = arg;
@@ -257,7 +257,6 @@ int main(int argc, char* args[])
     char pathBuf[strlen(base)+strlen(fileName)+1];
     strcpy(pathBuf, base);
     strcat(pathBuf, fileName);
-    SDL_free(base);
 
     if (doesFileExist(pathBuf)) {
       engine.tar = malloc(sizeof(mtar_t));
@@ -296,6 +295,13 @@ int main(int argc, char* args[])
   // Configure Wren VM
   vm = VM_create(&engine);
   WrenInterpretResult interpreterResult;
+
+  // Set up the audio engine
+  interpreterResult = wrenInterpret(vm, "main", "import \"audio\"");
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    result = EXIT_FAILURE;
+    goto cleanup;
+  }
 
   // Load user game file
   interpreterResult = wrenInterpret(vm, "main", gameFile);
@@ -508,6 +514,7 @@ vm_cleanup:
 cleanup:
   // Free resources
   // TODO: Lock the Audio Engine here.
+  BASEPATH_free();
   AUDIO_ENGINE_halt(engine.audioEngine);
   VM_free(vm);
   ENGINE_free(&engine);

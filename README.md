@@ -100,7 +100,7 @@ You can follow my progress on implementing DOME on [my twitter](https://twitter.
 
 DOME currently depends on a few libraries to achieve it's functions.
 - Wren (This is built by `make` automatically)
-- SDL2 (version 2.0.4 or newer, this is a shared library and you must install it seperately)
+- SDL2 (version 2.0.2 or newer, this is a shared library and you must install it seperately)
 - libffi (version 3.3 or newer, but optional and can be built by `make DOME_OPT_FFI=1`)
 - stb_image
 - stb_image_write
