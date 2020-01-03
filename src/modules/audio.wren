@@ -28,7 +28,9 @@ class AudioEngine {
     __files = {}
     __channels = {}
     __newChannelId = 0
+    f_captureVariable()
   }
+  foreign static f_captureVariable()
   // TODO: Allow device enumeration and selection
 
   // Loading and unloading

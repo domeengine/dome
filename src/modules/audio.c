@@ -42,6 +42,14 @@ const uint16_t bytesPerSample = 2 * 2 /* channels */;
 // Allows SDL to "pull" data into the output buffer
 // on a seperate thread. We need to be pretty efficient
 // here as it holds a lock.
+internal void
+AUDIO_ENGINE_capture(WrenVM* vm) {
+  if (audioEngineClass == NULL) {
+    wrenGetVariable(vm, "audio", "AudioEngine", 0);
+    audioEngineClass = wrenGetSlotHandle(vm, 0);
+  }
+}
+
 void AUDIO_ENGINE_mix(void*  userdata,
     Uint8* stream,
     int    outputBufferSize) {

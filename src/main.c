@@ -91,6 +91,7 @@
 global_variable jmp_buf loop_exit;
 // Used in the io variable, but we need to catch it here
 global_variable WrenHandle* bufferClass = NULL;
+global_variable WrenHandle* audioEngineClass = NULL;
 
 // These are set by cmd arguments
 #ifdef DEBUG
@@ -296,13 +297,6 @@ int main(int argc, char* args[])
   vm = VM_create(&engine);
   WrenInterpretResult interpreterResult;
 
-  // Set up the audio engine
-  interpreterResult = wrenInterpret(vm, "main", "import \"audio\"");
-  if (interpreterResult != WREN_RESULT_SUCCESS) {
-    result = EXIT_FAILURE;
-    goto cleanup;
-  }
-
   // Load user game file
   interpreterResult = wrenInterpret(vm, "main", gameFile);
   free(gameFile);
@@ -318,13 +312,6 @@ int main(int argc, char* args[])
   WrenHandle* drawMethod = wrenMakeCallHandle(vm, "draw(_)");
   wrenGetVariable(vm, "main", "Game", 0);
   WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
-  wrenGetVariable(vm, "audio", "AudioEngine", 0);
-  WrenHandle* audioEngineClass = wrenGetSlotHandle(vm, 0);
-  if (bufferClass == NULL)
-  {
-    wrenGetVariable(vm, "io", "DataBuffer", 1);
-    bufferClass = wrenGetSlotHandle(vm, 1);
-  }
 
   // Initiate game loop
   uint8_t FPS = 60;
@@ -439,12 +426,14 @@ int main(int argc, char* args[])
           goto vm_cleanup;
         }
         // updateAudio()
-        wrenEnsureSlots(vm, 3);
-        wrenSetSlotHandle(vm, 0, audioEngineClass);
-        interpreterResult = wrenCall(vm, updateMethod);
-        if (interpreterResult != WREN_RESULT_SUCCESS) {
-          result = EXIT_FAILURE;
-          goto vm_cleanup;
+        if (audioEngineClass != NULL) {
+          wrenEnsureSlots(vm, 3);
+          wrenSetSlotHandle(vm, 0, audioEngineClass);
+          interpreterResult = wrenCall(vm, updateMethod);
+          if (interpreterResult != WREN_RESULT_SUCCESS) {
+            result = EXIT_FAILURE;
+            goto vm_cleanup;
+          }
         }
         lag -= MS_PER_FRAME;
 
@@ -501,7 +490,6 @@ vm_cleanup:
     }
   }
 
-  wrenReleaseHandle(vm, audioEngineClass);
   wrenReleaseHandle(vm, initMethod);
   wrenReleaseHandle(vm, drawMethod);
   wrenReleaseHandle(vm, updateMethod);
@@ -509,6 +497,10 @@ vm_cleanup:
 
   if (bufferClass != NULL) {
     wrenReleaseHandle(vm, bufferClass);
+  }
+
+  if (audioEngineClass != NULL) {
+    wrenReleaseHandle(vm, audioEngineClass);
   }
 
 cleanup:
