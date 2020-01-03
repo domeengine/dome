@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: macos
+    runs-on: macOS-10.14
 
     steps:
     - name: Checkout
