@@ -94,12 +94,12 @@ DOME supports the following formats:
 #### `static loadFromFile(path: String): ImageData`
 
 ### Instance Fields
-#### `foreign height: Number`
-#### `foreign width: Number`
+#### `height: Number`
+#### `width: Number`
 
 ### Instance Methods
-#### `foreign draw(x: Number, y: Number)`
-#### `foreign drawArea(srcX: Number, srcY: Number, srcW: Number, srcH: Number, destX: Number, destY: Number)`
+#### `draw(x: Number, y: Number): Void`
+#### `drawArea(srcX: Number, srcY: Number, srcW: Number, srcH: Number, destX: Number, destY: Number): Void`
 
 
 ## Vector
