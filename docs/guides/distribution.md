@@ -9,7 +9,7 @@ DOME is designed to be cross-platform, and so the same Wren game files and asset
 
 For easy distribution, you can package all of your games resources into a single `.egg` file using a tool called [NEST](https://github.com/avivbeeri/nest). DOME automatically plays any file named `game.egg` in the current working directory.
 
-DOME expects your game.wren to use a `main.wren` in the base directory as it's entry point.
+If you use a `.egg` file, DOME expects your game to start from a `main.wren` in the base directory as it's entry point.
 
 Install NEST, and then navigate to your main game directory, before running the following:
 
@@ -71,8 +71,4 @@ Doing this results in a self contained and easy to distribute application bundle
 ### Linux
 
 To run your game on linux, make sure SDL2 is installed, then run the dome executable with a `game.egg` file in the same directory.
-
-
-
-
 
