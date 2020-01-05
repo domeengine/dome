@@ -93,6 +93,6 @@ Gets the current state of the trigger on the specified `side`, as a number betwe
 Valid sides are `left` and `right`.
 
 #### `getAnalogStick(side: String): Vector`
-Gets the current state of the specified analog stick as a Vector, with `x` and `y` values. 
+Gets the current state of the specified analog stick as a Vector, with `x` and `y` values, which are normalised as values between -1.0 and 1.0.
 Valid sides are `left` and `right`.
 
