@@ -1,7 +1,6 @@
+CC = cc
+EXENAME = dome
 MODE_FILE=.mode
-MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
-FRAMEWORK = unix
-WINDOW_MODE = windows
 
 SOURCE  = src
 UTILS = $(SOURCE)/util
@@ -9,26 +8,25 @@ LIBS = $(SOURCE)/lib
 INCLUDES = $(SOURCE)/include
 MODULES = $(SOURCE)/modules
 
-# Optional Module Switches
-DOME_OPT_FFI=0
-ifeq ($(DOME_OPT_FFI),1)
-	DOME_OPTS ?= -D DOME_OPT_FFI=1
-endif
-
+MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
-DOME_OPTS += -DHASH="\"$(BUILD_VALUE)\""
-CC = cc
+SYS=$(shell uname -s)
+
+
+DOME_OPTS = -DHASH="\"$(BUILD_VALUE)\""
 CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `which sdl2-config 1>/dev/null && sdl2-config --cflags`
 IFLAGS = -isystem $(INCLUDES)
 SDLFLAGS= `which sdl2-config 1>/dev/null && sdl2-config --libs`
 LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm
 
+# Optional Module Switches
+DOME_OPT_FFI=0
 ifeq ($(DOME_OPT_FFI),1)
+  DOME_OPTS += -D DOME_OPT_FFI=1
   LDFLAGS  += -lffi
   FFI_DEPS = $(LIBS)/libffi $(LIBS)/libffi.a $(INCLUDES)/ffi.h
 endif
 
-EXENAME = dome
 
 
 ifeq ($(MODE), debug)
@@ -39,37 +37,38 @@ ifneq ($(EXTRA), valgrind)
 endif
 
   DOME_OPTS += -DDEBUG=1
-  $(shell echo $(MODE) > .mode)
+$(shell echo $(MODE) > $(MODE_FILE))
 else
 	LDFLAGS += -lwren
 	CFLAGS += -O3
-  $(shell echo $(MODE) > .mode)
+$(shell echo $(MODE) > $(MODE_FILE))
 endif
 
-SYS=$(shell uname -s)
 
 ifneq (, $(findstring Darwin, $(SYS)))
-	FRAMEWORK = $(shell which sdl2-config && echo unix || echo framework)
-	
-	CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
-ifdef MIN_MAC_VERSION
-	CFLAGS += -mmacosx-version-min=$(MIN_MAC_VERSION)
-endif
+  FRAMEWORK ?= $(shell which sdl2-config && echo unix || echo framework)
+  CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
+
+  ifdef MIN_MAC_VERSION
+    CFLAGS += -mmacosx-version-min=$(MIN_MAC_VERSION)
+  endif
+
   ifeq ($(FRAMEWORK), framework)
-	CFLAGS +=  -I /Library/Frameworks/SDL2.framework/Headers -framework SDL2
+    CFLAGS +=  -I /Library/Frameworks/SDL2.framework/Headers -framework SDL2
   endif
 endif
 
 ifneq (, $(findstring MINGW, $(SYS)))
-	CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
-	ifdef ICON_OBJECT_FILE
-	CFLAGS += $(ICON_OBJECT_FILE)
-endif
-SDLFLAGS= -m$(WINDOW_MODE) `sdl2-config --static-libs` -static
+  WINDOW_MODE ?= windows
+  SDLFLAGS= -m$(WINDOW_MODE) `sdl2-config --static-libs` -static
+  CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
+  ifdef ICON_OBJECT_FILE
+    CFLAGS += $(ICON_OBJECT_FILE)
+  endif
 endif
 
 ifneq (, $(findstring Linux, $(SYS)))
-	CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
+  CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
 endif
 
 
