@@ -10,7 +10,6 @@ MODULES = $(SOURCE)/modules
 EXAMPLES = examples
 
 MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
-SDL_CONFIG ?= src/lib/SDL2/bin/sdl2-config
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
 SYS=$(shell uname -s)
 
@@ -19,12 +18,11 @@ DOME_OPTS = -DHASH="\"$(BUILD_VALUE)\""
 CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `which sdl2-config 1>/dev/null && sdl2-config --cflags`
 IFLAGS = -isystem $(INCLUDES)
 ifdef STATIC
-$(warning "STATIC")
-SDLFLAGS = `$(SDL_CONFIG) --static-libs`
-# SDLFLAGS = `which sdl2-config 1>/dev/null && sdl2-config --static-libs || echo "-lSDL2 -lSDL2main"`
-IFLAGS := -I$(LIBS)/SDL2-2.0.2/include $(IFLAGS)
+  SDL_CONFIG ?= src/lib/SDL2/bin/sdl2-config
+  SDLFLAGS = `$(SDL_CONFIG) --static-libs`
+  IFLAGS := -I$(LIBS)/SDL2-2.0.2/include $(IFLAGS)
 else
-SDLFLAGS = `which sdl2-config 1>/dev/null && sdl2-config --libs`
+  SDLFLAGS = `which sdl2-config 1>/dev/null && sdl2-config --libs`
 endif
 LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm
 
