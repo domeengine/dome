@@ -1,6 +1,7 @@
 MODE_FILE=.mode
 MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
 FRAMEWORK = unix
+WINDOW_MODE = windows
 
 SOURCE  = src
 UTILS = $(SOURCE)/util
@@ -64,7 +65,7 @@ ifneq (, $(findstring MINGW, $(SYS)))
 	ifdef ICON_OBJECT_FILE
 	CFLAGS += $(ICON_OBJECT_FILE)
 endif
-SDLFLAGS= -mwindows `sdl2-config --static-libs` -static
+SDLFLAGS= -m$(WINDOW_MODE) `sdl2-config --static-libs` -static
 endif
 
 ifneq (, $(findstring Linux, $(SYS)))
