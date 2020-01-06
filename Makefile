@@ -17,10 +17,14 @@ SYS=$(shell uname -s)
 DOME_OPTS = -DHASH="\"$(BUILD_VALUE)\""
 CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `which sdl2-config 1>/dev/null && sdl2-config --cflags`
 IFLAGS = -isystem $(INCLUDES)
-SDLFLAGS= `which sdl2-config 1>/dev/null && sdl2-config --libs`
+ifdef STATIC
+SDLFLAGS = `which sdl2-config 1>/dev/null && sdl2-config --static-libs`
+else
+SDLFLAGS = `which sdl2-config 1>/dev/null && sdl2-config --libs`
+endif
 LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm
 
-# Optional Module Switches
+## Optional DOME Module Switches
 DOME_OPT_FFI=0
 ifeq ($(DOME_OPT_FFI),1)
   DOME_OPTS += -D DOME_OPT_FFI=1
@@ -29,7 +33,7 @@ ifeq ($(DOME_OPT_FFI),1)
 endif
 
 
-
+## Handle Release/Debug build things
 ifeq ($(MODE), debug)
 	LDFLAGS += -lwrend
 	CFLAGS += -g -O0
@@ -46,6 +50,7 @@ $(shell echo $(MODE) > $(MODE_FILE))
 endif
 
 
+## Handle OS Specific commands
 ifneq (, $(findstring Darwin, $(SYS)))
   FRAMEWORK ?= $(shell which sdl2-config && echo unix || echo framework)
   CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
@@ -61,7 +66,7 @@ endif
 
 ifneq (, $(findstring MINGW, $(SYS)))
   WINDOW_MODE ?= windows
-  SDLFLAGS= -m$(WINDOW_MODE) `sdl2-config --static-libs` -static
+	SDLFLAGS := -m$(WINDOW_MODE) $(SDLFLAGS)
   CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
   ifdef ICON_OBJECT_FILE
     CFLAGS += $(ICON_OBJECT_FILE)
