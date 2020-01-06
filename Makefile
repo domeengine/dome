@@ -7,6 +7,7 @@ UTILS = $(SOURCE)/util
 LIBS = $(SOURCE)/lib
 INCLUDES = $(SOURCE)/include
 MODULES = $(SOURCE)/modules
+EXAMPLES = examples
 
 MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
@@ -112,10 +113,10 @@ endif
 endif
 
 # Used for the example game FFI test
-libadd.so: test/add.c
-	$(CC) -O -fno-common -c test/add.c $(IFLAGS) -o test/add.o -g
-	$(CC) -flat_namespace -bundle -undefined suppress -o libadd.so test/add.o
-	rm test/add.o
+libadd.so: $(EXAMPLES)/ffi/add.c
+	$(CC) -O -fno-common -c $(EXAMPLES)/ffi/add.c $(IFLAGS) -o $(EXAMPLES)/ffi/add.o -g
+	$(CC) -flat_namespace -bundle -undefined suppress -o $(EXAMPLES)/ffi/libadd.so $(EXAMPLES)/ffi/add.o
+	rm $(EXAMPLES)/ffi/add.o
 
 reset:
 	git submodule foreach --recursive git clean -xfd

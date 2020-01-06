@@ -5,12 +5,6 @@ import "random" for Random
 import "dome" for Process, Window
 import "io" for FileSystem
 
-// ONLY ENABLE THIS IF FFI IS ENABLED
-// Make sure to run `make libadd.so` before running this
-// ---------------------------------
-// import "./test/test"
-// ---------------------------------
-
 // Consider moving Box to "graphics"
 class Box {
   construct new(x1, y1, x2, y2) {
