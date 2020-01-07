@@ -357,7 +357,6 @@ int main(int argc, char* args[])
 
   jo_gif_t gif;
   size_t imageSize = engine.width * engine.height;
-  uint8_t t = 0;
   uint8_t* destroyableImage = NULL;
   if (makeGif) {
     destroyableImage = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
@@ -368,7 +367,7 @@ int main(int argc, char* args[])
   int32_t lag = 0;
   SDL_Event event;
   if (SET_JMP(loop_exit) == 0) {
-
+    uint8_t gifCounter = 0;
     while (engine.running) {
 
       // processInput()
@@ -428,21 +427,6 @@ int main(int argc, char* args[])
       lag += elapsed;
 
       // update()
-      if (lag >= MS_PER_FRAME) {
-        t++;
-        if (makeGif && t > 3) {
-          t = 0;
-          for (size_t i = 0; i < imageSize; i++) {
-            uint32_t c = ((uint32_t*)engine.pixels)[i];
-            uint8_t a = (0xFF000000 & c) >> 24;
-            uint8_t r = (0x00FF0000 & c) >> 16;
-            uint8_t g = (0x0000FF00 & c) >> 8;
-            uint8_t b = (0x000000FF & c);
-            ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
-          }
-          jo_gif_frame(&gif, destroyableImage, 8, true);
-        }
-      }
 
       while (lag > MS_PER_FRAME) {
         wrenEnsureSlots(vm, 8);
@@ -463,6 +447,19 @@ int main(int argc, char* args[])
           }
         }
         lag -= MS_PER_FRAME;
+        if (makeGif && gifCounter > 1) {
+          for (size_t i = 0; i < imageSize; i++) {
+            uint32_t c = ((uint32_t*)engine.pixels)[i];
+            uint8_t a = (0xFF000000 & c) >> 24;
+            uint8_t r = (0x00FF0000 & c) >> 16;
+            uint8_t g = (0x0000FF00 & c) >> 8;
+            uint8_t b = (0x000000FF & c);
+            ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
+          }
+          jo_gif_frame(&gif, destroyableImage, 3, true);
+          gifCounter = 0;
+        }
+        gifCounter++;
 
         if (engine.lockstep) {
           lag = mid(0, lag, MS_PER_FRAME);
