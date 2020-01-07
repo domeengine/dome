@@ -1,36 +1,39 @@
+CC = cc
+EXENAME = dome
 MODE_FILE=.mode
-MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
-FRAMEWORK = unix
-WINDOW_MODE = windows
 
 SOURCE  = src
 UTILS = $(SOURCE)/util
 LIBS = $(SOURCE)/lib
 INCLUDES = $(SOURCE)/include
 MODULES = $(SOURCE)/modules
+EXAMPLES = examples
 
-# Optional Module Switches
-DOME_OPT_FFI=0
-ifeq ($(DOME_OPT_FFI),1)
-	DOME_OPTS ?= -D DOME_OPT_FFI=1
-endif
-
+MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
-DOME_OPTS += -DHASH="\"$(BUILD_VALUE)\""
-CC = cc
+SYS=$(shell uname -s)
+
+
+DOME_OPTS = -DHASH="\"$(BUILD_VALUE)\""
 CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `which sdl2-config 1>/dev/null && sdl2-config --cflags`
 IFLAGS = -isystem $(INCLUDES)
-SDLFLAGS= `which sdl2-config 1>/dev/null && sdl2-config --libs`
+ifdef STATIC
+  SDLFLAGS = `which sdl2-config 1>/dev/null && sdl2-config --static-libs` -static
+else
+  SDLFLAGS = `which sdl2-config 1>/dev/null && sdl2-config --libs`
+endif
 LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm
 
+## Optional DOME Module Switches
+DOME_OPT_FFI=0
 ifeq ($(DOME_OPT_FFI),1)
+  DOME_OPTS += -D DOME_OPT_FFI=1
   LDFLAGS  += -lffi
   FFI_DEPS = $(LIBS)/libffi $(LIBS)/libffi.a $(INCLUDES)/ffi.h
 endif
 
-EXENAME = dome
 
-
+## Handle Release/Debug build things
 ifeq ($(MODE), debug)
 	LDFLAGS += -lwrend
 	CFLAGS += -g -O0
@@ -39,37 +42,45 @@ ifneq ($(EXTRA), valgrind)
 endif
 
   DOME_OPTS += -DDEBUG=1
-  $(shell echo $(MODE) > .mode)
+$(shell echo $(MODE) > $(MODE_FILE))
 else
 	LDFLAGS += -lwren
 	CFLAGS += -O3
-  $(shell echo $(MODE) > .mode)
+$(shell echo $(MODE) > $(MODE_FILE))
 endif
 
-SYS=$(shell uname -s)
 
+## Handle OS Specific commands
 ifneq (, $(findstring Darwin, $(SYS)))
-	FRAMEWORK = $(shell which sdl2-config && echo unix || echo framework)
-	
-	CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
-ifdef MIN_MAC_VERSION
-	CFLAGS += -mmacosx-version-min=$(MIN_MAC_VERSION)
-endif
+  CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
+
+  ifdef MIN_MAC_VERSION
+    CFLAGS += -mmacosx-version-min=$(MIN_MAC_VERSION)
+  endif
+
+  FRAMEWORK ?= $(shell which sdl2-config && echo unix || echo framework)
   ifeq ($(FRAMEWORK), framework)
-	CFLAGS +=  -I /Library/Frameworks/SDL2.framework/Headers -framework SDL2
+    CFLAGS +=  -I /Library/Frameworks/SDL2.framework/Headers -framework SDL2
+  else
+    ifdef STATIC
+      SDL_CONFIG ?= src/lib/SDL2/bin/sdl2-config
+      SDLFLAGS = `$(SDL_CONFIG) --static-libs`
+      IFLAGS := -I$(LIBS)/SDL2-2.0.2/include $(IFLAGS)
+    endif
   endif
 endif
 
 ifneq (, $(findstring MINGW, $(SYS)))
-	CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
-	ifdef ICON_OBJECT_FILE
-	CFLAGS += $(ICON_OBJECT_FILE)
-endif
-SDLFLAGS= -m$(WINDOW_MODE) `sdl2-config --static-libs` -static
+  WINDOW_MODE ?= windows
+  SDLFLAGS := -m$(WINDOW_MODE) $(SDLFLAGS)
+  CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
+  ifdef ICON_OBJECT_FILE
+    CFLAGS += $(ICON_OBJECT_FILE)
+  endif
 endif
 
 ifneq (, $(findstring Linux, $(SYS)))
-	CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
+  CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
 endif
 
 
@@ -113,10 +124,10 @@ endif
 endif
 
 # Used for the example game FFI test
-libadd.so: test/add.c
-	$(CC) -O -fno-common -c test/add.c $(IFLAGS) -o test/add.o -g
-	$(CC) -flat_namespace -bundle -undefined suppress -o libadd.so test/add.o
-	rm test/add.o
+libadd.so: $(EXAMPLES)/ffi/add.c
+	$(CC) -O -fno-common -c $(EXAMPLES)/ffi/add.c $(IFLAGS) -o $(EXAMPLES)/ffi/add.o -g
+	$(CC) -flat_namespace -bundle -undefined suppress -o $(EXAMPLES)/ffi/libadd.so $(EXAMPLES)/ffi/add.o
+	rm $(EXAMPLES)/ffi/add.o
 
 reset:
 	git submodule foreach --recursive git clean -xfd

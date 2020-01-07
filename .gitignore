@@ -10,6 +10,7 @@ src/util/convert
 src/util/embed
 src/modules/*.inc
 src/include/wren.h
+src/lib/SDL2*
 *.o
 *.swp
 *.dSYM

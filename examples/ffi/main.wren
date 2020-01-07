@@ -1,4 +1,5 @@
 import "ffi" for Library, Struct
+import "dome" for Process
 System.print("FFI Test Library")
 
 var library = Library.load("add", "libadd.so")
@@ -27,3 +28,10 @@ System.print(sameStruct)
 System.print("Struct value: %(struct.getValue(0))")
 library.call("printData", [struct])
 
+class Game {
+    static init() {
+      Process.exit()
+    }
+    static update() {}
+    static draw(dt) {}
+}
