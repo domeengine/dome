@@ -129,7 +129,7 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 
 internal void
 printTitle(void) {
-  printf("DOME - Dynamic Opinionated Mini Engine\n");
+  printf("DOME - Dynamic Opinionated Minimalist Engine\n");
 }
 
 internal void
