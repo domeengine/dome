@@ -18,9 +18,7 @@ DOME_OPTS = -DHASH="\"$(BUILD_VALUE)\""
 CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `which sdl2-config 1>/dev/null && sdl2-config --cflags`
 IFLAGS = -isystem $(INCLUDES)
 ifdef STATIC
-  SDL_CONFIG ?= src/lib/SDL2/bin/sdl2-config
-  SDLFLAGS = `$(SDL_CONFIG) --static-libs`
-  IFLAGS := -I$(LIBS)/SDL2-2.0.2/include $(IFLAGS)
+  SDLFLAGS = `which sdl2-config 1>/dev/null && sdl2-config --static-libs` -static
 else
   SDLFLAGS = `which sdl2-config 1>/dev/null && sdl2-config --libs`
 endif
@@ -54,21 +52,27 @@ endif
 
 ## Handle OS Specific commands
 ifneq (, $(findstring Darwin, $(SYS)))
-  FRAMEWORK ?= $(shell which sdl2-config && echo unix || echo framework)
   CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
 
   ifdef MIN_MAC_VERSION
     CFLAGS += -mmacosx-version-min=$(MIN_MAC_VERSION)
   endif
 
+  FRAMEWORK ?= $(shell which sdl2-config && echo unix || echo framework)
   ifeq ($(FRAMEWORK), framework)
     CFLAGS +=  -I /Library/Frameworks/SDL2.framework/Headers -framework SDL2
+  else
+    ifdef STATIC
+      SDL_CONFIG ?= src/lib/SDL2/bin/sdl2-config
+      SDLFLAGS = `$(SDL_CONFIG) --static-libs`
+      IFLAGS := -I$(LIBS)/SDL2-2.0.2/include $(IFLAGS)
+    endif
   endif
 endif
 
 ifneq (, $(findstring MINGW, $(SYS)))
   WINDOW_MODE ?= windows
-	SDLFLAGS := -m$(WINDOW_MODE) $(SDLFLAGS)
+  SDLFLAGS := -m$(WINDOW_MODE) $(SDLFLAGS)
   CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
   ifdef ICON_OBJECT_FILE
     CFLAGS += $(ICON_OBJECT_FILE)
