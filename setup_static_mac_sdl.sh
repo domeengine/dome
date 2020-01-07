@@ -20,6 +20,6 @@ ls -la $DOME_DIR/lib/SDL2
 
 SDL_DIR=$DOME_DIR/lib/SDL2
 
-cp $SDL_DIR/lib/libSDL2main.a src/lib/
-cp $SDL_DIR/lib/libSDL2.a src/lib/
+cp $SDL_DIR/lib/libSDL2main.a $DOME_DIR/lib
+cp $SDL_DIR/lib/libSDL2.a $DOME_DIR/lib
 

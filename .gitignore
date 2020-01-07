@@ -11,6 +11,7 @@ src/util/embed
 src/modules/*.inc
 src/include/wren.h
 src/lib/SDL2*
+src/lib/libSDL2*
 *.o
 *.swp
 *.dSYM

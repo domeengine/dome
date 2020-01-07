@@ -1,7 +1,9 @@
 // TODO: We need this for realpath in BSD, but it won't be available in windows (_fullpath)
 #define _DEFAULT_SOURCE
 
+#ifndef DOME_VERSION
 #define DOME_VERSION "1.0.0-alpha"
+#endif
 
 // Standard libs
 #include <stdio.h>

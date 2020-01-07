@@ -32,6 +32,10 @@ ifeq ($(DOME_OPT_FFI),1)
   FFI_DEPS = $(LIBS)/libffi $(LIBS)/libffi.a $(INCLUDES)/ffi.h
 endif
 
+ifdef DOME_OPT_VERSION
+  DOME_OPTS += -DDOME_VERSION=\"$(DOME_OPT_VERSION)\"
+endif
+
 
 ## Handle Release/Debug build things
 ifeq ($(MODE), debug)
