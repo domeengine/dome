@@ -38,13 +38,13 @@ This clears the canvas fully, to the color _c_.
 #### `static draw(object, x: Number, y: Number) `
 This method is syntactic sugar, to draw objects with a "draw(x: Number, y: Number)" method.
 
-#### `static ellipse(x: Number0, y: Number0, x1, y: Number1, c: Color) `
+#### `static ellipse(x0: Number, y0: Number, x1: Number, y1: Number, c: Color) `
 Draw an ellipse between (_x0, y0_) and (_x1, y1_) in the color _c_.
 
-#### `static ellipsefill(x: Number0, y: Number0, x1, y: Number1, c: Color) `
+#### `static ellipsefill(x0: Number, y0: Number, x1: Number, y1: Number, c: Color) `
 Draw a filled ellipse between (_x0, y0_) and (_x1, y1_) in the color _c_.
 
-#### `static line(x: Number0, y: Number0, x1, y: Number1, c: Color) `
+#### `static line(x0: Number, y0: Number, x1: Number, y1: Number, c: Color) `
 Draw an 1px wide line between (_x0, y0_) and (_x1, y1_) in the color _c_.
 
 #### `static print(str, x: Number, y: Number, c: Color) `
@@ -71,6 +71,7 @@ An instance of the `Color` class represents a single color which can be used for
 #### `construct new(r: Number, g: Number, b: Number)`
 #### `construct new(r: Number, g: Number, b: Number, a: Number)`
 #### `static rgb(r: Number, g: Number, b: Number, a: Number): Color`
+
 #### `static black: Color`
 #### `static blue: Color`
 #### `static cyan: Color`
@@ -92,6 +93,7 @@ DOME supports the following formats:
 
 ### Static Methods
 #### `static loadFromFile(path: String): ImageData`
+Load an image at the given `path` and cache it for use.
 
 ### Instance Fields
 #### `height: Number`
@@ -99,7 +101,10 @@ DOME supports the following formats:
 
 ### Instance Methods
 #### `draw(x: Number, y: Number): Void`
+Draw the image at the given `(x, y)` position on the screen. This is synonymous with `Canvas.draw(imageData, x, y)`.
+
 #### `drawArea(srcX: Number, srcY: Number, srcW: Number, srcH: Number, destX: Number, destY: Number): Void`
+Draw a subsection of the image, defined by the rectangle `(srcX, srcY)` to `(srcX + srcW, srcY + srcH)`. The resulting section is placed at `(destX, destY)`.
 
 
 ## Vector

@@ -15,7 +15,7 @@ Open `main.wren` in your favourite text editor and enter the following:
 class Game {
   static init() {}
   static update() {}
-  static draw(dt) {}
+  static draw(alpha) {}
 }
 ```
 
