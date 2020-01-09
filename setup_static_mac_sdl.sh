@@ -5,21 +5,22 @@ DIRECTORY=$PWD/src/lib/SDL2-2.0.2
 if ! [ -d "$DIRECTORY" ]; then
   cd $DOME_DIR/lib
   curl -L https://libsdl.org/release/SDL2-2.0.2.tar.gz | tar -xvz
-  cd $DOME_DIR/lib/SDL2-2.0.2
-  mkdir build
-  cd build 
+elif ! [ -d "$DIRECTORY/special" ]; then
+  cd $DIRECTORY
+  mkdir special ; cd special
+  CC=$DIRECTORY/build-scripts/gcc-fat.sh ../configure 
 else
-  cd $DOME_DIR/lib/SDL2-2.0.2/build
+  cd $DIRECTORY/special
 fi
 
-mkdir -p $DOME_DIR/lib/SDL2
-echo $PWD
-CC=$DOME_DIR/lib/SDL2-2.0.2/build-scripts/gcc-fat.sh ../configure --prefix=$DOME_DIR/lib/SDL2
-make && make install
-ls -la $DOME_DIR/lib/SDL2
+make
 
-SDL_DIR=$DOME_DIR/lib/SDL2
+if [ -f "$DIRECTORY/special/build/.libs/libSDL2main.a" ]; then
+  cp $DIRECTORY/special/build/.libs/libSDL2main.a $DOME_DIR/lib
+fi
 
-cp $SDL_DIR/lib/libSDL2main.a $DOME_DIR/lib
-cp $SDL_DIR/lib/libSDL2.a $DOME_DIR/lib
+cp $DIRECTORY/special/build/.libs/libSDL2.a $DOME_DIR/lib
+cp $DIRECTORY/special/sdl2-config $DOME_DIR/lib/sdl2-config
 
+cp -r $DIRECTORY/include $DOME_DIR/include/SDL2
+cp -r $DIRECTORY/special/include/SDL_config.h  $DOME_DIR/include/SDL2/SDL_config.h
