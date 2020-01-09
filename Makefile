@@ -79,6 +79,9 @@ ifneq (, $(findstring MINGW, $(SYS)))
   ifdef ICON_OBJECT_FILE
     CFLAGS += $(ICON_OBJECT_FILE)
   endif
+  ifdef STATIC
+    SDLFLAGS += -static
+  endif
 endif
 
 ifneq (, $(findstring Linux, $(SYS)))
