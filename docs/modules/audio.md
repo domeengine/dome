@@ -35,8 +35,6 @@ AudioEngine.unload("fire")
 
 ### Methods
 
-#### `static isPlaying(channelId: Number): Boolean`
-Returns true if the channel _channelId_ is currently playing. A channel cannot restart once it stops playing.
 #### `static register(name: String, path: String)`
 DOME keeps a mapping from a developer-friendly name to the file path. Calling this method sets up this mapping, but doesn't load that file into memory.
 
