@@ -26,7 +26,6 @@ typedef struct {
 
 typedef struct {
   CHANNEL_STATE state;
-  int16_t channelId;
   char* soundId;
   // Control variables
   bool enabled;
@@ -280,17 +279,14 @@ internal void AUDIO_ENGINE_free(AUDIO_ENGINE* engine) {
 internal void AUDIO_CHANNEL_allocate(WrenVM* vm) {
   wrenEnsureSlots(vm, 1);
   AUDIO_CHANNEL* data = (AUDIO_CHANNEL*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_CHANNEL));
-  ASSERT_SLOT_TYPE(vm, 1, NUM, "channel id");
-  ASSERT_SLOT_TYPE(vm, 2, STRING, "sound id");
-  int16_t id = (int16_t)wrenGetSlotDouble(vm, 1);
-  char* soundId = wrenGetSlotString(vm, 2);
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "sound id");
+  char* soundId = wrenGetSlotString(vm, 1);
   size_t len = strlen(soundId);
   data->soundId = malloc((1 + len) * sizeof(char));
   strcpy(data->soundId, soundId);
   data->soundId[len] = '\0';
 
   data->state = CHANNEL_INITIALIZE;
-  data->channelId = id;
   data->enabled = false;
   data->loop = false;
   data->audio = NULL;
@@ -326,12 +322,6 @@ internal void AUDIO_CHANNEL_getState(WrenVM* vm) {
   AUDIO_CHANNEL* data = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   wrenEnsureSlots(vm, 1);
   wrenSetSlotDouble(vm, 0, data->state);
-}
-
-internal void AUDIO_CHANNEL_getId(WrenVM* vm) {
-  AUDIO_CHANNEL* data = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
-  wrenEnsureSlots(vm, 1);
-  wrenSetSlotDouble(vm, 0, data->channelId);
 }
 
 internal void AUDIO_CHANNEL_getPosition(WrenVM* vm) {

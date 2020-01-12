@@ -45,11 +45,10 @@ class AudioState {
 
 // Encapsulates the data of the currently playing channel
 foreign class AudioChannel {
-  construct new(id, soundId) {}
+  construct new(soundId) {}
   foreign audio=(value)
 
 
-  foreign id
   foreign soundId
   foreign position
 
@@ -70,12 +69,13 @@ foreign class AudioChannel {
 }
 
 class AudioChannelFacade {
-  construct wrap(channel) {
+  construct wrap(id, channel) {
     _channel = channel
     _volume = 1
     _pan = 0
     _loop = false
     _stopRequested = false
+    _id = id
   }
 
   stop() {
@@ -125,6 +125,7 @@ class AudioChannelFacade {
   channel_ { _channel }
   position { _channel.position }
   soundId { _channel.soundId }
+  id { _id }
   volume { _volume }
   volume=(volume) { _volume = volume }
   loop { _loop }
@@ -168,13 +169,14 @@ class AudioEngine {
   static play(name, volume) { play(name, volume, false, 0) }
   static play(name, volume, loop) { play(name, volume, loop, 0) }
   static play(name, volume, loop, pan) {
-    var systemChannel = AudioChannel.new(__nextId, name)
+    var systemChannel = AudioChannel.new(name)
     systemChannel.audio = load(name)
-    var channel = AudioChannelFacade.wrap(systemChannel)
+    var channel = AudioChannelFacade.wrap(__nextId, systemChannel)
     __channels[__nextId] = channel
     channel.volume = volume
     channel.pan = pan
     channel.loop = loop
+    // channel.commit_()
 
     __nextId = __nextId + 1
     return channel
@@ -184,7 +186,7 @@ class AudioEngine {
     var id
     if (channel is Num) {
       id = channel
-    } else if (channel is AudioChannel) {
+    } else if (channel is AudioChannelFacade) {
       id = channel.id
     }
 
@@ -197,7 +199,7 @@ class AudioEngine {
     var id
     if (channel is Num) {
       id = channel
-    } else if (channel is AudioChannel) {
+    } else if (channel is AudioChannelFacade) {
       id = channel.id
     }
     if (__channels.containsKey(id)) {
@@ -209,7 +211,7 @@ class AudioEngine {
     var id
     if (channel is Num) {
       id = channel
-    } else if (channel is AudioChannel) {
+    } else if (channel is AudioChannelFacade) {
       id = channel.id
     }
     if (__channels.containsKey(id)) {
@@ -222,10 +224,28 @@ class AudioEngine {
   }
 
   // DEPRECIATE
-  static stopChannel(channelId) {
-    if (__channels.containsKey(channelId)) {
-      channel.stop()
+  static stopChannel(channel) {
+    var id
+    if (channel is Num) {
+      id = channel
+    } else if (channel is AudioChannelFacade) {
+      id = channel.id
     }
+    if (__channels.containsKey(id)) {
+      __channels[id].stop()
+    }
+  }
+  static isPlaying(channel) {
+    var id
+    if (channel is Num) {
+      id = channel
+    } else if (channel is AudioChannelFacade) {
+      id = channel.id
+    }
+    if (__channels.containsKey(id)) {
+      return !__channels[id].isFinished
+    }
+    return false
   }
 
   foreign static f_update(list)
@@ -233,7 +253,7 @@ class AudioEngine {
     var playing = __channels.values.where {|facade|
       facade.update_()
       if (facade.state == AudioState.STOPPED) {
-        __channels.remove(facade.channel_.id)
+        __channels.remove(facade.id)
         return false
       }
       return facade.state == AudioState.PLAYING ||
