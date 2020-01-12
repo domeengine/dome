@@ -106,6 +106,8 @@ class AudioChannelFacade {
     if (state == AudioState.STOPPING) {
       // TODO: Fade
       commit_()
+      // if fade complete
+      _channel.enabled = false
       if (!_channel.enabled) {
         _channel.state = AudioState.STOPPED
       }
@@ -138,6 +140,7 @@ class AudioChannelFacade {
 class AudioEngine {
   // TODO: Allow device enumeration and selection
   static init() {
+    __unloadQueue = []
     __nameMap = {}
     __files = {}
     __nextId = 0
@@ -165,6 +168,10 @@ class AudioEngine {
     return __files[path]
   }
 
+  static unload(name) {
+    __unloadQueue.add(name)
+  }
+
   static play(name) { play(name, 1, false, 0) }
   static play(name, volume) { play(name, volume, false, 0) }
   static play(name, volume, loop) { play(name, volume, loop, 0) }
@@ -182,75 +189,17 @@ class AudioEngine {
     return channel
   }
 
-  static setChannelVolume(channel, volume) {
-    var id
-    if (channel is Num) {
-      id = channel
-    } else if (channel is AudioChannelFacade) {
-      id = channel.id
-    }
-
-    if (__channels.containsKey(id)) {
-      __channels[id].volume = volume
-    }
-  }
-
-  static setChannelPan(channel, pan) {
-    var id
-    if (channel is Num) {
-      id = channel
-    } else if (channel is AudioChannelFacade) {
-      id = channel.id
-    }
-    if (__channels.containsKey(id)) {
-      __channels[id].pan = pan
-    }
-  }
-
-  static setChannelLoop(channel, loop) {
-    var id
-    if (channel is Num) {
-      id = channel
-    } else if (channel is AudioChannelFacade) {
-      id = channel.id
-    }
-    if (__channels.containsKey(id)) {
-      __channels[id].loop = loop
-    }
-  }
-
   static stopAllChannels() {
     __channels.values.each { |channel| channel.stop() }
-  }
-
-  // DEPRECIATE
-  static stopChannel(channel) {
-    var id
-    if (channel is Num) {
-      id = channel
-    } else if (channel is AudioChannelFacade) {
-      id = channel.id
-    }
-    if (__channels.containsKey(id)) {
-      __channels[id].stop()
-    }
-  }
-  static isPlaying(channel) {
-    var id
-    if (channel is Num) {
-      id = channel
-    } else if (channel is AudioChannelFacade) {
-      id = channel.id
-    }
-    if (__channels.containsKey(id)) {
-      return !__channels[id].isFinished
-    }
-    return false
   }
 
   foreign static f_update(list)
   static update() {
     var playing = __channels.values.where {|facade|
+      if (__unloadQueue.contains(facade.soundId)) {
+        __channels.remove(facade.id)
+        return false
+      }
       facade.update_()
       if (facade.state == AudioState.STOPPED) {
         __channels.remove(facade.id)
@@ -260,7 +209,22 @@ class AudioEngine {
              facade.state == AudioState.STOPPING ||
              facade.state == AudioState.VIRTUALIZING
     }.map {|facade| facade.channel_ }.toList
+
     f_update(playing)
+
+    if (__unloadQueue.count > 0) {
+      __unloadQueue.each {|soundId|
+        if (__nameMap.containsKey(soundId)) {
+          var path = __nameMap[soundId]
+          if (__files.containsKey(path)) {
+            __files.remove(path)
+          }
+        }
+      }
+      // We have to force a gc here to release audio objects.
+      System.gc()
+      __unloadQueue = []
+    }
   }
 
 }

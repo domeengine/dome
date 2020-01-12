@@ -442,7 +442,9 @@ int main(int argc, char* args[])
         if (audioEngineClass != NULL) {
           wrenEnsureSlots(vm, 3);
           wrenSetSlotHandle(vm, 0, audioEngineClass);
+          AUDIO_ENGINE_lock(engine.audioEngine);
           interpreterResult = wrenCall(vm, updateMethod);
+          AUDIO_ENGINE_unlock(engine.audioEngine);
           if (interpreterResult != WREN_RESULT_SUCCESS) {
             result = EXIT_FAILURE;
             goto vm_cleanup;

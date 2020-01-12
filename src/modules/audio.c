@@ -182,6 +182,7 @@ internal void AUDIO_allocate(WrenVM* vm) {
 }
 
 internal void AUDIO_finalize(void* data) {
+  printf("Unloading audio\n");
   AUDIO_DATA* audioData = (AUDIO_DATA*)data;
   if (audioData->buffer != NULL) {
     if (audioData->audioType == AUDIO_TYPE_WAV || audioData->audioType == AUDIO_TYPE_OGG) {
@@ -240,13 +241,21 @@ AUDIO_CHANNEL_LIST_resize(AUDIO_CHANNEL_LIST* list, size_t channels) {
   return list;
 }
 
+internal void AUDIO_ENGINE_lock(AUDIO_ENGINE* engine) {
+  SDL_LockAudioDevice(engine->deviceId);
+}
+
+internal void AUDIO_ENGINE_unlock(AUDIO_ENGINE* engine) {
+  SDL_UnlockAudioDevice(engine->deviceId);
+}
+
 internal void AUDIO_ENGINE_update(WrenVM* vm) {
   // We need additional slots to parse a list
   wrenEnsureSlots(vm, 3);
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
 
-  SDL_LockAudioDevice(data->deviceId);
+  AUDIO_ENGINE_lock(data);
   ASSERT_SLOT_TYPE(vm, 1, LIST, "channels");
   uint8_t soundCount = wrenGetListCount(vm, 1);
   data->channelList = AUDIO_CHANNEL_LIST_resize(data->channelList, soundCount);
@@ -260,7 +269,7 @@ internal void AUDIO_ENGINE_update(WrenVM* vm) {
       data->channelList->channels[i] = NULL;
     }
   }
-  SDL_UnlockAudioDevice(data->deviceId);
+  AUDIO_ENGINE_unlock(data);
 }
 
 internal void AUDIO_ENGINE_halt(AUDIO_ENGINE* engine) {
