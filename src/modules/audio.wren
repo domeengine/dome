@@ -97,7 +97,7 @@ class AudioChannelFacade {
 
     if (state == AudioState.PLAYING) {
       commit_()
-      if (isFinished || _stopRequested) {
+      if (finished || _stopRequested) {
         _channel.state = AudioState.STOPPING
       }
       return
@@ -123,11 +123,13 @@ class AudioChannelFacade {
     _channel.loop = _loop
   }
 
-  isFinished { !_channel.enabled || state == AudioState.STOPPED }
+  // Private
   channel_ { _channel }
+  id { _id }
+
+  // Public
   position { _channel.position }
   soundId { _channel.soundId }
-  id { _id }
   volume { _volume }
   volume=(volume) { _volume = volume }
   loop { _loop }
@@ -135,6 +137,8 @@ class AudioChannelFacade {
   pan { _pan }
   pan=(pan) { _pan = pan }
   state { _channel.state }
+  finished { !_channel.enabled || state == AudioState.STOPPED }
+
 }
 
 class AudioEngine {

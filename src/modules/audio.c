@@ -140,7 +140,8 @@ internal void AUDIO_allocate(WrenVM* vm) {
   } else if (strncmp(fileBuffer, "OggS", 4) == 0) {
     data->audioType = AUDIO_TYPE_OGG;
 
-    int channelsInFile = 0, freq = 0;
+    int channelsInFile = 0;
+    int freq = 0;
     memset(&data->spec, 0, sizeof(SDL_AudioSpec));
     // Loading the OGG file
     int32_t result = stb_vorbis_decode_memory((const unsigned char*)fileBuffer, length, &channelsInFile, &freq, &tempBuffer);
