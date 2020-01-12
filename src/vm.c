@@ -178,12 +178,20 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // Audio
   MAP_add(&engine->fnMap, "audio", "AudioChannel", "enabled=(_)", false, AUDIO_CHANNEL_setEnabled);
+  MAP_add(&engine->fnMap, "audio", "AudioChannel", "enabled", false, AUDIO_CHANNEL_getEnabled);
   MAP_add(&engine->fnMap, "audio", "AudioChannel", "loop=(_)", false, AUDIO_CHANNEL_setLoop);
+  MAP_add(&engine->fnMap, "audio", "AudioChannel", "loop", false, AUDIO_CHANNEL_getLoop);
   MAP_add(&engine->fnMap, "audio", "AudioChannel", "pan=(_)", false, AUDIO_CHANNEL_setPan);
+  MAP_add(&engine->fnMap, "audio", "AudioChannel", "pan", false, AUDIO_CHANNEL_getPan);
+  MAP_add(&engine->fnMap, "audio", "AudioChannel", "volume", false, AUDIO_CHANNEL_getVolume);
   MAP_add(&engine->fnMap, "audio", "AudioChannel", "volume=(_)", false, AUDIO_CHANNEL_setVolume);
-  MAP_add(&engine->fnMap, "audio", "AudioChannel", "isFinished", false, AUDIO_CHANNEL_isFinished);
+  MAP_add(&engine->fnMap, "audio", "AudioChannel", "state=(_)", false, AUDIO_CHANNEL_setState);
+  MAP_add(&engine->fnMap, "audio", "AudioChannel", "audio=(_)", false, AUDIO_CHANNEL_setAudio);
+  MAP_add(&engine->fnMap, "audio", "AudioChannel", "state", false, AUDIO_CHANNEL_getState);
+  MAP_add(&engine->fnMap, "audio", "AudioChannel", "position", false, AUDIO_CHANNEL_getPosition);
   MAP_add(&engine->fnMap, "audio", "AudioChannel", "id", false, AUDIO_CHANNEL_getId);
-  MAP_add(&engine->fnMap, "audio", "AudioData", "unload()", false, AUDIO_unload);
+  MAP_add(&engine->fnMap, "audio", "AudioChannel", "soundId", false, AUDIO_CHANNEL_getSoundId);
+  MAP_add(&engine->fnMap, "audio", "AudioData", "length", false, AUDIO_getLength);
   MAP_add(&engine->fnMap, "audio", "AudioEngine", "f_update(_)", true, AUDIO_ENGINE_update);
   MAP_add(&engine->fnMap, "audio", "AudioEngine", "f_captureVariable()", true, AUDIO_ENGINE_capture);
 
