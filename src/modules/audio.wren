@@ -31,6 +31,9 @@ foreign class AudioData {
   foreign length
 }
 
+// Base interface for audio channels
+class AudioChannel {}
+
 class AudioState {
   static INITIALIZE { 1 }
   static TO_PLAY { 2 }
@@ -44,7 +47,7 @@ class AudioState {
 }
 
 // Encapsulates the data of the currently playing channel
-foreign class AudioChannel {
+foreign class SystemChannel is AudioChannel {
   construct new(soundId) {}
   foreign audio=(value)
 
@@ -68,7 +71,7 @@ foreign class AudioChannel {
   foreign volume
 }
 
-class AudioChannelFacade {
+class AudioChannelFacade is AudioChannel {
   construct wrap(id, channel) {
     _channel = channel
     _volume = 1
@@ -180,7 +183,7 @@ class AudioEngine {
   static play(name, volume) { play(name, volume, false, 0) }
   static play(name, volume, loop) { play(name, volume, loop, 0) }
   static play(name, volume, loop, pan) {
-    var systemChannel = AudioChannel.new(name)
+    var systemChannel = SystemChannel.new(name)
     systemChannel.audio = load(name)
     var channel = AudioChannelFacade.wrap(__nextId, systemChannel)
     __channels[__nextId] = channel
