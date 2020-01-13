@@ -15,7 +15,7 @@ It contains the following classes:
 
 At the moment, DOME only supports OGG and WAV files, with a sample frequency of 44.1kHz (CD quality audio)
 
-An audio file is loaded from disk into memory using the `load` function, and remains in memory until you call `unload` or `unloadAll`, or when DOME closes.
+An audio file is loaded from disk into memory using the `load` function, and remains in memory until you call `unload(_)` or `unloadAll()`, or when DOME closes.
 
 When an audio file is about to be played, DOME allocates it an "audio channel", which handles the settings for volume, looping and panning.
 Once the audio is stopped or finishes playing, that channel is no longer usable, and a new one will need to be acquired.
@@ -52,9 +52,7 @@ Plays the named audio sample once, at _volume_, with equal pan.
 Plays the named audio sample, at _volume_, with equal pan. If _loop_ is set, the sample will repeat once playback completes.
 #### `static play(name: String, volume: Number, loop: Boolean, pan: Number): AudioChannel`
 Play the named audio sample and returns the channel object representing that playback.
- * _volume_ - A value with minimum 0.0 for the volume.
- * _loop_ - If true, the audio channel will loop once it is complete.
- * _pan_ - A value between -1.0 and 1.0 which divides the audio playback between left and right stereo channels.
+The other parameters are explained in the [AudioChannel](#audiochannel) api.
 
 #### `static stopAllChannels()`
 Stop all playing audio channels.
@@ -68,6 +66,11 @@ Releases the resources of the chosen audio sample. This will halt any audio usin
 ## AudioChannel
 
 These are created when you `play` a buffer of AudioData using the AudioEngine. You cannot construct these directly. 
+
+A playing audio channel has three main properties:
+ * _volume_ - A value with minimum 0.0 for the volume.
+ * _loop_ - If true, the audio channel will loop once it is complete.
+ * _pan_ - A value between -1.0 and 1.0 which divides the audio playback between left and right stereo channels.
 
 ### Instance Fields
 
@@ -83,9 +86,7 @@ You can set this to control whether the sample will loop once it completes, or s
 The channel will become invalid if it reaches the end of the sample and `loop` is false.
 
 #### `pan: Number`
-This returns a value between -1.0 and 1.0, representing the two-channel pan position. -1.0 is fully-left and 1.0 is fully-right.
-
-You can set this to change the pan position.
+You can read and modify the pan position, as a bounded value between -1.0 and 1.0.
 
 #### `position: Number`
 This marks the position of the next sample to be loaded into the AudioEngine mix buffer (which happens on a seperate thread).
