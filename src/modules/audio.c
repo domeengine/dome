@@ -184,7 +184,6 @@ internal void AUDIO_allocate(WrenVM* vm) {
 }
 
 internal void AUDIO_finalize(void* data) {
-  printf("Unloading audio\n");
   AUDIO_DATA* audioData = (AUDIO_DATA*)data;
   if (audioData->buffer != NULL) {
     if (audioData->audioType == AUDIO_TYPE_WAV || audioData->audioType == AUDIO_TYPE_OGG) {
@@ -396,7 +395,6 @@ internal void AUDIO_CHANNEL_getPan(WrenVM* vm) {
 }
 
 internal void AUDIO_CHANNEL_finalize(void* data) {
-  // printf("Channel finished\n");
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)data;
   free(channel->soundId);
 }
