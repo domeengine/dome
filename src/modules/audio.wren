@@ -1,24 +1,6 @@
 // Represents the data of an audio file
-// which can be loaded and unloaded
+// which can be loaded
 // It is otherwise opaque Wren-side
-
-/*
-musicChannel.play()
-musicChannel.play(FadeInEffect(time))
-musicChannel.stop(FadeOutEffect(time))
-musicChannel.pause(FadeInEffect(time), FadeOutEffect(time))
-
-musicChannel.commit__()
-
-if (musicChannel.stopped) {
-  // There's concerns about releasing audio resources
-  // because it could break the mixer.
-  // Probably going to be a slow operation
-  AudioEngine.unload("music")
-}
-
-// ----------------- EXAMPLE CODE
-*/
 
 foreign class AudioData {
   construct init(buffer) {}
@@ -51,7 +33,7 @@ foreign class SystemChannel is AudioChannel {
   construct new(soundId) {}
   foreign audio=(value)
 
-
+  foreign length
   foreign soundId
   foreign position
 
@@ -74,6 +56,8 @@ foreign class SystemChannel is AudioChannel {
 class AudioChannelFacade is AudioChannel {
   construct wrap(id, channel) {
     _channel = channel
+    _length = channel.length
+    _position = 0
     _volume = 1
     _pan = 0
     _loop = false
@@ -83,6 +67,10 @@ class AudioChannelFacade is AudioChannel {
 
   stop() {
     _stopRequested = true
+  }
+
+  release_() {
+    _channel = null
   }
 
   update_() {
@@ -124,6 +112,7 @@ class AudioChannelFacade is AudioChannel {
     _channel.volume = _volume
     _channel.pan = _pan
     _channel.loop = _loop
+    _position = _channel.position
   }
 
   // Private
@@ -131,7 +120,8 @@ class AudioChannelFacade is AudioChannel {
   id { _id }
 
   // Public
-  position { _channel.position }
+  position { _position }
+  length { _length }
   soundId { _channel.soundId }
   volume { _volume }
   volume=(volume) { _volume = volume }
@@ -141,7 +131,6 @@ class AudioChannelFacade is AudioChannel {
   pan=(pan) { _pan = pan }
   state { _channel.state }
   finished { !_channel.enabled || state == AudioState.STOPPED }
-
 }
 
 class AudioEngine {
@@ -190,7 +179,7 @@ class AudioEngine {
     channel.volume = volume
     channel.pan = pan
     channel.loop = loop
-    // channel.commit_()
+    channel.commit_()
 
     __nextId = __nextId + 1
     return channel
@@ -205,6 +194,7 @@ class AudioEngine {
     var playing = __channels.values.where {|facade|
       if (__unloadQueue.contains(facade.soundId)) {
         __channels.remove(facade.id)
+        facade.release_()
         return false
       }
       facade.update_()
@@ -233,6 +223,5 @@ class AudioEngine {
       __unloadQueue = []
     }
   }
-
 }
 AudioEngine.init()

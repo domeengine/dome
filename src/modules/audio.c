@@ -37,6 +37,7 @@ typedef struct {
 
   // Position is the sample value to play next
   size_t position;
+  size_t length;
   AUDIO_DATA* audio;
 } AUDIO_CHANNEL;
 
@@ -334,12 +335,17 @@ internal void AUDIO_CHANNEL_getState(WrenVM* vm) {
   wrenSetSlotDouble(vm, 0, data->state);
 }
 
+internal void AUDIO_CHANNEL_getLength(WrenVM* vm) {
+  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
+  wrenEnsureSlots(vm, 1);
+  wrenSetSlotDouble(vm, 0, channel->audio->length);
+}
+
 internal void AUDIO_CHANNEL_getPosition(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   wrenEnsureSlots(vm, 1);
   wrenSetSlotDouble(vm, 0, channel->position);
 }
-
 
 internal void AUDIO_CHANNEL_setEnabled(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
