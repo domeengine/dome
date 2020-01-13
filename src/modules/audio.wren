@@ -57,6 +57,7 @@ class AudioChannelFacade is AudioChannel {
   construct wrap(id, channel) {
     _channel = channel
     _length = channel.length
+    _soundId = channel.soundId
     _position = 0
     _volume = 1
     _pan = 0
@@ -76,6 +77,7 @@ class AudioChannelFacade is AudioChannel {
   update_() {
     if (state == AudioState.INITIALIZE) {
       _channel.state = AudioState.TO_PLAY
+      // Fallthrough
     }
 
     if (state == AudioState.TO_PLAY || state == AudioState.DEVIRTUALIZE) {
@@ -122,14 +124,20 @@ class AudioChannelFacade is AudioChannel {
   // Public
   position { _position }
   length { _length }
-  soundId { _channel.soundId }
+  soundId { _soundId }
   volume { _volume }
   volume=(volume) { _volume = volume }
   loop { _loop }
   loop=(loop) { _loop = loop }
   pan { _pan }
   pan=(pan) { _pan = pan }
-  state { _channel.state }
+  state {
+    if (_channel != null) {
+      return _channel.state
+    } else {
+      return AudioState.STOPPED
+    }
+  }
   finished { !_channel.enabled || state == AudioState.STOPPED }
 }
 
@@ -183,7 +191,6 @@ class AudioEngine {
     channel.volume = volume
     channel.pan = pan
     channel.loop = loop
-    channel.commit_()
 
     __nextId = __nextId + 1
     return channel
