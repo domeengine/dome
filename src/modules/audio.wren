@@ -168,6 +168,10 @@ class AudioEngine {
     __unloadQueue.add(name)
   }
 
+  static unloadAll() {
+    __nameMap.keys.each {|key| unload(key) }
+  }
+
   static play(name) { play(name, 1, false, 0) }
   static play(name, volume) { play(name, volume, false, 0) }
   static play(name, volume, loop) { play(name, volume, loop, 0) }
