@@ -43,7 +43,7 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
     if (STRINGS_EQUAL(className, "AudioData")) {
       methods.allocate = AUDIO_allocate;
       methods.finalize = AUDIO_finalize;
-    } else if (STRINGS_EQUAL(className, "AudioChannel")) {
+    } else if (STRINGS_EQUAL(className, "SystemChannel")) {
       methods.allocate = AUDIO_CHANNEL_allocate;
       methods.finalize = AUDIO_CHANNEL_finalize;
     }
@@ -177,13 +177,23 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "graphics", "ImageData", "drawArea(_,_,_,_,_,_)", false, IMAGE_drawArea);
 
   // Audio
-  MAP_add(&engine->fnMap, "audio", "AudioChannel", "enabled=(_)", false, AUDIO_CHANNEL_setEnabled);
-  MAP_add(&engine->fnMap, "audio", "AudioChannel", "loop=(_)", false, AUDIO_CHANNEL_setLoop);
-  MAP_add(&engine->fnMap, "audio", "AudioChannel", "pan=(_)", false, AUDIO_CHANNEL_setPan);
-  MAP_add(&engine->fnMap, "audio", "AudioChannel", "volume=(_)", false, AUDIO_CHANNEL_setVolume);
-  MAP_add(&engine->fnMap, "audio", "AudioChannel", "isFinished", false, AUDIO_CHANNEL_isFinished);
-  MAP_add(&engine->fnMap, "audio", "AudioChannel", "id", false, AUDIO_CHANNEL_getId);
-  MAP_add(&engine->fnMap, "audio", "AudioData", "unload()", false, AUDIO_unload);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "enabled=(_)", false, AUDIO_CHANNEL_setEnabled);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "enabled", false, AUDIO_CHANNEL_getEnabled);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "loop=(_)", false, AUDIO_CHANNEL_setLoop);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "loop", false, AUDIO_CHANNEL_getLoop);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "pan=(_)", false, AUDIO_CHANNEL_setPan);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "pan", false, AUDIO_CHANNEL_getPan);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "volume", false, AUDIO_CHANNEL_getVolume);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "volume=(_)", false, AUDIO_CHANNEL_setVolume);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "state=(_)", false, AUDIO_CHANNEL_setState);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "audio=(_)", false, AUDIO_CHANNEL_setAudio);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "state", false, AUDIO_CHANNEL_getState);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "length", false, AUDIO_CHANNEL_getPosition);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "position", false, AUDIO_CHANNEL_getPosition);
+  MAP_add(&engine->fnMap, "audio", "SystemChannel", "soundId", false, AUDIO_CHANNEL_getSoundId);
+
+  MAP_add(&engine->fnMap, "audio", "AudioData", "length", false, AUDIO_getLength);
+
   MAP_add(&engine->fnMap, "audio", "AudioEngine", "f_update(_)", true, AUDIO_ENGINE_update);
   MAP_add(&engine->fnMap, "audio", "AudioEngine", "f_captureVariable()", true, AUDIO_ENGINE_capture);
 

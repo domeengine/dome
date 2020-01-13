@@ -241,8 +241,11 @@ class MainGame {
     __t = __t + 1
     var x = 0
     var y = 0
-    AudioEngine.setChannelPan(__channel, (((__t / 60) % 20) * 0.1) - 1 )
+    __channel.pan = (((__t / 60) % 20) * 0.1) - 1
     var gamepad = GamePad.next
+    if (Keyboard.isKeyDown("u")) {
+      AudioEngine.unload("music")
+    }
     if (Keyboard.isKeyDown("l")) {
       Window.lockstep = true
     }
@@ -287,8 +290,6 @@ class MainGame {
         }
       }
     }
-    // TODO: Remove this and embed it in main engine
-    // AudioEngine.update()
 
     __ship.move(x, y)
 

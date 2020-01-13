@@ -24,7 +24,7 @@ DEBUG_printWrenType(WrenType type) {
 internal void DEBUG_printAudioSpec(SDL_AudioSpec spec, AUDIO_TYPE type) {
   if (type == AUDIO_TYPE_WAV) {
     printf("WAV ");
-  } else if (type == AUDIO_TYPE_WAV) {
+  } else if (type == AUDIO_TYPE_OGG) {
     printf("OGG ");
   } else {
     printf("Unknown audio file detected\n");

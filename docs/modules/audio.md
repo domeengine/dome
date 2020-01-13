@@ -8,21 +8,25 @@ The `audio` module lets you play audio files such as music or sound effects.
 It contains the following classes:
 
 * [AudioEngine](#audioengine)
+* [AudioChannel](#audiochannel)
+* [AudioState](#audiostate)
 
 ## AudioEngine
 
-DOME only supports OGG and WAV files at the moment.
+At the moment, DOME only supports OGG and WAV files, with a sample frequency of 44.1kHz (CD quality audio)
 
-An audio file is loaded from disk into memory using the `load` function, and remains in memory until you call `unload` or `unloadAll`, but all audio data is also unloaded when DOME closes.
+An audio file is loaded from disk into memory using the `load` function, and remains in memory until you call `unload(_)` or `unloadAll()`, or when DOME closes.
 
-The API for DOME's audio engine is heavily influenced by [this talk](https://www.youtube.com/watch?v=Vjm--AqG04Y) by Guy Somberg.
+When an audio file is about to be played, DOME allocates it an "audio channel", which handles the settings for volume, looping and panning.
+Once the audio is stopped or finishes playing, that channel is no longer usable, and a new one will need to be acquired.
+
 
 ### Example
 
 ```wren
 AudioEngine.load("fire", "res/Laser_Shoot.wav")
-var id = AudioEngine.play("fire")
-AudioEngine.stopChannel(id)
+var channel = AudioEngine.play("fire")
+channel.stop()
 
 ...
 
@@ -31,40 +35,87 @@ AudioEngine.unload("fire")
 
 ### Methods
 
-#### `static isPlaying(channelId: Number): Boolean`
-Returns true if the channel _channelId_ is currently playing. A channel cannot restart once it stops playing.
+#### `static register(name: String, path: String)`
+DOME keeps a mapping from a developer-friendly name to the file path. Calling this method sets up this mapping, but doesn't load that file into memory.
+
+#### `static load(name: String)`
+If the `name` has been mapped to a file path, DOME will load that file into memory, ready to play.
+
 #### `static load(name: String, path: String)`
-Load the audio file from the specified _path_ and assign it a _name_ for future playback.
+This combines the `register(_,_)` and `load(_)` calls, for convenience.
 
-#### `static play(name: String): Number`
+#### `static play(name: String): AudioChannel`
 Plays the named audio sample once, at maximum volume, with equal pan.
-#### `static play(name: String, volume: Number): Number`
+#### `static play(name: String, volume: Number): AudioChannel`
 Plays the named audio sample once, at _volume_, with equal pan.
-#### `static play(name: String, volume: Number, loop: Boolean): Number`
+#### `static play(name: String, volume: Number, loop: Boolean): AudioChannel`
 Plays the named audio sample, at _volume_, with equal pan. If _loop_ is set, the sample will repeat once playback completes.
-#### `static play(name: String, volume: Number, loop: Boolean, pan: Number): Number`
-Play the named audio sample and return the channel id is plays on.
- * _volume_ - A value with minimum 0.0 for the volume.
- * _loop_ - If true, the audio channel will loop once it is complete.
- * _pan_ - A value between -1.0 and 1.0 which divides the audio playback between left and right stereo channels.
-
-#### `static setChannelLoop(channelId: Number, loop: Boolean)`
-If true, the channel will loop once playback completes.
-
-#### `static setChannelPan(channelId: Number, pan: Number)`
-Pan divides the audio playback between left and right stereo channels, as a value of -1.0 to 1.0
-
-#### `static setChannelVolume(channelId: Number, volume: Number)`
-Set the volume of the channel between 0.0 and 1.0.
-
-#### `static stopChannel(channelId: Number)`
-If it is playing, stop the chosen audio channel.
+#### `static play(name: String, volume: Number, loop: Boolean, pan: Number): AudioChannel`
+Play the named audio sample and returns the channel object representing that playback.
+The other parameters are explained in the [AudioChannel](#audiochannel) api.
 
 #### `static stopAllChannels()`
 Stop all playing audio channels.
 
-#### `static unload(name: String)`
-Releases the resources of the chosen audio sample.
-
 #### `static unloadAll()`
-Release all audio samples.
+Releases the resources of the all currently loaded audio samples. This will halt any audio using that sample immediately.
+
+#### `static unload(name: String)`
+Releases the resources of the chosen audio sample. This will halt any audio using that sample immediately.
+
+## AudioChannel
+
+These are created when you `play` a buffer of AudioData using the AudioEngine. You cannot construct these directly. 
+
+A playing audio channel has three main properties:
+ * _volume_ - A value with minimum 0.0 for the volume.
+ * _loop_ - If true, the audio channel will loop once it is complete.
+ * _pan_ - A value between -1.0 and 1.0 which divides the audio playback between left and right stereo channels.
+
+### Instance Fields
+
+#### `finished: Boolean`
+Returns true if the audio channel has finished playing. It cannot be restarted after this point.
+
+#### `length: Number`
+The total number of samples in this channel's audio buffer.
+You should divide this by `44100` to get the length in seconds.
+
+#### `loop: Boolean`
+You can set this to control whether the sample will loop once it completes, or stop.
+The channel will become invalid if it reaches the end of the sample and `loop` is false.
+
+#### `pan: Number`
+You can read and modify the pan position, as a bounded value between -1.0 and 1.0.
+
+#### `position: Number`
+This marks the position of the next sample to be loaded into the AudioEngine mix buffer (which happens on a seperate thread).
+You cannot change the position, and it may not change on every frame, depending on the size of the buffer.
+
+You should divide this by `44100` to get the position in seconds.
+
+#### `soundId: String`
+This is the sample name used for this sound.
+
+#### `state: AudioState`
+This is an enum which represents the current state of the audio.
+
+#### `volume: Number`
+This returns a number with a minimum of 0.0 representing the volume of the channel. 1.0 is the default for the audio data.
+
+You can set this to change the volume.
+
+### Instance Methods
+
+#### `stop(): Void`
+Requests that the channel stops as soon as possible.
+
+## AudioState
+AudioChannel objects can be in one of the following states:
+
+ - AudioState.INITIALIZE
+ - AudioState.TO_PLAY
+ - AudioState.PLAYING
+ - AudioState.STOPPING
+ - AudioState.STOPPED
+
