@@ -5,6 +5,20 @@ typedef struct {
   uint32_t* pixels;
 } IMAGE;
 
+enum { DRAW_MODE_RGBA, DRAW_MODE_MONO } DRAW_MODE;
+
+typedef struct {
+  IMAGE* image;
+  bool flipVertical;
+  bool flipHorizontal;
+  bool rotate;
+
+  DRAW_MODE mode;
+  // MONO colours
+  uint32_t background;
+  uint32_t foreground;
+} DRAW_COMMAND;
+
 void IMAGE_allocate(WrenVM* vm) {
 
   ASSERT_SLOT_TYPE(vm, 1, STRING, "image");
