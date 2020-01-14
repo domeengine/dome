@@ -367,6 +367,7 @@ int main(int argc, char* args[])
 
   uint64_t previousTime = SDL_GetPerformanceCounter();
   int32_t lag = 0;
+  bool windowHasFocus = false;
   SDL_Event event;
   if (SET_JMP(loop_exit) == 0) {
     uint8_t gifCounter = 0;
@@ -383,6 +384,10 @@ int main(int argc, char* args[])
             {
               if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
                 SDL_RenderGetViewport(engine.renderer, &(engine.viewport));
+              } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+                windowHasFocus = true;
+              } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+                windowHasFocus = false;
               }
             } break;
           case SDL_KEYDOWN:
@@ -416,6 +421,13 @@ int main(int argc, char* args[])
       uint64_t currentTime = SDL_GetPerformanceCounter();
       int32_t elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
       previousTime = currentTime;
+
+      // If we aren't focused, we skip the update loop and let the CPU sleep
+      // to be good citizens
+      if (windowHasFocus) {
+        SDL_Delay(50);
+        continue;
+      }
 
       if(fabs(elapsed - 1.0/120.0) < .0002){
         elapsed = 1.0/120.0;

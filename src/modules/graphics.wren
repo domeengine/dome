@@ -2,7 +2,7 @@
   @Module graphics
   The graphics module provides all the system functions required for drawing to the screen.
 */
-import "vector" for Point
+import "vector" for Point, Vec, Vector
 
 /**
     @Class Canvas
