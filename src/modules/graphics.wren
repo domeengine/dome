@@ -3,6 +3,7 @@
   The graphics module provides all the system functions required for drawing to the screen.
 */
 import "vector" for Point, Vec, Vector
+import "image" for ImageData
 
 /**
     @Class Canvas
@@ -188,29 +189,5 @@ var AllColors = {
   "yellow": Color.new(255, 255, 0),
   "lightgray": Color.new(194, 195, 199),
   "darkgray": Color.new(95, 87, 79)
-}
-
-foreign class ImageData {
-  // This constructor is private
-  construct initFromFile(data) {}
-
-  static loadFromFile(path) {
-    if (!__cache) {
-      __cache = {}
-    }
-
-    if (!__cache.containsKey(path)) {
-      import "io" for FileSystem
-      var data = FileSystem.load(path)
-      __cache[path] = ImageData.initFromFile(data)
-    }
-
-    return __cache[path]
-  }
-  foreign draw(x, y)
-  foreign drawArea(srcX, srcY, srcW, srcH, destX, destY)
-
-  foreign width
-  foreign height
 }
 

@@ -26,7 +26,7 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
     }
   }
   #endif
-  if (STRINGS_EQUAL(module, "graphics")) {
+  if (STRINGS_EQUAL(module, "image")) {
     if (STRINGS_EQUAL(className, "ImageData")) {
       methods.allocate = IMAGE_allocate;
       methods.finalize = IMAGE_finalize;
@@ -171,10 +171,12 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "graphics", "Canvas", "f_resize(_,_,_)", true, CANVAS_resize);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "width", true, CANVAS_getWidth);
   MAP_add(&engine->fnMap, "graphics", "Canvas", "height", true, CANVAS_getHeight);
-  MAP_add(&engine->fnMap, "graphics", "ImageData", "draw(_,_)", false, IMAGE_draw);
-  MAP_add(&engine->fnMap, "graphics", "ImageData", "width", false, IMAGE_getWidth);
-  MAP_add(&engine->fnMap, "graphics", "ImageData", "height", false, IMAGE_getHeight);
-  MAP_add(&engine->fnMap, "graphics", "ImageData", "drawArea(_,_,_,_,_,_)", false, IMAGE_drawArea);
+
+  // Image
+  MAP_add(&engine->fnMap, "image", "ImageData", "draw(_,_)", false, IMAGE_draw);
+  MAP_add(&engine->fnMap, "image", "ImageData", "width", false, IMAGE_getWidth);
+  MAP_add(&engine->fnMap, "image", "ImageData", "height", false, IMAGE_getHeight);
+  MAP_add(&engine->fnMap, "image", "ImageData", "drawArea(_,_,_,_,_,_)", false, IMAGE_drawArea);
 
   // Audio
   MAP_add(&engine->fnMap, "audio", "SystemChannel", "enabled=(_)", false, AUDIO_CHANNEL_setEnabled);

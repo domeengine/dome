@@ -5,7 +5,7 @@ typedef struct {
   uint32_t* pixels;
 } IMAGE;
 
-enum { DRAW_MODE_RGBA, DRAW_MODE_MONO } DRAW_MODE;
+typedef enum { COLOR_MODE_RGBA, COLOR_MODE_MONO } COLOR_MODE;
 
 typedef struct {
   IMAGE* image;
@@ -13,8 +13,16 @@ typedef struct {
   bool flipHorizontal;
   bool rotate;
 
-  DRAW_MODE mode;
-  // MONO colours
+  int32_t sourceX;
+  int32_t sourceY;
+  int32_t sourceWidth;
+  int32_t sourceHeight;
+
+  int32_t destX;
+  int32_t destY;
+
+  COLOR_MODE mode;
+  // MONO colour palette
   uint32_t background;
   uint32_t foreground;
 } DRAW_COMMAND;

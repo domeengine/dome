@@ -8,6 +8,7 @@ declare -a arr=(
 "io"
 "audio"
 "vector"
+"image"
 )
  
 declare -a opts=(
