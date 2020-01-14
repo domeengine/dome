@@ -385,8 +385,10 @@ int main(int argc, char* args[])
               if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
                 SDL_RenderGetViewport(engine.renderer, &(engine.viewport));
               } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+                AUDIO_ENGINE_pause(engine.audioEngine);
                 windowHasFocus = true;
               } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+                AUDIO_ENGINE_resume(engine.audioEngine);
                 windowHasFocus = false;
               }
             } break;

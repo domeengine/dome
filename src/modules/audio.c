@@ -273,6 +273,14 @@ internal void AUDIO_ENGINE_update(WrenVM* vm) {
   AUDIO_ENGINE_unlock(data);
 }
 
+internal void AUDIO_ENGINE_pause(AUDIO_ENGINE* engine) {
+  SDL_PauseAudioDevice(engine->deviceId, 1);
+}
+
+internal void AUDIO_ENGINE_resume(AUDIO_ENGINE* engine) {
+  SDL_PauseAudioDevice(engine->deviceId, 0);
+}
+
 internal void AUDIO_ENGINE_halt(AUDIO_ENGINE* engine) {
   if (engine != NULL) {
     SDL_PauseAudioDevice(engine->deviceId, 1);
