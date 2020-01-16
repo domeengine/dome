@@ -123,13 +123,13 @@ void IMAGE_drawArea(WrenVM* vm) {
   double areaHeight = mid(0.0, srcH, image->height);
   double areaWidth = mid(0.0, srcW, image->width);
 
-  double angle = 90.0;
+  double angle = 30.0;
   double theta = M_PI * (angle / 180.0);
   double c = cos(-theta);
   double s = sin(-theta);
 
-  double scaleX = -2.0;
-  double scaleY = 4.0;
+  double scaleX = 2.0;
+  double scaleY = 2.0;
   double sX = (1.0 / scaleX);
   double sY = (1.0 / scaleY);
 
@@ -147,9 +147,9 @@ void IMAGE_drawArea(WrenVM* vm) {
 
       int32_t u = srcX + (c * q * sX - s * t * sY) + w * fabs(sX);
       int32_t v = srcY + (s * q * sX + c * t * sY) + h * fabs(sY);
-
-      // u = round(srcX + ((i - w)*c + (j - h)*s)*sX + w*sX);
-      // v = round(srcY + (-(i - w)*s + (j - h)*c)*sY + h*sY);
+      if (u < srcX || u > srcX + srcW || v < srcY || v > srcY + srcH) {
+        continue;
+      }
 
       if (v < 0 || v >= image->height || u < 0 || u >= image->width) {
         continue;
