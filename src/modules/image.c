@@ -85,8 +85,10 @@ void IMAGE_draw(WrenVM* vm) {
   uint32_t y = wrenGetSlotDouble(vm, 2);
 
   uint32_t* pixel = (uint32_t*)image->pixels;
-  for (int j = 0; j < image->height; j++) {
-    for (int i = 0; i < image->width; i++) {
+  for (int32_t j = 0; j < image->height; j++) {
+    for (int32_t i = 0; i < image->width; i++) {
+
+
       uint32_t c = pixel[j * image->width + i];
       ENGINE_pset(engine, x+i, y+j, c);
     }
@@ -122,8 +124,8 @@ void IMAGE_drawArea(WrenVM* vm) {
   double areaWidth = mid(0, srcW, image->width);
 
   uint32_t* pixel = (uint32_t*)image->pixels;
-  for (int j = 0; j < areaHeight; j++) {
-    for (int i = 0; i < areaWidth; i++) {
+  for (int32_t j = 0; j < areaHeight; j++) {
+    for (int32_t i = 0; i < areaWidth; i++) {
       uint32_t c = pixel[(srcY+j) * image->width + (srcX+i)];
       ENGINE_pset(engine, destX+i, destY+j, c);
     }
