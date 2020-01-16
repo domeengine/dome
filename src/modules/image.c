@@ -120,29 +120,46 @@ void IMAGE_drawArea(WrenVM* vm) {
   int32_t destY = wrenGetSlotDouble(vm, 6);
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
 
-  double areaHeight = mid(0, srcH, image->height);
-  double areaWidth = mid(0, srcW, image->width);
+  double areaHeight = mid(0.0, srcH, image->height);
+  double areaWidth = mid(0.0, srcW, image->width);
 
-  double theta = M_PI * (45 / 180.0);
-  int8_t c = round(cos(-theta));
-  int8_t s = round(sin(-theta));
+  double angle = 0.0;
+  double theta = M_PI * (angle / 180.0);
+  double c = cos(-theta);
+  double s = sin(-theta);
 
-  uint32_t w = round(srcW / 2.0);
-  uint32_t h = round(srcH / 2.0);
+  double scaleX = 2.0;
+  double scaleY = 2.0;
+  double sX = (1.0 / scaleX);
+  double sY = (1.0 / scaleY);
+
+  double w = srcW / 2.0;
+  double h = srcH / 2.0;
 
   uint32_t* pixel = (uint32_t*)image->pixels;
-  for (int32_t j = 0; j < areaHeight; j++) {
-    for (int32_t i = 0; i < areaWidth; i++) {
-      uint32_t x = destX + i;
-      uint32_t y = destY + j;
+  for (int32_t j = 0; j < ceil(fabs(scaleY)*areaHeight); j++) {
+    for (int32_t i = 0; i < ceil(fabs(scaleX)*areaWidth); i++) {
+      int32_t x = destX + i;
+      int32_t y = destY + j;
 
       int32_t u = i;
       int32_t v = j;
 
-      u = srcX + (i - w)*c - (j - h)*s + w;
-      v = srcY + (i - w)*s + (j - h)*c + h;
+
+      u = srcX + ((i - w)*c + (j - h)*s)*sX + w*sX;
+      v = srcY + (-(i - w)*s + (j - h)*c)*sY + h*sY;
+
 
       if (v < srcY || v >= srcY+srcH || u < srcX || u >= srcX+srcW) {
+        //continue;
+      }
+
+      /*
+      if (v < srcY || v >= srcY + areaHeight || u < srcX || u >= srcX + areaWidth) {
+        continue;
+      }
+      */
+      if (v < 0 || v >= image->height || u < 0 || u >= image->width) {
         continue;
       }
       uint32_t c = pixel[v * image->width + u];
