@@ -656,7 +656,7 @@ ENGINE_takeScreenshot(ENGINE* engine) {
   uint8_t* destroyableImage = (uint8_t*)malloc(imageSize * 4 * sizeof(uint8_t));
   for (size_t i = 0; i < imageSize; i++) {
     uint32_t c = ((uint32_t*)engine->pixels)[i];
-    uint8_t a = (0xFF000000 & c) >> 24;
+    uint8_t a = 0xFF;
     uint8_t r = (0x00FF0000 & c) >> 16;
     uint8_t g = (0x0000FF00 & c) >> 8;
     uint8_t b = (0x000000FF & c);
