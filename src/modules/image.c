@@ -123,18 +123,18 @@ void IMAGE_drawArea(WrenVM* vm) {
   double areaHeight = mid(0.0, srcH, image->height);
   double areaWidth = mid(0.0, srcW, image->width);
 
-  double angle = 0.0;
+  double angle = 90.0;
   double theta = M_PI * (angle / 180.0);
   double c = cos(-theta);
   double s = sin(-theta);
 
-  double scaleX = 2.0;
-  double scaleY = 2.0;
+  double scaleX = -2.0;
+  double scaleY = 4.0;
   double sX = (1.0 / scaleX);
   double sY = (1.0 / scaleY);
 
-  double w = srcW / 2.0;
-  double h = srcH / 2.0;
+  double w = fabs(scaleX) * (srcW) / 2.0;
+  double h = fabs(scaleY) * (srcH) / 2.0;
 
   uint32_t* pixel = (uint32_t*)image->pixels;
   for (int32_t j = 0; j < ceil(fabs(scaleY)*areaHeight); j++) {
@@ -142,23 +142,15 @@ void IMAGE_drawArea(WrenVM* vm) {
       int32_t x = destX + i;
       int32_t y = destY + j;
 
-      int32_t u = i;
-      int32_t v = j;
+      int32_t q = i - w;
+      int32_t t = j - h;
 
+      int32_t u = srcX + (c * q * sX - s * t * sY) + w * fabs(sX);
+      int32_t v = srcY + (s * q * sX + c * t * sY) + h * fabs(sY);
 
-      u = srcX + ((i - w)*c + (j - h)*s)*sX + w*sX;
-      v = srcY + (-(i - w)*s + (j - h)*c)*sY + h*sY;
+      // u = round(srcX + ((i - w)*c + (j - h)*s)*sX + w*sX);
+      // v = round(srcY + (-(i - w)*s + (j - h)*c)*sY + h*sY);
 
-
-      if (v < srcY || v >= srcY+srcH || u < srcX || u >= srcX+srcW) {
-        //continue;
-      }
-
-      /*
-      if (v < srcY || v >= srcY + areaHeight || u < srcX || u >= srcX + areaWidth) {
-        continue;
-      }
-      */
       if (v < 0 || v >= image->height || u < 0 || u >= image->width) {
         continue;
       }
