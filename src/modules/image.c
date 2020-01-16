@@ -123,11 +123,27 @@ void IMAGE_drawArea(WrenVM* vm) {
   double areaHeight = mid(0, srcH, image->height);
   double areaWidth = mid(0, srcW, image->width);
 
+  double theta = M_PI * (90 / 180.0);
+  int8_t c = round(cos(-theta));
+  int8_t s = round(sin(-theta));
+
+  uint32_t w = srcW / 2;
+  uint32_t h = srcH / 2;
+
   uint32_t* pixel = (uint32_t*)image->pixels;
   for (int32_t j = 0; j < areaHeight; j++) {
     for (int32_t i = 0; i < areaWidth; i++) {
-      uint32_t c = pixel[(srcY+j) * image->width + (srcX+i)];
-      ENGINE_pset(engine, destX+i, destY+j, c);
+      uint32_t x = destX + i;
+      uint32_t y = destY + j;
+
+      uint32_t u = i;
+      uint32_t v = j;
+
+      u = srcX + (i - w)*c - (j - h)*s + w;
+      v = srcY + (i - w)*s + (j - h)*c + h;
+
+      uint32_t c = pixel[v * image->width + u];
+      ENGINE_pset(engine, x, y, c);
     }
   }
 }
