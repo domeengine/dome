@@ -5,11 +5,7 @@ PROCESS_exit(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "code");
   engine->running = false;
   engine->exit_status = floor(wrenGetSlotDouble(vm, 1));
-  if (engine->exit_status != 0) {
-    wrenAbortFiber(vm, 1);
-  } else {
-    LONG_JMP(loop_exit, 1);
-  }
+  wrenSetSlotNull(vm, 0);
 }
 
 

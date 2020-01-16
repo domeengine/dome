@@ -16,14 +16,6 @@
 #include <string.h>
 #include <math.h>
 #include <libgen.h>
-#include <setjmp.h>
-#ifdef __MINGW32__
-#define SET_JMP __builtin_setjmp
-#define LONG_JMP __builtin_longjmp
-#else
-#define SET_JMP setjmp
-#define LONG_JMP longjmp
-#endif
 
 
 #include <wren.h>
@@ -90,8 +82,6 @@
 #define SCREEN_WIDTH GAME_WIDTH * 2
 #define SCREEN_HEIGHT GAME_HEIGHT * 2
 
-// We need this here so it can be used by the DOME module
-global_variable jmp_buf loop_exit;
 // Used in the io variable, but we need to catch it here
 global_variable WrenHandle* bufferClass = NULL;
 global_variable WrenHandle* audioEngineClass = NULL;
@@ -346,7 +336,6 @@ int main(int argc, char* args[])
   uint8_t FPS = 60;
   double MS_PER_FRAME = ceil(1000.0 / FPS);
 
-  if (SET_JMP(loop_exit) == 0) {
     wrenSetSlotHandle(vm, 0, gameClass);
     interpreterResult = wrenCall(vm, initMethod);
     if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -355,7 +344,6 @@ int main(int argc, char* args[])
     }
     SDL_ShowWindow(engine.window);
     SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0xFF);
-  }
 
   jo_gif_t gif;
   size_t imageSize = engine.width * engine.height;
@@ -369,148 +357,146 @@ int main(int argc, char* args[])
   int32_t lag = 0;
   bool windowHasFocus = false;
   SDL_Event event;
-  if (SET_JMP(loop_exit) == 0) {
-    uint8_t gifCounter = 0;
-    while (engine.running) {
+  uint8_t gifCounter = 0;
+  while (engine.running) {
 
-      // processInput()
-      while(SDL_PollEvent(&event)) {
-        switch (event.type)
-        {
-          case SDL_QUIT:
-            engine.running = false;
-            break;
-          case SDL_WINDOWEVENT:
-            {
-              if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                SDL_RenderGetViewport(engine.renderer, &(engine.viewport));
-              } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
-                AUDIO_ENGINE_pause(engine.audioEngine);
-                windowHasFocus = true;
-              } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-                AUDIO_ENGINE_resume(engine.audioEngine);
-                windowHasFocus = false;
-              }
-            } break;
-          case SDL_KEYDOWN:
-          case SDL_KEYUP:
-            {
-              SDL_Keycode keyCode = event.key.keysym.sym;
-              if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-                engine.debugEnabled = !engine.debugEnabled;
-              } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-                ENGINE_takeScreenshot(&engine);
-              }
-            } break;
-          case SDL_CONTROLLERDEVICEADDED:
-            {
-              GAMEPAD_eventAdded(vm, event.cdevice.which);
-            } break;
-          case SDL_CONTROLLERDEVICEREMOVED:
-            {
-              GAMEPAD_eventRemoved(vm, event.cdevice.which);
-            } break;
-          case SDL_USEREVENT:
-            {
-              printf("Event code %i\n", event.user.code);
-              if (event.user.code == EVENT_LOAD_FILE) {
-                FILESYSTEM_loadEventComplete(&event);
-              }
-            }
-        }
-      }
-
-      uint64_t currentTime = SDL_GetPerformanceCounter();
-      int32_t elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
-      previousTime = currentTime;
-
-      // If we aren't focused, we skip the update loop and let the CPU sleep
-      // to be good citizens
-      if (windowHasFocus) {
-        SDL_Delay(50);
-        continue;
-      }
-
-      if(fabs(elapsed - 1.0/120.0) < .0002){
-        elapsed = 1.0/120.0;
-      }
-      if(fabs(elapsed - 1.0/60.0) < .0002){
-        elapsed = 1.0/60.0;
-      }
-      if(fabs(elapsed - 1.0/30.0) < .0002){
-        elapsed = 1.0/30.0;
-      }
-      lag += elapsed;
-
-      // update()
-
-      while (lag > MS_PER_FRAME) {
-        wrenEnsureSlots(vm, 8);
-        wrenSetSlotHandle(vm, 0, gameClass);
-        interpreterResult = wrenCall(vm, updateMethod);
-        if (interpreterResult != WREN_RESULT_SUCCESS) {
-          result = EXIT_FAILURE;
-          goto vm_cleanup;
-        }
-        // updateAudio()
-        if (audioEngineClass != NULL) {
-          wrenEnsureSlots(vm, 3);
-          wrenSetSlotHandle(vm, 0, audioEngineClass);
-          AUDIO_ENGINE_lock(engine.audioEngine);
-          interpreterResult = wrenCall(vm, updateMethod);
-          AUDIO_ENGINE_unlock(engine.audioEngine);
-          if (interpreterResult != WREN_RESULT_SUCCESS) {
-            result = EXIT_FAILURE;
-            goto vm_cleanup;
-          }
-        }
-        lag -= MS_PER_FRAME;
-        if (makeGif && gifCounter > 1) {
-          for (size_t i = 0; i < imageSize; i++) {
-            uint32_t c = ((uint32_t*)engine.pixels)[i];
-            uint8_t a = (0xFF000000 & c) >> 24;
-            uint8_t r = (0x00FF0000 & c) >> 16;
-            uint8_t g = (0x0000FF00 & c) >> 8;
-            uint8_t b = (0x000000FF & c);
-            ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
-          }
-          jo_gif_frame(&gif, destroyableImage, 3, true);
-          gifCounter = 0;
-        }
-        gifCounter++;
-
-        if (engine.lockstep) {
-          lag = mid(0, lag, MS_PER_FRAME);
+    // processInput()
+    while(SDL_PollEvent(&event)) {
+      switch (event.type)
+      {
+        case SDL_QUIT:
+          engine.running = false;
           break;
-        }
+        case SDL_WINDOWEVENT:
+          {
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+              SDL_RenderGetViewport(engine.renderer, &(engine.viewport));
+            } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+              AUDIO_ENGINE_pause(engine.audioEngine);
+              windowHasFocus = true;
+            } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+              AUDIO_ENGINE_resume(engine.audioEngine);
+              windowHasFocus = false;
+            }
+          } break;
+        case SDL_KEYDOWN:
+        case SDL_KEYUP:
+          {
+            SDL_Keycode keyCode = event.key.keysym.sym;
+            if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+              engine.debugEnabled = !engine.debugEnabled;
+            } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+              ENGINE_takeScreenshot(&engine);
+            }
+          } break;
+        case SDL_CONTROLLERDEVICEADDED:
+          {
+            GAMEPAD_eventAdded(vm, event.cdevice.which);
+          } break;
+        case SDL_CONTROLLERDEVICEREMOVED:
+          {
+            GAMEPAD_eventRemoved(vm, event.cdevice.which);
+          } break;
+        case SDL_USEREVENT:
+          {
+            printf("Event code %i\n", event.user.code);
+            if (event.user.code == EVENT_LOAD_FILE) {
+              FILESYSTEM_loadEventComplete(&event);
+            }
+          }
       }
+    }
 
-      // render();
+    uint64_t currentTime = SDL_GetPerformanceCounter();
+    int32_t elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
+    previousTime = currentTime;
+
+    // If we aren't focused, we skip the update loop and let the CPU sleep
+    // to be good citizens
+    if (windowHasFocus) {
+      SDL_Delay(50);
+      continue;
+    }
+
+    if(fabs(elapsed - 1.0/120.0) < .0002){
+      elapsed = 1.0/120.0;
+    }
+    if(fabs(elapsed - 1.0/60.0) < .0002){
+      elapsed = 1.0/60.0;
+    }
+    if(fabs(elapsed - 1.0/30.0) < .0002){
+      elapsed = 1.0/30.0;
+    }
+    lag += elapsed;
+
+    // update()
+
+    while (lag > MS_PER_FRAME) {
       wrenEnsureSlots(vm, 8);
       wrenSetSlotHandle(vm, 0, gameClass);
-      wrenSetSlotDouble(vm, 1, ((double)lag / MS_PER_FRAME));
-      interpreterResult = wrenCall(vm, drawMethod);
+      interpreterResult = wrenCall(vm, updateMethod);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
         result = EXIT_FAILURE;
         goto vm_cleanup;
       }
-
-      if (engine.debugEnabled) {
-        engine.debug.elapsed = elapsed;
-        ENGINE_drawDebug(&engine);
+      // updateAudio()
+      if (audioEngineClass != NULL) {
+        wrenEnsureSlots(vm, 3);
+        wrenSetSlotHandle(vm, 0, audioEngineClass);
+        AUDIO_ENGINE_lock(engine.audioEngine);
+        interpreterResult = wrenCall(vm, updateMethod);
+        AUDIO_ENGINE_unlock(engine.audioEngine);
+        if (interpreterResult != WREN_RESULT_SUCCESS) {
+          result = EXIT_FAILURE;
+          goto vm_cleanup;
+        }
       }
-
-      // Flip Buffer to Screen
-      SDL_UpdateTexture(engine.texture, 0, engine.pixels, engine.width * 4);
-
-      // clear screen
-      SDL_RenderClear(engine.renderer);
-      SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
-      SDL_RenderPresent(engine.renderer);
-
-      if (!engine.vsyncEnabled) {
-        SDL_Delay(1);
+      lag -= MS_PER_FRAME;
+      if (makeGif && gifCounter > 1) {
+        for (size_t i = 0; i < imageSize; i++) {
+          uint32_t c = ((uint32_t*)engine.pixels)[i];
+          uint8_t a = (0xFF000000 & c) >> 24;
+          uint8_t r = (0x00FF0000 & c) >> 16;
+          uint8_t g = (0x0000FF00 & c) >> 8;
+          uint8_t b = (0x000000FF & c);
+          ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
+        }
+        jo_gif_frame(&gif, destroyableImage, 3, true);
+        gifCounter = 0;
       }
+      gifCounter++;
+
+      if (engine.lockstep) {
+        lag = mid(0, lag, MS_PER_FRAME);
+        break;
+      }
+    }
+
+    // render();
+    wrenEnsureSlots(vm, 8);
+    wrenSetSlotHandle(vm, 0, gameClass);
+    wrenSetSlotDouble(vm, 1, ((double)lag / MS_PER_FRAME));
+    interpreterResult = wrenCall(vm, drawMethod);
+    if (interpreterResult != WREN_RESULT_SUCCESS) {
+      result = EXIT_FAILURE;
+      goto vm_cleanup;
+    }
+
+    if (engine.debugEnabled) {
+      engine.debug.elapsed = elapsed;
+      ENGINE_drawDebug(&engine);
+    }
+
+    // Flip Buffer to Screen
+    SDL_UpdateTexture(engine.texture, 0, engine.pixels, engine.width * 4);
+
+    // clear screen
+    SDL_RenderClear(engine.renderer);
+    SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
+    SDL_RenderPresent(engine.renderer);
+
+    if (!engine.vsyncEnabled) {
+      SDL_Delay(1);
     }
   }
 
@@ -551,6 +537,7 @@ cleanup:
   BASEPATH_free();
   AUDIO_ENGINE_halt(engine.audioEngine);
   VM_free(vm);
+  result = engine.exit_status;
   ENGINE_free(&engine);
   //Quit SDL subsystems
   if (strlen(SDL_GetError()) > 0) {
