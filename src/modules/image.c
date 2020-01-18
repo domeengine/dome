@@ -85,8 +85,8 @@ DRAW_COMMAND DRAW_COMMAND_init(IMAGE* image) {
   command.destX = 0;
   command.destY = 0;
 
-  command.angle = 0;
-  command.scaleX = 2;
+  command.angle = 90;
+  command.scaleX = -2;
   command.scaleY = 2;
 
   command.mode = COLOR_MODE_MONO;
@@ -131,8 +131,8 @@ void IMAGE_drawCommand(ENGINE* engine, DRAW_COMMAND command) {
   double sX = (1.0 / scaleX);
   double sY = (1.0 / scaleY);
 
-  double w = fabs(scaleX) * (srcW) / 2.0;
-  double h = fabs(scaleY) * (srcH) / 2.0;
+  double w = (fabs(scaleX) * (srcW) / 2.0) - 0.5;
+  double h = (fabs(scaleY) * (srcH) / 2.0) - 0.5;
 
   uint32_t* pixel = (uint32_t*)image->pixels;
   for (int32_t j = 0; j < ceil(fabs(scaleY)*areaHeight); j++) {
@@ -143,8 +143,9 @@ void IMAGE_drawCommand(ENGINE* engine, DRAW_COMMAND command) {
       double q = i - w;
       double t = j - h;
 
-      int32_t u = floor(srcX + (c * q * sX - s * t * sY) + w * fabs(sX));
-      int32_t v = floor(srcY + (s * q * sX + c * t * sY) + h * fabs(sY));
+      int32_t u = srcX + ((c * q * sX - s * t * sY) + w * fabs(sX));
+      int32_t v = srcY + ((s * q * sX + c * t * sY) + h * fabs(sY));
+
       if (u < srcX || u > srcX + srcW || v < srcY || v > srcY + srcH) {
         continue;
       }
