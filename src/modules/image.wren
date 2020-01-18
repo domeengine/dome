@@ -16,6 +16,7 @@ foreign class ImageData {
     return __cache[path]
   }
   foreign draw(x, y)
+  foreign transform(map)
   foreign drawArea(srcX, srcY, srcW, srcH, destX, destY)
 
   foreign width

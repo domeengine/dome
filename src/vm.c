@@ -177,6 +177,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "image", "ImageData", "width", false, IMAGE_getWidth);
   MAP_add(&engine->fnMap, "image", "ImageData", "height", false, IMAGE_getHeight);
   MAP_add(&engine->fnMap, "image", "ImageData", "drawArea(_,_,_,_,_,_)", false, IMAGE_drawArea);
+  MAP_add(&engine->fnMap, "image", "ImageData", "transform(_)", false, IMAGE_transform);
 
   // Audio
   MAP_add(&engine->fnMap, "audio", "SystemChannel", "enabled=(_)", false, AUDIO_CHANNEL_setEnabled);
