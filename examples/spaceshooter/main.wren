@@ -195,7 +195,11 @@ class Ship {
   draw(t) {
     var frame = (t / 5).floor % 2
     if (_health > 0 && !_imm || (_t/4).floor % 2 == 0) {
-      Canvas.draw(_ship[frame], _x, _y)
+      Canvas.draw(_ship[frame].transform({
+        "angle": 180,
+        "scaleX": 2,
+        "scaleY": 2
+      }), _x, _y)
     }
 
   }

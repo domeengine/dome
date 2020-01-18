@@ -3,7 +3,7 @@
   The graphics module provides all the system functions required for drawing to the screen.
 */
 import "vector" for Point, Vec, Vector
-import "image" for ImageData
+import "image" for Drawable, ImageData
 
 /**
     @Class Canvas
@@ -136,7 +136,7 @@ class Canvas {
   foreign static height
 
   static draw(object, x, y) {
-    if (object is ImageData) {
+    if (object is Drawable) {
       object.draw(x, y)
     }
   }

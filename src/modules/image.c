@@ -27,6 +27,139 @@ typedef struct {
   uint32_t foregroundColor;
 } DRAW_COMMAND;
 
+DRAW_COMMAND DRAW_COMMAND_init(IMAGE* image) {
+  DRAW_COMMAND command;
+  command.image = image;
+
+  command.srcX = 0;
+  command.srcY = 0;
+  command.srcW = image->width;
+  command.srcH = image->height;
+  command.destX = 0;
+  command.destY = 0;
+
+  command.angle = 0;
+  command.scaleX = 1;
+  command.scaleY = 1;
+
+  command.mode = COLOR_MODE_RGBA;
+  command.backgroundColor = 0xFF000000;
+  command.foregroundColor = 0xFFFFFFFF;
+
+  return command;
+}
+
+internal void
+DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
+
+  DRAW_COMMAND command = *commandPtr;
+  IMAGE* image = command.image;
+
+  int32_t srcX = command.srcX;
+  int32_t srcY = command.srcY;
+  int32_t srcW = command.srcW;
+  int32_t srcH = command.srcH;
+
+  int32_t destX = command.destX;
+  int32_t destY = command.destY;
+
+  double angle = command.angle;
+  double scaleX = command.scaleX;
+  double scaleY = command.scaleY;
+
+  double areaHeight = mid(0.0, srcH, image->height);
+  double areaWidth = mid(0.0, srcW, image->width);
+
+  double theta = M_PI * (angle / 180.0);
+  double c = cos(-theta);
+  double s = sin(-theta);
+
+  double sX = (1.0 / scaleX);
+  double sY = (1.0 / scaleY);
+
+  double w = (fabs(scaleX) * (srcW) / 2.0) - 0.5;
+  double h = (fabs(scaleY) * (srcH) / 2.0) - 0.5;
+
+  uint32_t* pixel = (uint32_t*)image->pixels;
+  for (int32_t j = 0; j < ceil(fabs(scaleY)*areaHeight); j++) {
+    for (int32_t i = 0; i < ceil(fabs(scaleX)*areaWidth); i++) {
+      int32_t x = destX + i;
+      int32_t y = destY + j;
+
+      double q = i - w;
+      double t = j - h;
+
+      int32_t u = (srcX + ((c * q * sX - s * t * sY) + w * fabs(sX)));
+      int32_t v = (srcY + ((s * q * sX + c * t * sY) + h * fabs(sY)));
+
+      // Make sure we are in the selected bounds
+      if (u < srcX || u > srcX + srcW || v < srcY || v > srcY + srcH) {
+        continue;
+      }
+
+      // protect against invalid memory access
+      if (v < 0 || v >= image->height || u < 0 || u >= image->width) {
+        continue;
+      }
+
+      uint32_t color = pixel[v * image->width + u];
+      if (command.mode == COLOR_MODE_MONO) {
+        uint8_t alpha = (0xFF000000 & color) >> 24;
+        if (alpha < 0xFF || (color & 0x00FFFFFF) == 0) {
+          color = command.backgroundColor;
+        } else {
+          color = command.foregroundColor;
+        }
+      }
+      ENGINE_pset(engine, x, y, color);
+    }
+  }
+}
+
+
+internal void
+DRAW_COMMAND_allocate(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, FOREIGN, "image");
+  ASSERT_SLOT_TYPE(vm, 2, LIST, "parameters");
+
+  DRAW_COMMAND* command = (DRAW_COMMAND*)wrenSetSlotNewForeign(vm,
+      0, 0, sizeof(DRAW_COMMAND));
+
+  IMAGE* image = wrenGetSlotForeign(vm, 1);
+  *command = DRAW_COMMAND_init(image);
+
+  wrenGetListElement(vm, 2, 0, 1);
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "angle");
+  command->angle = wrenGetSlotDouble(vm, 1);
+
+  wrenGetListElement(vm, 2, 1, 1);
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "scaleX");
+  command->scaleX = wrenGetSlotDouble(vm, 1);
+
+  wrenGetListElement(vm, 2, 2, 1);
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "scaleY");
+  command->scaleY = wrenGetSlotDouble(vm, 1);
+}
+
+internal void
+DRAW_COMMAND_finalize(void* data) {
+  // Nothing here
+}
+
+internal void
+DRAW_COMMAND_draw(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  DRAW_COMMAND* command = wrenGetSlotForeign(vm, 0);
+
+  command->destX = wrenGetSlotDouble(vm, 1);
+  command->destY = wrenGetSlotDouble(vm, 2);
+
+  DRAW_COMMAND_execute(engine, command);
+}
+
 void IMAGE_allocate(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "image");
   // TODO: We should read this from a "DataBuffer" which is file loaded, rather than loading ourselves.
@@ -74,119 +207,16 @@ void IMAGE_finalize(void* data) {
 
 }
 
-DRAW_COMMAND DRAW_COMMAND_init(IMAGE* image) {
-  DRAW_COMMAND command;
-  command.image = image;
-
-  command.srcX = 0;
-  command.srcY = 0;
-  command.srcW = image->width;
-  command.srcH = image->height;
-  command.destX = 0;
-  command.destY = 0;
-
-  command.angle = 90;
-  command.scaleX = -2;
-  command.scaleY = 2;
-
-  command.mode = COLOR_MODE_MONO;
-  command.backgroundColor = 0xFF000000;
-  command.foregroundColor = 0xFFFFFFFF;
-
-  return command;
-}
-
 void IMAGE_getWidth(WrenVM* vm) {
   IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
   wrenSetSlotDouble(vm, 0, image->width);
 }
+
 void IMAGE_getHeight(WrenVM* vm) {
   IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
   wrenSetSlotDouble(vm, 0, image->height);
 }
 
-void IMAGE_drawCommand(ENGINE* engine, DRAW_COMMAND command) {
-
-  IMAGE* image = command.image;
-
-  int32_t srcX = command.srcX;
-  int32_t srcY = command.srcY;
-  int32_t srcW = command.srcW;
-  int32_t srcH = command.srcH;
-
-  int32_t destX = command.destX;
-  int32_t destY = command.destY;
-
-  double angle = command.angle;
-  double scaleX = command.scaleX;
-  double scaleY = command.scaleY;
-
-  double areaHeight = mid(0.0, srcH, image->height);
-  double areaWidth = mid(0.0, srcW, image->width);
-
-  double theta = M_PI * (angle / 180.0);
-  double c = cos(-theta);
-  double s = sin(-theta);
-
-  double sX = (1.0 / scaleX);
-  double sY = (1.0 / scaleY);
-
-  double w = (fabs(scaleX) * (srcW) / 2.0) - 0.5;
-  double h = (fabs(scaleY) * (srcH) / 2.0) - 0.5;
-
-  uint32_t* pixel = (uint32_t*)image->pixels;
-  for (int32_t j = 0; j < ceil(fabs(scaleY)*areaHeight); j++) {
-    for (int32_t i = 0; i < ceil(fabs(scaleX)*areaWidth); i++) {
-      int32_t x = destX + i;
-      int32_t y = destY + j;
-
-      double q = i - w;
-      double t = j - h;
-
-      int32_t u = srcX + ((c * q * sX - s * t * sY) + w * fabs(sX));
-      int32_t v = srcY + ((s * q * sX + c * t * sY) + h * fabs(sY));
-
-      if (u < srcX || u > srcX + srcW || v < srcY || v > srcY + srcH) {
-        continue;
-      }
-
-      if (v < 0 || v >= image->height || u < 0 || u >= image->width) {
-        continue;
-      }
-
-      uint32_t c = pixel[v * image->width + u];
-      if (command.mode == COLOR_MODE_MONO) {
-        uint8_t alpha = (0xFF000000 & c) >> 24;
-        uint8_t r = (0x00FF0000 & c) >> 16;
-        uint8_t g = (0x0000FF00 & c) >> 8;
-        uint8_t b = (0x000000FF & c);
-        if (alpha < 0xFF || (c & 0x00FFFFFF) == 0) {
-          c = command.backgroundColor;
-        } else {
-          c = command.foregroundColor;
-        }
-        ENGINE_pset(engine, x, y, c);
-      }
-      ENGINE_pset(engine, x, y, c);
-    }
-  }
-}
-
-void IMAGE_transform(WrenVM* vm) {
-  wrenEnsureSlots(vm, 4);
-  if (wrenGetSlotType(vm, 1) == WREN_TYPE_MAP) {
-    printf("It's the map!\n");
-    wrenSetSlotString(vm, 2, "hello");
-    wrenGetMapValue(vm, 1, 2, 2);
-    printf("%s\n", wrenGetSlotString(vm, 2));
-    wrenSetSlotString(vm, 2, "key");
-    wrenSetSlotDouble(vm, 3, 42);
-    wrenInsertInMap(vm, 1, 2, 3);
-
-    wrenSetSlotHandle(vm, 0, wrenGetSlotHandle(vm, 1));
-  }
-
-}
 void IMAGE_drawArea(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "source x");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "source y");
@@ -206,7 +236,7 @@ void IMAGE_drawArea(WrenVM* vm) {
   command.destY = wrenGetSlotDouble(vm, 6);
 
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  IMAGE_drawCommand(engine, command);
+  DRAW_COMMAND_execute(engine, &command);
 }
 
 void IMAGE_draw(WrenVM* vm) {
@@ -217,5 +247,5 @@ void IMAGE_draw(WrenVM* vm) {
   DRAW_COMMAND command = DRAW_COMMAND_init(image);
   command.destX = wrenGetSlotDouble(vm, 1);
   command.destY = wrenGetSlotDouble(vm, 2);
-  IMAGE_drawCommand(engine, command);
+  DRAW_COMMAND_execute(engine, &command);
 }

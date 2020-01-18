@@ -1,4 +1,24 @@
-foreign class ImageData {
+class Drawable {
+  draw(x, y) {}
+}
+
+foreign class DrawCommand is Drawable {
+  construct new(image, params) {}
+
+  static parse(image, map) {
+    return DrawCommand.new(image, [
+      map["angle"] || 0,
+      map["scaleX"] || 1,
+      map["scaleY"] || 1
+    ])
+  }
+
+  foreign draw(x, y)
+
+}
+
+
+foreign class ImageData is Drawable {
   // This constructor is private
   construct initFromFile(data) {}
 
@@ -16,7 +36,9 @@ foreign class ImageData {
     return __cache[path]
   }
   foreign draw(x, y)
-  foreign transform(map)
+  transform(map) {
+    return DrawCommand.parse(this, map)
+  }
   foreign drawArea(srcX, srcY, srcW, srcH, destX, destY)
 
   foreign width
