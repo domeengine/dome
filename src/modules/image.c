@@ -67,35 +67,55 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   double scaleX = command.scaleX;
   double scaleY = command.scaleY;
 
-  double areaHeight = mid(0.0, srcH, image->height);
-  double areaWidth = mid(0.0, srcW, image->width);
 
-  double theta = M_PI * (angle / 180.0);
+  double theta = M_PI;//  * (angle / 180.0);
   double c = cos(-theta);
   double s = sin(-theta);
 
   double sX = (1.0 / scaleX);
   double sY = (1.0 / scaleY);
 
+
+  double point1x = -srcH * s;
+  double point1y = srcH * c;
+
+  double point2x = srcW * c - srcH * s;
+  double point2y = srcH * c + srcW * s;
+
+  double point3x = srcW * c;
+  double point3y = srcW * s;
+
+  double areaMinX = min(0, min(point1x, min(point2x, point3x)));
+  double areaMinY = min(0, min(point1y, min(point2y, point3y)));
+  double areaMaxX = max(point1x, max(point2x, point3x));
+  double areaMaxY = max(point1y, max(point2y, point3y));
+
+  double areaHeight = areaMaxY - areaMinY;// mid(0.0, srcH, image->height);
+  double areaWidth = areaMaxX - areaMinX;// mid(0.0, srcW, image->width);
+
   double w = (fabs(scaleX) * (srcW) / 2.0) - 0.5;
   double h = (fabs(scaleY) * (srcH) / 2.0) - 0.5;
+  w = scaleX * areaWidth / 2.0;
+  h = scaleY * areaHeight / 2.0;
 
   uint32_t* pixel = (uint32_t*)image->pixels;
-  for (int32_t j = 0; j < ceil(fabs(scaleY)*areaHeight); j++) {
-    for (int32_t i = 0; i < ceil(fabs(scaleX)*areaWidth); i++) {
+  for (int32_t j = floor(areaMinY * fabs(scaleY)); j < ceil(fabs(scaleY)*areaHeight); j++) {
+    for (int32_t i = floor(areaMinX * fabs(scaleX)); i < ceil(fabs(scaleX)*areaWidth); i++) {
       int32_t x = destX + i;
       int32_t y = destY + j;
 
       double q = i - w;
       double t = j - h;
 
-      int32_t u = (srcX + ((c * q * sX - s * t * sY) + w * fabs(sX)));
-      int32_t v = (srcY + ((s * q * sX + c * t * sY) + h * fabs(sY)));
+      int32_t u = srcX + round((q + areaMinX) * c * sX + (t + areaMinY) * s * sY);
+      int32_t v = srcY + round((t + areaMinY) * c * sX - (q + areaMinX) * s * sY);
 
       // Make sure we are in the selected bounds
+      /*
       if (u < srcX || u > srcX + srcW || v < srcY || v > srcY + srcH) {
         continue;
       }
+      */
 
       // protect against invalid memory access
       if (v < 0 || v >= image->height || u < 0 || u >= image->width) {
