@@ -92,10 +92,6 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
     s = sin(theta);
   }
 
-  double sX = (1.0 / scaleX);
-  double sY = (1.0 / scaleY);
-
-
   double point1x = -srcH * s;
   double point1y = srcH * c;
 
@@ -113,26 +109,29 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   double areaHeight = areaMaxY - areaMinY;// mid(0.0, srcH, image->height);
   double areaWidth = areaMaxX - areaMinX;// mid(0.0, srcW, image->width);
 
-  double w = (fabs(scaleX) * (srcW) / 2.0);
-  double h = (fabs(scaleY) * (srcH) / 2.0) - 0.5;
-  w = (fabs(scaleX) * areaWidth / 2.0) + 0.5;
-  h = (fabs(scaleY) * areaHeight / 2.0) + 0.5;
-
-  if (angle < 360 && angle > 180.0) {
-    printf("%f, %f\n", areaWidth, areaHeight);
+  double boundsX, boundsY;
+  if (angle90 < 0) {
+    boundsY = fabs(scaleY) + 2.0;
+    boundsX = fabs(scaleX) + 2.0;
+  } else {
+    boundsY = 0;
+    boundsX = 0;
   }
 
+  double sX = (1.0 / scaleX);
+  double sY = (1.0 / scaleY);
+
   uint32_t* pixel = (uint32_t*)image->pixels;
-  for (int32_t j = -1; j <= ceil(areaHeight); j++) {
-    for (int32_t i = -1; i <= ceil(areaWidth); i++) {
+  for (int32_t j = -boundsY; j < ceil(fabs(scaleY) * areaHeight) + boundsY; j++) {
+    for (int32_t i = -boundsX; i < ceil(fabs(scaleX) * areaWidth) + boundsX; i++) {
       int32_t x = destX + i;
       int32_t y = destY + j;
 
-      double q = i - (areaWidth/2.0);
-      double t = j - (areaHeight/2.0);
+      double q = i - (fabs(scaleX) * areaWidth / 2.0);
+      double t = j - (fabs(scaleY) * areaHeight / 2.0);
 
-      int32_t u = srcX + round((q) * c + (t) * s + (srcW / 2.0));
-      int32_t v = srcY + round((t) * c - (q) * s + (srcH / 2.0));
+      int32_t u = srcX + floor((q) * c * sX + (t) * s * sY + (srcW / 2.0));
+      int32_t v = srcY + floor((t) * c * sY - (q) * s * sX + (srcH / 2.0));
 
       // Make sure we are in the selected bounds
       /*
@@ -143,6 +142,7 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
 
       // protect against invalid memory access
       if (v < 0 || v >= image->height || u < 0 || u >= image->width) {
+        printf("continue\n");
         continue;
       }
 
