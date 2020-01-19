@@ -106,13 +106,13 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   double areaMaxX = max(point1x, max(point2x, point3x));
   double areaMaxY = max(point1y, max(point2y, point3y));
 
-  double areaHeight = areaMaxY - areaMinY;// mid(0.0, srcH, image->height);
-  double areaWidth = areaMaxX - areaMinX;// mid(0.0, srcW, image->width);
+  double areaHeight = areaMaxY - areaMinY;
+  double areaWidth = areaMaxX - areaMinX;
 
   double boundsX, boundsY;
   if (angle90 < 0) {
-    boundsY = fabs(scaleY) + 2.0;
-    boundsX = fabs(scaleX) + 2.0;
+    boundsY = fabs(scaleY);
+    boundsX = fabs(scaleX);
   } else {
     boundsY = 0;
     boundsX = 0;
@@ -133,16 +133,8 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
       int32_t u = srcX + floor((q) * c * sX + (t) * s * sY + (srcW / 2.0));
       int32_t v = srcY + floor((t) * c * sY - (q) * s * sX + (srcH / 2.0));
 
-      // Make sure we are in the selected bounds
-      /*
-      if (u < srcX || u > srcX + srcW || v < srcY || v > srcY + srcH) {
-        continue;
-      }
-      */
-
       // protect against invalid memory access
       if (v < 0 || v >= image->height || u < 0 || u >= image->width) {
-        printf("continue\n");
         continue;
       }
 
