@@ -68,9 +68,29 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   double scaleY = command.scaleY;
 
 
-  double theta = M_PI;//  * (angle / 180.0);
-  double c = cos(-theta);
-  double s = sin(-theta);
+  double c, s;
+  int angle90 = (int)(angle/90);
+  if(angle90 == angle/90) { /* if the angle is a multiple of 90 degrees */
+    angle90 %= 4;
+    if(angle90 < 0) angle90 += 4;
+  } else {
+    angle90 = -1;
+  }
+
+  if (angle90 >= 0) {
+    // Multiples of 90
+    c = (angle90 & 1) ? 0 : 1;
+    s = (angle90 & 1) ? 1 : 0;
+
+    if (angle90 > 1) {
+      c *= -1;
+      s *= -1;
+    }
+  } else {
+    double theta = M_PI * (angle / 180.0);
+    c = cos(theta);
+    s = sin(theta);
+  }
 
   double sX = (1.0 / scaleX);
   double sY = (1.0 / scaleY);
@@ -93,22 +113,26 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   double areaHeight = areaMaxY - areaMinY;// mid(0.0, srcH, image->height);
   double areaWidth = areaMaxX - areaMinX;// mid(0.0, srcW, image->width);
 
-  double w = (fabs(scaleX) * (srcW) / 2.0) - 0.5;
+  double w = (fabs(scaleX) * (srcW) / 2.0);
   double h = (fabs(scaleY) * (srcH) / 2.0) - 0.5;
-  w = scaleX * areaWidth / 2.0;
-  h = scaleY * areaHeight / 2.0;
+  w = (fabs(scaleX) * areaWidth / 2.0) + 0.5;
+  h = (fabs(scaleY) * areaHeight / 2.0) + 0.5;
+
+  if (angle < 360 && angle > 180.0) {
+    printf("%f, %f\n", areaWidth, areaHeight);
+  }
 
   uint32_t* pixel = (uint32_t*)image->pixels;
-  for (int32_t j = floor(areaMinY * fabs(scaleY)); j < ceil(fabs(scaleY)*areaHeight); j++) {
-    for (int32_t i = floor(areaMinX * fabs(scaleX)); i < ceil(fabs(scaleX)*areaWidth); i++) {
+  for (int32_t j = -1; j <= ceil(areaHeight); j++) {
+    for (int32_t i = -1; i <= ceil(areaWidth); i++) {
       int32_t x = destX + i;
       int32_t y = destY + j;
 
-      double q = i - w;
-      double t = j - h;
+      double q = i - (areaWidth/2.0);
+      double t = j - (areaHeight/2.0);
 
-      int32_t u = srcX + round((q + areaMinX) * c * sX + (t + areaMinY) * s * sY);
-      int32_t v = srcY + round((t + areaMinY) * c * sX - (q + areaMinX) * s * sY);
+      int32_t u = srcX + round((q) * c + (t) * s + (srcW / 2.0));
+      int32_t v = srcY + round((t) * c - (q) * s + (srcH / 2.0));
 
       // Make sure we are in the selected bounds
       /*
