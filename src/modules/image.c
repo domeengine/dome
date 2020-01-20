@@ -161,17 +161,19 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
     double areaMaxX = max(point1x, max(point2x, point3x));
     double areaMaxY = max(point1y, max(point2y, point3y));
 
-    double areaHeight = areaMaxY - areaMinY;
-    double areaWidth = areaMaxX - areaMinX;
+    double areaHeight = fabs(areaMaxY - areaMinY);
+    double areaWidth = fabs(areaMaxX - areaMinX);
 
-    double boundsX, boundsY;
-    if (angle90 < 0) {
-      boundsY = fabs(scaleY);
-      boundsX = fabs(scaleX);
-    } else {
-      boundsY = 0;
-      boundsX = 0;
-    }
+    // Debug output
+    printf("x: %f, %f, %f\n", point1x, point2x, point3x);
+    printf("y: %f, %f, %f\n", point1y, point2y, point3y);
+    printf("o: %i, %i\n", srcW, srcH);
+    printf("min: %f, %f\n", areaMinX, areaMinY);
+    printf("max: %f, %f\n", areaMaxX, areaMaxY);
+
+    // Overscan
+    double boundsY = fabs(scaleY);
+    double boundsX = fabs(scaleX);
 
     for (int32_t j = -boundsY; j < ceil(fabs(scaleY) * areaHeight) + boundsY; j++) {
       for (int32_t i = -boundsX; i < ceil(fabs(scaleX) * areaWidth) + boundsX; i++) {
