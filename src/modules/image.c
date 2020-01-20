@@ -54,7 +54,6 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
 
   DRAW_COMMAND command = *commandPtr;
   IMAGE* image = command.image;
-  uint32_t* pixel = (uint32_t*)image->pixels;
 
   int32_t srcX = command.srcX;
   int32_t srcY = command.srcY;
@@ -67,6 +66,9 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   double angle = command.angle;
   double scaleX = command.scaleX;
   double scaleY = command.scaleY;
+
+  uint32_t* pixel = (uint32_t*)image->pixels;
+  pixel = pixel + srcY * image->width + srcX;
 
 
   int angle90 = (int)(angle/90);
@@ -105,22 +107,21 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
         int32_t u = (q);
         int32_t v = (t);
 
-        if ((scaleY > 0 && angle90 == 2) || (scaleY < 0 && angle90 != 2)) {
+        if ((scaleY > 0 && angle90 >= 2) || (scaleY < 0 && angle90 < 2)) {
           y = destY + h - j;
         }
-        if (angle90 == 1) {
+        if (angle90 == 1 || angle90 == 2) {
           x = destX + w - i;
         }
-
-        u += srcX;
-        v += srcY;
 
         if (angle90 & 1) {
           swap = u;
           u = v;
           v = swap;
         }
-
+        if (u < 0 || u > srcW || v < 0 || v > srcH) {
+          continue;
+        }
         // protect against invalid memory access
         if (0 > u || u >= image->width || 0 > v || v >= image->height) {
           printf("protect (%i, %i)\n", u, v);
@@ -178,9 +179,12 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
         double q = i - (fabs(scaleX) * areaWidth / 2.0);
         double t = j - (fabs(scaleY) * areaHeight / 2.0);
 
-        int32_t u = srcX + floor((q) * c * sX + (t) * s * sY + (srcW / 2.0));
-        int32_t v = srcY + floor((t) * c * sY - (q) * s * sX + (srcH / 2.0));
+        int32_t u = floor((q) * c * sX + (t) * s * sY + (srcW / 2.0));
+        int32_t v = floor((t) * c * sY - (q) * s * sX + (srcH / 2.0));
 
+        if (u < 0 || u > srcW || v < 0 || v > srcH) {
+          continue;
+        }
         // protect against invalid memory access
         if (v < 0 || v >= image->height || u < 0 || u >= image->width) {
           continue;
@@ -224,6 +228,24 @@ DRAW_COMMAND_allocate(WrenVM* vm) {
   wrenGetListElement(vm, 2, 2, 1);
   ASSERT_SLOT_TYPE(vm, 1, NUM, "scaleY");
   command->scaleY = wrenGetSlotDouble(vm, 1);
+
+  if (wrenGetListCount(vm, 2) > 3) {
+    wrenGetListElement(vm, 2, 3, 1);
+    ASSERT_SLOT_TYPE(vm, 1, NUM, "source X");
+    command->srcX = wrenGetSlotDouble(vm, 1);
+
+    wrenGetListElement(vm, 2, 4, 1);
+    ASSERT_SLOT_TYPE(vm, 1, NUM, "source Y");
+    command->srcY = wrenGetSlotDouble(vm, 1);
+
+    wrenGetListElement(vm, 2, 5, 1);
+    ASSERT_SLOT_TYPE(vm, 1, NUM, "source width");
+    command->srcW = wrenGetSlotDouble(vm, 1);
+
+    wrenGetListElement(vm, 2, 6, 1);
+    ASSERT_SLOT_TYPE(vm, 1, NUM, "source height");
+    command->srcH = wrenGetSlotDouble(vm, 1);
+  }
 }
 
 internal void

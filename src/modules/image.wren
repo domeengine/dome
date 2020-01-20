@@ -6,11 +6,16 @@ foreign class DrawCommand is Drawable {
   construct new(image, params) {}
 
   static parse(image, map) {
-    return DrawCommand.new(image, [
+    var list = [
       map["angle"] || 0,
       map["scaleX"] || 1,
-      map["scaleY"] || 1
-    ])
+      map["scaleY"] || 1,
+      map["srcX"] || 0,
+      map["srcY"] || 0,
+      map["srcW"] || image.width,
+      map["srcH"] || image.height,
+    ]
+    return DrawCommand.new(image, list)
   }
 
   foreign draw(x, y)
@@ -39,7 +44,14 @@ foreign class ImageData is Drawable {
   transform(map) {
     return DrawCommand.parse(this, map)
   }
-  foreign drawArea(srcX, srcY, srcW, srcH, destX, destY)
+  drawArea(srcX, srcY, srcW, srcH, destX, destY) {
+    return this.transform({
+      "srcX": srcX,
+      "srcY": srcY,
+      "srcW": srcW,
+      "srcH": srcH
+    }).draw(destX, destY)
+  }
 
   foreign width
   foreign height
