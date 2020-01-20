@@ -54,6 +54,7 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
 
   DRAW_COMMAND command = *commandPtr;
   IMAGE* image = command.image;
+  uint32_t* pixel = (uint32_t*)image->pixels;
 
   int32_t srcX = command.srcX;
   int32_t srcY = command.srcY;
@@ -68,7 +69,6 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   double scaleY = command.scaleY;
 
 
-  double c, s;
   int angle90 = (int)(angle/90);
   if(angle90 == angle/90) { /* if the angle is a multiple of 90 degrees */
     angle90 %= 4;
@@ -77,77 +77,126 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
     angle90 = -1;
   }
 
-  if (angle90 >= 0) {
-    // Multiples of 90
-    c = (angle90 & 1) ? 0 : 1;
-    s = (angle90 & 1) ? 1 : 0;
-
-    if (angle90 > 1) {
-      c *= -1;
-      s *= -1;
-    }
-  } else {
-    double theta = M_PI * (angle / 180.0);
-    c = cos(theta);
-    s = sin(theta);
-  }
-
-  double point1x = -srcH * s;
-  double point1y = srcH * c;
-
-  double point2x = srcW * c - srcH * s;
-  double point2y = srcH * c + srcW * s;
-
-  double point3x = srcW * c;
-  double point3y = srcW * s;
-
-  double areaMinX = min(0, min(point1x, min(point2x, point3x)));
-  double areaMinY = min(0, min(point1y, min(point2y, point3y)));
-  double areaMaxX = max(point1x, max(point2x, point3x));
-  double areaMaxY = max(point1y, max(point2y, point3y));
-
-  double areaHeight = areaMaxY - areaMinY;
-  double areaWidth = areaMaxX - areaMinX;
-
-  double boundsX, boundsY;
-  if (angle90 < 0) {
-    boundsY = fabs(scaleY);
-    boundsX = fabs(scaleX);
-  } else {
-    boundsY = 0;
-    boundsX = 0;
-  }
-
   double sX = (1.0 / scaleX);
   double sY = (1.0 / scaleY);
 
-  uint32_t* pixel = (uint32_t*)image->pixels;
-  for (int32_t j = -boundsY; j < ceil(fabs(scaleY) * areaHeight) + boundsY; j++) {
-    for (int32_t i = -boundsX; i < ceil(fabs(scaleX) * areaWidth) + boundsX; i++) {
-      int32_t x = destX + i;
-      int32_t y = destY + j;
+  if (angle90 >= 0) {
+    double swap;
+    sX = fabs(sX);
+    sY = fabs(sY);
 
-      double q = i - (fabs(scaleX) * areaWidth / 2.0);
-      double t = j - (fabs(scaleY) * areaHeight / 2.0);
+    int32_t w = srcW * fabs(scaleX);
+    int32_t h = srcH * fabs(scaleY);
 
-      int32_t u = srcX + floor((q) * c * sX + (t) * s * sY + (srcW / 2.0));
-      int32_t v = srcY + floor((t) * c * sY - (q) * s * sX + (srcH / 2.0));
+    if (angle90 & 1) {
+      swap = w;
+      w = h;
+      h = swap;
+    }
+    for (int32_t j = 0; j < ceil(h); j++) {
+      for (int32_t i = 0; i < ceil(w); i++) {
 
-      // protect against invalid memory access
-      if (v < 0 || v >= image->height || u < 0 || u >= image->width) {
-        continue;
-      }
+        int32_t x = destX + i;
+        int32_t y = destY + j;
 
-      uint32_t color = pixel[v * image->width + u];
-      if (command.mode == COLOR_MODE_MONO) {
-        uint8_t alpha = (0xFF000000 & color) >> 24;
-        if (alpha < 0xFF || (color & 0x00FFFFFF) == 0) {
-          color = command.backgroundColor;
-        } else {
-          color = command.foregroundColor;
+        double q = i * sX;
+        double t = j * sY;
+
+        int32_t u = (q);
+        int32_t v = (t);
+
+        if ((scaleY > 0 && angle90 == 2) || (scaleY < 0 && angle90 != 2)) {
+          y = destY + h - j;
         }
+        if (angle90 == 1) {
+          x = destX + w - i;
+        }
+
+        u += srcX;
+        v += srcY;
+
+        if (angle90 & 1) {
+          swap = u;
+          u = v;
+          v = swap;
+        }
+
+        // protect against invalid memory access
+        if (0 > u || u >= image->width || 0 > v || v >= image->height) {
+          printf("protect (%i, %i)\n", u, v);
+          ENGINE_pset(engine, x, y, 0xFFFF00FF);
+          continue;
+        }
+        uint32_t color = pixel[v * image->width + u];
+        if (command.mode == COLOR_MODE_MONO) {
+          uint8_t alpha = (0xFF000000 & color) >> 24;
+          if (alpha < 0xFF || (color & 0x00FFFFFF) == 0) {
+            color = command.backgroundColor;
+          } else {
+            color = command.foregroundColor;
+          }
+        }
+        ENGINE_pset(engine, x, y, color);
       }
-      ENGINE_pset(engine, x, y, color);
+    }
+  } else {
+    double theta = M_PI * (angle / 180.0);
+    double c = cos(theta);
+    double s = sin(theta);
+
+    double point1x = -srcH * s;
+    double point1y = srcH * c;
+
+    double point2x = srcW * c - srcH * s;
+    double point2y = srcH * c + srcW * s;
+
+    double point3x = srcW * c;
+    double point3y = srcW * s;
+
+    double areaMinX = min(0, min(point1x, min(point2x, point3x)));
+    double areaMinY = min(0, min(point1y, min(point2y, point3y)));
+    double areaMaxX = max(point1x, max(point2x, point3x));
+    double areaMaxY = max(point1y, max(point2y, point3y));
+
+    double areaHeight = areaMaxY - areaMinY;
+    double areaWidth = areaMaxX - areaMinX;
+
+    double boundsX, boundsY;
+    if (angle90 < 0) {
+      boundsY = fabs(scaleY);
+      boundsX = fabs(scaleX);
+    } else {
+      boundsY = 0;
+      boundsX = 0;
+    }
+
+    for (int32_t j = -boundsY; j < ceil(fabs(scaleY) * areaHeight) + boundsY; j++) {
+      for (int32_t i = -boundsX; i < ceil(fabs(scaleX) * areaWidth) + boundsX; i++) {
+        int32_t x = destX + i;
+        int32_t y = destY + j;
+
+        double q = i - (fabs(scaleX) * areaWidth / 2.0);
+        double t = j - (fabs(scaleY) * areaHeight / 2.0);
+
+        int32_t u = srcX + floor((q) * c * sX + (t) * s * sY + (srcW / 2.0));
+        int32_t v = srcY + floor((t) * c * sY - (q) * s * sX + (srcH / 2.0));
+
+        // protect against invalid memory access
+        if (v < 0 || v >= image->height || u < 0 || u >= image->width) {
+          continue;
+        }
+
+        uint32_t color = pixel[v * image->width + u];
+        if (command.mode == COLOR_MODE_MONO) {
+          uint8_t alpha = (0xFF000000 & color) >> 24;
+          if (alpha < 0xFF || (color & 0x00FFFFFF) == 0) {
+            color = command.backgroundColor;
+          } else {
+            color = command.foregroundColor;
+          }
+        }
+        ENGINE_pset(engine, x, y, color);
+      }
     }
   }
 }
