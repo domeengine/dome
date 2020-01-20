@@ -110,7 +110,9 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
         if ((scaleY > 0 && angle90 >= 2) || (scaleY < 0 && angle90 < 2)) {
           y = destY + h - j;
         }
-        if (angle90 == 1 || angle90 == 2) {
+
+        bool flipX = ((angle90 == 1 || angle90 == 2));
+        if ((scaleX < 0 && !flipX) || (scaleX > 0 && flipX)) {
           x = destX + w - i;
         }
 
