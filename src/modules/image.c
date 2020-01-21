@@ -71,11 +71,10 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   double theta = M_PI * (angle / 180.0);
 
   VEC vMin = {destX, destY};
+  VEC origin = VEC_add(vMin, (VEC){ 0, 0});
   VEC unit = {cos(theta), sin(theta)};
-  VEC xAxis = unit;
-  VEC yAxis = VEC_perp(unit);
-  VEC xBasis = VEC_scale(unit, (srcW-1) * scaleX);
-  VEC yBasis = VEC_scale(VEC_perp(unit), (srcH-1) * scaleY);
+  VEC xBasis = VEC_scale(unit, (srcW) * scaleX);
+  VEC yBasis = VEC_scale(VEC_perp(unit), (srcH) * scaleY);
   VEC vMax = VEC_add(vMin, VEC_add(xBasis, yBasis));
 
   uint32_t* pixel = (uint32_t*)image->pixels;
@@ -85,8 +84,8 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   VEC vertex[4] = { vMin, vMax, VEC_add(vMin, xBasis), VEC_add(vMin, yBasis) };
   int32_t xMax = 0;
   int32_t yMax = 0;
-  int32_t xMin = engine->width;
-  int32_t yMin = engine->height;
+  int32_t xMin = engine->width - 1;
+  int32_t yMin = engine->height - 1;
 
   for (int i = 0; i < 4; i++) {
     VEC p = vertex[i];
@@ -101,50 +100,32 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
     yMax = max(yMax, ceilY);
   }
 
+  double invX = (1.0 / pow(VEC_len(xBasis), 2));
+  double invY = (1.0 / pow(VEC_len(yBasis), 2));
 
   // Scan dest
-  for (int32_t j = yMin; j < yMax; j++) {
-    for (int32_t i = xMin; i < xMax; i++) {
+  for (int32_t j = yMin; j <= yMax; j++) {
+    for (int32_t i = xMin; i <= xMax; i++) {
       int32_t x = i;
       int32_t y = j;
       ENGINE_pset(engine, x, y, 0xFFFF00FF);
-      VEC origin = vMin;
       VEC d = VEC_sub((VEC){i, j}, origin);
       bool edge1 = (VEC_dot(d, VEC_neg(VEC_perp(xBasis))) < 0);
       bool edge2 = (VEC_dot(VEC_sub(d, xBasis), VEC_neg(VEC_perp(yBasis))) < 0);
       bool edge3 = (VEC_dot(VEC_sub(d, VEC_add(xBasis, yBasis)), VEC_perp(xBasis)) < 0);
       bool edge4 = (VEC_dot(VEC_sub(d, yBasis), VEC_perp(yBasis)) < 0);
       if (edge1 && edge2 && edge3 && edge4) {
-
         // 0 - 1 on the texture
-        // VEC_dot(a, yBasis)
-
-        double u = VEC_dot(d, xBasis) * (1.0 / pow(VEC_len(xBasis), 2));
-        double v = VEC_dot(d, yBasis) * (1.0 / pow(VEC_len(yBasis), 2));
+        double u = VEC_dot(d, xBasis) * invX;
+        double v = VEC_dot(d, yBasis) * invY;
 
         assert(u >= 0 && u <= 1.0);
         assert(v >= 0 && v <= 1.0);
 
-
-        int32_t tx = u * ((double)(srcW - 1));
-        int32_t ty = v * ((double)(srcH - 1));
+        int32_t tx = u * ((double)(srcW - 1) + 0.5);
+        int32_t ty = v * ((double)(srcH - 1) + 0.5);
 
         uint32_t color = pixel[ty * image->width + tx];
-
-        /*
-        if (u < 0 || u > srcW || v < 0 || v > srcH) {
-          // Clip to tilemap
-          continue;
-        }
-        // protect against invalid memory access
-        if (v < 0 || v >= image->height || u < 0 || u >= image->width) {
-          continue;
-        }
-        uint32_t color = pixel[v * image->width + u];
-
-        */
-
-        // uint32_t color = 0xFFFF00FF;
 
         if (command.mode == COLOR_MODE_MONO) {
           uint8_t alpha = (0xFF000000 & color) >> 24;
