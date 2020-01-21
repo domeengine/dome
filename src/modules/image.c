@@ -55,6 +55,7 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   DRAW_COMMAND command = *commandPtr;
   IMAGE* image = command.image;
 
+
   int32_t srcX = command.srcX;
   int32_t srcY = command.srcY;
   int32_t srcW = command.srcW;
@@ -67,134 +68,76 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   double scaleX = command.scaleX;
   double scaleY = command.scaleY;
 
+  double theta = M_PI * (angle / 180.0);
+
+  VEC vMin = {destX, destY};
+  VEC unit = {cos(theta), sin(theta)};
+  VEC xBasis = VEC_scale(unit, srcW * scaleX);
+  VEC yBasis = VEC_scale(VEC_perp(unit), srcH * scaleY);
+  VEC vMax = VEC_add(vMin, VEC_add(xBasis, yBasis));
+
   uint32_t* pixel = (uint32_t*)image->pixels;
   pixel = pixel + srcY * image->width + srcX;
 
+  // Calculate screen bounds
+  VEC vertex[4] = { vMin, vMax, VEC_add(vMin, xBasis), VEC_add(vMin, yBasis) };
+  int32_t xMax = 0;
+  int32_t yMax = 0;
+  int32_t xMin = engine->width - 1;
+  int32_t yMin = engine->height - 1;
 
-  int angle90 = (int)(angle/90);
-  if(angle90 == angle/90) { /* if the angle is a multiple of 90 degrees */
-    angle90 %= 4;
-    if(angle90 < 0) angle90 += 4;
-  } else {
-    angle90 = -1;
+  for (int i = 0; i < 4; i++) {
+    VEC p = vertex[i];
+    int32_t floorX = floor(p.x);
+    int32_t ceilX = ceil(p.x);
+    int32_t floorY = floor(p.y);
+    int32_t ceilY = ceil(p.y);
+
+    xMin = min(xMin, floorX);
+    yMin = min(yMin, floorY);
+    xMax = max(xMax, ceilX);
+    yMax = max(yMax, ceilY);
   }
 
-  double sX = (1.0 / scaleX);
-  double sY = (1.0 / scaleY);
 
-  if (angle90 >= 0) {
-    double swap;
-    sX = fabs(sX);
-    sY = fabs(sY);
+  // Scan dest
+  for (int32_t j = yMin; j < yMax; j++) {
+    for (int32_t i = xMin; i < xMax; i++) {
+      ENGINE_pset(engine, i, j, 0xFFFFFF00);
+      VEC d = {i, j};
+      VEC origin = vMin;
+      bool edge1 = (VEC_dot(VEC_sub(d, origin), VEC_neg(VEC_perp(xBasis))) < 0);
+      bool edge2 = (VEC_dot(VEC_sub(d, VEC_add(origin, xBasis)), VEC_neg(VEC_perp(yBasis))) < 0);
+      bool edge3 = (VEC_dot(VEC_sub(d, VEC_add(origin, VEC_add(xBasis, yBasis))), VEC_perp(xBasis)) < 0);
+      bool edge4 = (VEC_dot(VEC_sub(d, VEC_add(origin, yBasis)), VEC_perp(yBasis)) < 0);
+      if (edge1 && edge2 && edge3 && edge4) {
 
-    int32_t w = srcW * fabs(scaleX);
-    int32_t h = srcH * fabs(scaleY);
+        int32_t x = i;
+        int32_t y = j;
 
-    if (angle90 & 1) {
-      swap = w;
-      w = h;
-      h = swap;
-    }
-    for (int32_t j = 0; j < ceil(h); j++) {
-      for (int32_t i = 0; i < ceil(w); i++) {
 
-        int32_t x = destX + i;
-        int32_t y = destY + j;
 
-        double q = i * sX;
-        double t = j * sY;
+        // 0 - 1 on the texture
+        // VEC_dot(a, yBasis)
 
-        int32_t u = (q);
-        int32_t v = (t);
+        double u = i;
+        double v = j;
 
-        if ((scaleY > 0 && angle90 >= 2) || (scaleY < 0 && angle90 < 2)) {
-          y = destY + h - j;
-        }
-
-        bool flipX = ((angle90 == 1 || angle90 == 2));
-        if ((scaleX < 0 && !flipX) || (scaleX > 0 && flipX)) {
-          x = destX + w - i;
-        }
-
-        if (angle90 & 1) {
-          swap = u;
-          u = v;
-          v = swap;
-        }
+        /*
         if (u < 0 || u > srcW || v < 0 || v > srcH) {
-          continue;
-        }
-        // protect against invalid memory access
-        if (0 > u || u >= image->width || 0 > v || v >= image->height) {
-          printf("protect (%i, %i)\n", u, v);
-          ENGINE_pset(engine, x, y, 0xFFFF00FF);
-          continue;
-        }
-        uint32_t color = pixel[v * image->width + u];
-        if (command.mode == COLOR_MODE_MONO) {
-          uint8_t alpha = (0xFF000000 & color) >> 24;
-          if (alpha < 0xFF || (color & 0x00FFFFFF) == 0) {
-            color = command.backgroundColor;
-          } else {
-            color = command.foregroundColor;
-          }
-        }
-        ENGINE_pset(engine, x, y, color);
-      }
-    }
-  } else {
-    double theta = M_PI * (angle / 180.0);
-    double c = cos(theta);
-    double s = sin(theta);
-
-    double point1x = -srcH * s;
-    double point1y = srcH * c;
-
-    double point2x = srcW * c - srcH * s;
-    double point2y = srcH * c + srcW * s;
-
-    double point3x = srcW * c;
-    double point3y = srcW * s;
-
-    double areaMinX = min(0, min(point1x, min(point2x, point3x)));
-    double areaMinY = min(0, min(point1y, min(point2y, point3y)));
-    double areaMaxX = max(point1x, max(point2x, point3x));
-    double areaMaxY = max(point1y, max(point2y, point3y));
-
-    double areaHeight = fabs(areaMaxY - areaMinY);
-    double areaWidth = fabs(areaMaxX - areaMinX);
-
-    // Debug output
-    printf("x: %f, %f, %f\n", point1x, point2x, point3x);
-    printf("y: %f, %f, %f\n", point1y, point2y, point3y);
-    printf("o: %i, %i\n", srcW, srcH);
-    printf("min: %f, %f\n", areaMinX, areaMinY);
-    printf("max: %f, %f\n", areaMaxX, areaMaxY);
-
-    // Overscan
-    double boundsY = fabs(scaleY);
-    double boundsX = fabs(scaleX);
-
-    for (int32_t j = -boundsY; j < ceil(fabs(scaleY) * areaHeight) + boundsY; j++) {
-      for (int32_t i = -boundsX; i < ceil(fabs(scaleX) * areaWidth) + boundsX; i++) {
-        int32_t x = destX + i;
-        int32_t y = destY + j;
-
-        double q = i - (fabs(scaleX) * areaWidth / 2.0);
-        double t = j - (fabs(scaleY) * areaHeight / 2.0);
-
-        int32_t u = floor((q) * c * sX + (t) * s * sY + (srcW / 2.0));
-        int32_t v = floor((t) * c * sY - (q) * s * sX + (srcH / 2.0));
-
-        if (u < 0 || u > srcW || v < 0 || v > srcH) {
+          // Clip to tilemap
           continue;
         }
         // protect against invalid memory access
         if (v < 0 || v >= image->height || u < 0 || u >= image->width) {
           continue;
         }
-
         uint32_t color = pixel[v * image->width + u];
+
+        */
+
+        uint32_t color = 0xFFFF00FF;
+
         if (command.mode == COLOR_MODE_MONO) {
           uint8_t alpha = (0xFF000000 & color) >> 24;
           if (alpha < 0xFF || (color & 0x00FFFFFF) == 0) {
