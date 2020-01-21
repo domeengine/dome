@@ -104,12 +104,12 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   for (int32_t j = yMin; j < yMax; j++) {
     for (int32_t i = xMin; i < xMax; i++) {
       ENGINE_pset(engine, i, j, 0xFFFFFF00);
-      VEC d = {i, j};
       VEC origin = vMin;
-      bool edge1 = (VEC_dot(VEC_sub(d, origin), VEC_neg(VEC_perp(xBasis))) < 0);
-      bool edge2 = (VEC_dot(VEC_sub(d, VEC_add(origin, xBasis)), VEC_neg(VEC_perp(yBasis))) < 0);
-      bool edge3 = (VEC_dot(VEC_sub(d, VEC_add(origin, VEC_add(xBasis, yBasis))), VEC_perp(xBasis)) < 0);
-      bool edge4 = (VEC_dot(VEC_sub(d, VEC_add(origin, yBasis)), VEC_perp(yBasis)) < 0);
+      VEC d = VEC_sub((VEC){i, j}, origin);
+      bool edge1 = (VEC_dot(d, VEC_neg(VEC_perp(xBasis))) < 0);
+      bool edge2 = (VEC_dot(VEC_sub(d, xBasis), VEC_neg(VEC_perp(yBasis))) < 0);
+      bool edge3 = (VEC_dot(VEC_sub(d, VEC_add(xBasis, yBasis)), VEC_perp(xBasis)) < 0);
+      bool edge4 = (VEC_dot(VEC_sub(d, yBasis), VEC_perp(yBasis)) < 0);
       if (edge1 && edge2 && edge3 && edge4) {
 
         int32_t x = i;
