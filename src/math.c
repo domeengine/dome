@@ -7,6 +7,10 @@ typedef struct {
   double y;
 } VEC;
 
+double VEC_len(VEC v) {
+  return sqrt(pow(v.x, 2) + pow(v.y, 2));
+
+}
 
 VEC VEC_add(VEC v1, VEC v2) {
   VEC result = { v1.x + v2.x, v1.y + v2.y };
