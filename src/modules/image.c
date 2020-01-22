@@ -5,6 +5,11 @@ typedef struct {
   uint32_t* pixels;
 } IMAGE;
 
+/*
+#undef m_pi
+#define m_pi acos(-1.0)
+*/
+
 typedef enum { COLOR_MODE_RGBA, COLOR_MODE_MONO } COLOR_MODE;
 
 typedef struct {
@@ -68,20 +73,24 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   double scaleX = command.scaleX;
   double scaleY = command.scaleY;
 
-  double theta = M_PI * (angle / 180.0);
+  double theta = (M_PI * angle) / 180.0;
 
-  VEC vMin = {destX, destY};
-  VEC origin = VEC_add(vMin, (VEC){ 0, 0});
+  VEC dest = {destX, destY};
+  VEC origin = VEC_add(dest, (VEC){});
   VEC unit = {cos(theta), sin(theta)};
-  VEC xBasis = VEC_scale(unit, (srcW) * scaleX);
-  VEC yBasis = VEC_scale(VEC_perp(unit), (srcH) * scaleY);
-  VEC vMax = VEC_add(vMin, VEC_add(xBasis, yBasis));
+  int angle90 = (int)(angle/90);
+  if(angle90 == angle/90) { /* if the angle is a multiple of 90 degrees */
+    unit = (VEC){ round(unit.x), round(unit.y) };
+  }
+  VEC xBasis = VEC_scale(unit, 0.5 + (srcW) * scaleX);
+  VEC yBasis = VEC_scale(VEC_perp(unit), 0.5 + (srcH) * scaleY);
+  VEC vMax = VEC_add(origin, VEC_add(xBasis, yBasis));
 
   uint32_t* pixel = (uint32_t*)image->pixels;
   pixel = pixel + srcY * image->width + srcX;
 
   // Calculate screen bounds
-  VEC vertex[4] = { vMin, vMax, VEC_add(vMin, xBasis), VEC_add(vMin, yBasis) };
+  VEC vertex[4] = { origin, vMax, VEC_add(origin, xBasis), VEC_add(origin, yBasis) };
   int32_t xMax = 0;
   int32_t yMax = 0;
   int32_t xMin = engine->width - 1;
@@ -100,24 +109,25 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
     yMax = max(yMax, ceilY);
   }
 
-  double invX = (1.0 /(pow(xBasis.x, 2) + pow(xBasis.y, 2)) );
-  double invY = (1.0 /(pow(yBasis.x, 2) + pow(yBasis.y, 2)) );
+  // (1.0 / |basis|^2), but the magnitude of the basis and the square cancel
+  double invX = (pow(xBasis.x, 2) + pow(xBasis.y, 2));
+  double invY = (pow(yBasis.x, 2) + pow(yBasis.y, 2));
 
   // Scan dest
   for (int32_t j = yMin; j <= yMax; j++) {
     for (int32_t i = xMin; i <= xMax; i++) {
-      int32_t x = i;
-      int32_t y = j;
       // ENGINE_pset(engine, x, y, 0xFFFF00FF);
       VEC d = VEC_sub((VEC){i, j}, origin);
+      int32_t x = i;
+      int32_t y = j;
       bool edge1 = (VEC_dot(d, VEC_neg(VEC_perp(xBasis))) < 0);
       bool edge2 = (VEC_dot(VEC_sub(d, xBasis), VEC_neg(VEC_perp(yBasis))) < 0);
       bool edge3 = (VEC_dot(VEC_sub(d, VEC_add(xBasis, yBasis)), VEC_perp(xBasis)) < 0);
       bool edge4 = (VEC_dot(VEC_sub(d, yBasis), VEC_perp(yBasis)) < 0);
       if (edge1 && edge2 && edge3 && edge4) {
         // 0 - 1 on the texture
-        double u = VEC_dot(d, xBasis) * invX;
-        double v = VEC_dot(d, yBasis) * invY;
+        double u = VEC_dot(d, xBasis) / invX;
+        double v = VEC_dot(d, yBasis) / invY;
         if (scaleX < 0) {
           u = 1 - u;
         }
