@@ -82,8 +82,8 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   if(angle90 == angle/90) { /* if the angle is a multiple of 90 degrees */
     unit = (VEC){ round(unit.x), round(unit.y) };
   }
-  VEC xBasis = VEC_scale(unit, (0.5 + srcW) * scaleX);
-  VEC yBasis = VEC_scale(VEC_perp(unit), (0.5 + srcH) * scaleY);
+  VEC xBasis = VEC_scale(unit, (0.5 + srcW) * fabs(scaleX));
+  VEC yBasis = VEC_scale(VEC_perp(unit), (0.5 + srcH) * fabs(scaleY));
   VEC vMax = VEC_add(origin, VEC_add(xBasis, yBasis));
 
   uint32_t* pixel = (uint32_t*)image->pixels;
