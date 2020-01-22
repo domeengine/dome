@@ -100,15 +100,15 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
     yMax = max(yMax, ceilY);
   }
 
-  double invX = (1.0 / pow(VEC_len(xBasis), 2));
-  double invY = (1.0 / pow(VEC_len(yBasis), 2));
+  double invX = (1.0 /(pow(xBasis.x, 2) + pow(xBasis.y, 2)) );
+  double invY = (1.0 /(pow(yBasis.x, 2) + pow(yBasis.y, 2)) );
 
   // Scan dest
   for (int32_t j = yMin; j <= yMax; j++) {
     for (int32_t i = xMin; i <= xMax; i++) {
       int32_t x = i;
       int32_t y = j;
-      ENGINE_pset(engine, x, y, 0xFFFF00FF);
+      // ENGINE_pset(engine, x, y, 0xFFFF00FF);
       VEC d = VEC_sub((VEC){i, j}, origin);
       bool edge1 = (VEC_dot(d, VEC_neg(VEC_perp(xBasis))) < 0);
       bool edge2 = (VEC_dot(VEC_sub(d, xBasis), VEC_neg(VEC_perp(yBasis))) < 0);
@@ -118,6 +118,12 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
         // 0 - 1 on the texture
         double u = VEC_dot(d, xBasis) * invX;
         double v = VEC_dot(d, yBasis) * invY;
+        if (scaleX < 0) {
+          u = 1 - u;
+        }
+        if (scaleY < 0) {
+          v = 1 - v;
+        }
 
         assert(u >= 0 && u <= 1.0);
         assert(v >= 0 && v <= 1.0);
