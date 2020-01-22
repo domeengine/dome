@@ -76,14 +76,14 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   double theta = (M_PI * angle) / 180.0;
 
   VEC dest = {destX, destY};
-  VEC origin = VEC_add(dest, (VEC){});
+  VEC origin = dest;
   VEC unit = {cos(theta), sin(theta)};
   int angle90 = (int)(angle/90);
   if(angle90 == angle/90) { /* if the angle is a multiple of 90 degrees */
     unit = (VEC){ round(unit.x), round(unit.y) };
   }
-  VEC xBasis = VEC_scale(unit, 0.5 + (srcW) * scaleX);
-  VEC yBasis = VEC_scale(VEC_perp(unit), 0.5 + (srcH) * scaleY);
+  VEC xBasis = VEC_scale(unit, (0.5 + srcW) * scaleX);
+  VEC yBasis = VEC_scale(VEC_perp(unit), (0.5 + srcH) * scaleY);
   VEC vMax = VEC_add(origin, VEC_add(xBasis, yBasis));
 
   uint32_t* pixel = (uint32_t*)image->pixels;
@@ -110,8 +110,8 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   }
 
   // (1.0 / |basis|^2), but the magnitude of the basis and the square cancel
-  double invX = (pow(xBasis.x, 2) + pow(xBasis.y, 2));
-  double invY = (pow(yBasis.x, 2) + pow(yBasis.y, 2));
+  double invX = fabs(pow(xBasis.x, 2) + pow(xBasis.y, 2));
+  double invY = fabs(pow(yBasis.x, 2) + pow(yBasis.y, 2));
 
   // Scan dest
   for (int32_t j = yMin; j <= yMax; j++) {
