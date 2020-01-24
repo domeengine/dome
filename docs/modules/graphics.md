@@ -123,6 +123,22 @@ This returns a `Drawable` which will perform the specified transforms, allowing 
 
 Transforms are applied as follows: Crop to the region, then rotate, then scale/flip.
 
+Here is an example:
+```wren
+spriteSheet.transform({
+  "srcX": 8, "srcY": 8,
+  "srcW": 8, "srcH": 8,
+  "scaleX": 2,
+  "scaleY": -2,
+  "angle": 90
+}).draw(x, y)
+```
+The code snippet above:
+ * crops an 8x8 tile from a spritesheet, starting from (8, 8) in it's image data
+ * It then rotates it 90 degrees clockwise
+ * Finally, it scales the tile up by 2 in both the X and Y direction, but it flips the tile vertically.
+
+
 
 ## Vector
 
