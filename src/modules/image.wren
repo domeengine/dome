@@ -1,3 +1,5 @@
+var NULL_TRANSFORM = {}
+
 class Drawable {
   draw(x, y) {}
 }
@@ -45,7 +47,7 @@ foreign class ImageData is Drawable {
   }
 
   draw(x, y) {
-    return this.transform({}).draw(x, y)
+    return this.transform(NULL_TRANSFORM).draw(x, y)
   }
 
   drawArea(srcX, srcY, srcW, srcH, destX, destY) {
