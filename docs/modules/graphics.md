@@ -9,6 +9,7 @@ It contains the following classes:
 
 * [Canvas](#canvas)
 * [Color](#color)
+* [Drawable](#drawable)
 * [ImageData](#imagedata)
 * [Vector](#vector)
 
@@ -35,7 +36,7 @@ This clears the canvas fully, to black.
 #### `static cls(c: Color) `
 This clears the canvas fully, to the color _c_.
 
-#### `static draw(object, x: Number, y: Number) `
+#### `static draw(object: Drawable, x: Number, y: Number) `
 This method is syntactic sugar, to draw objects with a "draw(x: Number, y: Number)" method.
 
 #### `static ellipse(x0: Number, y0: Number, x1: Number, y1: Number, c: Color) `
@@ -82,8 +83,14 @@ An instance of the `Color` class represents a single color which can be used for
 #### `static red: Color`
 #### `static white: Color`
 
+## Drawable
+Represents an object which can be drawn to the screen. Objects which conform to this interface can be passed to `Canvas.draw(drawable, x, y)`.
+### Instance Methods
+#### `draw(x: Number, y: Number): Void`
+Draw the image at the given `(x, y)` position on the screen.
 
 ## ImageData
+### _extends Drawable_
 
 This class represents the data from an image, such as a sprite or tilemap. 
 DOME supports the following formats:
@@ -101,10 +108,20 @@ Load an image at the given `path` and cache it for use.
 
 ### Instance Methods
 #### `draw(x: Number, y: Number): Void`
-Draw the image at the given `(x, y)` position on the screen. This is synonymous with `Canvas.draw(imageData, x, y)`.
+Draw the image at the given `(x, y)` position on the screen.
 
 #### `drawArea(srcX: Number, srcY: Number, srcW: Number, srcH: Number, destX: Number, destY: Number): Void`
 Draw a subsection of the image, defined by the rectangle `(srcX, srcY)` to `(srcX + srcW, srcY + srcH)`. The resulting section is placed at `(destX, destY)`.
+
+#### `transform(parameterMap): Drawable`
+This returns a `Drawable` which will perform the specified transforms, allowing for more fine-grained control over how images are drawn. Options available are:
+
+ * `srcX`, `srcY` - These specify the top-left corner of the source image region you wish to draw.
+ * `srcW`, `srcH` - This is the width and height of the source image region you want to draw.
+ * `scaleX`, `scaleY` - You can scale your image in the x and y axis, independant of each other. If either of these are negative, they result in a "flip" operation.
+ * `angle` - Rotates the image. This is in degrees, and rounded to the nearest 90 degrees.
+
+Transforms are applied as follows: Crop to the region, then rotate, then scale/flip.
 
 
 ## Vector
