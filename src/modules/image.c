@@ -238,7 +238,6 @@ void IMAGE_finalize(void* data) {
   if (image->pixels != NULL) {
     stbi_image_free(image->pixels);
   }
-
 }
 
 void IMAGE_getWidth(WrenVM* vm) {
@@ -249,37 +248,4 @@ void IMAGE_getWidth(WrenVM* vm) {
 void IMAGE_getHeight(WrenVM* vm) {
   IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
   wrenSetSlotDouble(vm, 0, image->height);
-}
-
-void IMAGE_drawArea(WrenVM* vm) {
-  ASSERT_SLOT_TYPE(vm, 1, NUM, "source x");
-  ASSERT_SLOT_TYPE(vm, 2, NUM, "source y");
-  ASSERT_SLOT_TYPE(vm, 3, NUM, "source width");
-  ASSERT_SLOT_TYPE(vm, 4, NUM, "source height");
-  ASSERT_SLOT_TYPE(vm, 5, NUM, "destination x");
-  ASSERT_SLOT_TYPE(vm, 6, NUM, "destination y");
-
-  IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
-  DRAW_COMMAND command = DRAW_COMMAND_init(image);
-
-  command.src.x = wrenGetSlotDouble(vm, 1);
-  command.src.y = wrenGetSlotDouble(vm, 2);
-  command.srcW = wrenGetSlotDouble(vm, 3);
-  command.srcH = wrenGetSlotDouble(vm, 4);
-  command.dest.x = wrenGetSlotDouble(vm, 5);
-  command.dest.y = wrenGetSlotDouble(vm, 6);
-
-  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  DRAW_COMMAND_execute(engine, &command);
-}
-
-void IMAGE_draw(WrenVM* vm) {
-  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
-  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
-  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
-  DRAW_COMMAND command = DRAW_COMMAND_init(image);
-  command.dest.x = wrenGetSlotDouble(vm, 1);
-  command.dest.y = wrenGetSlotDouble(vm, 2);
-  DRAW_COMMAND_execute(engine, &command);
 }
