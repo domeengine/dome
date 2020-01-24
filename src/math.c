@@ -3,6 +3,10 @@
  */
 
 typedef struct {
+  int32_t x;
+  int32_t y;
+} iVEC;
+typedef struct {
   double x;
   double y;
 } VEC;
