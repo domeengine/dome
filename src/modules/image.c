@@ -74,8 +74,8 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
     sX = fabs(sX);
     sY = fabs(sY);
 
-    int32_t w = srcW * fabs(scale.x);
-    int32_t h = srcH * fabs(scale.y);
+    int32_t w = (srcW) * fabs(scale.x);
+    int32_t h = (srcH) * fabs(scale.y);
 
     if (direction & 1) {
       swap = w;
@@ -95,12 +95,12 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
         int32_t v = (t);
 
         if ((scale.y > 0 && direction >= 2) || (scale.y < 0 && direction < 2)) {
-          y = dest.y + h - j;
+          y = dest.y + (h-1) - j;
         }
 
         bool flipX = ((direction == 1 || direction == 2));
         if ((scale.x < 0 && !flipX) || (scale.x > 0 && flipX)) {
-          x = dest.x + w - i;
+          x = dest.x + (w-1) - i;
         }
 
         if (direction & 1) {
