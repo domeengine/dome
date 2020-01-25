@@ -78,6 +78,20 @@ Create a new color with the given RGB values between `0 - 255`, and an alpha val
 #### `construct new(r: Number, g: Number, b: Number, a: Number)`
 Create a new color with the given RGBA values between `0 - 255`.
 
+### Instance Fields
+
+#### `r: Number`
+A value between `0 - 255` to represent the red color channel.
+
+#### `g: Number`
+A value between `0 - 255` to represent the green color channel.
+
+#### `b: Number`
+A value between `0 - 255` to represent the blue color channel.
+
+#### `a: Number`
+A value between `0 - 255` to represent the alpha transparency channel.
+
 ### Default Palette
 The values for the colors in this palette can be found [here](https://www.romanzolotarev.com/pico-8-color-palette/).
 

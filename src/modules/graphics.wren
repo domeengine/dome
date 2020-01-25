@@ -160,7 +160,14 @@ class Color {
     _a = a
   }
 
-  rgb { Color.rgb(_r, _g, _b, _a) }
+  rgb {
+    return a << 24 | r << 16 | g << 8 | b
+  }
+
+  a { _a }
+  r { _r }
+  g { _g }
+  b { _b }
 
   static black { AllColors["black"] }
   static darkblue { AllColors["darkblue"] }
@@ -178,10 +185,6 @@ class Color {
   static indigo { AllColors["indigo"] }
   static pink { AllColors["pink"] }
   static peach { AllColors["peach"] }
-
-  static rgb(r, g, b, a) {
-    return a << 24 | r << 16 | g << 8 | b
-  }
 }
 
 var AllColors = {
