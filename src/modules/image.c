@@ -172,6 +172,23 @@ DRAW_COMMAND_allocate(WrenVM* vm) {
     wrenGetListElement(vm, 2, 6, 1);
     ASSERT_SLOT_TYPE(vm, 1, NUM, "source height");
     command->srcH = wrenGetSlotDouble(vm, 1);
+
+    wrenGetListElement(vm, 2, 7, 1);
+    ASSERT_SLOT_TYPE(vm, 1, STRING, "color mode");
+    char* mode = wrenGetSlotString(vm, 1);
+    if (STRINGS_EQUAL(mode, "MONO")) {
+      command->mode = COLOR_MODE_MONO;
+    } else {
+      command->mode = COLOR_MODE_RGBA;
+    }
+
+    wrenGetListElement(vm, 2, 8, 1);
+    ASSERT_SLOT_TYPE(vm, 1, NUM, "foreground color");
+    command->foregroundColor = wrenGetSlotDouble(vm, 1);
+
+    wrenGetListElement(vm, 2, 9, 1);
+    ASSERT_SLOT_TYPE(vm, 1, NUM, "background color");
+    command->backgroundColor = wrenGetSlotDouble(vm, 1);
   }
 }
 

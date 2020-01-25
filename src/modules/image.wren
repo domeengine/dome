@@ -1,3 +1,4 @@
+
 var NULL_TRANSFORM = {}
 
 class Drawable {
@@ -8,6 +9,7 @@ foreign class DrawCommand is Drawable {
   construct new(image, params) {}
 
   static parse(image, map) {
+    import "graphics" for Color
     var list = [
       map["angle"] || 0,
       map["scaleX"] || 1,
@@ -16,6 +18,9 @@ foreign class DrawCommand is Drawable {
       map["srcY"] || 0,
       map["srcW"] || image.width,
       map["srcH"] || image.height,
+      map["mode"] || "RGBA",
+      (map["foreground"] || Color.white).rgb,
+      (map["background"] || Color.black).rgb
     ]
     return DrawCommand.new(image, list)
   }
