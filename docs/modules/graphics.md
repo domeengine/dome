@@ -67,21 +67,36 @@ If `c` isn't provided, we default to black.
 
 ## Color
 
-An instance of the `Color` class represents a single color which can be used for drawing.
+An instance of the `Color` class represents a single color which can be used for drawing to the `Canvas`.
+DOME comes built in with the PICO-8 palette, but you can also define and use your own colors in your games.
+
+### Constructors
 
 #### `construct new(r: Number, g: Number, b: Number)`
-#### `construct new(r: Number, g: Number, b: Number, a: Number)`
-#### `static rgb(r: Number, g: Number, b: Number, a: Number): Color`
+Create a new color with the given RGB values between `0 - 255`, and an alpha value of `255`.
 
-#### `static black: Color`
-#### `static blue: Color`
-#### `static cyan: Color`
-#### `static darkgray: Color`
-#### `static green: Color`
-#### `static lightgray: Color`
-#### `static orange: Color`
-#### `static red: Color`
-#### `static white: Color`
+#### `construct new(r: Number, g: Number, b: Number, a: Number)`
+Create a new color with the given RGBA values between `0 - 255`.
+
+### Default Palette
+The values for the colors in this palette can be found [here](https://www.romanzolotarev.com/pico-8-color-palette/).
+
+#### `static black: Color
+#### `static darkblue : Color
+#### `static darkpurple: Color
+#### `static darkgreen: Color
+#### `static brown: Color
+#### `static darkgray: Color
+#### `static lightgray: Color
+#### `static white: Color
+#### `static red: Color
+#### `static orange: Color
+#### `static yellow: Color
+#### `static green: Color
+#### `static blue: Color
+#### `static indigo: Color
+#### `static pink: Color
+#### `static peach: Color
 
 ## Drawable
 Represents an object which can be drawn to the screen. Objects which conform to this interface can be passed to `Canvas.draw(drawable, x, y)`.

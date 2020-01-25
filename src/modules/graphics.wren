@@ -162,15 +162,22 @@ class Color {
 
   rgb { Color.rgb(_r, _g, _b, _a) }
 
-  static white { AllColors["white"] }
   static black { AllColors["black"] }
-  static red { AllColors["red"] }
-  static orange { AllColors["orange"] }
-  static blue { AllColors["blue"] }
-  static green { AllColors["green"] }
-  static cyan { AllColors["cyan"] }
+  static darkblue { AllColors["darkblue"] }
+  static darkpurple { AllColors["darkpurple"] }
+  static darkgreen { AllColors["darkgreen"] }
+  static brown { AllColors["brown"] }
   static darkgray { AllColors["darkgray"] }
   static lightgray { AllColors["lightgray"] }
+  static white { AllColors["white"] }
+  static red { AllColors["red"] }
+  static orange { AllColors["orange"] }
+  static yellow { AllColors["yellow"] }
+  static green { AllColors["green"] }
+  static blue { AllColors["blue"] }
+  static indigo { AllColors["indigo"] }
+  static pink { AllColors["pink"] }
+  static peach { AllColors["peach"] }
 
   static rgb(r, g, b, a) {
     return a << 24 | r << 16 | g << 8 | b
@@ -179,15 +186,20 @@ class Color {
 
 var AllColors = {
   "black": Color.new(0, 0, 0),
-  "white": Color.new(255, 255, 255),
-  "orange": Color.new(255, 163, 0),
-  "red": Color.new(255, 0, 0),
-  "green": Color.new(0, 255, 0),
-  "blue": Color.new(0, 0, 255),
-  "cyan": Color.new(0, 255, 255),
-  "magenta": Color.new(255, 0, 255),
-  "yellow": Color.new(255, 255, 0),
+  "darkblue": Color.new(29, 43, 83),
+  "darkpurple": Color.new(126, 37, 83),
+  "darkgreen": Color.new(0, 135, 81),
+  "brown": Color.new(171, 82, 54),
+  "darkgray": Color.new(95, 87, 79),
   "lightgray": Color.new(194, 195, 199),
-  "darkgray": Color.new(95, 87, 79)
+  "white": Color.new(255, 255, 255),
+  "red": Color.new(255, 0, 77),
+  "orange": Color.new(255, 163, 0),
+  "yellow": Color.new(255, 236, 39),
+  "green": Color.new(0, 228, 54),
+  "blue": Color.new(41, 173, 255),
+  "indigo": Color.new(131, 118, 156),
+  "pink": Color.new(255, 119, 168),
+  "peach": Color.new(255, 204, 170)
 }
 
