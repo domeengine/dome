@@ -9,6 +9,7 @@ It contains the following classes:
 
 * [Canvas](#canvas)
 * [Color](#color)
+* [Drawable](#drawable)
 * [ImageData](#imagedata)
 * [Vector](#vector)
 
@@ -35,7 +36,7 @@ This clears the canvas fully, to black.
 #### `static cls(c: Color) `
 This clears the canvas fully, to the color _c_.
 
-#### `static draw(object, x: Number, y: Number) `
+#### `static draw(object: Drawable, x: Number, y: Number) `
 This method is syntactic sugar, to draw objects with a "draw(x: Number, y: Number)" method.
 
 #### `static ellipse(x0: Number, y0: Number, x1: Number, y1: Number, c: Color) `
@@ -66,24 +67,59 @@ If `c` isn't provided, we default to black.
 
 ## Color
 
-An instance of the `Color` class represents a single color which can be used for drawing.
+An instance of the `Color` class represents a single color which can be used for drawing to the `Canvas`.
+DOME comes built in with the PICO-8 palette, but you can also define and use your own colors in your games.
+
+### Constructors
 
 #### `construct new(r: Number, g: Number, b: Number)`
+Create a new color with the given RGB values between `0 - 255`, and an alpha value of `255`.
+
 #### `construct new(r: Number, g: Number, b: Number, a: Number)`
-#### `static rgb(r: Number, g: Number, b: Number, a: Number): Color`
+Create a new color with the given RGBA values between `0 - 255`.
+
+### Instance Fields
+
+#### `r: Number`
+A value between `0 - 255` to represent the red color channel.
+
+#### `g: Number`
+A value between `0 - 255` to represent the green color channel.
+
+#### `b: Number`
+A value between `0 - 255` to represent the blue color channel.
+
+#### `a: Number`
+A value between `0 - 255` to represent the alpha transparency channel.
+
+### Default Palette
+The values for the colors in this palette can be found [here](https://www.romanzolotarev.com/pico-8-color-palette/).
 
 #### `static black: Color`
-#### `static blue: Color`
-#### `static cyan: Color`
+#### `static darkblue : Color`
+#### `static darkpurple: Color`
+#### `static darkgreen: Color`
+#### `static brown: Color`
 #### `static darkgray: Color`
-#### `static green: Color`
 #### `static lightgray: Color`
-#### `static orange: Color`
-#### `static red: Color`
 #### `static white: Color`
+#### `static red: Color`
+#### `static orange: Color`
+#### `static yellow: Color`
+#### `static green: Color`
+#### `static blue: Color`
+#### `static indigo: Color`
+#### `static pink: Color`
+#### `static peach: Color`
 
+## Drawable
+Represents an object which can be drawn to the screen. Objects which conform to this interface can be passed to `Canvas.draw(drawable, x, y)`.
+### Instance Methods
+#### `draw(x: Number, y: Number): Void`
+Draw the image at the given `(x, y)` position on the screen.
 
 ## ImageData
+### _extends Drawable_
 
 This class represents the data from an image, such as a sprite or tilemap. 
 DOME supports the following formats:
@@ -101,10 +137,39 @@ Load an image at the given `path` and cache it for use.
 
 ### Instance Methods
 #### `draw(x: Number, y: Number): Void`
-Draw the image at the given `(x, y)` position on the screen. This is synonymous with `Canvas.draw(imageData, x, y)`.
+Draw the image at the given `(x, y)` position on the screen.
 
 #### `drawArea(srcX: Number, srcY: Number, srcW: Number, srcH: Number, destX: Number, destY: Number): Void`
 Draw a subsection of the image, defined by the rectangle `(srcX, srcY)` to `(srcX + srcW, srcY + srcH)`. The resulting section is placed at `(destX, destY)`.
+
+#### `transform(parameterMap): Drawable`
+This returns a `Drawable` which will perform the specified transforms, allowing for more fine-grained control over how images are drawn. You can store the returned drawable and reuse it across frames, while the image is loaded.
+
+Options available are:
+
+ * `srcX`, `srcY` - These specify the top-left corner of the source image region you wish to draw.
+ * `srcW`, `srcH` - This is the width and height of the source image region you want to draw.
+ * `scaleX`, `scaleY` - You can scale your image in the x and y axis, independant of each other. If either of these are negative, they result in a "flip" operation.
+ * `angle` - Rotates the image. This is in degrees, and rounded to the nearest 90 degrees.
+ * `mode`, `foreground` and `background` - By default, mode is `"RGBA"`, so your images will draw in their true colors. If you set it to `"MONO"`, any pixels which are black or have transparency will be drawn in the `background` color and all other pixels of the image will be drawn in the `foreground` color. Both colors must be `Color` objects, and default to `Color.black` and `Color.white`, respectively.
+
+Transforms are applied as follows: Crop to the region, then rotate, then scale/flip.
+
+Here is an example:
+```wren
+spriteSheet.transform({
+  "srcX": 8, "srcY": 8,
+  "srcW": 8, "srcH": 8,
+  "scaleX": 2,
+  "scaleY": -2,
+  "angle": 90
+}).draw(x, y)
+```
+The code snippet above:
+ * crops an 8x8 tile from a spritesheet, starting from (8, 8) in it's image data
+ * It then rotates it 90 degrees clockwise
+ * Finally, it scales the tile up by 2 in both the X and Y direction, but it flips the tile vertically.
+
 
 
 ## Vector
