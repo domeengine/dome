@@ -114,7 +114,9 @@ Draw the image at the given `(x, y)` position on the screen.
 Draw a subsection of the image, defined by the rectangle `(srcX, srcY)` to `(srcX + srcW, srcY + srcH)`. The resulting section is placed at `(destX, destY)`.
 
 #### `transform(parameterMap): Drawable`
-This returns a `Drawable` which will perform the specified transforms, allowing for more fine-grained control over how images are drawn. Options available are:
+This returns a `Drawable` which will perform the specified transforms, allowing for more fine-grained control over how images are drawn. You can store the returned drawable and reuse it across frames, while the image is loaded.
+
+Options available are:
 
  * `srcX`, `srcY` - These specify the top-left corner of the source image region you wish to draw.
  * `srcW`, `srcH` - This is the width and height of the source image region you want to draw.
