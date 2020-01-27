@@ -45,3 +45,15 @@ WINDOW_setLockStep(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   engine->lockstep = wrenGetSlotBool(vm, 1);
 }
+
+internal void
+WINDOW_enableFullscreen(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  SDL_SetWindowFullscreen(engine->window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+}
+
+internal void
+WINDOW_disableFullscreen(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  SDL_SetWindowFullscreen(engine->window, 0);
+}

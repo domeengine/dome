@@ -33,5 +33,11 @@ Setting this to true will make the renderer wait for VSync before presenting to 
 
 ### Static Methods
 
+#### `static disableFullscreen(): Void`
+This will move the window out of fullscreen mode.
+
+#### `static enableFullscreen(): Void`
+This will switch the window into fullscreen mode.
+
 #### `static resize(width: Number, height: Number): Void`
 This allows you to control the size of DOME's window. The viewport will scale accordingly, but the canvas will NOT resize.
