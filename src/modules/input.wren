@@ -8,6 +8,9 @@ class Mouse {
   foreign static x
   foreign static y
   foreign static isButtonPressed(key)
+
+  foreign static hidden
+  foreign static hidden=(value)
 }
 
 foreign class GamePad {

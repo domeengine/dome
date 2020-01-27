@@ -42,6 +42,8 @@ class Game {
       __state = __state.next
       __state.init()
     }
+    Mouse.hidden = Mouse.isButtonPressed("right")
+    System.print(Mouse.hidden)
   }
   static draw(dt) {
     __state.draw(dt)

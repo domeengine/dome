@@ -18,6 +18,19 @@ internal void MOUSE_getY(WrenVM* vm) {
   wrenSetSlotDouble(vm, 0, y);
 }
 
+internal void
+MOUSE_setHidden(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, BOOL, "hidden");
+  bool hidden = wrenGetSlotBool(vm, 1);
+  SDL_ShowCursor(hidden ? SDL_DISABLE : SDL_ENABLE);
+}
+
+internal void
+MOUSE_getHidden(WrenVM* vm) {
+  bool shown = SDL_ShowCursor(SDL_QUERY);
+  wrenSetSlotBool(vm, 0, !shown);
+}
+
 internal void MOUSE_isButtonPressed(WrenVM* vm) {
   WrenType type = wrenGetSlotType(vm, 1);
   int buttonIndex = 0;
