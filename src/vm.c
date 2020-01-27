@@ -149,8 +149,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_add(&engine->fnMap, "dome", "Window", "vsync=(_)", true, WINDOW_setVsync);
   MAP_add(&engine->fnMap, "dome", "Window", "lockstep=(_)", true, WINDOW_setLockStep);
   MAP_add(&engine->fnMap, "dome", "Window", "title", true, WINDOW_getTitle);
-  MAP_add(&engine->fnMap, "dome", "Window", "enableFullscreen()", true, WINDOW_enableFullscreen);
-  MAP_add(&engine->fnMap, "dome", "Window", "disableFullscreen()", true, WINDOW_disableFullscreen);
+  MAP_add(&engine->fnMap, "dome", "Window", "fullscreen=(_)", true, WINDOW_setFullscreen);
+  MAP_add(&engine->fnMap, "dome", "Window", "fullscreen", true, WINDOW_getFullscreen);
 
 #if DOME_OPT_FFI
   // FFI

@@ -24,6 +24,9 @@ Allows you to programmatically close DOME. This command behaves a little differe
 
 ### Static Fields
 
+#### `static fullscreen: Boolean`
+Set this to switch between Windowed and Fullscreen modes.
+
 #### `static lockstep: Boolean`
 Setting this to true will disable "catch up" game loop behaviour. This is useful for lighter games, or on systems where you experience a little stuttering at 60fps.
 #### `static title: String`
@@ -33,11 +36,6 @@ Setting this to true will make the renderer wait for VSync before presenting to 
 
 ### Static Methods
 
-#### `static disableFullscreen(): Void`
-This will move the window out of fullscreen mode.
-
-#### `static enableFullscreen(): Void`
-This will switch the window into fullscreen mode.
 
 #### `static resize(width: Number, height: Number): Void`
 This allows you to control the size of DOME's window. The viewport will scale accordingly, but the canvas will NOT resize.

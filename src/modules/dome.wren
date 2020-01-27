@@ -15,9 +15,9 @@ class Window {
   foreign static title
   foreign static vsync=(value)
   foreign static lockstep=(value)
+  foreign static fullscreen=(value)
+  foreign static fullscreen
 
   foreign static resize(width, height)
-  foreign static enableFullscreen()
-  foreign static disableFullscreen()
 }
 

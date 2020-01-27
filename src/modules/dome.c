@@ -12,10 +12,10 @@ PROCESS_exit(WrenVM* vm) {
 internal void
 WINDOW_resize(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  uint32_t width = wrenGetSlotDouble(vm, 1);
-  uint32_t height = wrenGetSlotDouble(vm, 2);
   ASSERT_SLOT_TYPE(vm, 1, NUM, "width");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "height");
+  uint32_t width = wrenGetSlotDouble(vm, 1);
+  uint32_t height = wrenGetSlotDouble(vm, 2);
   SDL_SetWindowSize(engine->window, width, height);
 }
 
@@ -36,6 +36,7 @@ WINDOW_getTitle(WrenVM* vm) {
 internal void
 WINDOW_setVsync(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, BOOL, "vsync");
   bool value = wrenGetSlotBool(vm, 1);
   ENGINE_setupRenderer(engine, value);
 }
@@ -47,13 +48,16 @@ WINDOW_setLockStep(WrenVM* vm) {
 }
 
 internal void
-WINDOW_enableFullscreen(WrenVM* vm) {
+WINDOW_setFullscreen(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  SDL_SetWindowFullscreen(engine->window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+  ASSERT_SLOT_TYPE(vm, 1, BOOL, "fullscreen");
+  bool value = wrenGetSlotBool(vm, 1);
+  SDL_SetWindowFullscreen(engine->window, value ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
 internal void
-WINDOW_disableFullscreen(WrenVM* vm) {
+WINDOW_getFullscreen(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  SDL_SetWindowFullscreen(engine->window, 0);
+  uint32_t flags = SDL_GetWindowFlags(engine->window);
+  wrenSetSlotBool(vm, 0, (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0);
 }
