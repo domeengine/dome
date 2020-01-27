@@ -28,6 +28,9 @@ The x position relative to the Canvas. This accounts for the window being resize
 #### `static y: Number`
 The y position relative to the Canvas. This accounts for the window being resized and the viewport moving.
 
+#### `static hidden: Boolean`
+Controls whether the mouse cursor is shown or hidden. You can set and read from this field.
+
 ### Static Methods
 
 #### `static isButtonPressed(name: String/Number): Boolean`
