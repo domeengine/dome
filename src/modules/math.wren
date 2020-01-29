@@ -111,4 +111,5 @@ class Math {
   }
 }
 
+// Expose a shorthand name for the class
 var M = Math
