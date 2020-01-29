@@ -75,14 +75,7 @@ class Math {
   }
 
   static sign(a) {
-    assertNum(a)
-    if (a < 0) {
-      return -1
-    } else if (a > 0) {
-      return 1
-    } else {
-      return 0
-    }
+    return a.sign
   }
 
   static mid(a, b, c) {
@@ -106,6 +99,15 @@ class Math {
     } else {
       return c
     }
+  }
+
+  static lerp(low, value, high) {
+    assertNum(low)
+    assertNum(value)
+    assertNum(high)
+
+    var v = mid(0, value, 1)
+    return (1 - v) * low + v * high
   }
 }
 
