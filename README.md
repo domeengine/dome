@@ -83,16 +83,15 @@ DOME provides the following modules/methods/classes:
 ## TODO
 You can follow my progress on implementing DOME on [my twitter](https://twitter.com/avivbeeri/status/1012448692119457798).
 
-- IO
-  - Asynchronous Operations (Unstable API)
-- Loading Audio and Graphics asynchronously
 - Graphics 
   - Triangles
+- IO
+  - Asynchronous Operations
+  - Audio and Graphics also
 - Network Access
   - UDP
-  - HTTP client (optional)
-- Math (More intuitive API for Num class functions)
-- Robust error checking and sandboxing
+  - HTTP client (maybe)
+- Security sandboxing (maybe)
 
 ## Dependencies
 
