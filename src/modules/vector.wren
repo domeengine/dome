@@ -12,16 +12,55 @@ class Vector {
   x=(v) { _x = v }
   y=(v) { _y = v }
 
-  +(other) {
+  manhattan {
+    return _x.abs + _y.abs
+  }
+
+  length {
+    return (_x.pow(2) + _y.pow(2)).sqrt
+  }
+
+  unit {
+    return Vector.new(_x / length, _y / length)
+  }
+
+  dot(other) {
+    if (!(other is Vector)) Fiber.abort("Vectors can only be subtracted from other points.")
+    return _x * other.x + _y * other.y
+  }
+
+  + (other) {
     if (!(other is Vector)) Fiber.abort("Vectors can only be subtracted from other points.")
     return Vector.new(_x + other.x, _y + other.y)
   }
-  -(other) {
+  - (other) {
     if (!(other is Vector)) Fiber.abort("Vectors can only be subtracted from other points.")
     return Vector.new(_x - other.x, _y - other.y)
   }
 
-  toString { "{%(_x), %(_y)}" }
+  / (other) {
+    if (other is Num) {
+      // Scale by other
+      return Vector.new(_x / other, _y / other)
+    } else {
+      Fiber.abort("Vectors can only be divided by scalar values.")
+    }
+  }
+
+  * (other) {
+    if (other is Num) {
+      // Scale by other
+      return Vector.new(_x * other, _y * other)
+    } else {
+      Fiber.abort("Vectors can only be multiplied by scalar values.")
+    }
+  }
+
+  - {
+    return Vector.new(-_x, -_y)
+  }
+
+  toString { "(%(_x), %(_y))" }
 
 }
 

@@ -172,25 +172,3 @@ The code snippet above:
 
 
 
-## Vector
-
-The `Vector` class works as a 2-dimensional vector. You can also refer to it as a `Point` or `Vec`.
-
-### Constructor
-
-#### `Vector.new(): Vector`
-#### `Vector.new(x, y): Vector`
-
-Create a vector. If `x` and `y` aren't provided, they are set to `(0, 0)`.
-
-### Instance Fields
-#### `x: Number`
-#### `y: Number`
-
-
-### Operators
-#### `Vector + Vector: Vector`
-Returns an element-wise addition of the two Vectors. This will error if you try to add a Vector to something other than a Vector.
-
-#### `Vector - Vector: Vector`
-Returns an element-wise subtraction of the two Vectors. This will error if you try to subtract a Vector from something other than a Vector, or vice versa.

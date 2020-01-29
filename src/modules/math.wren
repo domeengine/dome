@@ -1,3 +1,7 @@
+// Import vector for convenience
+import "vector" for Vector
+var Point = Vector
+var Vec = Vector
 
 class Math {
 
