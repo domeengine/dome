@@ -46,6 +46,9 @@ Rounds `n` down to the next smallest integer value.
 #### `lerp(low: Number, value: Number, high: Number): Number`
 This performs a linear interpolation between `low` and `high`, based on the value of `value`, which will be clamped to a range of [0..1].
 
+#### `log(n: Number): Number`
+Returns the natural logarithm of `n`.
+
 #### `max(n1: Number, n2: Number): Number`
 Returns the larger of `n1` and `n2`.
 

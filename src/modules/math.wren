@@ -40,6 +40,10 @@ class Math {
     assertNum(x)
     return n.atan(x)
   }
+  static log(n) {
+    assertNum(n)
+    return n.log
+  }
   static ceil(n) {
     assertNum(n)
     return n.ceil
