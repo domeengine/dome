@@ -12,11 +12,12 @@ It contains the following classes:
 
 ## Math
 
-The `Math` class provides various common mathematical functions. For convenience, you can import this class `M`, like so:
+The `Math` class provides various common mathematical functions. For convenience, you can also import this class `M`, like so:
 
 ```wren
-import "math" for M
+import "math" for M, Math
 System.print(M.min(21, 42))
+System.print(Math.max(21, 42))
 ```
 
 ### Static Methods
@@ -25,14 +26,14 @@ System.print(M.min(21, 42))
 Returns the absolute magnitude of `n`.
 
 #### `acos(n: Number): Number`
-Returns the arc-cosine of `n`.
+Returns the arccosine of `n`.
 
 #### `asin(n: Number): Number`
-Returns the arc-sine of `n`.
+Returns the arcsine of `n`.
 
 #### `atan(n: Number): Number`
 #### `atan(n1: Number, n2: Number): Number`
-Returns the arc-tan of `n`.
+Returns the arctan of `n`.
 
 #### `ceil(n: Number): Number`
 Rounds `n` up to the next largest integer value.
