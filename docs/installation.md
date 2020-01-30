@@ -24,7 +24,8 @@ You can also download the example `game.egg` from the GitHub repository to test 
 
 DOME should build on most unix-like platforms, so long as gcc, git and SDL2 are installed. If these are installed, you can skip to the [Compilation](#compilation) step below.
 
-### Pre-requisite - SDL2
+
+### Pre-requisite: SDL2
 
 On Mac OS X, you can install SDL2 by using [Homebrew](https://brew.sh) via the command `brew install sdl2`, or installing the official SDL2.framework file from [the SDL2 website](https://www.libsdl.org/download-2.0.php). Finally, you can also compile SDL2 from source and install it "the unix way".
 
