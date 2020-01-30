@@ -9,6 +9,7 @@ declare -a arr=(
 "audio"
 "vector"
 "image"
+"math"
 )
  
 declare -a opts=(
