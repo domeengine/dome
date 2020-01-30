@@ -240,6 +240,7 @@ GAMEPAD_getId(WrenVM* vm) {
 
 internal void
 GAMEPAD_getGamePadIds(WrenVM* vm) {
+  SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
   int maxJoysticks = SDL_NumJoysticks();
   int listCount = 0;
   wrenEnsureSlots(vm, 2);

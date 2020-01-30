@@ -173,7 +173,7 @@ int main(int argc, char* args[])
   INIT_TO_ZERO(ENGINE, engine);
 
   //Initialize SDL
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0)
+  if (SDL_Init(SDL_INIT_VIDEO) < 0)
   {
     printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     result = EXIT_FAILURE;

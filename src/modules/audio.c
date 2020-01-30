@@ -206,6 +206,7 @@ internal void AUDIO_getLength(WrenVM* vm) {
 
 internal AUDIO_ENGINE*
 AUDIO_ENGINE_init(void) {
+  SDL_InitSubSystem(SDL_INIT_AUDIO);
   AUDIO_ENGINE* engine = malloc(sizeof(AUDIO_ENGINE));
   engine->channelList = malloc(sizeof(AUDIO_CHANNEL_LIST) + sizeof(AUDIO_CHANNEL*) * AUDIO_CHANNEL_START);
   engine->channelList->count = AUDIO_CHANNEL_START;
