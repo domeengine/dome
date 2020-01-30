@@ -71,14 +71,8 @@ internal WrenForeignMethodFn VM_bind_foreign_method(
     bool isStatic,
     const char* signature) {
 
-  // For convenience, concatenate all of the method qualifiers into a single
-  // signature string.
-  char fullName[256];
-  fullName[0] = '\0';
-  if (isStatic) strcat(fullName, "static ");
-  strcat(fullName, className);
-  strcat(fullName, ".");
-  strcat(fullName, signature);
+  // This file is seperate because it has a Copyright notice with it.
+#include "signature.c.inc"
 
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   MAP moduleMap = engine->moduleMap;
