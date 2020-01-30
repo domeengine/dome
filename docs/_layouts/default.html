@@ -4,8 +4,21 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
 {% seo %}
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Welcome | DOME">
+    <meta property="og:description" content="{{ site.description | default: site.github.project_tagline }}">
+    <meta property="og:image" content="/dome/assets/card.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ page.url | absolute_url }}">
+    <meta property="twitter:title" content="{{ site.title | default: site.github.repository_name }}">
+    <meta property="twitter:description" content="{{ site.description | default: site.github.project_tagline }}">
+    <meta property="twitter:image" content="/dome/assets/card.png">
+
     <link rel="stylesheet" href="{{ "/assets/css/style.css?v=" | append: site.github.build_revision | relative_url }}">
     <!--[if lt IE 9]>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
