@@ -4,35 +4,29 @@
  */
 typedef struct ForeignFunctionMapNode {
   char* module;
-  char* className;
   char* signature;
-  bool isStatic; 
-  WrenForeignMethodFn fn; 
+  WrenForeignMethodFn fn;
   struct ForeignFunctionMapNode* next;
-} ForeignFunctionMapNode; 
+} ForeignFunctionMapNode;
 
 typedef struct {
   ForeignFunctionMapNode* head;
-} ForeignFunctionMap; 
+} ForeignFunctionMap;
 
-internal void MAP_add(ForeignFunctionMap* map, char* module, char* className, char* signature, bool isStatic, WrenForeignMethodFn fn) {
+internal void MAP_add(ForeignFunctionMap* map, char* module, char* signature, WrenForeignMethodFn fn) {
   ForeignFunctionMapNode* node = (ForeignFunctionMapNode*) malloc(sizeof(ForeignFunctionMapNode));
   node->module = module;
-  node->className = className;
-  node->signature = signature; 
-  node->isStatic = isStatic;
+  node->signature = signature;
   node->fn = fn;
   node->next = map->head;
   map->head = node;
 }
 
-internal WrenForeignMethodFn MAP_get(ForeignFunctionMap* map, const char* module, const char* className, const char* signature, bool isStatic) {
+internal WrenForeignMethodFn MAP_get(ForeignFunctionMap* map, const char* module, const char* signature) {
   ForeignFunctionMapNode* node = map->head;
   while (node != NULL) {
-    if (strcmp(module, node->module) == 0 &&
-        strcmp(className, node->className) == 0 &&
-        strcmp(signature, node->signature) == 0 &&
-        isStatic == node->isStatic) {
+    if (STRINGS_EQUAL(module, node->module) &&
+        STRINGS_EQUAL(signature, node->signature)) {
       return node->fn;
     } else {
       node = node->next;
