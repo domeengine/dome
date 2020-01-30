@@ -105,8 +105,7 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 */
 #include "util/font8x8.h"
 #include "io.c"
-#include "map.c"
-#include "modules/modules.c"
+#include "modules/map.c"
 #include "engine.c"
 #include "modules/dome.c"
 #if DOME_OPT_FFI
@@ -173,7 +172,7 @@ int main(int argc, char* args[])
   INIT_TO_ZERO(ENGINE, engine);
 
   //Initialize SDL
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0)
+  if (SDL_Init(SDL_INIT_VIDEO) < 0)
   {
     printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     result = EXIT_FAILURE;
