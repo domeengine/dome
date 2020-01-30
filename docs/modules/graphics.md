@@ -11,7 +11,6 @@ It contains the following classes:
 * [Color](#color)
 * [Drawable](#drawable)
 * [ImageData](#imagedata)
-* [Vector](#vector)
 
 ## Canvas
 
