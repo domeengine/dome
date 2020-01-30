@@ -17,8 +17,7 @@ typedef struct {
   SDL_Rect viewport;
   void* pixels;
   ABC_FIFO fifo;
-  ForeignFunctionMap fnMap;
-  ModuleMap moduleMap;
+  MAP moduleMap;
   uint32_t width;
   uint32_t height;
   mtar_t* tar;
@@ -190,7 +189,7 @@ ENGINE_init(ENGINE* engine) {
   ABC_FIFO_create(&engine->fifo);
   engine->fifo.taskHandler = ENGINE_taskHandler;
 
-  ModuleMap_init(&engine->moduleMap);
+  MAP_init(&engine->moduleMap);
 
   engine->running = true;
 
@@ -225,12 +224,8 @@ ENGINE_free(ENGINE* engine) {
     free(engine->tar);
   }
 
-  if (engine->fnMap.head != NULL) {
-    MAP_free(&engine->fnMap);
-  }
-
   if (engine->moduleMap.head != NULL) {
-    ModuleMap_free(&engine->moduleMap);
+    MAP_free(&engine->moduleMap);
   }
 
   if (engine->pixels != NULL) {

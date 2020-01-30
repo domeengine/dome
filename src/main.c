@@ -105,8 +105,7 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 */
 #include "util/font8x8.h"
 #include "io.c"
-#include "map.c"
-#include "modules/modules.c"
+#include "modules/map.c"
 #include "engine.c"
 #include "modules/dome.c"
 #if DOME_OPT_FFI
