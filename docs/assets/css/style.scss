@@ -56,6 +56,9 @@ a {
 
 section p a {
   text-decoration: underline;
+  &:hover {
+    font-weight: normal;
+  }
 }
 
 img[alt*="Logo"] {
