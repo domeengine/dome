@@ -18,10 +18,13 @@ h1, h2, h3, h4, h5, h6 {
 
 a {
   color: #9e7cce;
-  text-decoration: underline;
-  &:hover &:focus {
+  &:hover {
     color: #9e7cce;
   }
+}
+
+p a {
+  text-decoration: underline;
 }
 
 img[alt*="Logo"] {
