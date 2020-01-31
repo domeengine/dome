@@ -54,6 +54,14 @@ a {
   }
 }
 
+section p img {
+  background: white;
+  display: block;
+  padding: 5px;
+  margin: 0 auto;
+  border-radius: 5px;
+}
+
 section p a {
   text-decoration: underline;
   &:hover,&:focus {
