@@ -16,6 +16,32 @@ h1, h2, h3, h4, h5, h6 {
   color: #ffffff;
 }
 
+.view {
+  text-align: center;
+  a {
+    display: inline-block;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    border: 1px solid transparent;
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: .25rem;
+    text-decoration: none;
+
+    &:hover {
+      font-weight: normal;
+      text-decoration: underline;
+    }
+  }
+}
+
 a {
   color: #9e7cce;
   &:hover {
@@ -23,7 +49,7 @@ a {
   }
 }
 
-p a {
+section p a {
   text-decoration: underline;
 }
 
