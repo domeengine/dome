@@ -35,6 +35,10 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: .25rem;
     text-decoration: none;
 
+    color: #212529;
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+
     &:hover {
       font-weight: normal;
       text-decoration: underline;
