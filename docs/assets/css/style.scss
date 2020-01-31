@@ -39,7 +39,7 @@ h1, h2, h3, h4, h5, h6 {
     background-color: #f8f9fa;
     border-color: #f8f9fa;
 
-    &:hover {
+    &:hover,&:focus {
       color: #212529;
       font-weight: normal;
       text-decoration: underline;
@@ -49,14 +49,14 @@ h1, h2, h3, h4, h5, h6 {
 
 a {
   color: #9e7cce;
-  &:hover {
+  &:hover,&:focus {
     color: #9e7cce;
   }
 }
 
 section p a {
   text-decoration: underline;
-  &:hover {
+  &:hover,&:focus {
     font-weight: normal;
     text-decoration: none;
   }
