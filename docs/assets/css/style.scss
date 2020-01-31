@@ -28,11 +28,13 @@ code, pre {
   background-color: #383838;
 }
 
-.highlight {
-  border-radius: 3px;
-  border-color: #383838;
+.highlight,
+.highlight pre,
+.highlight table {
+    background: $383838;
+    color: #e270ef;
+    border-radius: 3px;
 }
-
 
 .highlight .hll { background-color: #383838 }
 .highlight .c { color: #e270ef } /* Comment */
