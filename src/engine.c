@@ -675,7 +675,7 @@ ENGINE_takeScreenshot(ENGINE* engine) {
 
 internal void
 ENGINE_reportError(ENGINE* engine) {
-  if (engine->errorBuf[0] != '\0') {
+  if (engine->errorBuf != NULL) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                              "DOME - Error",
                              engine->errorBuf,
