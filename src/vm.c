@@ -111,8 +111,9 @@ internal void VM_write(WrenVM* vm, const char* text) {
 internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
     int line, const char* message) {
 
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+
   if (DEBUG_MODE == false) {
-    ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
     MAP moduleMap = engine->moduleMap;
 
     if (module != NULL && MAP_getModule(&moduleMap, module) != NULL) {
@@ -120,13 +121,22 @@ internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
     }
   }
 
+  char error[255];
+
   if (type == WREN_ERROR_COMPILE) {
-    printf("%s:%d: %s\n", module, line, message);
+    snprintf(error, 255, "%s:%d: %s\n", module, line, message);
   } else if (type == WREN_ERROR_RUNTIME) {
-    printf("Runtime error: %s\n", message);
+    snprintf(error, 255, "Runtime error: %s\n", message);
   } else if (type == WREN_ERROR_STACK_TRACE) {
-    printf("  %d: %s\n", line, module);
+    snprintf(error, 255, "  %d: %s\n", line, module);
   }
+  size_t len = strlen(error);
+  while ((len + engine->errorBufLen) >= engine->errorBufMax) {
+    engine->errorBufMax *= 2;
+    engine->errorBuf = realloc(engine->errorBuf, sizeof(char) * engine->errorBufMax);
+  }
+  strcat(engine->errorBuf, error);
+  engine->errorBufLen += len;
 }
 
 internal WrenVM* VM_create(ENGINE* engine) {

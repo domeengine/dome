@@ -533,6 +533,7 @@ vm_cleanup:
 cleanup:
   // Free resources
   // TODO: Lock the Audio Engine here.
+  ENGINE_reportError(&engine);
   BASEPATH_free();
   AUDIO_ENGINE_halt(engine.audioEngine);
   VM_free(vm);

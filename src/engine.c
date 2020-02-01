@@ -28,6 +28,9 @@ typedef struct {
   bool debugEnabled;
   bool vsyncEnabled;
   ENGINE_DEBUG debug;
+  size_t errorBufLen;
+  size_t errorBufMax;
+  char* errorBuf;
 } ENGINE;
 
 typedef enum {
@@ -191,6 +194,10 @@ ENGINE_init(ENGINE* engine) {
 
   MAP_init(&engine->moduleMap);
 
+  engine->errorBufMax = 64;
+  engine->errorBuf = calloc(engine->errorBufMax, sizeof(char));
+  engine->errorBufLen = 0;
+
   engine->running = true;
 
 engine_init_end:
@@ -243,6 +250,11 @@ ENGINE_free(ENGINE* engine) {
   if (engine->window != NULL) {
     SDL_DestroyWindow(engine->window);
   }
+
+  if (engine->errorBuf != NULL) {
+    free(engine->errorBuf);
+  }
+
 }
 
 inline internal void
@@ -660,3 +672,15 @@ ENGINE_takeScreenshot(ENGINE* engine) {
   stbi_write_png("screenshot.png", engine->width, engine->height, 4, destroyableImage, engine->width * 4);
   free(destroyableImage);
 }
+
+internal void
+ENGINE_reportError(ENGINE* engine) {
+  if (engine->errorBuf[0] != '\0') {
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                             "DOME - Error",
+                             engine->errorBuf,
+                             NULL);
+    printf("%s", engine->errorBuf);
+  }
+}
+
