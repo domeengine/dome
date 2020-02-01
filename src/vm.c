@@ -139,6 +139,7 @@ internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
       engine->errorBuf[0] = '\0';
     }
     if (engine->errorBuf == NULL) {
+      // If we can't allocate more memory, rollback to the old pointer.
       engine->errorBuf = oldBuf;
       engine->errorBufMax -= 64;
       return;
