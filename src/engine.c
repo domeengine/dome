@@ -194,8 +194,8 @@ ENGINE_init(ENGINE* engine) {
 
   MAP_init(&engine->moduleMap);
 
-  engine->errorBufMax = 64;
-  engine->errorBuf = calloc(engine->errorBufMax, sizeof(char));
+  engine->errorBufMax = 0;
+  engine->errorBuf = NULL;
   engine->errorBufLen = 0;
 
   engine->running = true;

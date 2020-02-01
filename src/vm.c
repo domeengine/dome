@@ -132,8 +132,17 @@ internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
   }
   size_t len = strlen(error);
   while ((len + engine->errorBufLen) >= engine->errorBufMax) {
-    engine->errorBufMax *= 2;
+    char* oldBuf = engine->errorBuf;
+    engine->errorBufMax += 64;
     engine->errorBuf = realloc(engine->errorBuf, sizeof(char) * engine->errorBufMax);
+    if (engine->errorBufMax == 64) {
+      engine->errorBuf[0] = '\0';
+    }
+    if (engine->errorBuf == NULL) {
+      engine->errorBuf = oldBuf;
+      engine->errorBufMax -= 64;
+      return;
+    }
   }
   strcat(engine->errorBuf, error);
   engine->errorBufLen += len;
