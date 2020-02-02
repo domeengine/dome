@@ -7,6 +7,7 @@ Check out the documentation:
 
 * [Installation](installation)
 * [Getting Started](getting-started)
+* [FAQ](faq)
 * [Modules](modules/)
   * [audio](modules/audio)
   * [dome](modules/dome)
@@ -15,7 +16,6 @@ Check out the documentation:
   * [input](modules/input)
   * [io](modules/io)
   * [math](modules/math)
-* [FAQ](faq)
 * Guides
   * [Import Resolution](guides/module-imports)
   * [Game Loop Behaviour](guides/game-loop)
