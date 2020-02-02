@@ -88,7 +88,6 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
     return (char*)MAP_getSource(&moduleMap, name);
   }
 
-  printf("%s", name);
   ENGINE_printLog(engine, "Loading module %s\n", name);
 
   char* extension = ".wren";

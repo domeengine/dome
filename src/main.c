@@ -1,4 +1,3 @@
-// TODO: We need this for realpath in BSD, but it won't be available in windows (_fullpath)
 #define _DEFAULT_SOURCE
 
 #ifndef DOME_VERSION
@@ -101,13 +100,14 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "math.c"
 #include "strings.c"
 #include "audio_types.c"
+#include "modules/map.c"
+#include "engine.h"
 #include "debug.c"
 /*
 #include "util/font.c"
 */
 #include "util/font8x8.h"
 #include "io.c"
-#include "modules/map.c"
 #include "engine.c"
 #include "modules/dome.c"
 #if DOME_OPT_FFI
@@ -121,41 +121,41 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "vm.c"
 
 internal void
-printTitle(void) {
-  printf("DOME - Dynamic Opinionated Minimalist Engine\n");
+printTitle(ENGINE* engine) {
+  ENGINE_printLog(engine, "DOME - Dynamic Opinionated Minimalist Engine\n");
 }
 
 internal void
-printVersion(void) {
-  printf("Version: " DOME_VERSION " - " HASH"\n");
+printVersion(ENGINE* engine) {
+  ENGINE_printLog(engine, "Version: " DOME_VERSION " - " HASH"\n");
   SDL_version compiled;
   SDL_version linked;
 
   SDL_VERSION(&compiled);
   SDL_GetVersion(&linked);
-  printf("SDL version: %d.%d.%d (Compiled)\n", compiled.major, compiled.minor, compiled.patch);
-  printf("SDL version %d.%d.%d (Linked)\n", linked.major, linked.minor, linked.patch);
+  ENGINE_printLog(engine, "SDL version: %d.%d.%d (Compiled)\n", compiled.major, compiled.minor, compiled.patch);
+  ENGINE_printLog(engine, "SDL version %d.%d.%d (Linked)\n", linked.major, linked.minor, linked.patch);
 
 #if DOME_OPT_FFI
-  printf("FFI module is available");
+  ENGINE_printLog(engine, "FFI module is available");
 #else
-  printf("FFI module is unavailable");
+  ENGINE_printLog(engine, "FFI module is unavailable");
 #endif
 }
 
 
 internal void
-printUsage(void) {
-  printf("\nUsage: \n");
-  printf("  dome [-d | --debug] [-r<gif> | --record=<gif>] [-b<buf> | --buffer=<buf>] [-i<size> | --initial-heap=<size>] [entry path]\n");
-  printf("  dome -h | --help\n");
-  printf("  dome -v | --version\n");
-  printf("\nOptions: \n");
-  printf("  -b --buffer=<buf>   Set the audio buffer size (default: 11)\n");
-  printf("  -d --debug          Enables debug mode\n");
-  printf("  -h --help           Show this screen.\n");
-  printf("  -v --version        Show version.\n");
-  printf("  -r --record=<gif>   Record video to <gif>.\n");
+printUsage(ENGINE* engine) {
+  ENGINE_printLog(engine, "\nUsage: \n");
+  ENGINE_printLog(engine, "  dome [-d | --debug] [-r<gif> | --record=<gif>] [-b<buf> | --buffer=<buf>] [-i<size> | --initial-heap=<size>] [entry path]\n");
+  ENGINE_printLog(engine, "  dome -h | --help\n");
+  ENGINE_printLog(engine, "  dome -v | --version\n");
+  ENGINE_printLog(engine, "\nOptions: \n");
+  ENGINE_printLog(engine, "  -b --buffer=<buf>   Set the audio buffer size (default: 11)\n");
+  ENGINE_printLog(engine, "  -d --debug          Enables debug mode\n");
+  ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
+  ENGINE_printLog(engine, "  -v --version        Show version.\n");
+  ENGINE_printLog(engine, "  -r --record=<gif>   Record video to <gif>.\n");
 }
 
 int main(int argc, char* args[])
@@ -176,10 +176,15 @@ int main(int argc, char* args[])
   //Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0)
   {
-    printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+    ENGINE_printLog(&engine, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     result = EXIT_FAILURE;
     goto cleanup;
   }
+
+  result = ENGINE_init(&engine);
+  if (result == EXIT_FAILURE) {
+    goto cleanup;
+  };
 
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
@@ -208,11 +213,11 @@ int main(int argc, char* args[])
         } break;
       case 'd':
         DEBUG_MODE = true;
-        printf("Debug Mode enabled\n");
+        ("Debug Mode enabled\n");
         break;
       case 'h':
-        printTitle();
-        printUsage();
+        printTitle(&engine);
+        printUsage(&engine);
         goto cleanup;
       case 'i':
         INITIAL_HEAP_SIZE = atoi(options.optarg) * 1024 * 1024;
@@ -228,11 +233,11 @@ int main(int argc, char* args[])
         } else {
           gifName = "dome.gif";
         }
-        printf("GIF Recording is enabled: Saving to %s\n", gifName);
+        ENGINE_printLog(&engine, "GIF Recording is enabled: Saving to %s\n", gifName);
         break;
       case 'v':
-        printTitle();
-        printVersion();
+        printTitle(&engine);
+        printVersion(&engine);
         goto cleanup;
       case '?':
         fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
@@ -286,7 +291,7 @@ int main(int argc, char* args[])
         engine.tar = NULL;
         fileName = basename(pathBuf);
       } else {
-        printf("Loading bundle %s\n", pathBuf);
+        ENGINE_printLog(&engine, "Loading bundle %s\n", pathBuf);
         fileName = mainFileName;
       }
     } else if (arg == NULL) {
@@ -296,22 +301,18 @@ int main(int argc, char* args[])
     gameFile = ENGINE_readFile(&engine, fileName, &gameFileLength);
     if (gameFile == NULL) {
       if (engine.tar != NULL) {
-        printf("Error: Could not load main.wren in bundle.\n\n");
+        ENGINE_printLog(&engine, "Error: Could not load main.wren in bundle.\n\n");
       } else if (arg == NULL) {
-        printf("Error: Could not find a default entry path.\n\n");
+        ENGINE_printLog(&engine, "Error: Could not find a default entry path.\n\n");
       } else {
-        printf("Error: %s does not exist.\n", arg);
+        ENGINE_printLog(&engine, "Error: %s does not exist.\n", arg);
       }
-      printUsage();
+      printUsage(&engine);
       result = EXIT_FAILURE;
       goto cleanup;
     }
   }
 
-  result = ENGINE_init(&engine);
-  if (result == EXIT_FAILURE) {
-    goto cleanup;
-  };
 
   // Configure Wren VM
   vm = VM_create(&engine);
@@ -400,7 +401,7 @@ int main(int argc, char* args[])
           } break;
         case SDL_USEREVENT:
           {
-            printf("Event code %i\n", event.user.code);
+            ENGINE_printLog(&engine, "Event code %i\n", event.user.code);
             if (event.user.code == EVENT_LOAD_FILE) {
               FILESYSTEM_loadEventComplete(&event);
             }
