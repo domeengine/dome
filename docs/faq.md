@@ -20,6 +20,6 @@ It aims to rely on as few dependencies as possible, easy to build on most platfo
 
 Sort of! Take a look:
 * There's an [example game](https://github.com/avivbeeri/dome/tree/master/examples/spaceshooter) in the GitHub repository, which shows off a number of features. It's based on [this tutorial](https://ztiromoritz.github.io/pico-8-shooter/) for the PICO-8.
-* A entry to "A Game By It's Cover 2018": [Grid](avivbeeri.itch.io/grid) - [Source](https://github.com/avivbeeri/grid)
+* A entry to "A Game By It's Cover 2018": [Grid](https://avivbeeri.itch.io/grid) - [Source](https://github.com/avivbeeri/grid)
 * [CyberRunner](https://github.com/Sandvich/CyberRunner), an experimental endless runner (WIP)
 
