@@ -9,10 +9,12 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <ctype.h>
 
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <string.h>
 #include <math.h>
 #include <libgen.h>

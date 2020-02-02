@@ -1,4 +1,3 @@
-
 internal WrenForeignClassMethods
 VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   WrenForeignClassMethods methods;
@@ -84,12 +83,13 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
   MAP moduleMap = engine->moduleMap;
   if (strncmp("./", name, 2) != 0) {
     if (DEBUG_MODE) {
-      printf("Loading module %s\n", name);
+      ENGINE_printLog(engine, "Loading module %s\n", name);
     }
     return (char*)MAP_getSource(&moduleMap, name);
   }
 
-  printf("Loading module %s\n", name);
+  printf("%s", name);
+  ENGINE_printLog(engine, "Loading module %s\n", name);
 
   char* extension = ".wren";
   char* path;
@@ -105,7 +105,8 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
 
 // Debug output for VM
 internal void VM_write(WrenVM* vm, const char* text) {
-  printf("%s", text);
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ENGINE_printLog(engine, "%s", text);
 }
 
 internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
@@ -121,32 +122,34 @@ internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
     }
   }
 
-  char error[255];
+
+  size_t bufSize = 255;
+  char error[bufSize];
 
   if (type == WREN_ERROR_COMPILE) {
-    snprintf(error, 255, "%s:%d: %s\n", module, line, message);
+    snprintf(error, bufSize, "%s:%d: %s\n", module, line, message);
   } else if (type == WREN_ERROR_RUNTIME) {
-    snprintf(error, 255, "Runtime error: %s\n", message);
+    snprintf(error, bufSize, "Runtime error: %s\n", message);
   } else if (type == WREN_ERROR_STACK_TRACE) {
-    snprintf(error, 255, "  %d: %s\n", line, module);
+    snprintf(error, bufSize, "  %d: %s\n", line, module);
   }
   size_t len = strlen(error);
-  while ((len + engine->errorBufLen) >= engine->errorBufMax) {
-    char* oldBuf = engine->errorBuf;
-    engine->errorBufMax += 64;
-    engine->errorBuf = realloc(engine->errorBuf, sizeof(char) * engine->errorBufMax);
-    if (engine->errorBufMax == 64) {
-      engine->errorBuf[0] = '\0';
+  while ((len + engine->debug.errorBufLen) >= engine->debug.errorBufMax) {
+    char* oldBuf = engine->debug.errorBuf;
+    engine->debug.errorBufMax += 64;
+    engine->debug.errorBuf = realloc(engine->debug.errorBuf, sizeof(char) * engine->debug.errorBufMax);
+    if (engine->debug.errorBufMax == 64) {
+      engine->debug.errorBuf[0] = '\0';
     }
-    if (engine->errorBuf == NULL) {
+    if (engine->debug.errorBuf == NULL) {
       // If we can't allocate more memory, rollback to the old pointer.
-      engine->errorBuf = oldBuf;
-      engine->errorBufMax -= 64;
+      engine->debug.errorBuf = oldBuf;
+      engine->debug.errorBufMax -= 64;
       return;
     }
   }
-  strcat(engine->errorBuf, error);
-  engine->errorBufLen += len;
+  strcat(engine->debug.errorBuf, error);
+  engine->debug.errorBufLen += len;
 }
 
 internal WrenVM* VM_create(ENGINE* engine) {

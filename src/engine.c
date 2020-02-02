@@ -8,6 +8,10 @@ typedef struct {
   double avgFps;
   double alpha;
   int32_t elapsed;
+  FILE* logFile;
+  size_t errorBufLen;
+  size_t errorBufMax;
+  char* errorBuf;
 } ENGINE_DEBUG;
 
 typedef struct {
@@ -28,9 +32,6 @@ typedef struct {
   bool debugEnabled;
   bool vsyncEnabled;
   ENGINE_DEBUG debug;
-  size_t errorBufLen;
-  size_t errorBufMax;
-  char* errorBuf;
 } ENGINE;
 
 typedef enum {
@@ -155,8 +156,16 @@ ENGINE_init(ENGINE* engine) {
   engine->debug.avgFps = 58;
   engine->debugEnabled = false;
   engine->debug.alpha = 0.9;
+
+  engine->debug.errorBufMax = 0;
+  engine->debug.errorBuf = NULL;
+  engine->debug.errorBufLen = 0;
+
+
+
   engine->width = GAME_WIDTH;
   engine->height = GAME_HEIGHT;
+
 
   //Create window
   engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
@@ -194,14 +203,17 @@ ENGINE_init(ENGINE* engine) {
 
   MAP_init(&engine->moduleMap);
 
-  engine->errorBufMax = 0;
-  engine->errorBuf = NULL;
-  engine->errorBufLen = 0;
-
   engine->running = true;
 
 engine_init_end:
   return result;
+}
+
+internal void
+ENGINE_openLogFile(ENGINE* engine) {
+  // DOME-2020-02-02-090000.log
+  char* filename = "DOME-out.log";
+  engine->debug.logFile = fopen(filename, "w+");
 }
 
 internal void
@@ -251,9 +263,16 @@ ENGINE_free(ENGINE* engine) {
     SDL_DestroyWindow(engine->window);
   }
 
-  if (engine->errorBuf != NULL) {
-    free(engine->errorBuf);
+  // DEBUG features
+  if (engine->debug.logFile != NULL) {
+    fclose(engine->debug.logFile);
   }
+
+  if (engine->debug.errorBuf != NULL) {
+    free(engine->debug.errorBuf);
+  }
+
+
 
 }
 
@@ -674,13 +693,39 @@ ENGINE_takeScreenshot(ENGINE* engine) {
 }
 
 internal void
-ENGINE_reportError(ENGINE* engine) {
-  if (engine->errorBuf != NULL) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                             "DOME - Error",
-                             engine->errorBuf,
-                             NULL);
-    printf("%s", engine->errorBuf);
+ENGINE_printLog(ENGINE* engine, char* line, ...) {
+  // Args is mutated by each vsnprintf call,
+  // so it needs to be reinitialised.
+  va_list args;
+  va_start(args, line);
+  size_t bufSize = vsnprintf(NULL, 0, line, args) + 1;
+  va_end(args);
+
+  char buffer[bufSize];
+  buffer[0] = '\0';
+  va_start(args, line);
+  vsnprintf(buffer, bufSize, line, args);
+  va_end(args);
+
+  // Output to console
+  printf("%s", buffer);
+
+  if (engine->debug.logFile == NULL) {
+    ENGINE_openLogFile(engine);
+  }
+  if (engine->debug.logFile != NULL) {
+    // Output to file
+    fputs(buffer, engine->debug.logFile);
   }
 }
 
+internal void
+ENGINE_reportError(ENGINE* engine) {
+  if (engine->debug.errorBuf != NULL) {
+    ENGINE_printLog(engine, engine->debug.errorBuf);
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                             "DOME - Error",
+                             engine->debug.errorBuf,
+                             NULL);
+  }
+}
