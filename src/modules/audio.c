@@ -179,7 +179,8 @@ internal void AUDIO_allocate(WrenVM* vm) {
     free(tempBuffer);
   }
   if (DEBUG_MODE) {
-    DEBUG_printAudioSpec(data->spec, data->audioType);
+    ENGINE* engine = wrenGetUserData(vm);
+    DEBUG_printAudioSpec(engine, data->spec, data->audioType);
   }
 }
 

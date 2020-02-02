@@ -88,15 +88,14 @@ doesFileExist(char* path) {
 internal char*
 readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr) {
   // We assume the tar open has been done already
-
-  printf("Reading from bundle: %s\n", path);
   mtar_header_t h;
   mtar_find(tar, path, &h);
   size_t length = h.size;
   char* buffer = calloc(1, length + 1);
   if (mtar_read_data(tar, buffer, length) != MTAR_ESUCCESS) {
-    printf("Error: Couldn't read the data from the bundle.");
-    abort();
+    // Some kind of problem reading the file
+    free(buffer);
+    return NULL;
   }
 
   if (lengthPtr != NULL) {
@@ -108,7 +107,6 @@ readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr) {
 
 internal int
 writeEntireFile(char* path, char* data, size_t length) {
-  printf("Writing to filesystem: %s\n", path);
   FILE* file = fopen(path, "wb+");
   if (file == NULL) {
     return errno;
@@ -120,7 +118,6 @@ writeEntireFile(char* path, char* data, size_t length) {
 
 internal char*
 readEntireFile(char* path, size_t* lengthPtr) {
-  printf("Reading from filesystem: %s\n", path);
   FILE* file = fopen(path, "rb");
   if (file == NULL) {
     return NULL;

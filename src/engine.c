@@ -1,56 +1,36 @@
-// Forward-declaring some methods for interacting with the AudioEngine
-// for managing memory and initialization
-struct AUDIO_ENGINE_t;
-internal struct AUDIO_ENGINE_t* AUDIO_ENGINE_init(void);
-internal void AUDIO_ENGINE_free(struct AUDIO_ENGINE_t*);
+internal void
+ENGINE_openLogFile(ENGINE* engine) {
+  // DOME-2020-02-02-090000.log
+  char* filename = "DOME-out.log";
+  engine->debug.logFile = fopen(filename, "w+");
+}
 
-typedef struct {
-  double avgFps;
-  double alpha;
-  int32_t elapsed;
-} ENGINE_DEBUG;
+internal void
+ENGINE_printLog(ENGINE* engine, char* line, ...) {
+  // Args is mutated by each vsnprintf call,
+  // so it needs to be reinitialised.
+  va_list args;
+  va_start(args, line);
+  size_t bufSize = vsnprintf(NULL, 0, line, args) + 1;
+  va_end(args);
 
-typedef struct {
-  SDL_Window* window;
-  SDL_Renderer *renderer;
-  SDL_Texture *texture;
-  SDL_Rect viewport;
-  void* pixels;
-  ABC_FIFO fifo;
-  MAP moduleMap;
-  uint32_t width;
-  uint32_t height;
-  mtar_t* tar;
-  bool running;
-  bool lockstep;
-  int exit_status;
-  struct AUDIO_ENGINE_t* audioEngine;
-  bool debugEnabled;
-  bool vsyncEnabled;
-  ENGINE_DEBUG debug;
-} ENGINE;
+  char buffer[bufSize];
+  buffer[0] = '\0';
+  va_start(args, line);
+  vsnprintf(buffer, bufSize, line, args);
+  va_end(args);
 
-typedef enum {
-  EVENT_NOP,
-  EVENT_LOAD_FILE,
-  EVENT_WRITE_FILE,
-  EVENT_WRITE_FILE_APPEND
-} EVENT_TYPE;
+  // Output to console
+  printf("%s", buffer);
 
-typedef enum {
-  TASK_NOP,
-  TASK_PRINT,
-  TASK_LOAD_FILE,
-  TASK_WRITE_FILE,
-  TASK_WRITE_FILE_APPEND
-} TASK_TYPE;
-
-typedef enum {
-  ENGINE_WRITE_SUCCESS,
-  ENGINE_WRITE_PATH_INVALID
-} ENGINE_WRITE_RESULT;
-
-global_variable uint32_t ENGINE_EVENT_TYPE;
+  if (engine->debug.logFile == NULL) {
+    ENGINE_openLogFile(engine);
+  }
+  if (engine->debug.logFile != NULL) {
+    // Output to file
+    fputs(buffer, engine->debug.logFile);
+  }
+}
 
 internal ENGINE_WRITE_RESULT
 ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
@@ -59,6 +39,7 @@ ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
   strcpy(fullPath, base); /* copy name into the new var */
   strcat(fullPath, path); /* add the extension */
 
+  ENGINE_printLog(engine, "Writing to filesystem: %s\n", path);
   int result = writeEntireFile(fullPath, buffer, length);
   if (result == ENOENT) {
     result = ENGINE_WRITE_PATH_INVALID;
@@ -82,12 +63,17 @@ ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
     mtar_header_t h;
     int success = mtar_find(engine->tar, pathBuf, &h);
     if (success == MTAR_ESUCCESS) {
-      return readFileFromTar(engine->tar, pathBuf, lengthPtr);
+      ENGINE_printLog(engine, "Reading from bundle: %s\n", path);
+      char* file = readFileFromTar(engine->tar, pathBuf, lengthPtr);
+      if (file == NULL) {
+        ENGINE_printLog(engine, "Error: Couldn't read the data from the bundle.");
+      }
+      return file;
     } else if (success != MTAR_ENOTFOUND) {
-      printf("Error: There was a problem reading %s from the bundle.\n", pathBuf);
+      ENGINE_printLog(engine, "Error: There was a problem reading %s from the bundle.\n", pathBuf);
       return NULL;
     }
-    printf("Couldn't find %s in bundle, falling back.\n", pathBuf);
+    ENGINE_printLog(engine, "Couldn't find %s in bundle, falling back.\n", pathBuf);
   }
 
   char* base = BASEPATH_get();
@@ -98,6 +84,7 @@ ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
     free(fullPath);
     return NULL;
   } else {
+    ENGINE_printLog(engine, "Reading from filesystem: %s\n", path);
     char* data = readEntireFile(fullPath, lengthPtr);
     free(fullPath);
     return data;
@@ -152,14 +139,23 @@ ENGINE_init(ENGINE* engine) {
   engine->debug.avgFps = 58;
   engine->debugEnabled = false;
   engine->debug.alpha = 0.9;
+
+  engine->debug.errorBufMax = 0;
+  engine->debug.errorBuf = NULL;
+  engine->debug.errorBufLen = 0;
+
+
+
   engine->width = GAME_WIDTH;
   engine->height = GAME_HEIGHT;
+
 
   //Create window
   engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
   if(engine->window == NULL)
   {
-    SDL_Log("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+    char* message = "Window could not be created! SDL_Error: %s\n";
+    ENGINE_printLog(engine, message, SDL_GetError());
     result = EXIT_FAILURE;
     goto engine_init_end;
   }
@@ -167,7 +163,8 @@ ENGINE_init(ENGINE* engine) {
   ENGINE_setupRenderer(engine, true);
   if (engine->renderer == NULL)
   {
-    SDL_Log("Could not create a renderer: %s", SDL_GetError());
+    char* message = "Could not create a renderer: %s";
+    ENGINE_printLog(engine, message, SDL_GetError());
     result = EXIT_FAILURE;
     goto engine_init_end;
   }
@@ -243,6 +240,18 @@ ENGINE_free(ENGINE* engine) {
   if (engine->window != NULL) {
     SDL_DestroyWindow(engine->window);
   }
+
+  // DEBUG features
+  if (engine->debug.logFile != NULL) {
+    fclose(engine->debug.logFile);
+  }
+
+  if (engine->debug.errorBuf != NULL) {
+    free(engine->debug.errorBuf);
+  }
+
+
+
 }
 
 inline internal void
@@ -659,4 +668,16 @@ ENGINE_takeScreenshot(ENGINE* engine) {
   }
   stbi_write_png("screenshot.png", engine->width, engine->height, 4, destroyableImage, engine->width * 4);
   free(destroyableImage);
+}
+
+
+internal void
+ENGINE_reportError(ENGINE* engine) {
+  if (engine->debug.errorBuf != NULL) {
+    ENGINE_printLog(engine, engine->debug.errorBuf);
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                             "DOME - Error",
+                             engine->debug.errorBuf,
+                             NULL);
+  }
 }
