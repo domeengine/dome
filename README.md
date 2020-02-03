@@ -51,7 +51,7 @@ class Game {
       __y = __y + 1 
     }
   }
-  static draw(dt) {
+  static draw(alpha) {
     Canvas.cls()
     var color = Color.new(171, 82, 54)
     Canvas.rectfill(__x, __y, __w, __h, color)
