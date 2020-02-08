@@ -380,6 +380,7 @@ int main(int argc, char* args[])
   int32_t lag = 0;
   bool windowHasFocus = false;
   SDL_Event event;
+  int8_t gifCounter = 0;
   while (engine.running) {
 
     // processInput()
@@ -474,24 +475,13 @@ int main(int argc, char* args[])
         }
       }
       lag -= MS_PER_FRAME;
-      if (makeGif) {
-        size_t imageSize = engine.width * engine.height;
-        for (size_t i = 0; i < imageSize; i++) {
-          uint32_t c = ((uint32_t*)engine.pixels)[i];
-          uint8_t a = (0xFF000000 & c) >> 24;
-          uint8_t r = (0x00FF0000 & c) >> 16;
-          uint8_t g = (0x0000FF00 & c) >> 8;
-          uint8_t b = (0x000000FF & c);
-          ((uint32_t*)engine.gifPixels)[i] = a << 24 | b << 16 | g << 8 | r;
-        }
-        engine.frameReady = true;
-      }
 
       if (engine.lockstep) {
         lag = mid(0, lag, MS_PER_FRAME);
         break;
       }
     }
+
 
     // render();
     wrenEnsureSlots(vm, 8);
@@ -506,6 +496,22 @@ int main(int argc, char* args[])
     if (engine.debugEnabled) {
       engine.debug.elapsed = elapsed;
       ENGINE_drawDebug(&engine);
+    }
+
+    if (makeGif && gifCounter > 1) {
+      size_t imageSize = engine.width * engine.height;
+      for (size_t i = 0; i < imageSize; i++) {
+        uint32_t c = ((uint32_t*)engine.pixels)[i];
+        uint8_t a = (0xFF000000 & c) >> 24;
+        uint8_t r = (0x00FF0000 & c) >> 16;
+        uint8_t g = (0x0000FF00 & c) >> 8;
+        uint8_t b = (0x000000FF & c);
+        ((uint32_t*)engine.gifPixels)[i] = a << 24 | b << 16 | g << 8 | r;
+      }
+      engine.frameReady = true;
+      gifCounter = 0;
+    } else {
+      gifCounter++;
     }
 
     // Flip Buffer to Screen
@@ -524,6 +530,7 @@ int main(int argc, char* args[])
 vm_cleanup:
 
   if (recordThread != NULL) {
+    engine.frameReady = true;
     SDL_WaitThread(recordThread, NULL);
   }
   // Finish processing async threads so we can release resources
