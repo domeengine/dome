@@ -120,6 +120,27 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "modules/input.c"
 #include "vm.c"
 
+internal int
+ENGINE_record(void* ptr) {
+  ENGINE* engine = ptr;
+  size_t imageSize = engine->width * engine->height;
+  engine->gifPixels = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
+  jo_gif_t gif = jo_gif_start(engine->gifName, engine->width, engine->height, 0, 31);
+  do {
+    while (engine->running && !engine->frameReady) {};
+    if (!engine->running) {
+      break;
+    }
+    jo_gif_frame(&gif, engine->gifPixels, 10, true);
+    engine->frameReady = false;
+  } while(engine->running);
+
+  jo_gif_end(&gif);
+  free(engine->gifPixels);
+
+  return 0;
+}
+
 internal void
 printTitle(ENGINE* engine) {
   ENGINE_printLog(engine, "DOME - Dynamic Opinionated Minimalist Engine\n");
@@ -166,12 +187,12 @@ int main(int argc, char* args[])
 #endif
 
   bool makeGif = false;
-  char* gifName = "test.gif";
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   size_t gameFileLength;
   char* gameFile;
   INIT_TO_ZERO(ENGINE, engine);
+  engine.gifName = "test.gif";
 
   //Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -229,11 +250,11 @@ int main(int argc, char* args[])
       case 'r':
         makeGif = true;
         if (options.optarg != NULL) {
-          gifName = options.optarg;
+          engine.gifName = options.optarg;
         } else {
-          gifName = "dome.gif";
+          engine.gifName = "dome.gif";
         }
-        ENGINE_printLog(&engine, "GIF Recording is enabled: Saving to %s\n", gifName);
+        ENGINE_printLog(&engine, "GIF Recording is enabled: Saving to %s\n", engine.gifName);
         break;
       case 'v':
         printTitle(&engine);
@@ -327,6 +348,7 @@ int main(int argc, char* args[])
   }
   // Load the class into slot 0.
 
+
   wrenEnsureSlots(vm, 3);
   WrenHandle* initMethod = wrenMakeCallHandle(vm, "init()");
   WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update()");
@@ -337,29 +359,27 @@ int main(int argc, char* args[])
   // Initiate game loop
   uint8_t FPS = 60;
   double MS_PER_FRAME = ceil(1000.0 / FPS);
+  SDL_Thread* recordThread = NULL;
 
-    wrenSetSlotHandle(vm, 0, gameClass);
-    interpreterResult = wrenCall(vm, initMethod);
-    if (interpreterResult != WREN_RESULT_SUCCESS) {
-      result = EXIT_FAILURE;
-      goto vm_cleanup;
-    }
-    SDL_ShowWindow(engine.window);
-    SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0xFF);
-
-  jo_gif_t gif;
-  size_t imageSize = engine.width * engine.height;
-  uint8_t* destroyableImage = NULL;
-  if (makeGif) {
-    destroyableImage = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
-    gif = jo_gif_start(gifName, engine.width, engine.height, 0, 31);
+  wrenSetSlotHandle(vm, 0, gameClass);
+  interpreterResult = wrenCall(vm, initMethod);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    result = EXIT_FAILURE;
+    goto vm_cleanup;
   }
+
+  // Resizing from init must happen before we begin recording
+  if (makeGif) {
+    recordThread = SDL_CreateThread(ENGINE_record, "DOMErecorder", &engine);
+  }
+
+  SDL_ShowWindow(engine.window);
+  SDL_SetRenderDrawColor(engine.renderer, 0x00, 0x00, 0x00, 0xFF);
 
   uint64_t previousTime = SDL_GetPerformanceCounter();
   int32_t lag = 0;
   bool windowHasFocus = false;
   SDL_Event event;
-  uint8_t gifCounter = 0;
   while (engine.running) {
 
     // processInput()
@@ -454,19 +474,18 @@ int main(int argc, char* args[])
         }
       }
       lag -= MS_PER_FRAME;
-      if (makeGif && gifCounter > 1) {
+      if (makeGif) {
+        size_t imageSize = engine.width * engine.height;
         for (size_t i = 0; i < imageSize; i++) {
           uint32_t c = ((uint32_t*)engine.pixels)[i];
           uint8_t a = (0xFF000000 & c) >> 24;
           uint8_t r = (0x00FF0000 & c) >> 16;
           uint8_t g = (0x0000FF00 & c) >> 8;
           uint8_t b = (0x000000FF & c);
-          ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
+          ((uint32_t*)engine.gifPixels)[i] = a << 24 | b << 16 | g << 8 | r;
         }
-        jo_gif_frame(&gif, destroyableImage, 3, true);
-        gifCounter = 0;
+        engine.frameReady = true;
       }
-      gifCounter++;
 
       if (engine.lockstep) {
         lag = mid(0, lag, MS_PER_FRAME);
@@ -503,13 +522,10 @@ int main(int argc, char* args[])
   }
 
 vm_cleanup:
-  if (makeGif) {
-    jo_gif_end(&gif);
-    if (destroyableImage != NULL) {
-      free(destroyableImage);
-    }
-  }
 
+  if (recordThread != NULL) {
+    SDL_WaitThread(recordThread, NULL);
+  }
   // Finish processing async threads so we can release resources
   ENGINE_finishAsync(&engine);
   while(SDL_PollEvent(&event)) {

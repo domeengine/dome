@@ -15,6 +15,10 @@ typedef struct {
 } ENGINE_DEBUG;
 
 typedef struct {
+  SDL_sem* record;
+  void* gifPixels;
+  volatile bool frameReady;
+  char* gifName;
   SDL_Window* window;
   SDL_Renderer *renderer;
   SDL_Texture *texture;
