@@ -125,18 +125,29 @@ ENGINE_record(void* ptr) {
   ENGINE* engine = ptr;
   size_t imageSize = engine->width * engine->height;
   engine->gifPixels = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
+  uint8_t* buffer = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
+
   jo_gif_t gif = jo_gif_start(engine->gifName, engine->width, engine->height, 0, 31);
   do {
     while (engine->running && !engine->frameReady) {};
     if (!engine->running) {
       break;
     }
-    jo_gif_frame(&gif, engine->gifPixels, 10, true);
+      for (size_t i = 0; i < imageSize; i++) {
+        uint32_t c = ((uint32_t*)engine->gifPixels)[i];
+        uint8_t a = (0xFF000000 & c) >> 24;
+        uint8_t r = (0x00FF0000 & c) >> 16;
+        uint8_t g = (0x0000FF00 & c) >> 8;
+        uint8_t b = (0x000000FF & c);
+        ((uint32_t*)buffer)[i] = a << 24 | b << 16 | g << 8 | r;
+      }
+    jo_gif_frame(&gif, buffer, 16, true);
     engine->frameReady = false;
   } while(engine->running);
 
   jo_gif_end(&gif);
   free(engine->gifPixels);
+  free(buffer);
 
   return 0;
 }
@@ -498,21 +509,6 @@ int main(int argc, char* args[])
       ENGINE_drawDebug(&engine);
     }
 
-    if (makeGif && gifCounter > 1) {
-      size_t imageSize = engine.width * engine.height;
-      for (size_t i = 0; i < imageSize; i++) {
-        uint32_t c = ((uint32_t*)engine.pixels)[i];
-        uint8_t a = (0xFF000000 & c) >> 24;
-        uint8_t r = (0x00FF0000 & c) >> 16;
-        uint8_t g = (0x0000FF00 & c) >> 8;
-        uint8_t b = (0x000000FF & c);
-        ((uint32_t*)engine.gifPixels)[i] = a << 24 | b << 16 | g << 8 | r;
-      }
-      engine.frameReady = true;
-      gifCounter = 0;
-    } else {
-      gifCounter++;
-    }
 
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, engine.width * 4);
@@ -524,6 +520,14 @@ int main(int argc, char* args[])
 
     if (!engine.vsyncEnabled) {
       SDL_Delay(1);
+    }
+    if (makeGif && gifCounter >= 0) {
+      size_t imageSize = engine.width * engine.height;
+      memcpy(engine.gifPixels, engine.pixels, imageSize * 4);
+      engine.frameReady = true;
+      gifCounter = 0;
+    } else {
+      gifCounter++;
     }
   }
 
