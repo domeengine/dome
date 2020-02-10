@@ -551,9 +551,24 @@ ENGINE_rectfill(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint
   int64_t x2 = mid(0, x + w, width);
   int64_t y2 = mid(0, y + h, height);
 
-  for (int64_t j = y1; j < y2; j++) {
-    for (int64_t i = x1; i < x2; i++) {
-      ENGINE_pset(engine, i, j, c);
+  uint16_t alpha = (0xFF000000 & c) >> 24;
+
+  if (alpha < 0xFF) {
+    for (int64_t j = y1; j < y2; j++) {
+      for (int64_t i = x1; i < x2; i++) {
+        ENGINE_pset(engine, i, j, c);
+      }
+    }
+  } else {
+    char* pixels = engine->pixels;
+    size_t lineWidth = x2 - x1;
+    uint32_t buf[lineWidth];
+    for (size_t i = 0; i < lineWidth; i++) {
+      buf[i] = c;
+    }
+    for (int64_t j = y1; j < y2; j++) {
+      char* line = pixels + ((j * width + x1) * 4);
+      memcpy(line, buf, lineWidth * 4);
     }
   }
 }
