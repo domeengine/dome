@@ -425,22 +425,6 @@ ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t
       x++;
     }
   } else {
-/*
-   int r2 = r * r;
-            for (int cy = -r; cy <= r; cy++)
-            {
-                int cx = (int)(Math.Sqrt(r2 - cy * cy) + 0.5);
-                int cyy = cy + y;
-
-                lineDDA(x - cx, cyy, x + cx, cyy, c);
-            }
-            */
-    int64_t r2 = r * r + 1;
-    for (int64_t y = -r; y <= r; y++) {
-      int64_t x = (int64_t)(sqrt(r2 - (y * y)));
-      ENGINE_line(engine, x0 - x, y0 + y, x0 + x, y0 + y, c);
-    }
-  /*
     while (x <= y) {
       ENGINE_line(engine, x0 - x, y0 + y, x0 + x, y0 + y, c);
       ENGINE_line(engine, x0 - y, y0 + x, x0 + y, y0 + x, c);
@@ -461,7 +445,6 @@ ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t
       }
       x++;
     }
-    */
   }
 }
 
