@@ -311,6 +311,18 @@ ENGINE_print(ENGINE* engine, char* text, int64_t x, int64_t y, uint32_t c) {
 }
 
 internal void
+ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) {
+  size_t pitch = engine->width;
+  char* pixels = engine->pixels;
+  int64_t startX = mid(0, x, pitch);
+  int64_t endX = mid(0, x + w, pitch);
+  size_t lineWidth = endX - startX;
+  uint32_t* bufStart = buf + (size_t)fabs(min(0, x));
+  char* line = pixels + ((y * pitch + startX) * 4);
+  memcpy(line, bufStart, lineWidth * 4);
+}
+
+internal void
 ENGINE_line_high(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c) {
   int64_t dx = x2 - x1;
   int64_t dy = y2 - y1;
@@ -379,25 +391,77 @@ ENGINE_line(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint
 
 }
 
+
 internal void
 ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t c) {
   int64_t x = 0;
   int64_t y = r;
   int64_t d = round(M_PI - (2*r));
 
-  while (x <= y) {
-    ENGINE_line(engine, x0 - x, y0 + y, x0 + x, y0 + y, c);
-    ENGINE_line(engine, x0 - y, y0 + x, x0 + y, y0 + x, c);
-    ENGINE_line(engine, x0 + x, y0 - y, x0 - x, y0 - y, c);
-    ENGINE_line(engine, x0 - y, y0 - x, x0 + y, y0 - x, c);
 
-    if (d < 0) {
-      d = d + (M_PI * x) + (M_PI * 2);
-    } else {
-      d = d + (M_PI * (x - y)) + (M_PI * 3);
-      y--;
+  uint16_t alpha = (0xFF000000 & c) >> 24;
+  if (alpha == 0xFF) {
+    size_t bufWidth = r * 2 + 1;
+    uint32_t buf[bufWidth];
+    for (size_t i = 0; i < bufWidth; i++) {
+      buf[i] = c;
     }
-    x++;
+    while (x <= y) {
+      size_t lineWidthX = x * 2 + 1;
+      size_t lineWidthY = y * 2 + 1;
+
+      ENGINE_blitLine(engine, x0 - x, y0 + y, lineWidthX, buf);
+      ENGINE_blitLine(engine, x0 - x, y0 - y, lineWidthX, buf);
+
+      ENGINE_blitLine(engine, x0 - y, y0 + x, lineWidthY, buf);
+      ENGINE_blitLine(engine, x0 - y, y0 - x, lineWidthY, buf);
+
+      if (d < 0) {
+        d = d + (M_PI * x) + (M_PI * 2);
+      } else {
+        d = d + (M_PI * (x - y)) + (M_PI * 3);
+        y--;
+      }
+      x++;
+    }
+  } else {
+/*
+   int r2 = r * r;
+            for (int cy = -r; cy <= r; cy++)
+            {
+                int cx = (int)(Math.Sqrt(r2 - cy * cy) + 0.5);
+                int cyy = cy + y;
+
+                lineDDA(x - cx, cyy, x + cx, cyy, c);
+            }
+            */
+    int64_t r2 = r * r + 1;
+    for (int64_t y = -r; y <= r; y++) {
+      int64_t x = (int64_t)(sqrt(r2 - (y * y)));
+      ENGINE_line(engine, x0 - x, y0 + y, x0 + x, y0 + y, c);
+    }
+  /*
+    while (x <= y) {
+      ENGINE_line(engine, x0 - x, y0 + y, x0 + x, y0 + y, c);
+      ENGINE_line(engine, x0 - y, y0 + x, x0 + y, y0 + x, c);
+
+      if (x != 0) {
+        ENGINE_line(engine, x0 - y, y0 - x, x0 + y, y0 - x, c);
+      }
+
+      if (y != 0) {
+        ENGINE_line(engine, x0 + x, y0 - y, x0 - x, y0 - y, c);
+      }
+
+      if (d < 0) {
+        d = d + (M_PI * x) + (M_PI * 2);
+      } else {
+        d = d + (M_PI * (x - y)) + (M_PI * 3);
+        y--;
+      }
+      x++;
+    }
+    */
   }
 }
 
@@ -540,18 +604,6 @@ ENGINE_rect(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint32_t
   ENGINE_line(engine, x, y, x+w-1, y, c);
   ENGINE_line(engine, x, y+h-1, x+w-1, y+h-1, c);
   ENGINE_line(engine, x+w-1, y, x+w-1, y+h-1, c);
-}
-
-internal void
-ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) {
-  size_t pitch = engine->width;
-  char* pixels = engine->pixels;
-  int64_t startX = mid(0, x, pitch);
-  int64_t endX = mid(0, x + w, pitch);
-  size_t lineWidth = endX - startX;
-  uint32_t* bufStart = buf + (size_t)fabs(min(0, x));
-  char* line = pixels + ((y * pitch + startX) * 4);
-  memcpy(line, bufStart, lineWidth * 4);
 }
 
 internal void
