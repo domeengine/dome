@@ -543,32 +543,46 @@ ENGINE_rect(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint32_t
 }
 
 internal void
+ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) {
+  size_t pitch = engine->width;
+  char* pixels = engine->pixels;
+  int64_t startX = mid(0, x, pitch);
+  int64_t endX = mid(0, x + w, pitch);
+  size_t lineWidth = endX - startX;
+  uint32_t* bufStart = buf + (size_t)fabs(min(0, x));
+  char* line = pixels + ((y * pitch + startX) * 4);
+  memcpy(line, bufStart, lineWidth * 4);
+}
+
+internal void
 ENGINE_rectfill(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint32_t c) {
-  int32_t width = engine->width;
-  int32_t height = engine->height;
-  int64_t x1 = mid(0, x, width);
-  int64_t y1 = mid(0, y, height);
-  int64_t x2 = mid(0, x + w, width);
-  int64_t y2 = mid(0, y + h, height);
-
   uint16_t alpha = (0xFF000000 & c) >> 24;
-
-  if (alpha < 0xFF) {
-    for (int64_t j = y1; j < y2; j++) {
-      for (int64_t i = x1; i < x2; i++) {
-        ENGINE_pset(engine, i, j, c);
-      }
-    }
+  if (alpha == 0x00) {
+    return;
   } else {
-    char* pixels = engine->pixels;
-    size_t lineWidth = x2 - x1;
-    uint32_t buf[lineWidth];
-    for (size_t i = 0; i < lineWidth; i++) {
-      buf[i] = c;
-    }
-    for (int64_t j = y1; j < y2; j++) {
-      char* line = pixels + ((j * width + x1) * 4);
-      memcpy(line, buf, lineWidth * 4);
+    int32_t height = engine->height;
+    int64_t y1 = mid(0, y, height);
+    int64_t y2 = mid(0, y + h, height);
+
+    if (alpha == 0xFF) {
+      size_t lineWidth = w; // x2 - x1;
+      uint32_t buf[lineWidth];
+      for (size_t i = 0; i < lineWidth; i++) {
+        buf[i] = c;
+      }
+      for (int64_t j = y1; j < y2; j++) {
+        ENGINE_blitLine(engine, x, j, lineWidth, buf);
+      }
+    } else {
+      int32_t width = engine->width;
+      int64_t x1 = mid(0, x, width);
+      int64_t x2 = mid(0, x + w, width);
+
+      for (int64_t j = y1; j < y2; j++) {
+        for (int64_t i = x1; i < x2; i++) {
+          ENGINE_pset(engine, i, j, c);
+        }
+      }
     }
   }
 }
