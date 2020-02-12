@@ -347,19 +347,18 @@ int main(int argc, char* args[])
     goto vm_cleanup;
   }
 
-  // Resizing from init must happen before we begin recording
-  if (engine.record.makeGif) {
-    recordThread = SDL_CreateThread(ENGINE_record, "DOMErecorder", &engine);
-  }
 
   SDL_ShowWindow(engine.window);
   SDL_SetRenderDrawColor(engine.renderer, 0x00, 0x00, 0x00, 0xFF);
 
+  // Resizing from init must happen before we begin recording
+  if (engine.record.makeGif) {
+    recordThread = SDL_CreateThread(ENGINE_record, "DOMErecorder", &engine);
+  }
   uint64_t previousTime = SDL_GetPerformanceCounter();
   int32_t lag = 0;
   bool windowHasFocus = false;
   SDL_Event event;
-  int8_t gifCounter = 0;
   while (engine.running) {
 
     // processInput()
@@ -480,6 +479,11 @@ int main(int argc, char* args[])
 
     // Flip Buffer to Screen
     SDL_UpdateTexture(engine.texture, 0, engine.pixels, engine.width * 4);
+    // Flip buffer for recording
+    if (engine.record.makeGif) {
+      size_t imageSize = engine.width * engine.height * 4;
+      memcpy(engine.record.gifPixels, engine.pixels, imageSize);
+    }
 
     // clear screen
     SDL_RenderClear(engine.renderer);
@@ -489,20 +493,11 @@ int main(int argc, char* args[])
     if (!engine.vsyncEnabled) {
       SDL_Delay(1);
     }
-    if (engine.record.makeGif && gifCounter >= 0) {
-      size_t imageSize = engine.width * engine.height;
-      memcpy(engine.record.gifPixels, engine.pixels, imageSize * 4);
-      engine.record.frameReady = true;
-      gifCounter = 0;
-    } else {
-      gifCounter++;
-    }
   }
 
 vm_cleanup:
 
   if (recordThread != NULL) {
-    engine.record.frameReady = true;
     SDL_WaitThread(recordThread, NULL);
   }
   // Finish processing async threads so we can release resources

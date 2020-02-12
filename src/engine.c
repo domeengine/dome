@@ -4,32 +4,35 @@ ENGINE_record(void* ptr) {
   ENGINE* engine = ptr;
   size_t imageSize = engine->width * engine->height;
   engine->record.gifPixels = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
-  uint8_t* buffer = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
 
   jo_gif_t gif = jo_gif_start(engine->record.gifName, engine->width, engine->height, 0, 31);
+  uint8_t FPS = 30;
+  double MS_PER_FRAME = ceil(1000.0 / FPS);
+  double lag = 0;
+  uint64_t previousTime = SDL_GetPerformanceCounter();
   do {
-    while (engine->running && !engine->record.frameReady) {};
-    if (!engine->running) {
-      break;
+    SDL_Delay(1);
+    uint64_t currentTime = SDL_GetPerformanceCounter();
+    double elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
+    previousTime = currentTime;
+    if(fabs(elapsed - 1.0/120.0) < .0002){
+      elapsed = 1.0/120.0;
     }
-    /*
-    for (size_t i = 0; i < imageSize; i++) {
-      uint32_t c = ((uint32_t*)engine->record.gifPixels)[i];
-      uint8_t a = (0xFF000000 & c) >> 24;
-      uint8_t r = (0x00FF0000 & c) >> 16;
-      uint8_t g = (0x0000FF00 & c) >> 8;
-      uint8_t b = (0x000000FF & c);
-      ((uint32_t*)buffer)[i] = a << 24 | b << 16 | g << 8 | r;
+    if(fabs(elapsed - 1.0/60.0) < .0002){
+      elapsed = 1.0/60.0;
     }
-    */
-    jo_gif_frame(&gif, engine->pixels, 2, true);
-    engine->record.frameReady = false;
+    if(fabs(elapsed - 1.0/30.0) < .0002){
+      elapsed = 1.0/30.0;
+    }
+    lag += elapsed;
+    if (lag >= MS_PER_FRAME) {
+      jo_gif_frame(&gif, engine->record.gifPixels, 3, false);
+      lag -= MS_PER_FRAME;
+    }
   } while(engine->running);
 
   jo_gif_end(&gif);
   free(engine->record.gifPixels);
-  free(buffer);
-
   return 0;
 }
 
@@ -284,9 +287,6 @@ ENGINE_free(ENGINE* engine) {
   if (engine->debug.errorBuf != NULL) {
     free(engine->debug.errorBuf);
   }
-
-
-
 }
 
 inline internal void
@@ -317,7 +317,10 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 
       c = (a << 24) | (b << 16) | (g << 8) | r;
     }
-    ((uint32_t*)(engine->pixels))[width * y + x] = c;
+
+    // This is a very hot line, so we use pointer arithmetic for
+    // speed!
+    *(((uint32_t*)engine->pixels) + (width * y + x)) = c;
   }
 }
 
@@ -667,6 +670,9 @@ ENGINE_drawDebug(ENGINE* engine) {
 
 internal bool
 ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint32_t color) {
+  if (engine->record.makeGif) {
+    return true;
+  }
   if (engine->width == newWidth && engine->height == newHeight) {
     return true;
   }
@@ -693,19 +699,7 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
 internal void
 ENGINE_takeScreenshot(ENGINE* engine) {
   size_t imageSize = engine->width * engine->height;
-  uint8_t* destroyableImage = (uint8_t*)malloc(imageSize * 4 * sizeof(uint8_t));
-  /*
-  for (size_t i = 0; i < imageSize; i++) {
-    uint32_t c = ((uint32_t*)engine->pixels)[i];
-    uint8_t a = 0xFF;
-    uint8_t r = (0x00FF0000 & c) >> 16;
-    uint8_t g = (0x0000FF00 & c) >> 8;
-    uint8_t b = (0x000000FF & c);
-    ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
-  }
-  */
   stbi_write_png("screenshot.png", engine->width, engine->height, 4, engine->pixels, engine->width * 4);
-  free(destroyableImage);
 }
 
 
