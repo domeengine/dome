@@ -237,6 +237,7 @@ void IMAGE_allocate(WrenVM* vm) {
     return;
   }
   uint32_t* pixel = (uint32_t*)image->pixels;
+  /*
   for (int i = 0; i < image->height * image->width; i++) {
     uint32_t c = *pixel;
 
@@ -244,9 +245,10 @@ void IMAGE_allocate(WrenVM* vm) {
     uint8_t g = (0x0000FF00 & c) >> 8;
     uint8_t b = (0x00FF0000 & c) >> 16;
     uint8_t a = (0xFF000000 & c) >> 24;
-    *pixel = (a << 24) | (r << 16) | (g << 8) | b;
+    *pixel = (a << 24) | (b << 16) | (g << 8) | r;
     pixel++;
   }
+  */
 }
 
 void IMAGE_finalize(void* data) {

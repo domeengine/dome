@@ -12,15 +12,17 @@ ENGINE_record(void* ptr) {
     if (!engine->running) {
       break;
     }
-      for (size_t i = 0; i < imageSize; i++) {
-        uint32_t c = ((uint32_t*)engine->record.gifPixels)[i];
-        uint8_t a = (0xFF000000 & c) >> 24;
-        uint8_t r = (0x00FF0000 & c) >> 16;
-        uint8_t g = (0x0000FF00 & c) >> 8;
-        uint8_t b = (0x000000FF & c);
-        ((uint32_t*)buffer)[i] = a << 24 | b << 16 | g << 8 | r;
-      }
-    jo_gif_frame(&gif, buffer, 3, true);
+    /*
+    for (size_t i = 0; i < imageSize; i++) {
+      uint32_t c = ((uint32_t*)engine->record.gifPixels)[i];
+      uint8_t a = (0xFF000000 & c) >> 24;
+      uint8_t r = (0x00FF0000 & c) >> 16;
+      uint8_t g = (0x0000FF00 & c) >> 8;
+      uint8_t b = (0x000000FF & c);
+      ((uint32_t*)buffer)[i] = a << 24 | b << 16 | g << 8 | r;
+    }
+    */
+    jo_gif_frame(&gif, engine->pixels, 2, true);
     engine->record.frameReady = false;
   } while(engine->running);
 
@@ -154,7 +156,7 @@ ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
   }
   SDL_RenderSetLogicalSize(engine->renderer, engine->width, engine->height);
 
-  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, engine->width, engine->height);
+  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, engine->width, engine->height);
   if (engine->texture == NULL) {
     return false;
   }
@@ -301,18 +303,19 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
       // uint16_t oldA = (0xFF000000 & current) >> 24;
       uint16_t newA = (0xFF000000 & c) >> 24;
 
-      uint16_t oldR = (255-newA) * ((0x00FF0000 & current) >> 16);
+      uint16_t oldR = (255-newA) * ((0x000000FF & current));
       uint16_t oldG = (255-newA) * ((0x0000FF00 & current) >> 8);
-      uint16_t oldB = (255-newA) * (0x000000FF & current);
-      uint16_t newR = newA * ((0x00FF0000 & c) >> 16);
+      uint16_t oldB = (255-newA) * ((0x00FF0000 & current) >> 16);
+      uint16_t newR = newA * ((0x000000FF & c));
       uint16_t newG = newA * ((0x0000FF00 & c) >> 8);
-      uint16_t newB = newA * (0x000000FF & c);
-      uint8_t a = newA;
+      uint16_t newB = newA * ((0x00FF0000 & c) >> 16);
+
+      uint8_t a = 0xFF;
       uint8_t r = (oldR + newR) / 255;
       uint8_t g = (oldG + newG) / 255;
       uint8_t b = (oldB + newB) / 255;
 
-      c = (a << 24) | (r << 16) | (g << 8) | b;
+      c = (a << 24) | (b << 16) | (g << 8) | r;
     }
     ((uint32_t*)(engine->pixels))[width * y + x] = c;
   }
@@ -673,7 +676,7 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
   SDL_DestroyTexture(engine->texture);
   SDL_RenderSetLogicalSize(engine->renderer, newWidth, newHeight);
 
-  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, newWidth, newHeight);
+  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, newWidth, newHeight);
   if (engine->texture == NULL) {
     return false;
   }
@@ -691,6 +694,7 @@ internal void
 ENGINE_takeScreenshot(ENGINE* engine) {
   size_t imageSize = engine->width * engine->height;
   uint8_t* destroyableImage = (uint8_t*)malloc(imageSize * 4 * sizeof(uint8_t));
+  /*
   for (size_t i = 0; i < imageSize; i++) {
     uint32_t c = ((uint32_t*)engine->pixels)[i];
     uint8_t a = 0xFF;
@@ -699,7 +703,8 @@ ENGINE_takeScreenshot(ENGINE* engine) {
     uint8_t b = (0x000000FF & c);
     ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
   }
-  stbi_write_png("screenshot.png", engine->width, engine->height, 4, destroyableImage, engine->width * 4);
+  */
+  stbi_write_png("screenshot.png", engine->width, engine->height, 4, engine->pixels, engine->width * 4);
   free(destroyableImage);
 }
 
