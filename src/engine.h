@@ -15,10 +15,14 @@ typedef struct {
 } ENGINE_DEBUG;
 
 typedef struct {
-  SDL_sem* record;
+  bool makeGif;
   void* gifPixels;
   volatile bool frameReady;
   char* gifName;
+} ENGINE_RECORDER;
+
+typedef struct {
+  ENGINE_RECORDER record;
   SDL_Window* window;
   SDL_Renderer *renderer;
   SDL_Texture *texture;
