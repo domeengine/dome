@@ -25,13 +25,13 @@ class Box {
 class Game {
   static init() {
     Window.title = "Example Game"
-    System.print(Window.title)
     __state = MainGame
     __state.init()
 
     __settingsFile = FileSystem.load("config.txt")
     System.print(__settingsFile)
   }
+
   static update() {
 
     __x = Mouse.x
@@ -43,8 +43,8 @@ class Game {
       __state.init()
     }
     Mouse.hidden = Mouse.isButtonPressed("right")
-    System.print(Mouse.hidden)
   }
+
   static draw(dt) {
     __state.draw(dt)
     if (Mouse.isButtonPressed("right")) {
