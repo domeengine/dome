@@ -670,7 +670,7 @@ ENGINE_drawDebug(ENGINE* engine) {
 
 internal bool
 ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint32_t color) {
-  if (engine->record.makeGif) {
+  if (engine->initialized && engine->record.makeGif) {
     return true;
   }
   if (engine->width == newWidth && engine->height == newHeight) {

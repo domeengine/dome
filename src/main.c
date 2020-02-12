@@ -346,6 +346,7 @@ int main(int argc, char* args[])
     result = EXIT_FAILURE;
     goto vm_cleanup;
   }
+  engine.initialized = true;
 
 
   SDL_ShowWindow(engine.window);

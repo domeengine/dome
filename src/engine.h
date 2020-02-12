@@ -37,6 +37,7 @@ typedef struct {
   bool lockstep;
   int exit_status;
   struct AUDIO_ENGINE_t* audioEngine;
+  bool initialized;
   bool debugEnabled;
   bool vsyncEnabled;
   ENGINE_DEBUG debug;
