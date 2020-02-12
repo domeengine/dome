@@ -173,6 +173,7 @@ ENGINE_init(ENGINE* engine) {
   engine->renderer = NULL;
   engine->texture = NULL;
   engine->pixels = NULL;
+  engine->blitBuffer = calloc(0, 0);
   engine->lockstep = false;
   engine->debug.avgFps = 58;
   engine->debugEnabled = false;
@@ -246,6 +247,7 @@ ENGINE_free(ENGINE* engine) {
     return;
   }
 
+
   ENGINE_finishAsync(engine);
 
   if (engine->audioEngine) {
@@ -261,6 +263,10 @@ ENGINE_free(ENGINE* engine) {
 
   if (engine->moduleMap.head != NULL) {
     MAP_free(&engine->moduleMap);
+  }
+
+  if (engine->blitBuffer) {
+    free(engine->blitBuffer);
   }
 
   if (engine->pixels != NULL) {
@@ -347,6 +353,18 @@ ENGINE_print(ENGINE* engine, char* text, int64_t x, int64_t y, uint32_t c) {
     }
     cursor += fontWidth;
   }
+}
+
+internal void
+blitLine(void* dest, size_t destPitch, int64_t x, int64_t y, int64_t w, uint32_t* buf) {
+  size_t pitch = destPitch;
+  char* pixels = dest;
+  int64_t startX = mid(0, x, pitch);
+  int64_t endX = mid(0, x + w, pitch);
+  size_t lineWidth = endX - startX;
+  uint32_t* bufStart = buf + (size_t)fabs(min(0, x));
+  char* line = pixels + ((y * pitch + startX) * 4);
+  memcpy(line, bufStart, lineWidth * 4);
 }
 
 internal void
@@ -439,12 +457,12 @@ ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t
 
 
   uint16_t alpha = (0xFF000000 & c) >> 24;
+  size_t bufWidth = r * 2 + 1;
+  uint32_t buf[bufWidth];
+  for (size_t i = 0; i < bufWidth; i++) {
+    buf[i] = c;
+  }
   if (alpha == 0xFF) {
-    size_t bufWidth = r * 2 + 1;
-    uint32_t buf[bufWidth];
-    for (size_t i = 0; i < bufWidth; i++) {
-      buf[i] = c;
-    }
     while (x <= y) {
       size_t lineWidthX = x * 2 + 1;
       size_t lineWidthY = y * 2 + 1;
@@ -464,16 +482,24 @@ ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t
       x++;
     }
   } else {
+    size_t newBufferSize = bufWidth * bufWidth * sizeof(uint32_t);
+    if (engine->blitBufferSize < newBufferSize) {
+      engine->blitBufferSize = newBufferSize;
+      engine->blitBuffer = realloc(engine->blitBuffer, newBufferSize);
+    }
+    uint32_t* blitBuffer = engine->blitBuffer;
+    memset(blitBuffer, 0, newBufferSize);
     while (x <= y) {
-      ENGINE_line(engine, x0 - x, y0 + y, x0 + x, y0 + y, c);
-      ENGINE_line(engine, x0 - y, y0 + x, x0 + y, y0 + x, c);
-
-      if (x != 0) {
-        ENGINE_line(engine, x0 - y, y0 - x, x0 + y, y0 - x, c);
-      }
-
+      int64_t c = r;
+      size_t lineWidthX = x * 2 + 1;
+      size_t lineWidthY = y * 2 + 1;
+      blitLine(blitBuffer, bufWidth, c - x, c + y, lineWidthX, buf);
       if (y != 0) {
-        ENGINE_line(engine, x0 + x, y0 - y, x0 - x, y0 - y, c);
+        blitLine(blitBuffer, bufWidth, c - x, c - y, lineWidthX, buf);
+      }
+      blitLine(blitBuffer, bufWidth, c - y, c + x, lineWidthY, buf);
+      if (x != 0) {
+        blitLine(blitBuffer, bufWidth, c - y, c - x, lineWidthY, buf);
       }
 
       if (d < 0) {
@@ -483,6 +509,12 @@ ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t
         y--;
       }
       x++;
+    }
+    for (size_t j = 0; j < bufWidth; j++) {
+      for (size_t i = 0; i < bufWidth; i++) {
+        uint32_t c = *(blitBuffer + (j * bufWidth + i));
+        ENGINE_pset(engine, x0 - r + i, y0 - r + j, c);
+      }
     }
   }
 }
@@ -762,7 +794,6 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
 
 internal void
 ENGINE_takeScreenshot(ENGINE* engine) {
-  size_t imageSize = engine->width * engine->height;
   stbi_write_png("screenshot.png", engine->width, engine->height, 4, engine->pixels, engine->width * 4);
 }
 

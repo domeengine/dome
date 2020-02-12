@@ -37,6 +37,8 @@ typedef struct {
   bool lockstep;
   int exit_status;
   struct AUDIO_ENGINE_t* audioEngine;
+  size_t blitBufferSize;
+  uint32_t* blitBuffer;
   bool initialized;
   bool debugEnabled;
   bool vsyncEnabled;
