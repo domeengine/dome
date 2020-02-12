@@ -239,7 +239,6 @@ void IMAGE_allocate(WrenVM* vm) {
     wrenAbortFiber(vm, 0);
     return;
   }
-  uint32_t* pixel = (uint32_t*)image->pixels;
 }
 
 void IMAGE_finalize(void* data) {
