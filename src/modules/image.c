@@ -108,6 +108,8 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
           u = v;
           v = swap;
         }
+
+        /*
         if (u < 0 || u > srcW || v < 0 || v > srcH) {
           continue;
         }
@@ -117,7 +119,8 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
           ENGINE_pset(engine, x, y, 0xFFFF00FF);
           continue;
         }
-        uint32_t color = pixel[v * image->width + u];
+        */
+        uint32_t color = *(pixel + (v * image->width + u));
         if (command.mode == COLOR_MODE_MONO) {
           uint8_t alpha = (0xFF000000 & color) >> 24;
           if (alpha < 0xFF || (color & 0x00FFFFFF) == 0) {
@@ -237,16 +240,6 @@ void IMAGE_allocate(WrenVM* vm) {
     return;
   }
   uint32_t* pixel = (uint32_t*)image->pixels;
-  for (int i = 0; i < image->height * image->width; i++) {
-    uint32_t c = *pixel;
-
-    uint8_t r = (0x000000FF & c);
-    uint8_t g = (0x0000FF00 & c) >> 8;
-    uint8_t b = (0x00FF0000 & c) >> 16;
-    uint8_t a = (0xFF000000 & c) >> 24;
-    *pixel = (a << 24) | (r << 16) | (g << 8) | b;
-    pixel++;
-  }
 }
 
 void IMAGE_finalize(void* data) {

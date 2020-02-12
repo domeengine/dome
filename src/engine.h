@@ -15,6 +15,14 @@ typedef struct {
 } ENGINE_DEBUG;
 
 typedef struct {
+  bool makeGif;
+  void* gifPixels;
+  volatile bool frameReady;
+  char* gifName;
+} ENGINE_RECORDER;
+
+typedef struct {
+  ENGINE_RECORDER record;
   SDL_Window* window;
   SDL_Renderer *renderer;
   SDL_Texture *texture;
@@ -29,6 +37,7 @@ typedef struct {
   bool lockstep;
   int exit_status;
   struct AUDIO_ENGINE_t* audioEngine;
+  bool initialized;
   bool debugEnabled;
   bool vsyncEnabled;
   ENGINE_DEBUG debug;

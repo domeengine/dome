@@ -161,7 +161,7 @@ class Color {
   }
 
   rgb {
-    return a << 24 | r << 16 | g << 8 | b
+    return a << 24 | b << 16 | g << 8 | r
   }
 
   a { _a }
