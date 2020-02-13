@@ -242,9 +242,20 @@ void IMAGE_allocate(WrenVM* vm) {
 }
 
 internal void
+IMAGE_finalize(void* data) {
+  IMAGE* image = data;
+
+  if (image->pixels != NULL) {
+    stbi_image_free(image->pixels);
+  }
+}
+
+internal void
 IMAGE_draw(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  // TODO: assert image!
   IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
   int32_t x = wrenGetSlotDouble(vm, 1);
   int32_t y = wrenGetSlotDouble(vm, 2);
@@ -262,15 +273,6 @@ IMAGE_draw(WrenVM* vm) {
       uint32_t* row = pixels + (j * width);
       ENGINE_blitLine(engine, x, y + j, width, row);
     }
-  }
-}
-
-internal void
-IMAGE_finalize(void* data) {
-  IMAGE* image = data;
-
-  if (image->pixels != NULL) {
-    stbi_image_free(image->pixels);
   }
 }
 
