@@ -203,6 +203,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.height", CANVAS_getHeight);
 
   // Image
+  MAP_addFunction(&engine->moduleMap, "image", "ImageData.draw(_,_)", IMAGE_draw);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.width", IMAGE_getWidth);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.height", IMAGE_getHeight);
   MAP_addFunction(&engine->moduleMap, "image", "DrawCommand.draw(_,_)", DRAW_COMMAND_draw);

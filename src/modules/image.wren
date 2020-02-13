@@ -51,9 +51,12 @@ foreign class ImageData is Drawable {
     return DrawCommand.parse(this, map)
   }
 
+  foreign draw(x, y)
+/*
   draw(x, y) {
     return this.transform(NULL_TRANSFORM).draw(x, y)
   }
+*/
 
   drawArea(srcX, srcY, srcW, srcH, destX, destY) {
     return this.transform({

@@ -369,11 +369,14 @@ blitLine(void* dest, size_t destPitch, int64_t x, int64_t y, int64_t w, uint32_t
 
 internal void
 ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) {
+  if (y < 0 || y >= engine->height) {
+    return;
+  }
   size_t pitch = engine->width;
   char* pixels = engine->pixels;
   int64_t startX = mid(0, x, pitch);
   int64_t endX = mid(0, x + w, pitch);
-  size_t lineWidth = endX - startX;
+  size_t lineWidth = min(endX, pitch) - startX;
   uint32_t* bufStart = buf + (size_t)fabs(min(0, x));
   char* line = pixels + ((y * pitch + startX) * 4);
   memcpy(line, bufStart, lineWidth * 4);

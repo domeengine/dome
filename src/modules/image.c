@@ -241,7 +241,32 @@ void IMAGE_allocate(WrenVM* vm) {
   }
 }
 
-void IMAGE_finalize(void* data) {
+internal void
+IMAGE_draw(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  // TODO: assert image!
+  IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
+  int32_t x = wrenGetSlotDouble(vm, 1);
+  int32_t y = wrenGetSlotDouble(vm, 2);
+  if (image->channels == 2 || image->channels == 4) {
+    // drawCommand
+    DRAW_COMMAND command = DRAW_COMMAND_init(image);
+    command.dest = (VEC){ x, y };
+    DRAW_COMMAND_execute(engine, &command);
+  } else {
+    // fast blit
+    size_t height = image->height;
+    size_t width = image->width;
+    uint32_t* pixels = image->pixels;
+    for (size_t j = 0; j < height; j++) {
+      uint32_t* row = pixels + (j * width);
+      ENGINE_blitLine(engine, x, y + j, width, row);
+    }
+  }
+}
+
+internal void
+IMAGE_finalize(void* data) {
   IMAGE* image = data;
 
   if (image->pixels != NULL) {
