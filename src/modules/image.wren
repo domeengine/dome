@@ -1,6 +1,3 @@
-
-var NULL_TRANSFORM = {}
-
 class Drawable {
   draw(x, y) {}
 }
@@ -26,7 +23,6 @@ foreign class DrawCommand is Drawable {
   }
 
   foreign draw(x, y)
-
 }
 
 
@@ -51,10 +47,6 @@ foreign class ImageData is Drawable {
     return DrawCommand.parse(this, map)
   }
 
-  draw(x, y) {
-    return this.transform(NULL_TRANSFORM).draw(x, y)
-  }
-
   drawArea(srcX, srcY, srcW, srcH, destX, destY) {
     return this.transform({
       "srcX": srcX,
@@ -64,6 +56,7 @@ foreign class ImageData is Drawable {
     }).draw(destX, destY)
   }
 
+  foreign draw(x, y)
   foreign width
   foreign height
 }

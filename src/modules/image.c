@@ -1,8 +1,8 @@
 typedef struct {
   int32_t width;
   int32_t height;
-  int32_t channels;
   uint32_t* pixels;
+  int32_t channels;
 } IMAGE;
 
 typedef enum { COLOR_MODE_RGBA, COLOR_MODE_MONO } COLOR_MODE;
@@ -108,16 +108,8 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
           u = v;
           v = swap;
         }
-        if (u < 0 || u > srcW || v < 0 || v > srcH) {
-          continue;
-        }
-        // protect against invalid memory access
-        if (0 > u || u >= image->width || 0 > v || v >= image->height) {
-          printf("protect (%i, %i)\n", u, v);
-          ENGINE_pset(engine, x, y, 0xFFFF00FF);
-          continue;
-        }
-        uint32_t color = pixel[v * image->width + u];
+
+        uint32_t color = *(pixel + (v * image->width + u));
         if (command.mode == COLOR_MODE_MONO) {
           uint8_t alpha = (0xFF000000 & color) >> 24;
           if (alpha < 0xFF || (color & 0x00FFFFFF) == 0) {
@@ -236,24 +228,40 @@ void IMAGE_allocate(WrenVM* vm) {
     wrenAbortFiber(vm, 0);
     return;
   }
-  uint32_t* pixel = (uint32_t*)image->pixels;
-  for (int i = 0; i < image->height * image->width; i++) {
-    uint32_t c = *pixel;
-
-    uint8_t r = (0x000000FF & c);
-    uint8_t g = (0x0000FF00 & c) >> 8;
-    uint8_t b = (0x00FF0000 & c) >> 16;
-    uint8_t a = (0xFF000000 & c) >> 24;
-    *pixel = (a << 24) | (r << 16) | (g << 8) | b;
-    pixel++;
-  }
 }
 
-void IMAGE_finalize(void* data) {
+internal void
+IMAGE_finalize(void* data) {
   IMAGE* image = data;
 
   if (image->pixels != NULL) {
     stbi_image_free(image->pixels);
+  }
+}
+
+internal void
+IMAGE_draw(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
+  int32_t x = wrenGetSlotDouble(vm, 1);
+  int32_t y = wrenGetSlotDouble(vm, 2);
+  if (image->channels == 2 || image->channels == 4) {
+    // drawCommand
+    DRAW_COMMAND command = DRAW_COMMAND_init(image);
+    command.dest = (VEC){ x, y };
+    DRAW_COMMAND_execute(engine, &command);
+  } else {
+    // fast blit
+    size_t height = image->height;
+    size_t width = image->width;
+    uint32_t* pixels = image->pixels;
+    for (size_t j = 0; j < height; j++) {
+      uint32_t* row = pixels + (j * width);
+      ENGINE_blitLine(engine, x, y + j, width, row);
+    }
   }
 }
 
