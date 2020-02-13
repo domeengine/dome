@@ -596,11 +596,6 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
   uint32_t rySquare = ry*ry;
   uint32_t rx2ry2 = rxSquare * rySquare;
 
-  // calculate center co-ordinates
-  /*
-  int32_t xc = min(x0, x1) + rx;
-  int32_t yc = min(y0, y1) + ry;
-  */
   int32_t dx = (rx + 1) * 2;
   int32_t dy = (ry + 1) * 2;
 
@@ -611,7 +606,7 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
   }
   uint32_t* blitBuffer = ENGINE_resizeBlitBuffer(engine, dx, dy);
 
-  // Start drawing at (0,ry)
+  // Start drawing at (0, ry)
   int32_t x = 0;
   int32_t y = ry;
   double d = 0;
@@ -620,7 +615,7 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
     x++;
     size_t lineWidthX = x * 2 + 1;
     double xSquare = x*x;
-    // valuate decision paramter
+    // evaluate decision parameter
     d = rySquare * xSquare + rxSquare * pow(y - 0.5, 2) - rx2ry2;
 
     if (d > 0) {
@@ -633,7 +628,7 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
   while (y > 0) {
     y--;
     double ySquare = y*y;
-    // valuate decision paramter
+    // evaluate decision parameter
     d = rxSquare * ySquare + rySquare * pow(x + 0.5, 2) - rx2ry2;
 
     if (d <= 0) {
@@ -650,54 +645,55 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
 internal void
 ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, uint32_t c) {
 
-  // Calcularte radius
+  // Calculate radius
   int32_t rx = llabs(x1 - x0) / 2; // Radius on x
   int32_t ry = llabs(y1 - y0) / 2; // Radius on y
   int32_t rxSquare = rx*rx;
   int32_t rySquare = ry*ry;
   int32_t rx2ry2 = rxSquare * rySquare;
 
-  // calculate center co-ordinates
-  int32_t xc = min(x0, x1) + rx;
-  int32_t yc = min(y0, y1) + ry;
-
-  // Start drawing at (0,ry)
+  // Start drawing at (0, ry)
   double x = 0;
   double y = ry;
   double d = 0;
 
-  ENGINE_pset(engine, xc+x, yc+y, c);
-  ENGINE_pset(engine, xc+x, yc-y, c);
+  int32_t width = (rx + 1) * 2;
+  int32_t height = (ry + 1) * 2;
+  uint32_t* blitBuffer = ENGINE_resizeBlitBuffer(engine, width, height);
+
+  blitPixel(blitBuffer, width, rx + x, ry + y , c);
+  blitPixel(blitBuffer, width, rx + x, ry - y , c);
 
   while (fabs(ellipse_getRegion(x, y, rx, ry)) < 1) {
     x++;
     double xSquare = x*x;
-    // valuate decision paramter
+    // evaluate decision parameter
     d = rySquare * xSquare + rxSquare * pow(y - 0.5, 2) - rx2ry2;
 
     if (d > 0) {
       y--;
     }
-    ENGINE_pset(engine, xc+x, yc+y, c);
-    ENGINE_pset(engine, xc-x, yc-y, c);
-    ENGINE_pset(engine, xc-x, yc+y, c);
-    ENGINE_pset(engine, xc+x, yc-y, c);
+    blitPixel(blitBuffer, width, rx + x, ry + y , c);
+    blitPixel(blitBuffer, width, rx - x, ry - y , c);
+    blitPixel(blitBuffer, width, rx - x, ry + y , c);
+    blitPixel(blitBuffer, width, rx + x, ry - y , c);
   }
 
   while (y > 0) {
     y--;
     double ySquare = y*y;
-    // valuate decision paramter
+    // evaluate decision parameter
     d = rxSquare * ySquare + rySquare * pow(x + 0.5, 2) - rx2ry2;
 
     if (d <= 0) {
       x++;
     }
-    ENGINE_pset(engine, xc+x, yc+y, c);
-    ENGINE_pset(engine, xc-x, yc-y, c);
-    ENGINE_pset(engine, xc-x, yc+y, c);
-    ENGINE_pset(engine, xc+x, yc-y, c);
+    blitPixel(blitBuffer, width, rx + x, ry + y , c);
+    blitPixel(blitBuffer, width, rx - x, ry - y , c);
+    blitPixel(blitBuffer, width, rx - x, ry + y , c);
+    blitPixel(blitBuffer, width, rx + x, ry - y , c);
   };
+  ENGINE_blitBuffer(engine, x0, y0);
 }
 
 internal void

@@ -1,8 +1,8 @@
 typedef struct {
   int32_t width;
   int32_t height;
-  int32_t channels;
   uint32_t* pixels;
+  int32_t channels;
 } IMAGE;
 
 typedef enum { COLOR_MODE_RGBA, COLOR_MODE_MONO } COLOR_MODE;
