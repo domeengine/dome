@@ -109,17 +109,6 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
           v = swap;
         }
 
-        /*
-        if (u < 0 || u > srcW || v < 0 || v > srcH) {
-          continue;
-        }
-        // protect against invalid memory access
-        if (0 > u || u >= image->width || 0 > v || v >= image->height) {
-          printf("protect (%i, %i)\n", u, v);
-          ENGINE_pset(engine, x, y, 0xFFFF00FF);
-          continue;
-        }
-        */
         uint32_t color = *(pixel + (v * image->width + u));
         if (command.mode == COLOR_MODE_MONO) {
           uint8_t alpha = (0xFF000000 & color) >> 24;
