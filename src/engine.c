@@ -173,7 +173,10 @@ ENGINE_init(ENGINE* engine) {
   engine->renderer = NULL;
   engine->texture = NULL;
   engine->pixels = NULL;
-  engine->blitBuffer = calloc(0, 0);
+  engine->blitBuffer.pixels = calloc(0, 0);
+  engine->blitBuffer.width = 0;
+  engine->blitBuffer.height = 0;
+
   engine->lockstep = false;
   engine->debug.avgFps = 58;
   engine->debugEnabled = false;
@@ -265,8 +268,8 @@ ENGINE_free(ENGINE* engine) {
     MAP_free(&engine->moduleMap);
   }
 
-  if (engine->blitBuffer) {
-    free(engine->blitBuffer);
+  if (engine->blitBuffer.pixels != NULL) {
+    free(engine->blitBuffer.pixels);
   }
 
   if (engine->pixels != NULL) {
@@ -331,6 +334,35 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 }
 
 internal void
+ENGINE_blitBuffer(ENGINE* engine, int32_t x, int32_t y) {
+  PIXEL_BUFFER buffer = engine->blitBuffer;
+  uint32_t* blitBuffer = buffer.pixels;
+  for (size_t j = 0; j < buffer.height; j++) {
+    for (size_t i = 0; i < buffer.width; i++) {
+      uint32_t c = *(blitBuffer + (j * buffer.width + i));
+      ENGINE_pset(engine, x + i, y + j, c);
+    }
+  }
+}
+
+internal uint32_t*
+ENGINE_resizeBlitBuffer(ENGINE* engine, size_t width, size_t height) {
+  PIXEL_BUFFER* buffer = &engine->blitBuffer;
+
+  size_t oldBufferSize = buffer->width * buffer->height * sizeof(uint32_t);
+  size_t newBufferSize = width * height * sizeof(uint32_t);
+
+  if (oldBufferSize < newBufferSize) {
+    buffer->width = width;
+    buffer->height = height;
+    buffer->pixels = realloc(buffer->pixels, newBufferSize);
+  }
+  memset(buffer->pixels, 0, newBufferSize);
+  return buffer->pixels;
+}
+
+
+internal void
 ENGINE_print(ENGINE* engine, char* text, int64_t x, int64_t y, uint32_t c) {
   int fontWidth = 8;
   int fontHeight = 8;
@@ -353,6 +385,12 @@ ENGINE_print(ENGINE* engine, char* text, int64_t x, int64_t y, uint32_t c) {
     }
     cursor += fontWidth;
   }
+}
+
+internal void
+blitPixel(void* dest, size_t pitch, int64_t x, int64_t y, uint32_t c) {
+  uint32_t* pixel = (uint32_t*)dest + (y * pitch + x);
+  *pixel = c;
 }
 
 internal void
@@ -485,13 +523,7 @@ ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t
       x++;
     }
   } else {
-    size_t newBufferSize = bufWidth * bufWidth * sizeof(uint32_t);
-    if (engine->blitBufferSize < newBufferSize) {
-      engine->blitBufferSize = newBufferSize;
-      engine->blitBuffer = realloc(engine->blitBuffer, newBufferSize);
-    }
-    uint32_t* blitBuffer = engine->blitBuffer;
-    memset(blitBuffer, 0, newBufferSize);
+    uint32_t* blitBuffer = ENGINE_resizeBlitBuffer(engine, bufWidth, bufWidth);
     while (x <= y) {
       int64_t c = r;
       size_t lineWidthX = x * 2 + 1;
@@ -513,12 +545,7 @@ ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t
       }
       x++;
     }
-    for (size_t j = 0; j < bufWidth; j++) {
-      for (size_t i = 0; i < bufWidth; i++) {
-        uint32_t c = *(blitBuffer + (j * bufWidth + i));
-        ENGINE_pset(engine, x0 - r + i, y0 - r + j, c);
-      }
-    }
+    ENGINE_blitBuffer(engine, x0 - r, y0 - r);
   }
 }
 
@@ -528,16 +555,18 @@ ENGINE_circle(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t c) {
   int64_t y = r;
   int64_t d = round(M_PI - (2*r));
 
-  while (x <= y) {
-    ENGINE_pset(engine, x0 + x, y0 + y, c);
-    ENGINE_pset(engine, x0 + y, y0 + x, c);
-    ENGINE_pset(engine, x0 - y, y0 + x, c);
-    ENGINE_pset(engine, x0 - x, y0 + y, c);
+  size_t pitch = r * 2 + 1;
+  uint32_t* blitBuffer = ENGINE_resizeBlitBuffer(engine, pitch, pitch);
 
-    ENGINE_pset(engine, x0 - x, y0 - y, c);
-    ENGINE_pset(engine, x0 - y, y0 - x, c);
-    ENGINE_pset(engine, x0 + y, y0 - x, c);
-    ENGINE_pset(engine, x0 + x, y0 - y, c);
+  while (x <= y) {
+    blitPixel(blitBuffer, pitch, r + x, r + y , c);
+    blitPixel(blitBuffer, pitch, r - x, r - y , c);
+    blitPixel(blitBuffer, pitch, r - x, r + y , c);
+    blitPixel(blitBuffer, pitch, r + x, r - y , c);
+    blitPixel(blitBuffer, pitch, r + y, r + x , c);
+    blitPixel(blitBuffer, pitch, r - y, r - x , c);
+    blitPixel(blitBuffer, pitch, r - y, r + x , c);
+    blitPixel(blitBuffer, pitch, r + y, r - x , c);
 
     if (d < 0) {
       d = d + (M_PI * x) + (M_PI * 2);
@@ -547,6 +576,7 @@ ENGINE_circle(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t c) {
     }
     x++;
   }
+  ENGINE_blitBuffer(engine, x0 - r, y0 - r);
 }
 
 internal inline double
@@ -579,13 +609,7 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
   for (size_t i = 0; i < bufWidth; i++) {
     buf[i] = c;
   }
-  size_t newBufferSize = dx * dy * sizeof(uint32_t);
-  if (engine->blitBufferSize < newBufferSize) {
-    engine->blitBufferSize = newBufferSize;
-    engine->blitBuffer = realloc(engine->blitBuffer, newBufferSize);
-  }
-  uint32_t* blitBuffer = engine->blitBuffer;
-  memset(blitBuffer, 0, newBufferSize);
+  uint32_t* blitBuffer = ENGINE_resizeBlitBuffer(engine, dx, dy);
 
   // Start drawing at (0,ry)
   int32_t x = 0;
@@ -620,13 +644,7 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
     blitLine(blitBuffer, bufWidth, rx - x, ry - y, lineWidthY, buf);
   };
 
-  // Blit the buffer
-  for (int32_t j = 0; j < dy; j++) {
-    for (int32_t i = 0; i < dx; i++) {
-      uint32_t c = *(blitBuffer + (j * bufWidth + i));
-      ENGINE_pset(engine, x0 + i, y0 + j, c);
-    }
-  }
+  ENGINE_blitBuffer(engine, x0, y0);
 }
 
 internal void
