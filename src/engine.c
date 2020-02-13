@@ -567,8 +567,25 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
   uint32_t rx2ry2 = rxSquare * rySquare;
 
   // calculate center co-ordinates
+  /*
   int32_t xc = min(x0, x1) + rx;
   int32_t yc = min(y0, y1) + ry;
+  */
+  int32_t dx = (rx + 1) * 2;
+  int32_t dy = (ry + 1) * 2;
+
+  size_t bufWidth = max(dx, dy);
+  uint32_t buf[bufWidth];
+  for (size_t i = 0; i < bufWidth; i++) {
+    buf[i] = c;
+  }
+  size_t newBufferSize = dx * dy * sizeof(uint32_t);
+  if (engine->blitBufferSize < newBufferSize) {
+    engine->blitBufferSize = newBufferSize;
+    engine->blitBuffer = realloc(engine->blitBuffer, newBufferSize);
+  }
+  uint32_t* blitBuffer = engine->blitBuffer;
+  memset(blitBuffer, 0, newBufferSize);
 
   // Start drawing at (0,ry)
   int32_t x = 0;
@@ -577,6 +594,7 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
 
   while (fabs(ellipse_getRegion(x, y, rx, ry)) < 1) {
     x++;
+    size_t lineWidthX = x * 2 + 1;
     double xSquare = x*x;
     // valuate decision paramter
     d = rySquare * xSquare + rxSquare * pow(y - 0.5, 2) - rx2ry2;
@@ -584,8 +602,8 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
     if (d > 0) {
       y--;
     }
-    ENGINE_line(engine, xc+x, yc+y, xc-x, yc+y, c);
-    ENGINE_line(engine, xc-x, yc-y, xc+x, yc-y, c);
+    blitLine(blitBuffer, bufWidth, rx - x, ry + y, lineWidthX, buf);
+    blitLine(blitBuffer, bufWidth, rx - x, ry - y, lineWidthX, buf);
   }
 
   while (y > 0) {
@@ -597,9 +615,18 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
     if (d <= 0) {
       x++;
     }
-    ENGINE_line(engine, xc+x, yc+y, xc-x, yc+y, c);
-    ENGINE_line(engine, xc-x, yc-y, xc+x, yc-y, c);
+    size_t lineWidthY = x * 2 + 1;
+    blitLine(blitBuffer, bufWidth, rx - x, ry + y, lineWidthY, buf);
+    blitLine(blitBuffer, bufWidth, rx - x, ry - y, lineWidthY, buf);
   };
+
+  // Blit the buffer
+  for (int32_t j = 0; j < dy; j++) {
+    for (int32_t i = 0; i < dx; i++) {
+      uint32_t c = *(blitBuffer + (j * bufWidth + i));
+      ENGINE_pset(engine, x0 + i, y0 + j, c);
+    }
+  }
 }
 
 internal void
