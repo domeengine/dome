@@ -26,7 +26,7 @@ ENGINE_record(void* ptr) {
     }
     lag += elapsed;
     if (lag >= MS_PER_FRAME) {
-      jo_gif_frame(&gif, engine->record.gifPixels, 3, false);
+      jo_gif_frame(&gif, engine->record.gifPixels, 3, true);
       lag -= MS_PER_FRAME;
     }
   } while(engine->running);
