@@ -13,6 +13,9 @@ It contains the following classes:
 
 ### Static Methods
 
+#### `static prefPath(org: String, appName: String): String`
+This gives you a safe path where you can write personal game files (saves and settings), which are specific to this application. The given `org` and `appName` should be unique to this application. Either or both values may end up in the given file path, so they must adhere to some specific rules. Use letters, numbers, spaces, underscores. Avoid other punctuation.
+
 #### `static load(path: String): String`
 Given a valid file `path`, this loads the file data into a String object.
 This is a blocking operation, and so execution will stop while the file is loaded.
