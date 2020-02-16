@@ -169,8 +169,10 @@ class Color {
   g { _g }
   b { _b }
 
+  static none { AllColors["none"] }
   static black { AllColors["black"] }
   static darkblue { AllColors["darkblue"] }
+  static purple { AllColors["purple"] }
   static darkpurple { AllColors["darkpurple"] }
   static darkgreen { AllColors["darkgreen"] }
   static brown { AllColors["brown"] }
@@ -190,6 +192,7 @@ class Color {
 var AllColors = {
   "black": Color.new(0, 0, 0),
   "darkblue": Color.new(29, 43, 83),
+  "purple": Color.new(141, 60, 255),
   "darkpurple": Color.new(126, 37, 83),
   "darkgreen": Color.new(0, 135, 81),
   "brown": Color.new(171, 82, 54),
@@ -203,6 +206,7 @@ var AllColors = {
   "blue": Color.new(41, 173, 255),
   "indigo": Color.new(131, 118, 156),
   "pink": Color.new(255, 119, 168),
-  "peach": Color.new(255, 204, 170)
+  "peach": Color.new(255, 204, 170),
+  "none": Color.new(0, 0, 0, 0)
 }
 
