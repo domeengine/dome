@@ -154,6 +154,7 @@ internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
 internal WrenVM* VM_create(ENGINE* engine) {
   WrenConfiguration config;
   wrenInitConfiguration(&config);
+  config.reallocateFn = MEMORY_realloc;
   config.writeFn = VM_write;
   config.errorFn = VM_error;
   config.bindForeignMethodFn = VM_bind_foreign_method;

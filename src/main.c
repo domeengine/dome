@@ -12,6 +12,7 @@
 #include <ctype.h>
 
 #include <unistd.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <math.h>
@@ -117,6 +118,7 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "modules/graphics.c"
 #include "modules/image.c"
 #include "modules/input.c"
+#include "memory.c"
 #include "vm.c"
 
 internal void
@@ -184,6 +186,7 @@ int main(int argc, char* args[])
   if (result == EXIT_FAILURE) {
     goto cleanup;
   };
+  MEMORY_init(Gigabytes(1));
 
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
