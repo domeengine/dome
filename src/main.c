@@ -188,7 +188,7 @@ int main(int argc, char* args[])
   }
 
 #if DOME_SPEED_FAST
-  MEMORY_init(Terabytes(1));
+  MEMORY_init(Gigabytes(1));
 #endif
 
   result = ENGINE_init(&engine);

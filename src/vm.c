@@ -163,7 +163,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   config.bindForeignMethodFn = VM_bind_foreign_method;
   config.bindForeignClassFn = VM_bind_foreign_class;
   config.loadModuleFn = VM_load_module;
-  config.initialHeapSize = INITIAL_HEAP_SIZE;
+//  config.initialHeapSize = ; INITIAL_HEAP_SIZE;
   config.minHeapSize = 1024 * 1024 * 10;
 
   WrenVM* vm = wrenNewVM(&config);
