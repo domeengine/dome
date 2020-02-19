@@ -103,10 +103,6 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 
 #include "math.c"
 #include "memory.c"
-#define malloc(size) MEMORY_realloc(NULL, size)
-#define realloc(ptr, size) MEMORY_realloc(ptr, size)
-#define calloc(num, size) MEMORY_calloc(num, size)
-#define free(ptr) MEMORY_realloc(ptr, 0)
 
 #include "strings.c"
 #include "audio_types.c"
@@ -192,7 +188,7 @@ int main(int argc, char* args[])
   }
 
 #if DOME_SPEED_FAST
-  MEMORY_init(Megabytes(512));
+  MEMORY_init(Terabytes(1));
 #endif
 
   result = ENGINE_init(&engine);

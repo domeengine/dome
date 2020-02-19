@@ -807,9 +807,11 @@ ENGINE_drawDebug(ENGINE* engine) {
     ENGINE_print(engine, "Catchup", startX, startY - 16, 0xFFFFFFFF);
   }
 
+#if DOME_SPEED_FAST
   ENGINE_rectfill(engine, 0, 0, 8 * 10, 10, 0x7F000000);
-  snprintf(buffer, sizeof(buffer), "%zx/%zx", memory.used, memory.size);   // here 2 means binary
+  snprintf(buffer, sizeof(buffer), "%f %%", (double)memory.used / memory.size);   // here 2 means binary
   ENGINE_print(engine, buffer, 0, 0, 0xFFFFFFFF);
+#endif
 }
 
 internal bool
