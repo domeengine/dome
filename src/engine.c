@@ -806,6 +806,10 @@ ENGINE_drawDebug(ENGINE* engine) {
   } else {
     ENGINE_print(engine, "Catchup", startX, startY - 16, 0xFFFFFFFF);
   }
+
+  ENGINE_rectfill(engine, 0, 0, 8 * 10, 10, 0x7F000000);
+  snprintf(buffer, sizeof(buffer), "%zx/%zx", memory.used, memory.size);   // here 2 means binary
+  ENGINE_print(engine, buffer, 0, 0, 0xFFFFFFFF);
 }
 
 internal bool

@@ -19,6 +19,12 @@ CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -W
 IFLAGS = -isystem $(INCLUDES)
 SDL_CONFIG ?= $(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "$(LIBS)/sdl2-config")
 
+ifdef FAST
+  DOME_OPTS += -DDOME_SPEED_FAST=$(FAST)
+else
+  DOME_OPTS += -DDOME_SPEED_FAST=1
+endif
+
 ifdef STATIC
 	FRAMEWORK = unix
   SDLFLAGS = `$(SDL_CONFIG) --static-libs`

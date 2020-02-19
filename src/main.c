@@ -4,6 +4,10 @@
 #define DOME_VERSION "1.0.0-alpha"
 #endif
 
+#ifndef DOME_SPEED_FAST
+#define DOME_SPEED_FAST 1
+#endif
+
 // Standard libs
 #include <stdio.h>
 #include <errno.h>
@@ -12,7 +16,6 @@
 #include <ctype.h>
 
 #include <unistd.h>
-#include <sys/mman.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <math.h>
@@ -97,7 +100,14 @@ global_variable size_t INITIAL_HEAP_SIZE = 1024 * 1024 * 100;
 global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 
 // Game code
+
 #include "math.c"
+#include "memory.c"
+#define malloc(size) MEMORY_realloc(NULL, size)
+#define realloc(ptr, size) MEMORY_realloc(ptr, size)
+#define calloc(num, size) MEMORY_calloc(num, size)
+#define free(ptr) MEMORY_realloc(ptr, 0)
+
 #include "strings.c"
 #include "audio_types.c"
 #include "modules/map.c"
@@ -118,7 +128,6 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "modules/graphics.c"
 #include "modules/image.c"
 #include "modules/input.c"
-#include "memory.c"
 #include "vm.c"
 
 internal void
@@ -182,11 +191,14 @@ int main(int argc, char* args[])
     goto cleanup;
   }
 
+#if DOME_SPEED_FAST
+  MEMORY_init(Megabytes(512));
+#endif
+
   result = ENGINE_init(&engine);
   if (result == EXIT_FAILURE) {
     goto cleanup;
   };
-  MEMORY_init(Gigabytes(1));
 
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {

@@ -1,11 +1,20 @@
+#if DOME_SPEED_FAST
+#include <sys/mman.h>
+
+struct MEM_HEADER_t;
+
 typedef struct {
   void* base;
   char* next;
+  size_t used;
   size_t size;
+  struct MEM_HEADER_t* freeList;
 } MEMORY;
 
-typedef struct {
+typedef struct MEM_HEADER_t {
   size_t size;
+  struct MEM_HEADER_t* next;
+  struct MEM_HEADER_t* prev;
   char data[];
 } MEM_HEADER;
 
@@ -23,39 +32,49 @@ MEMORY_init(size_t size) {
     abort();
   }
   memory.next = memory.base;
+  memory.freeList = NULL;
   memory.size = size;
-  //printf("START: %p\n", (void*)memory.next);
+  memory.used = 0;
+  printf("START: %p\n", (void*)memory.next);
 }
 
 internal void*
-MEMORY_realloc(void* ptr, size_t new_size) {
-  //printf("(%zx) ", new_size + sizeof(MEM_HEADER));
+MEMORY_realloc(void* ptr, size_t newSize) {
+  if (ptr != NULL && (memory.base > ptr || (char*)ptr > ((char*)memory.base + memory.size))) {
+    return realloc(ptr, newSize);
+  }
+
   void* result = NULL;
   MEM_HEADER* oldHeader = NULL;
   if (ptr != NULL) {
     oldHeader = (MEM_HEADER*)((char*)ptr - sizeof(MEM_HEADER));
-    //printf("%p ", (void*)(&oldHeader->data));
-  } else {
-    //printf("NULL ");
-
   }
 
-  if (new_size > 0) {
-    result = memory.next;
-    MEM_HEADER* header = result;
-    if (oldHeader != NULL) {
-      memcpy(&header->data, &oldHeader->data, min(new_size, oldHeader->size));
+  if (newSize > 0) {
+    // Check the free list first
+    MEM_HEADER* header = memory.freeList;
+    if (header == NULL) {
+      header = (MEM_HEADER*)memory.next;
     }
-    header->size = new_size;
-    result = &header->data;
-    memory.next += new_size + sizeof(MEM_HEADER);
-
-
-    //printf("-> %p\n", (void*)&header->data);
+    if (oldHeader != NULL) {
+      memcpy(&(header->data), &(oldHeader->data), min(newSize, oldHeader->size));
+    }
+    header->size = newSize;
+//     header->prev = NULL;
+//     header->next = NULL;
+    result = &(header->data);
+    memory.next += newSize + sizeof(MEM_HEADER);
+    memory.used += newSize;
   } else {
     result = NULL;
-    //printf("-> NULL\n");
   }
   return result;
 }
 
+void* MEMORY_calloc(size_t num, size_t size) {
+  void* result = MEMORY_realloc(NULL, num * size);
+  memset(result, 0, num * size);
+  return result;
+}
+
+#endif
