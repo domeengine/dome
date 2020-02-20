@@ -71,6 +71,9 @@ DOME comes built in with the PICO-8 palette, but you can also define and use you
 
 ### Constructors
 
+#### `construct new(hexcode: String)`
+Create a new color with the given hexcode as a string of six alpha-numeric values. Hex values can be upper or lowercase, with or without a `#`. 
+
 #### `construct new(r: Number, g: Number, b: Number)`
 Create a new color with the given RGB values between `0 - 255`, and an alpha value of `255`.
 
