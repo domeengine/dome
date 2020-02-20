@@ -4,7 +4,7 @@ ENGINE_record(void* ptr) {
   ENGINE* engine = ptr;
   size_t imageSize = engine->width * engine->height;
   engine->record.gifPixels = (uint32_t*)malloc(imageSize*4*sizeof(uint8_t));
-  size_t scale = 5;
+  size_t scale = GIF_SCALE;
   uint32_t* scaledPixels = (uint32_t*)malloc(imageSize*4*sizeof(uint8_t)* scale * scale);
 
   jo_gif_t gif = jo_gif_start(engine->record.gifName, engine->width * scale, engine->height * scale, 0, 31);
