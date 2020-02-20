@@ -846,6 +846,7 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
     return false;
   }
   ENGINE_rectfill(engine, 0, 0, engine->width, engine->height, color);
+  SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
 
   return true;
 }
