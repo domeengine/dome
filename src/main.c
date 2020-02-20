@@ -92,8 +92,8 @@ global_variable bool DEBUG_MODE = true;
 #else
 global_variable bool DEBUG_MODE = false;
 #endif
-global_variable size_t INITIAL_HEAP_SIZE = 1024 * 1024 * 100;
 global_variable size_t AUDIO_BUFFER_SIZE = 2048;
+global_variable size_t GIF_SCALE = 1;
 
 // Game code
 #include "math.c"
@@ -146,7 +146,7 @@ printVersion(ENGINE* engine) {
 internal void
 printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "\nUsage: \n");
-  ENGINE_printLog(engine, "  dome [-d | --debug] [-r<gif> | --record=<gif>] [-b<buf> | --buffer=<buf>] [-i<size> | --initial-heap=<size>] [entry path]\n");
+  ENGINE_printLog(engine, "  dome [-d | --debug] [-r<gif> | --record=<gif>] [-b<buf> | --buffer=<buf>] [entry path]\n");
   ENGINE_printLog(engine, "  dome -h | --help\n");
   ENGINE_printLog(engine, "  dome -v | --version\n");
   ENGINE_printLog(engine, "\nOptions: \n");
@@ -189,10 +189,10 @@ int main(int argc, char* args[])
   struct optparse_long longopts[] = {
     {"buffer", 'b', OPTPARSE_REQUIRED},
     {"debug", 'd', OPTPARSE_NONE},
-    {"initial", 'i', OPTPARSE_REQUIRED},
     {"help", 'h', OPTPARSE_NONE},
     {"version", 'v', OPTPARSE_NONE},
     {"record", 'r', OPTPARSE_OPTIONAL},
+    {"scale", 's', OPTPARSE_REQUIRED},
     {0}
   };
   // char *arg;
@@ -201,6 +201,15 @@ int main(int argc, char* args[])
   optparse_init(&options, args);
   while ((option = optparse_long(&options, longopts, NULL)) != -1) {
     switch (option) {
+      case 's':
+        {
+          int scale = atoi(options.optarg);
+          if (scale <= 0) {
+            // If it wasn't valid, set to a meaningful default.
+            GIF_SCALE = 1;
+          }
+          GIF_SCALE = scale;
+        } break;
       case 'b':
         {
           int shift = atoi(options.optarg);
@@ -218,13 +227,6 @@ int main(int argc, char* args[])
         printTitle(&engine);
         printUsage(&engine);
         goto cleanup;
-      case 'i':
-        INITIAL_HEAP_SIZE = atoi(options.optarg) * 1024 * 1024;
-        if (INITIAL_HEAP_SIZE == 0) {
-          // If it wasn't valid, set to a meaningful default.
-          INITIAL_HEAP_SIZE = 100 * 1024 * 1024;
-        }
-        break;
       case 'r':
         engine.record.makeGif = true;
         if (options.optarg != NULL) {

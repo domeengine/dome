@@ -3,9 +3,11 @@ ENGINE_record(void* ptr) {
   // Thread: Seperate gif record
   ENGINE* engine = ptr;
   size_t imageSize = engine->width * engine->height;
-  engine->record.gifPixels = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
+  engine->record.gifPixels = (uint32_t*)malloc(imageSize*4*sizeof(uint8_t));
+  size_t scale = GIF_SCALE;
+  uint32_t* scaledPixels = (uint32_t*)malloc(imageSize*4*sizeof(uint8_t)* scale * scale);
 
-  jo_gif_t gif = jo_gif_start(engine->record.gifName, engine->width, engine->height, 0, 31);
+  jo_gif_t gif = jo_gif_start(engine->record.gifName, engine->width * scale, engine->height * scale, 0, 31);
   uint8_t FPS = 30;
   double MS_PER_FRAME = ceil(1000.0 / FPS);
   double lag = 0;
@@ -26,7 +28,19 @@ ENGINE_record(void* ptr) {
     }
     lag += elapsed;
     if (lag >= MS_PER_FRAME) {
-      jo_gif_frame(&gif, engine->record.gifPixels, 3, true);
+      if (scale > 1) {
+        for (size_t j = 0; j < engine->height * scale; j++) {
+          for (size_t i = 0; i < engine->width * scale; i++) {
+            size_t u = i / scale;
+            size_t v = j / scale;
+            int32_t c = ((uint32_t*)engine->record.gifPixels)[v * engine->width + u];
+            scaledPixels[j * engine->width * scale + i] = c;
+          }
+        }
+        jo_gif_frame(&gif, (uint8_t*)scaledPixels, 4, true);
+      } else {
+        jo_gif_frame(&gif, (uint8_t*)engine->record.gifPixels, 3, true);
+      }
       lag -= MS_PER_FRAME;
     }
   } while(engine->running);
@@ -832,6 +846,7 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
     return false;
   }
   ENGINE_rectfill(engine, 0, 0, engine->width, engine->height, color);
+  SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
 
   return true;
 }

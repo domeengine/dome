@@ -16,7 +16,7 @@ typedef struct {
 
 typedef struct {
   bool makeGif;
-  void* gifPixels;
+  uint32_t* gifPixels;
   volatile bool frameReady;
   char* gifName;
 } ENGINE_RECORDER;
