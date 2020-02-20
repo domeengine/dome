@@ -146,7 +146,52 @@ class Canvas {
     @Class Color
       An instance of this class represents an RGBA color, which can be passed to Canvas methods.
 */
+var HexToNum = Fn.new {|hex|
+  var first = hex[0]
+  var second = hex[1]
+  if (48 <= first && first <= 57) {
+    first = first - 48
+  } else if (65 <= first && first <= 70) {
+    first = 9 + first - 65
+  } else if (97 <= first && first <= 102) {
+    first = 9 + first - 97
+  } else {
+    Fiber.abort("Invalid hex")
+  }
+  if (48 <= second && second <= 57) {
+    second = second - 48
+  } else if (65 <= second && second <= 70) {
+    second = 9 + second - 65
+  } else if (97 <= second && second <= 102) {
+    second = 9 + second - 97
+  } else {
+    Fiber.abort("Invalid hex")
+  }
+  return first << 4 | second
+}
+
+var SubStr = Fn.new {|str, start, len|
+  return str.bytes.skip(start).take(len).toList
+}
+
 class Color {
+  construct new(hex) {
+    if (hex is String) {
+      var offset = 0
+      if (hex[0] == "#") {
+        offset = 1
+      }
+      _r = HexToNum.call(SubStr.call(hex, offset + 0, 2))
+      _g = HexToNum.call(SubStr.call(hex, offset + 2, 2))
+      _b = HexToNum.call(SubStr.call(hex, offset + 4, 2))
+      _a = 255
+
+
+    } else {
+      Fiber.abort("Color only supports hexcodes as strings or numbers")
+    }
+
+  }
   construct new(r, g, b) {
     _r = r
     _g = g
