@@ -19,6 +19,12 @@ class FileSystem {
   }
 }
 
+foreign class Directory {
+  construct open(dir) {}
+  foreign files
+  foreign directories
+}
+
 foreign class AsyncOperation {
   construct init(empty) {}
 

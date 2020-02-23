@@ -211,3 +211,60 @@ FILESYSTEM_loadEventComplete(SDL_Event* event) {
   free(task);
 }
 
+
+typedef struct {
+  DIR* p;
+} DIRECTORY;
+
+internal void
+DIRECTORY_allocate(WrenVM* vm) {
+  DIRECTORY* dir = wrenSetSlotNewForeign(vm, 0, 0, sizeof(DIRECTORY));
+
+  // TODO relative to basepath?
+  char* path = wrenGetSlotString(vm, 1);
+  dir->p = opendir(path);
+  if (dir->p == NULL) {
+    VM_ABORT(vm, "Directory could not be opened");
+  }
+}
+
+internal void
+DIRECTORY_finalize(void* data) {
+  DIRECTORY* dir = data;
+  closedir(dir->p);
+}
+
+internal void
+DIRECTORY_getFiles(WrenVM* vm) {
+  DIRECTORY* dir = wrenGetSlotForeign(vm, 0);
+  wrenEnsureSlots(vm, 2);
+  wrenSetSlotNewList(vm, 0);
+  rewinddir(dir->p);
+  struct dirent *de;
+  while ((de = readdir(dir->p)) != NULL) {
+    if (de->d_type == DT_REG) {
+      // Only files
+      wrenSetSlotString(vm, 1, de->d_name);
+      // Append slot 1 to the list in slot 0
+      wrenInsertInList(vm, 0, -1, 1);
+    }
+  }
+}
+
+internal void
+DIRECTORY_getDirectories(WrenVM* vm) {
+  DIRECTORY* dir = wrenGetSlotForeign(vm, 0);
+  wrenEnsureSlots(vm, 2);
+  wrenSetSlotNewList(vm, 0);
+  rewinddir(dir->p);
+  struct dirent *de;
+  while ((de = readdir(dir->p)) != NULL) {
+    if (de->d_type != DT_REG) {
+      // Only files
+      wrenSetSlotString(vm, 1, de->d_name);
+      // Append slot 1 to the list in slot 0
+      wrenInsertInList(vm, 0, -1, 1);
+    }
+  }
+}
+
