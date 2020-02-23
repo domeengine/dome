@@ -24,14 +24,9 @@ This is a blocking operation, and so execution will stop while the file is saved
 
 ## Directory
 
-### Instance Methods
+### Static Methods
+#### `listDirectories(path: String): List<String>`
+Returns a list of all directories contained in the directory
 
-#### `construct open(path: String): Directory`
-Opens the named path for inspection
-
-### Instance Fields
-#### `directories: List<String>`
-Returns a list of all directories contained in the directory.
-
-#### `files: List<String>`
+#### `listFiles(path: String): List<String>`
 Returns a list of all files in the directory.

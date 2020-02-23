@@ -105,6 +105,7 @@ DOME currently depends on a few libraries to achieve it's functions.
 - microtar
 - optparse
 - jo_gif
+- tinydir
 - [ABC_fifo](https://github.com/avivbeeri/abc) (A SPMC threadpool/task dispatching FIFO I wrote for this project)
 
 Apart from SDL2, all other dependancies are baked in or linked statically. DOME aspires to be both minimalist and cross platform, so it depends on as few external components as possible.
@@ -120,6 +121,7 @@ Apart from SDL2, all other dependancies are baked in or linked statically. DOME 
 - rxi for [microtar](https://github.com/rxi/microtar)
 - Jon Olick for [jo_gif](https://www.jonolick.com/home/gif-writer)
 - Chris Wellons for [optparse](https://github.com/skeeto/optparse)
+- cxong for [tinydir](https://github.com/cxong/tinydir)
 
 ### Example Game Resources
 - Example game and graphics are derived from [this](https://ztiromoritz.github.io/pico-8-shooter/) fantastic PICO-8 tutorial.

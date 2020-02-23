@@ -17,12 +17,12 @@ class FileSystem {
     f_load(path, operation)
     return operation
   }
+
 }
 
-foreign class Directory {
-  construct open(dir) {}
-  foreign files
-  foreign directories
+class Directory {
+  foreign static listFiles(path)
+  foreign static listDirectories(path)
 }
 
 foreign class AsyncOperation {

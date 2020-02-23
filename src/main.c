@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <ctype.h>
-#include <dirent.h>
+#include <tinydir.h>
 
 #include <unistd.h>
 #include <sys/stat.h>

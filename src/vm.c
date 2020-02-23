@@ -37,9 +37,6 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
     if (STRINGS_EQUAL(className, "DataBuffer")) {
       methods.allocate = DBUFFER_allocate;
       methods.finalize = DBUFFER_finalize;
-    } else if (STRINGS_EQUAL(className, "Directory")) {
-      methods.allocate = DIRECTORY_allocate;
-      methods.finalize = DIRECTORY_finalize;
     } else if (STRINGS_EQUAL(className, "AsyncOperation")) {
       methods.allocate = ASYNCOP_allocate;
       methods.finalize = ASYNCOP_finalize;
@@ -234,8 +231,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.f_load(_,_)", FILESYSTEM_loadAsync);
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.load(_)", FILESYSTEM_loadSync);
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.save(_,_)", FILESYSTEM_saveSync);
-  MAP_addFunction(&engine->moduleMap, "io", "Directory.files", DIRECTORY_getFiles);
-  MAP_addFunction(&engine->moduleMap, "io", "Directory.directories", DIRECTORY_getDirectories);
+  MAP_addFunction(&engine->moduleMap, "io", "static Directory.listFiles(_)", DIRECTORY_listFiles);
+  MAP_addFunction(&engine->moduleMap, "io", "static Directory.listDirectories(_)", DIRECTORY_listDirectories);
 
   // Buffer
   MAP_addFunction(&engine->moduleMap, "io", "static DataBuffer.f_capture()", DBUFFER_capture);

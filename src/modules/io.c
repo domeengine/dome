@@ -212,63 +212,66 @@ FILESYSTEM_loadEventComplete(SDL_Event* event) {
 }
 
 
-typedef struct {
-  DIR* p;
-} DIRECTORY;
-
 internal void
-DIRECTORY_allocate(WrenVM* vm) {
-  DIRECTORY* dir = wrenSetSlotNewForeign(vm, 0, 0, sizeof(DIRECTORY));
-
+DIRECTORY_listFiles(WrenVM* vm) {
   char* path = wrenGetSlotString(vm, 1);
   char* base = BASEPATH_get();
   char* fullPath = malloc(strlen(base)+strlen(path)+1);
   strcpy(fullPath, base); /* copy name into the new var */
   strcat(fullPath, path); /* add the extension */
-  dir->p = opendir(fullPath);
+  tinydir_dir dir;
+  int result = tinydir_open(&dir, fullPath);
   free(fullPath);
-  if (dir->p == NULL) {
+  if (result == -1) {
     VM_ABORT(vm, "Directory could not be opened");
-  }
-}
-
-internal void
-DIRECTORY_finalize(void* data) {
-  DIRECTORY* dir = data;
-  closedir(dir->p);
-}
-
-internal void
-DIRECTORY_getFiles(WrenVM* vm) {
-  DIRECTORY* dir = wrenGetSlotForeign(vm, 0);
-  wrenEnsureSlots(vm, 2);
-  wrenSetSlotNewList(vm, 0);
-  rewinddir(dir->p);
-  struct dirent *de;
-  while ((de = readdir(dir->p)) != NULL) {
-    if (de->d_type == DT_REG) {
-      // Only files
-      wrenSetSlotString(vm, 1, de->d_name);
-      // Append slot 1 to the list in slot 0
-      wrenInsertInList(vm, 0, -1, 1);
+  } else {
+    wrenEnsureSlots(vm, 2);
+    wrenSetSlotNewList(vm, 0);
+    while (dir.has_next) {
+      tinydir_file file;
+      tinydir_readfile(&dir, &file);
+      if (!file.is_dir)
+      {
+        // Only files
+        wrenSetSlotString(vm, 1, file.name);
+        // Append slot 1 to the list in slot 0
+        wrenInsertInList(vm, 0, -1, 1);
+      }
+      tinydir_next(&dir);
     }
   }
+
+  tinydir_close(&dir);
 }
 
 internal void
-DIRECTORY_getDirectories(WrenVM* vm) {
-  DIRECTORY* dir = wrenGetSlotForeign(vm, 0);
-  wrenEnsureSlots(vm, 2);
-  wrenSetSlotNewList(vm, 0);
-  rewinddir(dir->p);
-  struct dirent *de;
-  while ((de = readdir(dir->p)) != NULL) {
-    if (de->d_type != DT_REG) {
-      // Only files
-      wrenSetSlotString(vm, 1, de->d_name);
-      // Append slot 1 to the list in slot 0
-      wrenInsertInList(vm, 0, -1, 1);
+DIRECTORY_listDirectories(WrenVM* vm) {
+  char* path = wrenGetSlotString(vm, 1);
+  char* base = BASEPATH_get();
+  char* fullPath = malloc(strlen(base)+strlen(path)+1);
+  strcpy(fullPath, base); /* copy name into the new var */
+  strcat(fullPath, path); /* add the extension */
+  tinydir_dir dir;
+  int result = tinydir_open(&dir, fullPath);
+  free(fullPath);
+  if (result == -1) {
+    VM_ABORT(vm, "Directory could not be opened");
+  } else {
+    wrenEnsureSlots(vm, 2);
+    wrenSetSlotNewList(vm, 0);
+    while (dir.has_next) {
+      tinydir_file file;
+      tinydir_readfile(&dir, &file);
+      if (file.is_dir)
+      {
+        // Only directories
+        wrenSetSlotString(vm, 1, file.name);
+        // Append slot 1 to the list in slot 0
+        wrenInsertInList(vm, 0, -1, 1);
+      }
+      tinydir_next(&dir);
     }
   }
-}
 
+  tinydir_close(&dir);
+}
