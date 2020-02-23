@@ -220,9 +220,13 @@ internal void
 DIRECTORY_allocate(WrenVM* vm) {
   DIRECTORY* dir = wrenSetSlotNewForeign(vm, 0, 0, sizeof(DIRECTORY));
 
-  // TODO relative to basepath?
   char* path = wrenGetSlotString(vm, 1);
-  dir->p = opendir(path);
+  char* base = BASEPATH_get();
+  char* fullPath = malloc(strlen(base)+strlen(path)+1);
+  strcpy(fullPath, base); /* copy name into the new var */
+  strcat(fullPath, path); /* add the extension */
+  dir->p = opendir(fullPath);
+  free(fullPath);
   if (dir->p == NULL) {
     VM_ABORT(vm, "Directory could not be opened");
   }
