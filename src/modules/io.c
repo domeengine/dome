@@ -215,13 +215,20 @@ FILESYSTEM_loadEventComplete(SDL_Event* event) {
 internal void
 DIRECTORY_listFiles(WrenVM* vm) {
   char* path = wrenGetSlotString(vm, 1);
-  char* base = BASEPATH_get();
-  char* fullPath = malloc(strlen(base)+strlen(path)+1);
-  strcpy(fullPath, base); /* copy name into the new var */
-  strcat(fullPath, path); /* add the extension */
+  char* fullPath;
+  if (path[0] != '/') {
+    char* base = BASEPATH_get();
+    fullPath = malloc(strlen(base)+strlen(path)+1);
+    strcpy(fullPath, base); /* copy name into the new var */
+    strcat(fullPath, path); /* add the extension */
+  } else {
+    fullPath = path;
+  }
   tinydir_dir dir;
   int result = tinydir_open(&dir, fullPath);
-  free(fullPath);
+  if (path[0] != '/') {
+    free(fullPath);
+  }
   if (result == -1) {
     VM_ABORT(vm, "Directory could not be opened");
   } else {
@@ -247,13 +254,20 @@ DIRECTORY_listFiles(WrenVM* vm) {
 internal void
 DIRECTORY_listDirectories(WrenVM* vm) {
   char* path = wrenGetSlotString(vm, 1);
-  char* base = BASEPATH_get();
-  char* fullPath = malloc(strlen(base)+strlen(path)+1);
-  strcpy(fullPath, base); /* copy name into the new var */
-  strcat(fullPath, path); /* add the extension */
+  char* fullPath;
+  if (path[0] != '/') {
+    char* base = BASEPATH_get();
+    fullPath = malloc(strlen(base)+strlen(path)+1);
+    strcpy(fullPath, base); /* copy name into the new var */
+    strcat(fullPath, path); /* add the extension */
+  } else {
+    fullPath = path;
+  }
   tinydir_dir dir;
   int result = tinydir_open(&dir, fullPath);
-  free(fullPath);
+  if (path[0] != '/') {
+    free(fullPath);
+  }
   if (result == -1) {
     VM_ABORT(vm, "Directory could not be opened");
   } else {
