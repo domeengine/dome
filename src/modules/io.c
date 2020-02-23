@@ -213,7 +213,7 @@ FILESYSTEM_loadEventComplete(SDL_Event* event) {
 
 
 internal void
-DIRECTORY_listFiles(WrenVM* vm) {
+FILESYSTEM_listFiles(WrenVM* vm) {
   char* path = wrenGetSlotString(vm, 1);
   char* fullPath;
   if (path[0] != '/') {
@@ -252,7 +252,7 @@ DIRECTORY_listFiles(WrenVM* vm) {
 }
 
 internal void
-DIRECTORY_listDirectories(WrenVM* vm) {
+FILESYSTEM_listDirectories(WrenVM* vm) {
   char* path = wrenGetSlotString(vm, 1);
   char* fullPath;
   if (path[0] != '/') {
