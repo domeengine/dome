@@ -211,3 +211,22 @@ FILESYSTEM_loadEventComplete(SDL_Event* event) {
   free(task);
 }
 
+internal void
+FILESYSTEM_getPrefPath(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "organisation");
+  ASSERT_SLOT_TYPE(vm, 2, STRING, "application name");
+  const char* org = wrenGetSlotString(vm, 1);
+  const char* app = wrenGetSlotString(vm, 2);
+  char* path = SDL_GetPrefPath(org, app);
+  if (path != NULL) {
+    wrenSetSlotString(vm, 0, path);
+    SDL_free(path);
+  } else {
+    wrenSetSlotString(vm, 0, BASEPATH_get());
+  }
+}
+
+internal void
+FILESYSTEM_getBasePath(WrenVM* vm) {
+  wrenSetSlotString(vm, 0, BASEPATH_get());
+}
