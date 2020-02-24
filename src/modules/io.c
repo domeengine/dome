@@ -225,3 +225,8 @@ FILESYSTEM_getPrefPath(WrenVM* vm) {
     wrenSetSlotString(vm, 0, BASEPATH_get());
   }
 }
+
+internal void
+FILESYSTEM_getBasePath(WrenVM* vm) {
+  wrenSetSlotString(vm, 0, BASEPATH_get());
+}
