@@ -13,6 +13,9 @@ It contains the following classes:
 
 ### Static Methods
 
+#### `static basePath(): String`
+This returns the path to the directory where your application's entry point is.
+
 #### `static prefPath(org: String, appName: String): String`
 This gives you a safe path where you can write personal game files (saves and settings), which are specific to this application. The given `org` and `appName` should be unique to this application. Either or both values may end up in the given file path, so they must adhere to some specific rules. Use letters, numbers, spaces, underscores. Avoid other punctuation.
 
