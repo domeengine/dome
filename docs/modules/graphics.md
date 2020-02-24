@@ -71,6 +71,9 @@ DOME comes built in with the PICO-8 palette, but you can also define and use you
 
 ### Constructors
 
+#### `construct new(hexcode: String)`
+Create a new color with the given hexcode as a string of six alpha-numeric values. Hex values can be upper or lowercase, with or without a `#`. 
+
 #### `construct new(r: Number, g: Number, b: Number)`
 Create a new color with the given RGB values between `0 - 255`, and an alpha value of `255`.
 
@@ -94,22 +97,26 @@ A value between `0 - 255` to represent the alpha transparency channel.
 ### Default Palette
 The values for the colors in this palette can be found [here](https://www.romanzolotarev.com/pico-8-color-palette/).
 
-#### `static black: Color`
-#### `static darkblue : Color`
-#### `static darkpurple: Color`
-#### `static darkgreen: Color`
-#### `static brown: Color`
-#### `static darkgray: Color`
-#### `static lightgray: Color`
-#### `static white: Color`
-#### `static red: Color`
-#### `static orange: Color`
-#### `static yellow: Color`
-#### `static green: Color`
-#### `static blue: Color`
-#### `static indigo: Color`
-#### `static pink: Color`
-#### `static peach: Color`
+ * `static black: Color`
+ * `static darkblue : Color`
+ * `static darkpurple: Color`
+ * `static darkgreen: Color`
+ * `static brown: Color`
+ * `static darkgray: Color`
+ * `static lightgray: Color`
+ * `static white: Color`
+ * `static red: Color`
+ * `static orange: Color`
+ * `static yellow: Color`
+ * `static green: Color`
+ * `static blue: Color`
+ * `static indigo: Color`
+ * `static pink: Color`
+ * `static peach: Color`
+
+In addition to these two values:
+ * `static none: Color` - Representing clear transparency.
+ * `static purple: Color` - `#8d3cff`, the DOME logo color.
 
 ## Drawable
 Represents an object which can be drawn to the screen. Objects which conform to this interface can be passed to `Canvas.draw(drawable, x, y)`.

@@ -146,7 +146,52 @@ class Canvas {
     @Class Color
       An instance of this class represents an RGBA color, which can be passed to Canvas methods.
 */
+var HexToNum = Fn.new {|hex|
+  var first = hex[0]
+  var second = hex[1]
+  if (48 <= first && first <= 57) {
+    first = first - 48
+  } else if (65 <= first && first <= 70) {
+    first = 10 + first - 65
+  } else if (97 <= first && first <= 102) {
+    first = 10 + first - 97
+  } else {
+    Fiber.abort("Invalid hex")
+  }
+  if (48 <= second && second <= 57) {
+    second = second - 48
+  } else if (65 <= second && second <= 70) {
+    second = 10 + second - 65
+  } else if (97 <= second && second <= 102) {
+    second = 10 + second - 97
+  } else {
+    Fiber.abort("Invalid hex")
+  }
+  return first << 4 | second
+}
+
+var SubStr = Fn.new {|str, start, len|
+  return str.bytes.skip(start).take(len).toList
+}
+
 class Color {
+  construct new(hex) {
+    if (hex is String) {
+      var offset = 0
+      if (hex[0] == "#") {
+        offset = 1
+      }
+      _r = HexToNum.call(SubStr.call(hex, offset + 0, 2))
+      _g = HexToNum.call(SubStr.call(hex, offset + 2, 2))
+      _b = HexToNum.call(SubStr.call(hex, offset + 4, 2))
+      _a = 255
+
+
+    } else {
+      Fiber.abort("Color only supports hexcodes as strings or numbers")
+    }
+
+  }
   construct new(r, g, b) {
     _r = r
     _g = g
@@ -169,8 +214,10 @@ class Color {
   g { _g }
   b { _b }
 
+  static none { AllColors["none"] }
   static black { AllColors["black"] }
   static darkblue { AllColors["darkblue"] }
+  static purple { AllColors["purple"] }
   static darkpurple { AllColors["darkpurple"] }
   static darkgreen { AllColors["darkgreen"] }
   static brown { AllColors["brown"] }
@@ -190,6 +237,7 @@ class Color {
 var AllColors = {
   "black": Color.new(0, 0, 0),
   "darkblue": Color.new(29, 43, 83),
+  "purple": Color.new(141, 60, 255),
   "darkpurple": Color.new(126, 37, 83),
   "darkgreen": Color.new(0, 135, 81),
   "brown": Color.new(171, 82, 54),
@@ -203,6 +251,7 @@ var AllColors = {
   "blue": Color.new(41, 173, 255),
   "indigo": Color.new(131, 118, 156),
   "pink": Color.new(255, 119, 168),
-  "peach": Color.new(255, 204, 170)
+  "peach": Color.new(255, 204, 170),
+  "none": Color.new(0, 0, 0, 0)
 }
 
