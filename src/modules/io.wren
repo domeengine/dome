@@ -11,6 +11,8 @@ class FileSystem {
   foreign static listDirectories(path)
   foreign static load(path)
   foreign static save(path, buffer)
+  foreign static prefPath(org, app)
+  foreign static basePath()
 
   // @Unstable - DO NOT USE
   foreign static f_load(path, op)
