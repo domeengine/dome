@@ -1,4 +1,5 @@
 #define _DEFAULT_SOURCE
+#define NOMINMAX
 
 #ifndef DOME_VERSION
 #define DOME_VERSION "1.0.0-alpha"
