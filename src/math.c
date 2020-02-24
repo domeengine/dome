@@ -45,22 +45,22 @@ VEC VEC_perp(VEC v) {
 
 
 
-double max(double n1, double n2) {
+int64_t max(int64_t n1, int64_t n2) {
   if (n1 > n2) {
     return n1;
   }
   return n2;
 }
 
-double min(double n1, double n2) {
+int64_t min(int64_t n1, int64_t n2) {
   if (n1 < n2) {
     return n1;
   }
   return n2;
 }
 
-double mid(double n1, double n2, double n3) {
-  double temp;
+int64_t mid(int64_t n1, int64_t n2, int64_t n3) {
+  int64_t temp;
   if (n1 > n3) {
     temp = n1;
     n1 = n3;
