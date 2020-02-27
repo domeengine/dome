@@ -27,7 +27,7 @@ class Canvas {
       Fiber.abort("Window can't be wider than 2160")
     }
     if (c is Color) {
-      f_resize(width, height, c.rgb)
+      f_resize(width, height, c.toNum)
     } else {
       f_resize(width, height, c)
     }
@@ -60,7 +60,7 @@ class Canvas {
  */
   static pset(x, y, c) {
     if (c is Color) {
-      f_pset(x, y, c.rgb)
+      f_pset(x, y, c.toNum)
     } else {
       f_pset(x, y, c)
     }
@@ -68,49 +68,49 @@ class Canvas {
 
   static line(x0, y0, x1, y1, c) {
     if (c is Color) {
-      f_line(x0, y0, x1, y1, c.rgb)
+      f_line(x0, y0, x1, y1, c.toNum)
     } else {
       f_line(x0, y0, x1, y1, c)
     }
   }
   static ellipse(x0, y0, x1, y1, c) {
     if (c is Color) {
-      f_ellipse(x0, y0, x1, y1, c.rgb)
+      f_ellipse(x0, y0, x1, y1, c.toNum)
     } else {
       f_ellipse(x0, y0, x1, y1, c)
     }
   }
   static ellipsefill(x0, y0, x1, y1, c) {
     if (c is Color) {
-      f_ellipsefill(x0, y0, x1, y1, c.rgb)
+      f_ellipsefill(x0, y0, x1, y1, c.toNum)
     } else {
       f_ellipsefill(x0, y0, x1, y1, c)
     }
   }
   static rect(x, y, w, h, c) {
     if (c is Color) {
-      f_rect(x, y, w, h, c.rgb)
+      f_rect(x, y, w, h, c.toNum)
     } else {
       f_rect(x, y, w, h, c)
     }
   }
   static rectfill(x, y, w, h, c) {
     if (c is Color) {
-      f_rectfill(x, y, w, h, c.rgb)
+      f_rectfill(x, y, w, h, c.toNum)
     } else {
       f_rectfill(x, y, w, h, c)
     }
   }
   static circle(x, y, r, c) {
     if (c is Color) {
-      f_circle(x, y, r, c.rgb)
+      f_circle(x, y, r, c.toNum)
     } else {
       f_circle(x, y, r, c)
     }
   }
   static circlefill(x, y, r, c) {
     if (c is Color) {
-      f_circlefill(x, y, r, c.rgb)
+      f_circlefill(x, y, r, c.toNum)
     } else {
       f_circlefill(x, y, r, c)
     }
@@ -120,7 +120,7 @@ class Canvas {
     if (c is Color) {
       color = c
     }
-    f_print(str, x, y, color.rgb)
+    f_print(str, x, y, color.toNum)
   }
   static cls() {
     cls(Color.black)
@@ -130,7 +130,7 @@ class Canvas {
     if (c is Color) {
       color = c
     }
-    rectfill(0, 0, Canvas.width, Canvas.height, color.rgb)
+    rectfill(0, 0, Canvas.width, Canvas.height, color.toNum)
   }
   foreign static width
   foreign static height
@@ -144,7 +144,7 @@ class Canvas {
 
 /**
     @Class Color
-      An instance of this class represents an RGBA color, which can be passed to Canvas methods.
+      An instance of this class represents an rgb color, which can be passed to Canvas methods.
 */
 var HexToNum = Fn.new {|hex|
   var first = hex[0]
@@ -175,7 +175,7 @@ var SubStr = Fn.new {|str, start, len|
 }
 
 class Color {
-  construct new(hex) {
+  construct hex(hex) {
     if (hex is String) {
       var offset = 0
       if (hex[0] == "#") {
@@ -205,7 +205,62 @@ class Color {
     _a = a
   }
 
-  rgb {
+  construct hsv(h, s, v, a) {
+    setHSV(h, s, v)
+    _a = a
+  }
+
+  construct hsv(h, s, v) {
+    setHSV(h, s, v)
+    _a = 255
+  }
+
+  setHSV(h, s, v) {
+    h = h % 360
+    // Assert preconditions
+
+    var c = v * s
+    var x = c * (1 - (((h / 60) % 2) - 1).abs)
+    var m = v - c
+
+    var rP
+    var gP
+    var bP
+    if (0 <= h && h < 60) {
+      rP = c
+      gP = x
+      bP = 0
+    } else if (60 <= h && h< 120) {
+      rP = x
+      gP = c
+      bP = 0
+    } else if (120 <= h && h < 180) {
+      rP = 0
+      gP = c
+      bP = x
+    } else if (180 <= h && h< 240) {
+      rP = 0
+      gP = x
+      bP = c
+    } else if (240 <= h && h < 300) {
+      rP = x
+      gP = 0
+      bP = c
+    } else if (300 <= h && h < 360) {
+      rP = c
+      gP = 0
+      bP = x
+    } else {
+      Fiber.abort("Invalid H value")
+    }
+
+    _r = (rP + m) * 255
+    _g = (gP + m) * 255
+    _b = (bP + m) * 255
+    _a = 255
+  }
+
+  toNum {
     return a << 24 | b << 16 | g << 8 | r
   }
 
