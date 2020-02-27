@@ -185,39 +185,50 @@ class Color {
       _g = HexToNum.call(SubStr.call(hex, offset + 2, 2))
       _b = HexToNum.call(SubStr.call(hex, offset + 4, 2))
       _a = 255
-
-
     } else {
       Fiber.abort("Color only supports hexcodes as strings or numbers")
     }
-
   }
+
   construct new(r, g, b) {
-    _r = r
-    _g = g
-    _b = b
-    _a = 255
+    System.print("Color.new(_,_,_) is deprecated. Please use Color.rgb(_,_,_) instead.")
+    setrgb(r, g, b, 255)
   }
   construct new(r, g, b, a) {
-    _r = r
-    _g = g
-    _b = b
-    _a = a
+    System.print("Color.new(_,_,_,_) is deprecated. Please use Color.rgb(_,_,_,_) instead.")
+    setrgb(r, g, b, a)
   }
 
+  construct rgb(r, g, b) {
+    setrgb(r, g, b, 255)
+  }
+  construct rgb(r, g, b, a) {
+    setrgb(r, g, b, a)
+  }
   construct hsv(h, s, v, a) {
     setHSV(h, s, v)
     _a = a
   }
-
   construct hsv(h, s, v) {
     setHSV(h, s, v)
     _a = 255
   }
 
+  setrgb(r, g, b, a) {
+    _r = r
+    _g = g
+    _b = b
+    _a = a
+  }
+
   setHSV(h, s, v) {
     h = h % 360
-    // Assert preconditions
+    if (0 < s && s > 1) {
+      Fiber.abort("Color component S is out of bounds")
+    }
+    if (0 < v && v > 1) {
+      Fiber.abort("Color component V is out of bounds")
+    }
 
     var c = v * s
     var x = c * (1 - (((h / 60) % 2) - 1).abs)
@@ -290,23 +301,23 @@ class Color {
 }
 
 var AllColors = {
-  "black": Color.new(0, 0, 0),
-  "darkblue": Color.new(29, 43, 83),
-  "purple": Color.new(141, 60, 255),
-  "darkpurple": Color.new(126, 37, 83),
-  "darkgreen": Color.new(0, 135, 81),
-  "brown": Color.new(171, 82, 54),
-  "darkgray": Color.new(95, 87, 79),
-  "lightgray": Color.new(194, 195, 199),
-  "white": Color.new(255, 255, 255),
-  "red": Color.new(255, 0, 77),
-  "orange": Color.new(255, 163, 0),
-  "yellow": Color.new(255, 236, 39),
-  "green": Color.new(0, 228, 54),
-  "blue": Color.new(41, 173, 255),
-  "indigo": Color.new(131, 118, 156),
-  "pink": Color.new(255, 119, 168),
-  "peach": Color.new(255, 204, 170),
-  "none": Color.new(0, 0, 0, 0)
+  "black": Color.rgb(0, 0, 0),
+  "darkblue": Color.rgb(29, 43, 83),
+  "purple": Color.rgb(141, 60, 255),
+  "darkpurple": Color.rgb(126, 37, 83),
+  "darkgreen": Color.rgb(0, 135, 81),
+  "brown": Color.rgb(171, 82, 54),
+  "darkgray": Color.rgb(95, 87, 79),
+  "lightgray": Color.rgb(194, 195, 199),
+  "white": Color.rgb(255, 255, 255),
+  "red": Color.rgb(255, 0, 77),
+  "orange": Color.rgb(255, 163, 0),
+  "yellow": Color.rgb(255, 236, 39),
+  "green": Color.rgb(0, 228, 54),
+  "blue": Color.rgb(41, 173, 255),
+  "indigo": Color.rgb(131, 118, 156),
+  "pink": Color.rgb(255, 119, 168),
+  "peach": Color.rgb(255, 204, 170),
+  "none": Color.rgb(0, 0, 0, 0)
 }
 
