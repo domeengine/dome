@@ -86,10 +86,15 @@ ENGINE_printLog(ENGINE* engine, char* line, ...) {
 
 internal ENGINE_WRITE_RESULT
 ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
-  char* base = BASEPATH_get();
-  char* fullPath = malloc(strlen(base)+strlen(path)+1);
-  strcpy(fullPath, base); /* copy name into the new var */
-  strcat(fullPath, path); /* add the extension */
+  char* fullPath;
+  if (path[0] != '/') {
+    char* base = BASEPATH_get();
+    fullPath = malloc(strlen(base)+strlen(path)+1);
+    strcpy(fullPath, base); /* copy name into the new var */
+    strcat(fullPath, path); /* add the extension */
+  } else {
+    fullPath = path;
+  }
 
   ENGINE_printLog(engine, "Writing to filesystem: %s\n", path);
   int result = writeEntireFile(fullPath, buffer, length);
@@ -98,7 +103,10 @@ ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
   } else {
     result = ENGINE_WRITE_SUCCESS;
   }
-  free(fullPath);
+
+  if (path[0] != '/') {
+    free(fullPath);
+  }
 
   return result;
 }
@@ -128,17 +136,26 @@ ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
     ENGINE_printLog(engine, "Couldn't find %s in bundle, falling back.\n", pathBuf);
   }
 
-  char* base = BASEPATH_get();
-  char* fullPath = malloc(strlen(base)+strlen(path)+1);
-  strcpy(fullPath, base); /* copy name into the new var */
-  strcat(fullPath, path); /* add the extension */
+  char* fullPath = NULL;
+  if (path[0] != '/') {
+    char* base = BASEPATH_get();
+    fullPath = malloc(strlen(base)+strlen(path)+1);
+    strcpy(fullPath, base); /* copy name into the new var */
+    strcat(fullPath, path); /* add the extension */
+  } else {
+    fullPath = path;
+  }
   if (!doesFileExist(fullPath)) {
-    free(fullPath);
+    if (path[0] != '/') {
+      free(fullPath);
+    }
     return NULL;
   } else {
     ENGINE_printLog(engine, "Reading from filesystem: %s\n", path);
     char* data = readEntireFile(fullPath, lengthPtr);
-    free(fullPath);
+    if (path[0] != '/') {
+      free(fullPath);
+    }
     return data;
   }
 }

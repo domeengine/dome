@@ -212,6 +212,84 @@ FILESYSTEM_loadEventComplete(SDL_Event* event) {
 }
 
 internal void
+FILESYSTEM_listFiles(WrenVM* vm) {
+  char* path = wrenGetSlotString(vm, 1);
+  char* fullPath;
+  if (path[0] != '/') {
+    char* base = BASEPATH_get();
+    fullPath = malloc(strlen(base)+strlen(path)+1);
+    strcpy(fullPath, base); /* copy name into the new var */
+    strcat(fullPath, path); /* add the extension */
+  } else {
+    fullPath = path;
+  }
+  tinydir_dir dir;
+  int result = tinydir_open(&dir, fullPath);
+  if (path[0] != '/') {
+    free(fullPath);
+  }
+  if (result == -1) {
+    VM_ABORT(vm, "Directory could not be opened");
+  } else {
+    wrenEnsureSlots(vm, 2);
+    wrenSetSlotNewList(vm, 0);
+    while (dir.has_next) {
+      tinydir_file file;
+      tinydir_readfile(&dir, &file);
+      if (!file.is_dir)
+      {
+        // Only files
+        wrenSetSlotString(vm, 1, file.name);
+        // Append slot 1 to the list in slot 0
+        wrenInsertInList(vm, 0, -1, 1);
+      }
+      tinydir_next(&dir);
+    }
+  }
+
+  tinydir_close(&dir);
+}
+
+internal void
+FILESYSTEM_listDirectories(WrenVM* vm) {
+  char* path = wrenGetSlotString(vm, 1);
+  char* fullPath;
+  if (path[0] != '/') {
+    char* base = BASEPATH_get();
+    fullPath = malloc(strlen(base)+strlen(path)+1);
+    strcpy(fullPath, base); /* copy name into the new var */
+    strcat(fullPath, path); /* add the extension */
+  } else {
+    fullPath = path;
+  }
+  tinydir_dir dir;
+  int result = tinydir_open(&dir, fullPath);
+  if (path[0] != '/') {
+    free(fullPath);
+  }
+  if (result == -1) {
+    VM_ABORT(vm, "Directory could not be opened");
+  } else {
+    wrenEnsureSlots(vm, 2);
+    wrenSetSlotNewList(vm, 0);
+    while (dir.has_next) {
+      tinydir_file file;
+      tinydir_readfile(&dir, &file);
+      if (file.is_dir)
+      {
+        // Only directories
+        wrenSetSlotString(vm, 1, file.name);
+        // Append slot 1 to the list in slot 0
+        wrenInsertInList(vm, 0, -1, 1);
+      }
+      tinydir_next(&dir);
+    }
+  }
+
+  tinydir_close(&dir);
+}
+
+internal void
 FILESYSTEM_getPrefPath(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "organisation");
   ASSERT_SLOT_TYPE(vm, 2, STRING, "application name");

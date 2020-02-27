@@ -7,6 +7,8 @@ class FileSystem {
     System.print("WARN: 'saveSync(_, _)' is depreciated. Use 'save(_, _)' instead.")
     return save(path, buffer)
   }
+  foreign static listFiles(path)
+  foreign static listDirectories(path)
   foreign static load(path)
   foreign static save(path, buffer)
   foreign static prefPath(org, app)
@@ -19,6 +21,7 @@ class FileSystem {
     f_load(path, operation)
     return operation
   }
+
 }
 
 foreign class AsyncOperation {
