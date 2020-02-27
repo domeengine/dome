@@ -71,14 +71,24 @@ DOME comes built in with the PICO-8 palette, but you can also define and use you
 
 ### Constructors
 
-#### `construct new(hexcode: String)`
+#### `construct hex(hexcode: String)`
 Create a new color with the given hexcode as a string of six alpha-numeric values. Hex values can be upper or lowercase, with or without a `#`. 
+#### `construct hsv(h: Number, s: Number, v: Number)`
+Create a new color using the given HSV number and an alpha value of `255`. 
+The `s` and `v` parameters must be between `0.0` and `1.0`. 
+#### `construct hsv(h: Number, s: Number, v: Number, a: Number)`
+Create a new color using the given HSV number and an alpha value of `a`, between `0 - 255`. 
+The `s` and `v` parameters must be between `0.0` and `1.0`. 
 
-#### `construct new(r: Number, g: Number, b: Number)`
+#### `construct rgb(r: Number, g: Number, b: Number)`
 Create a new color with the given RGB values between `0 - 255`, and an alpha value of `255`.
 
-#### `construct new(r: Number, g: Number, b: Number, a: Number)`
+#### `construct rgb(r: Number, g: Number, b: Number, a: Number)`
 Create a new color with the given RGBA values between `0 - 255`.
+
+#### `construct new(r: Number, g: Number, b: Number)`
+#### `construct new(r: Number, g: Number, b: Number, a: Number)`
+Deprecated, aliases for `rgb` constructor.
 
 ### Instance Fields
 
