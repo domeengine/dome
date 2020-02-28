@@ -54,6 +54,11 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.allocate = GAMEPAD_allocate;
       methods.finalize = GAMEPAD_finalize;
     }
+  } else if (STRINGS_EQUAL(module, "font")) {
+    if (STRINGS_EQUAL(className, "FontFile")) {
+      methods.allocate = FONT_allocate;
+      methods.finalize = FONT_finalize;
+    }
   } else {
     // TODO: Check if it's a module we lazy-loaded
 
