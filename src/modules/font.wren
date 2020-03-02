@@ -18,11 +18,10 @@ Canvas.print("Words in the font", x, y, color, font)
 
 foreign class FontFile {
   construct parse(data) {}
-}
-
-
-foreign class RasterizedFont {
-  construct rasterize(file, size) {}
+  foreign f_draw(text, color, size)
+  draw(text, color, size) {
+    f_draw(text, color.toNum, size)
+  }
 }
 
 foreign class Font {
@@ -31,8 +30,9 @@ foreign class Font {
     __rasterizedFonts = {}
   }
 
-  static load(name, path, pixelSize) {
+  static load(name, path) {
     __fontFiles[path] = FontFile.parse(FileSystem.load(path))
+    return __fontFiles[path]
     // var font = RasterizedFont.parse(fontFile, size)
   }
 

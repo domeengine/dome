@@ -1,13 +1,7 @@
 typedef struct {
   stbtt_fontinfo info;
+  bool antialias;
 } FONT;
-
-typedef struct {
-  FONT* font;
-  float scale;
-} FONT_RASTER;
-
-internal void FONT_draw(FONT* font);
 
 internal void
 FONT_allocate(WrenVM* vm) {
@@ -25,23 +19,49 @@ FONT_allocate(WrenVM* vm) {
   if (!result) {
     VM_ABORT(vm, "Loading font failed");
   }
-
-  FONT_draw(font);
 }
 
 internal void
-FONT_draw(FONT* font) {
+FONT_draw(WrenVM* vm) {
+  ENGINE* engine = wrenGetUserData(vm);
+  FONT* font = wrenGetSlotForeign(vm, 0);
+  char* text = wrenGetSlotString(vm, 1);
+  uint64_t color = wrenGetSlotDouble(vm, 2);
+  uint64_t size = wrenGetSlotDouble(vm, 3);
+
   unsigned char *bitmap;
-  size_t height = 8;
   int w, h;
-  char c = 'a';
-  int oX, oY;
-  bitmap = stbtt_GetCodepointBitmap(&font->info, 0,stbtt_ScaleForPixelHeight(&font->info, height), c, &w, &h, &oX,&oY);
-  for (int j = 0; j < h; j++) {
-    for (int i=0; i < w; i++) {
-      putchar(bitmap[j*w+i] < 0x0F ? ' ' : '#');
+
+  float scale = stbtt_ScaleForMappingEmToPixels(&font->info, size);
+
+  int32_t posX = 10;
+  int32_t baseY = 50;
+  int32_t posY = 0;
+  int len = strlen(text);
+  for (int letter = 0; letter < len; letter++) {
+    int ax;
+    int lsb;
+    int oY, oX;
+    stbtt_GetCodepointHMetrics(&font->info, text[letter], &ax, &lsb);
+    bitmap = stbtt_GetCodepointBitmap(&font->info, 0, scale, text[letter], &w, &h, &oX, &oY);
+    posX += oX;
+    posY = baseY + oY;
+    uint32_t outColor;
+    for (int j = 0; j < h; j++) {
+      for (int i = 0; i < w; i++) {
+        if (font->antialias) {
+          outColor = color | (bitmap[j*w+i] << 24);
+        } else {
+          outColor = bitmap[j * w + i] > 0 ? color : 0;
+        }
+        ENGINE_pset(engine, posX + i, posY + j, outColor);
+      }
     }
-    putchar('\n');
+    posX += ax * scale;
+    /* add kerning */
+    int kern;
+    kern = stbtt_GetCodepointKernAdvance(&font->info, text[letter], text[letter + 1]);
+    posX += kern * scale;
   }
 }
 
