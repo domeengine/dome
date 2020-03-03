@@ -3,6 +3,15 @@ typedef struct {
   bool antialias;
 } FONT;
 
+typedef struct {
+  FONT* font;
+  bool antialias;
+  float scale;
+  int32_t yOffset;
+  int32_t pitch;
+  char* bitmap;
+} FONT_RASTER;
+
 internal void
 FONT_allocate(WrenVM* vm) {
   FONT* font = wrenSetSlotNewForeign(vm, 0, 0, sizeof(FONT));
@@ -34,8 +43,12 @@ FONT_draw(WrenVM* vm) {
 
   float scale = stbtt_ScaleForMappingEmToPixels(&font->info, size);
 
+  int32_t x0, x1, y0, y1;
+  stbtt_GetFontBoundingBox(&font->info, &x0, &x1, &y0, &y1);
+
+
   int32_t posX = 10;
-  int32_t baseY = 50;
+  int32_t baseY = 50 - (-y0) * scale;
   int32_t posY = 0;
   int len = strlen(text);
   for (int letter = 0; letter < len; letter++) {
