@@ -24,6 +24,10 @@ class Vector {
     return Vector.new(_x / length, _y / length)
   }
 
+  perp {
+    return Vector.new(-_y, _x)
+  }
+
   dot(other) {
     if (!(other is Vector)) Fiber.abort("Vectors can only be subtracted from other points.")
     return _x * other.x + _y * other.y

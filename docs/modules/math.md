@@ -92,6 +92,9 @@ This returns the "taxicab length" of the vector, easily calculated as `x` + `y`.
 #### `length: Number`
 This returns the Euclidean magnitude of the vector.
 
+#### `perp: Vector`
+Returns the vector perpendicular to the current vector.
+
 #### `unit: Vector`
 Returns a copy of the current vector, where it's arguments have been scaled such that it's length is 1.
 
