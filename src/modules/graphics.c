@@ -14,6 +14,17 @@ CANVAS_print(WrenVM* vm) {
 }
 
 internal void
+CANVAS_pget(WrenVM* vm)
+{
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  int64_t x = round(wrenGetSlotDouble(vm, 1));
+  int64_t y = round(wrenGetSlotDouble(vm, 2));
+  uint32_t c = ENGINE_pget(engine, x,y);
+  wrenSetSlotDouble(vm, 0, c);
+}
+internal void
 CANVAS_pset(WrenVM* vm)
 {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
