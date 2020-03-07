@@ -331,13 +331,12 @@ ENGINE_free(ENGINE* engine) {
 
 internal uint32_t
 ENGINE_pget(ENGINE* engine, int64_t x, int64_t y) {
-  // Draw pixel at (x,y)
   int32_t width = engine->width;
   int32_t height = engine->height;
   if (0 <= x && x < width && 0 <= y && y < height) {
     return ((uint32_t*)(engine->pixels))[width * y + x];
   }
-  return 0;
+  return 0xFF000000;
 }
 inline internal void
 ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {

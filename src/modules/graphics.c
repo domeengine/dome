@@ -22,6 +22,7 @@ CANVAS_pget(WrenVM* vm)
   int64_t x = round(wrenGetSlotDouble(vm, 1));
   int64_t y = round(wrenGetSlotDouble(vm, 2));
   uint32_t c = ENGINE_pget(engine, x,y);
+  wrenEnsureSlots(vm, 1);
   wrenSetSlotDouble(vm, 0, c);
 }
 internal void
