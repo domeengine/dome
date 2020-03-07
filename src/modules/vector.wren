@@ -64,6 +64,20 @@ class Vector {
     return Vector.new(-_x, -_y)
   }
 
+  ==(other) {
+    if (other is Vector) {
+      return other.x == _x && other.y == _y
+    } else {
+      return false
+    }
+  }
+  !=(other) {
+    if (other is Vector) {
+      return other.x != _x || other.y != _y
+    } else {
+      return true
+    }
+  }
   toString { "(%(_x), %(_y))" }
 
 }
