@@ -477,9 +477,8 @@ ENGINE_line_high(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2,
     if (p > 0) {
       x += xi;
       p = p - 2 * dy;
-    } else {
-      p = p + 2 * dx;
     }
+    p = p + 2 * dx;
     y++;
   }
 }
@@ -502,9 +501,8 @@ ENGINE_line_low(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, 
     if (p > 0) {
       y += yi;
       p = p - 2 * dx;
-    } else {
-      p = p + 2 * dy;
     }
+    p = p + 2 * dy;
     x++;
   }
 }

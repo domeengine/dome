@@ -128,6 +128,9 @@ class Canvas {
     }
   }
   static print(str, x, y, c) {
+    if (!(str is String)) {
+      str = str.toString
+    }
     var color = Color.white
     if (c is Color) {
       color = c
