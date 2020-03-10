@@ -25,6 +25,8 @@ class Canvas {
   }
 
   foreign static f_resize(width, height, color)
+  static offset() { offset(0, 0) }
+  foreign static offset(x, y)
   static resize(width, height) { resize(width, height, Color.black) }
   static resize(width, height, c) {
     if (width < 0) {

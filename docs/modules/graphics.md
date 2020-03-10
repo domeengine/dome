@@ -48,6 +48,10 @@ Draw a filled ellipse between (_x0, y0_) and (_x1, y1_) in the color _c_.
 #### `static line(x0: Number, y0: Number, x1: Number, y1: Number, c: Color) `
 Draw an 1px wide line between (_x0, y0_) and (_x1, y1_) in the color _c_.
 
+#### `static offset()`
+#### `static offset(x: Number, y: Number) `
+Offset all following draw operations by (_x, y_). Calling this without arguments resets the offset to zero. You can use this to implement screen scrolling, or screenshake-style effects.
+
 #### `static print(str, x: Number, y: Number, c: Color) `
 Print the text _str_ with the top-left corner at (_x, y_) in color _c_, using the currently set default font. See `Canvas.font` for more information.
 

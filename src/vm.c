@@ -204,6 +204,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_ellipse(_,_,_,_,_)", CANVAS_ellipse);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_ellipsefill(_,_,_,_,_)", CANVAS_ellipsefill);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_print(_,_,_,_)", CANVAS_print);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.offset(_,_)", CANVAS_offset);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_resize(_,_,_)", CANVAS_resize);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.width", CANVAS_getWidth);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.height", CANVAS_getHeight);
