@@ -1,4 +1,5 @@
 typedef struct {
+  const unsigned char* file;
   stbtt_fontinfo info;
 } FONT;
 
@@ -22,7 +23,9 @@ FONT_allocate(WrenVM* vm) {
     VM_ABORT(vm, "Given file is not a TTF file");
     return;
   }
-  int result = stbtt_InitFont(&(font->info), file, stbtt_GetFontOffsetForIndex(file, 0));
+  font->file = malloc(size * sizeof(char));
+  memcpy(font->file, file, size * sizeof(char));
+  int result = stbtt_InitFont(&(font->info), font->file, stbtt_GetFontOffsetForIndex(file, 0));
 
   if (!result) {
     VM_ABORT(vm, "Loading font failed");
@@ -31,6 +34,8 @@ FONT_allocate(WrenVM* vm) {
 
 internal void
 FONT_finalize(void* data) {
+  FONT* font = data;
+  free(font->file);
 }
 
 internal void
