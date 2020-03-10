@@ -101,6 +101,7 @@ DOME currently depends on a few libraries to achieve it's functions.
 - libffi (version 3.3 or newer, but optional and can be built by `make DOME_OPT_FFI=1`)
 - stb_image
 - stb_image_write
+- stb_truetype
 - stb_vorbis
 - microtar
 - optparse
