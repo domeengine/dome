@@ -13,58 +13,63 @@ class Vector {
   }
 
   init_(x, y, z, w) {
-    _x = x
-    _y = y
-    _z = z
-    _w = w
+    _values = [x, y, z, w]
   }
 
-  x { _x }
-  y { _y }
-  z { _z }
-  w { _w }
-  x=(v) { _x = v }
-  y=(v) { _y = v }
-  z=(v) { _z = v }
-  w=(v) { _w = v }
+  x { _values[0] }
+  y { _values[1] }
+  z { _values[2] }
+  w { _values[3] }
+  x=(v) { _values[0] = v }
+  y=(v) { _values[1] = v }
+  z=(v) { _values[2] = v }
+  w=(v) { _values[3] = v }
 
   manhattan {
-    return _x.abs + _y.abs + _z.abs + _w.abs
+    return x.abs + y.abs + z.abs + w.abs
   }
 
   length {
-    return (_x.pow(2) + _y.pow(2) + _z.pow(2) + _w.pow(2)).sqrt
+    return (x.pow(2) + y.pow(2) + z.pow(2) + w.pow(2)).sqrt
   }
 
   unit {
     if (length == 0) {
       return Vector.new()
     }
-    return Vector.new(_x / length, _y / length, _z / length, _w / length)
+    return Vector.new(x / length, y / length, z / length, w / length)
   }
 
   perp {
-    return Vector.new(-_y, _x)
+    return Vector.new(-y, x)
   }
 
   dot(other) {
     if (!(other is Vector)) Fiber.abort("Vectors can only be subtracted from other points.")
-    return _x * other.x + _y * other.y + _z * other.z + _w * other.w
+    return x * other.x + y * other.y + z * other.z + w * other.w
+  }
+
+  cross(other) {
+    return Vector.new(
+      y * other.z - z * other.y,
+      z * other.x - x * other.z,
+      x * other.y - y * other.x
+    )
   }
 
   + (other) {
     if (!(other is Vector)) Fiber.abort("Vectors can only be subtracted from other points.")
-    return Vector.new(_x + other.x, _y + other.y, _z + other.z, _w + other.w)
+    return Vector.new(x + other.x, y + other.y, z + other.z, w + other.w)
   }
   - (other) {
     if (!(other is Vector)) Fiber.abort("Vectors can only be subtracted from other points.")
-    return Vector.new(_x - other.x, _y - other.y, _z - other.z, _w - other.w)
+    return Vector.new(x - other.x, y - other.y, z - other.z, w - other.w)
   }
 
   / (other) {
     if (other is Num) {
       // Scale by other
-      return Vector.new(_x / other, _y / other, _z / other, _w / other)
+      return Vector.new(x / other, y / other, z / other, w / other)
     } else {
       Fiber.abort("Vectors can only be divided by scalar values.")
     }
@@ -73,37 +78,37 @@ class Vector {
   * (other) {
     if (other is Num) {
       // Scale by other
-      return Vector.new(_x * other, _y * other)
+      return Vector.new(x * other, y * other, z * other, w * other)
     } else {
       Fiber.abort("Vectors can only be multiplied by scalar values.")
     }
   }
 
   - {
-    return Vector.new(-_x, -_y)
+    return Vector.new(-x, -y)
   }
 
   ==(other) {
     if (other is Vector) {
-      return other.x == _x && other.y == _y && other.z == _z && other.w == _w
+      return other.x == x && other.y == y && other.z == z && other.w == w
     } else {
       return false
     }
   }
   !=(other) {
     if (other is Vector) {
-      return other.x != _x || other.y != _y || other.z != _z || other.w != _w
+      return other.x != x || other.y != y || other.z != z || other.w != w
     } else {
       return true
     }
   }
   toString {
-    if (_z == 0 && _w == 0) {
-      return "(%(_x), %(_y))"
-    } else if (_w == 0) {
-      return "(%(_x), %(_y), %(_z))"
+    if (z == 0 && w == 0) {
+      return "(%(x), %(y))"
+    } else if (w == 0) {
+      return "(%(x), %(y), %(z))"
     } else {
-      return "(%(_x), %(_y), %(_z), %(_w))"
+      return "(%(x), %(y), %(z), %(w))"
     }
   }
 }
