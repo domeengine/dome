@@ -49,7 +49,7 @@ Draw an 1px wide line between (_x0, y0_) and (_x1, y1_) in the color _c_.
 
 #### `static offset()`
 #### `static offset(x: Number, y: Number) `
-Offset all following draw operations by (-_x, -y_). Calling this without arguments resets the offset to zero. You can use this to implement screen scrolling, or screenshake-style effects.
+Offset all following draw operations by (_x, y_). Calling this without arguments resets the offset to zero. You can use this to implement screen scrolling, or screenshake-style effects.
 
 #### `static print(str, x: Number, y: Number, c: Color) `
 Print the text _str_ with the top-left corner at (_x, y_) in color _c_.

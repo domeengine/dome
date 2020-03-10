@@ -341,8 +341,8 @@ ENGINE_pget(ENGINE* engine, int64_t x, int64_t y) {
 inline internal void
 ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
   // Draw pixel at (x,y)
-  x -= engine->offsetX;
-  y -= engine->offsetY;
+  x += engine->offsetX;
+  y += engine->offsetY;
   int32_t width = engine->width;
   int32_t height = engine->height;
   if ((c & (0xFF << 24)) == 0) {
@@ -378,8 +378,8 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 internal void
 ENGINE_blitBuffer(ENGINE* engine, int32_t x, int32_t y) {
   PIXEL_BUFFER buffer = engine->blitBuffer;
-  x -= engine->offsetX;
-  y -= engine->offsetY;
+  x += engine->offsetX;
+  y += engine->offsetY;
   uint32_t* blitBuffer = buffer.pixels;
   for (size_t j = 0; j < buffer.height; j++) {
     for (size_t i = 0; i < buffer.width; i++) {
