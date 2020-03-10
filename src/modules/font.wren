@@ -29,7 +29,9 @@ class Font {
   static default { null }
 
   static load(name, path, size) {
-    __fontFiles[path] = FontFile.parse(FileSystem.load(path))
+    if (!__fontFiles.containsKey(path)) {
+      __fontFiles[path] = FontFile.parse(FileSystem.load(path))
+    }
     __rasterizedFonts[name] = RasterizedFont.parse(__fontFiles[path], size)
     return __rasterizedFonts[name]
   }
