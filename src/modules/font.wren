@@ -20,17 +20,7 @@ foreign class FontFile {
   construct parse(data) {}
 }
 
-foreign class RasterizedFont {
-  construct parse(file, size) {}
-  foreign antialias=(v)
-  foreign f_print(text, x, y, color)
-
-  print(text, x, y, color) {
-    f_print(text, x, y, color.toNum)
-  }
-}
-
-foreign class Font {
+class Font {
   static initFontCache_() {
     __fontFiles = {}
     __rasterizedFonts = {}
@@ -53,3 +43,14 @@ foreign class Font {
 }
 
 Font.initFontCache_()
+
+foreign class RasterizedFont is Font {
+  construct parse(file, size) {}
+  foreign antialias=(v)
+  foreign f_print(text, x, y, color)
+
+  print(text, x, y, color) {
+    f_print(text, x, y, color.toNum)
+  }
+}
+

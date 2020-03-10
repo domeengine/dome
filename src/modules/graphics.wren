@@ -1,15 +1,29 @@
 /**
+
   @Module graphics
   The graphics module provides all the system functions required for drawing to the screen.
 */
 import "vector" for Point, Vec, Vector
 import "image" for Drawable, ImageData
+import "font" for Font, RasterizedFont
 
 /**
     @Class Canvas
       This class provides static methods for drawing primitives and images.
 */
 class Canvas {
+  static init_() {
+    __defaultFont = null
+  }
+
+  static font=(v) {
+    if (v is String || v == Font.default) {
+      __defaultFont = v
+    } else {
+      Fiber.abort("Default font must be a font name")
+    }
+  }
+
   foreign static f_resize(width, height, color)
   static resize(width, height) { resize(width, height, Color.black) }
   static resize(width, height, c) {
@@ -127,6 +141,13 @@ class Canvas {
       f_circlefill(x, y, r, c)
     }
   }
+  static print(str, x, y, c, font) {
+    if (Font[font] != null) {
+      Font[font].print(str, x, y, c)
+    } else {
+      Fiber.abort("Font %(font) is not loaded")
+    }
+  }
   static print(str, x, y, c) {
     if (!(str is String)) {
       str = str.toString
@@ -135,7 +156,11 @@ class Canvas {
     if (c is Color) {
       color = c
     }
-    f_print(str, x, y, color.toNum)
+    if (__defaultFont != null) {
+      print(str, x, y, color, __defaultFont)
+    } else {
+      f_print(str, x, y, color.toNum)
+    }
   }
   static cls() {
     cls(Color.black)
@@ -336,3 +361,4 @@ var AllColors = {
   "none": Color.rgb(0, 0, 0, 0)
 }
 
+Canvas.init_()
