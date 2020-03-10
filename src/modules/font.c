@@ -93,11 +93,13 @@ FONT_RASTER_print(WrenVM* vm) {
     posX += oX;
     posY = baseY + oY;
     uint32_t outColor;
+    float baseAlpha = ((color & 0xFF000000) >> 24) / (float)0xFF;
 
     for (int j = 0; j < h; j++) {
       for (int i = 0; i < w; i++) {
         if (raster->antialias) {
-          outColor = (bitmap[j * w + i] << 24) | (color & 0x00FFFFFF);
+          uint8_t alpha = baseAlpha * bitmap[j * w + i];
+          outColor = (alpha << 24) | (color & 0x00FFFFFF);
         } else {
           outColor = bitmap[j * w + i] > 0 ? color : 0;
         }
