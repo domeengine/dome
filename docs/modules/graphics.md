@@ -72,12 +72,12 @@ If `c` isn't provided, we default to black.
 
 ### Instance Field
 #### `font: String`
-This sets the name of the default font used for `Canvas.print(str, x, y, color)`. You can set this to `Font.default` to return to the DOME biuilt-in font.
+This sets the name of the default font used for `Canvas.print(str, x, y, color)`. You can set this to `Font.default` to return to the DOME built-in font.
 
 ## Color
 
 An instance of the `Color` class represents a single color which can be used for drawing to the `Canvas`.
-DOME comes built in with the PICO-8 palette, but you can also define and use your own colors in your games.
+DOME comes built-in with the PICO-8 palette, but you can also define and use your own colors in your games.
 
 ### Constructors
 
@@ -146,7 +146,7 @@ Draw the image at the given `(x, y)` position on the screen.
 
 ## Font
 
-DOME includes a built in fixed 8x8 pixel font, but you can also load and use fonts from TTF files stored on the file system.
+DOME includes a built-in fixed 8x8 pixel font, but you can also load and use fonts from TTF files stored on the file system.
 
 ### Static Methods
 #### `static load(name: String, path: String, size: Number): Font`
