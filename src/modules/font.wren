@@ -18,9 +18,15 @@ Canvas.print("Words in the font", x, y, color, font)
 
 foreign class FontFile {
   construct parse(data) {}
-  foreign f_draw(text, color, size)
-  draw(text, color, size) {
-    f_draw(text, color.toNum, size)
+}
+
+foreign class RasterizedFont {
+  construct parse(file, size) {}
+  foreign antialias=(v)
+  foreign f_print(text, x, y, color)
+
+  print(text, x, y, color) {
+    f_print(text, x, y, color.toNum)
   }
 }
 
@@ -30,10 +36,17 @@ foreign class Font {
     __rasterizedFonts = {}
   }
 
-  static load(name, path) {
+  static default { null }
+
+  static load(name, path, size) {
     __fontFiles[path] = FontFile.parse(FileSystem.load(path))
-    return __fontFiles[path]
-    // var font = RasterizedFont.parse(fontFile, size)
+    __rasterizedFonts[name] = RasterizedFont.parse(__fontFiles[path], size)
+    return __rasterizedFonts[name]
+  }
+
+  static unload(name) {
+    __rasterizedFonts.remove[name]
+    // TODO: Check if we are using the font and unload that too?
   }
 
   static [index] { __rasterizedFonts[index] }

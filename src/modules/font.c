@@ -1,15 +1,13 @@
 typedef struct {
   stbtt_fontinfo info;
-  bool antialias;
 } FONT;
 
 typedef struct {
   FONT* font;
-  bool antialias;
   float scale;
-  int32_t yOffset;
-  int32_t pitch;
-  char* bitmap;
+
+  bool antialias;
+  int32_t offsetY;
 } FONT_RASTER;
 
 internal void
@@ -31,39 +29,67 @@ FONT_allocate(WrenVM* vm) {
 }
 
 internal void
-FONT_draw(WrenVM* vm) {
+FONT_finalize(void* data) {
+}
+
+internal void
+FONT_RASTER_allocate(WrenVM* vm) {
+  FONT_RASTER* raster = wrenSetSlotNewForeign(vm, 0, 0, sizeof(FONT_RASTER));
+  FONT* font = wrenGetSlotForeign(vm, 1);
+  raster->font = font;
+  raster->antialias = false;
+  raster->scale = stbtt_ScaleForMappingEmToPixels(&font->info, wrenGetSlotDouble(vm, 2));
+
+  int32_t x0, x1, y0, y1;
+  stbtt_GetFontBoundingBox(&font->info, &x0, &x1, &y0, &y1);
+  raster->offsetY = (-y0) * raster->scale;
+}
+
+internal void
+FONT_RASTER_finalize(void* data) {
+
+}
+
+internal void
+FONT_RASTER_setAntiAlias(WrenVM* vm) {
+  FONT_RASTER* raster = wrenGetSlotForeign(vm, 0);
+  raster->antialias = wrenGetSlotBool(vm, 1);
+}
+
+internal void
+FONT_RASTER_print(WrenVM* vm) {
   ENGINE* engine = wrenGetUserData(vm);
-  FONT* font = wrenGetSlotForeign(vm, 0);
+  FONT_RASTER* raster = wrenGetSlotForeign(vm, 0);
+  stbtt_fontinfo info = raster->font->info;
   char* text = wrenGetSlotString(vm, 1);
-  uint64_t color = wrenGetSlotDouble(vm, 2);
-  uint64_t size = wrenGetSlotDouble(vm, 3);
+  int64_t x = wrenGetSlotDouble(vm, 2);
+  int64_t y = wrenGetSlotDouble(vm, 3);
+  uint32_t color = wrenGetSlotDouble(vm, 4);
 
   unsigned char *bitmap;
   int w, h;
 
-  float scale = stbtt_ScaleForMappingEmToPixels(&font->info, size);
+  float scale = raster->scale;
+  int32_t offsetY = raster->offsetY;
 
-  int32_t x0, x1, y0, y1;
-  stbtt_GetFontBoundingBox(&font->info, &x0, &x1, &y0, &y1);
-
-
-  int32_t posX = 10;
-  int32_t baseY = 50 - (-y0) * scale;
-  int32_t posY = 0;
+  int32_t posX = x;
+  int32_t posY = y;
+  int32_t baseY = y - offsetY;
   int len = strlen(text);
   for (int letter = 0; letter < len; letter++) {
     int ax;
     int lsb;
     int oY, oX;
-    stbtt_GetCodepointHMetrics(&font->info, text[letter], &ax, &lsb);
-    bitmap = stbtt_GetCodepointBitmap(&font->info, 0, scale, text[letter], &w, &h, &oX, &oY);
+    stbtt_GetCodepointHMetrics(&info, text[letter], &ax, &lsb);
+    bitmap = stbtt_GetCodepointBitmap(&info, 0, scale, text[letter], &w, &h, &oX, &oY);
     posX += oX;
     posY = baseY + oY;
     uint32_t outColor;
+
     for (int j = 0; j < h; j++) {
       for (int i = 0; i < w; i++) {
-        if (font->antialias) {
-          outColor = color | (bitmap[j*w+i] << 24);
+        if (raster->antialias) {
+          outColor = (bitmap[j * w + i] << 24) | (color & 0x00FFFFFF);
         } else {
           outColor = bitmap[j * w + i] > 0 ? color : 0;
         }
@@ -73,11 +99,7 @@ FONT_draw(WrenVM* vm) {
     posX += ax * scale;
     /* add kerning */
     int kern;
-    kern = stbtt_GetCodepointKernAdvance(&font->info, text[letter], text[letter + 1]);
+    kern = stbtt_GetCodepointKernAdvance(&info, text[letter], text[letter + 1]);
     posX += kern * scale;
   }
-}
-
-internal void
-FONT_finalize(void* data) {
 }
