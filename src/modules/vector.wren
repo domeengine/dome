@@ -85,7 +85,7 @@ class Vector {
   }
 
   - {
-    return Vector.new(-x, -y)
+    return Vector.new(-x, -y, -z, -w)
   }
 
   ==(other) {

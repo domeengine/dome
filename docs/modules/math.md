@@ -98,7 +98,7 @@ This returns the "taxicab length" of the vector, easily calculated as `x` + `y` 
 This returns the Euclidean magnitude of the vector.
 
 #### `perp: Vector`
-Returns the vector perpendicular to the current vector.
+Returns the 2D vector perpendicular to the current vector. This doesn't work for vectors with 3 or more dimensions. 
 
 #### `unit: Vector`
 Returns a copy of the current vector, where it's arguments have been scaled such that it's length is 1.
