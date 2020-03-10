@@ -38,6 +38,8 @@ typedef struct {
   MAP moduleMap;
   uint32_t width;
   uint32_t height;
+  int32_t offsetX;
+  int32_t offsetY;
   mtar_t* tar;
   bool running;
   bool lockstep;

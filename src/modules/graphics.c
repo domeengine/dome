@@ -179,3 +179,11 @@ CANVAS_resize(WrenVM* vm) {
   }
 }
 
+internal void
+CANVAS_offset(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x offset");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y offset");
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  engine->offsetX = wrenGetSlotDouble(vm, 1);
+  engine->offsetY = wrenGetSlotDouble(vm, 2);
+}
