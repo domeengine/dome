@@ -73,21 +73,26 @@ Returns the tan of `n`.
 
 ## Vector
 
-The `Vector` class works as a 2-dimensional vector. You can also refer to it as a `Point` or `Vec`.
+The `Vector` class works as a vector of up to 4 dimensions. You can also refer to it as a `Point` or `Vec`.
 
 ### Constructor
 
 #### `Vector.new(): Vector`
 #### `Vector.new(x, y): Vector`
+#### `Vector.new(x, y, z): Vector`
+#### `Vector.new(x, y, z, w): Vector`
 
-Create a vector. If `x` and `y` aren't provided, they are set to `(0, 0)`.
+Create a vector. If a value isn't provided, it is set to `(0, 0, 0, 0)`.
+Unless you specifically need 3 or 4-dimensional vectors, you can ignore _z_ and _w_.
 
 ### Instance Fields
 #### `x: Number`
 #### `y: Number`
+#### `z: Number`
+#### `w: Number`
 
 #### `manhattan: Number`
-This returns the "taxicab length" of the vector, easily calculated as `x` + `y`.
+This returns the "taxicab length" of the vector, easily calculated as `x` + `y` + `z` + `w`. 
 
 #### `length: Number`
 This returns the Euclidean magnitude of the vector.
