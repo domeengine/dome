@@ -52,6 +52,8 @@ Print the text _str_ with the top-left corner at (_x, y_) in color _c_.
 
 #### `static pset(x: Number, y: Number, c: Color) `
 Set the pixel at (_x, y_) to the color _c_.
+#### `static pget(x: Number, y: Number): Color `
+Get the color of the pixel at (_x, y_).
 
 #### `static rect(x: Number, y: Number, w: Number, h: Number, c: Color) `
 Draw a rectangle with the top-left corner at (_x, y_), with a width of _w_ and _h_ in color _c_.

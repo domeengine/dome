@@ -291,8 +291,7 @@ ENGINE_free(ENGINE* engine) {
   }
 
   if (engine->tar != NULL) {
-    mtar_finalize(engine->tar);
-    free(engine->tar);
+    mtar_close(engine->tar);
   }
 
   if (engine->moduleMap.head != NULL) {
@@ -329,6 +328,15 @@ ENGINE_free(ENGINE* engine) {
   }
 }
 
+internal uint32_t
+ENGINE_pget(ENGINE* engine, int64_t x, int64_t y) {
+  int32_t width = engine->width;
+  int32_t height = engine->height;
+  if (0 <= x && x < width && 0 <= y && y < height) {
+    return ((uint32_t*)(engine->pixels))[width * y + x];
+  }
+  return 0xFF000000;
+}
 inline internal void
 ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
   // Draw pixel at (x,y)
@@ -469,9 +477,8 @@ ENGINE_line_high(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2,
     if (p > 0) {
       x += xi;
       p = p - 2 * dy;
-    } else {
-      p = p + 2 * dx;
     }
+    p = p + 2 * dx;
     y++;
   }
 }
@@ -494,9 +501,8 @@ ENGINE_line_low(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, 
     if (p > 0) {
       y += yi;
       p = p - 2 * dx;
-    } else {
-      p = p + 2 * dy;
     }
+    p = p + 2 * dy;
     x++;
   }
 }
