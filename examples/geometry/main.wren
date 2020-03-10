@@ -14,11 +14,9 @@ class Game {
       __angle = 0
     }
     static update() {
-      Fiber.abort("DOOM")
       __angle = (__angle + (Num.pi / 180)) % (2 * Num.pi)
     }
     static draw(dt) {
-      // Canvas.rect(0, 0, 400, 240, Color.white)
       Canvas.cls()
       var x = CENTER_X + M.cos(__angle) * RADIUS
       var y = CENTER_Y + M.sin(__angle) * RADIUS
