@@ -128,4 +128,4 @@ Apart from SDL2, all other dependancies are baked in or linked statically. DOME 
 - Example game and graphics are derived from [this](https://ztiromoritz.github.io/pico-8-shooter/) fantastic PICO-8 tutorial.
 - Aerith's Piano Theme (res/AerisPiano.ogg) by Tanner Helland is available under a CC BY-SA 3.0 license: [Link](http://www.tannerhelland.com/68/aeris-theme-piano/)
 - Game Over Theme (res/music.wav) by Doppelganger is available under a CC BY-SA 3.0 license: [Link](https://opengameart.org/content/game-over-theme)
-- Font "memory" is provided by Somepx Eeve, and is available on their patreon [here](https://www.patreon.com/posts/free-font-memory-28150678) under a [common sense license](http://www.palmentieri.it/somepx/license.txt).
+- Font "Memory" is provided by Eeve Somepx, and is available on their patreon [here](https://www.patreon.com/posts/free-font-memory-28150678) under a [common sense license](http://www.palmentieri.it/somepx/license.txt).
