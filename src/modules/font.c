@@ -15,6 +15,7 @@ FONT_allocate(WrenVM* vm) {
   FONT* font = wrenSetSlotNewForeign(vm, 0, 0, sizeof(FONT));
   int size;
   // ASSERT
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "text");
   const unsigned char* file = (const unsigned char*) wrenGetSlotBytes(vm, 1, &size);
   char magic[4] = {0x00, 0x01, 0x00, 0x00};
   if (memcmp(file, magic, 4) != 0) {
@@ -35,9 +36,11 @@ FONT_finalize(void* data) {
 internal void
 FONT_RASTER_allocate(WrenVM* vm) {
   FONT_RASTER* raster = wrenSetSlotNewForeign(vm, 0, 0, sizeof(FONT_RASTER));
+  ASSERT_SLOT_TYPE(vm, 1, FOREIGN, "font");
   FONT* font = wrenGetSlotForeign(vm, 1);
   raster->font = font;
   raster->antialias = false;
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "font size");
   raster->scale = stbtt_ScaleForMappingEmToPixels(&font->info, wrenGetSlotDouble(vm, 2));
 
   int32_t x0, x1, y0, y1;
@@ -53,6 +56,7 @@ FONT_RASTER_finalize(void* data) {
 internal void
 FONT_RASTER_setAntiAlias(WrenVM* vm) {
   FONT_RASTER* raster = wrenGetSlotForeign(vm, 0);
+  ASSERT_SLOT_TYPE(vm, 1, BOOL, "antialias");
   raster->antialias = wrenGetSlotBool(vm, 1);
 }
 
@@ -61,6 +65,10 @@ FONT_RASTER_print(WrenVM* vm) {
   ENGINE* engine = wrenGetUserData(vm);
   FONT_RASTER* raster = wrenGetSlotForeign(vm, 0);
   stbtt_fontinfo info = raster->font->info;
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "text");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "y");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "color");
   char* text = wrenGetSlotString(vm, 1);
   int64_t x = wrenGetSlotDouble(vm, 2);
   int64_t y = wrenGetSlotDouble(vm, 3);
