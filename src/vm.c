@@ -54,11 +54,18 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.allocate = GAMEPAD_allocate;
       methods.finalize = GAMEPAD_finalize;
     }
+  } else if (STRINGS_EQUAL(module, "font")) {
+    if (STRINGS_EQUAL(className, "FontFile")) {
+      methods.allocate = FONT_allocate;
+      methods.finalize = FONT_finalize;
+    } else if (STRINGS_EQUAL(className, "RasterizedFont")) {
+      methods.allocate = FONT_RASTER_allocate;
+      methods.finalize = FONT_RASTER_finalize;
+    }
   } else {
     // TODO: Check if it's a module we lazy-loaded
 
   }
-
 
   return methods;
 }
@@ -188,6 +195,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // Canvas
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_pset(_,_,_)", CANVAS_pset);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_pget(_,_)", CANVAS_pget);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_rectfill(_,_,_,_,_)", CANVAS_rectfill);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_rect(_,_,_,_,_)", CANVAS_rect);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_line(_,_,_,_,_)", CANVAS_line);
@@ -196,10 +204,14 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_ellipse(_,_,_,_,_)", CANVAS_ellipse);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_ellipsefill(_,_,_,_,_)", CANVAS_ellipsefill);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_print(_,_,_,_)", CANVAS_print);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.offset(_,_)", CANVAS_offset);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_resize(_,_,_)", CANVAS_resize);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.width", CANVAS_getWidth);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.height", CANVAS_getHeight);
 
+  // Font
+  MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.f_print(_,_,_,_)", FONT_RASTER_print);
+  MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.antialias=(_)", FONT_RASTER_setAntiAlias);
   // Image
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.draw(_,_)", IMAGE_draw);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.width", IMAGE_getWidth);
@@ -231,6 +243,11 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.f_load(_,_)", FILESYSTEM_loadAsync);
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.load(_)", FILESYSTEM_loadSync);
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.save(_,_)", FILESYSTEM_saveSync);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.listFiles(_)", FILESYSTEM_listFiles);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.listDirectories(_)", FILESYSTEM_listDirectories);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.prefPath(_,_)", FILESYSTEM_getPrefPath);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.basePath()", FILESYSTEM_getBasePath);
+
 
   // Buffer
   MAP_addFunction(&engine->moduleMap, "io", "static DataBuffer.f_capture()", DBUFFER_capture);

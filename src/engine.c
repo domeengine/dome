@@ -86,10 +86,15 @@ ENGINE_printLog(ENGINE* engine, char* line, ...) {
 
 internal ENGINE_WRITE_RESULT
 ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
-  char* base = BASEPATH_get();
-  char* fullPath = malloc(strlen(base)+strlen(path)+1);
-  strcpy(fullPath, base); /* copy name into the new var */
-  strcat(fullPath, path); /* add the extension */
+  char* fullPath;
+  if (path[0] != '/') {
+    char* base = BASEPATH_get();
+    fullPath = malloc(strlen(base)+strlen(path)+1);
+    strcpy(fullPath, base); /* copy name into the new var */
+    strcat(fullPath, path); /* add the extension */
+  } else {
+    fullPath = path;
+  }
 
   ENGINE_printLog(engine, "Writing to filesystem: %s\n", path);
   int result = writeEntireFile(fullPath, buffer, length);
@@ -98,7 +103,10 @@ ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
   } else {
     result = ENGINE_WRITE_SUCCESS;
   }
-  free(fullPath);
+
+  if (path[0] != '/') {
+    free(fullPath);
+  }
 
   return result;
 }
@@ -128,17 +136,26 @@ ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
     ENGINE_printLog(engine, "Couldn't find %s in bundle, falling back.\n", pathBuf);
   }
 
-  char* base = BASEPATH_get();
-  char* fullPath = malloc(strlen(base)+strlen(path)+1);
-  strcpy(fullPath, base); /* copy name into the new var */
-  strcat(fullPath, path); /* add the extension */
+  char* fullPath = NULL;
+  if (path[0] != '/') {
+    char* base = BASEPATH_get();
+    fullPath = malloc(strlen(base)+strlen(path)+1);
+    strcpy(fullPath, base); /* copy name into the new var */
+    strcat(fullPath, path); /* add the extension */
+  } else {
+    fullPath = path;
+  }
   if (!doesFileExist(fullPath)) {
-    free(fullPath);
+    if (path[0] != '/') {
+      free(fullPath);
+    }
     return NULL;
   } else {
     ENGINE_printLog(engine, "Reading from filesystem: %s\n", path);
     char* data = readEntireFile(fullPath, lengthPtr);
-    free(fullPath);
+    if (path[0] != '/') {
+      free(fullPath);
+    }
     return data;
   }
 }
@@ -200,8 +217,9 @@ ENGINE_init(ENGINE* engine) {
   engine->debug.errorBuf = NULL;
   engine->debug.errorBufLen = 0;
 
-
-
+  // Initialise the canvas offset.
+  engine->offsetX = 0;
+  engine->offsetY = 0;
   engine->width = GAME_WIDTH;
   engine->height = GAME_HEIGHT;
 
@@ -274,8 +292,7 @@ ENGINE_free(ENGINE* engine) {
   }
 
   if (engine->tar != NULL) {
-    mtar_finalize(engine->tar);
-    free(engine->tar);
+    mtar_close(engine->tar);
   }
 
   if (engine->moduleMap.head != NULL) {
@@ -312,8 +329,22 @@ ENGINE_free(ENGINE* engine) {
   }
 }
 
+internal uint32_t
+ENGINE_pget(ENGINE* engine, int64_t x, int64_t y) {
+  int32_t width = engine->width;
+  int32_t height = engine->height;
+  if (0 <= x && x < width && 0 <= y && y < height) {
+    return ((uint32_t*)(engine->pixels))[width * y + x];
+  }
+  return 0xFF000000;
+}
 inline internal void
 ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
+
+  // Account for canvas offset
+  x += engine->offsetX;
+  y += engine->offsetY;
+
   // Draw pixel at (x,y)
   int32_t width = engine->width;
   int32_t height = engine->height;
@@ -350,6 +381,11 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 internal void
 ENGINE_blitBuffer(ENGINE* engine, int32_t x, int32_t y) {
   PIXEL_BUFFER buffer = engine->blitBuffer;
+
+  // Account for Canvas offset
+  x += engine->offsetX;
+  y += engine->offsetY;
+
   uint32_t* blitBuffer = buffer.pixels;
   for (size_t j = 0; j < buffer.height; j++) {
     for (size_t i = 0; i < buffer.width; i++) {
@@ -375,29 +411,57 @@ ENGINE_resizeBlitBuffer(ENGINE* engine, size_t width, size_t height) {
   return buffer->pixels;
 }
 
+inline internal unsigned char*
+defaultFontLookup(utf8_int32_t codepoint) {
+  local_persist unsigned char empty[8] = { 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F };
+  if (codepoint >= 0 && codepoint < 0x7F) {
+    return font8x8_basic[codepoint];
+  } else if (codepoint >= 0x80 && codepoint <= 0x9F) {
+    codepoint = codepoint - 0x80;
+    return font8x8_control[codepoint];
+  } else if (codepoint >= 0xA0 && codepoint <= 0xFF) {
+    codepoint = codepoint - 0xA0;
+    return font8x8_ext_latin[codepoint];
+  } else if (codepoint >= 0x390 && codepoint <= 0x3C9) {
+    codepoint = codepoint - 0x390;
+    return font8x8_greek[codepoint];
+  } else if (codepoint >= 0x2500 && codepoint <= 0x257F) {
+    codepoint = codepoint - 0x2500;
+    return font8x8_box[codepoint];
+  } else if (codepoint >= 0x2580 && codepoint <= 0x259F) {
+    codepoint = codepoint - 0x2580;
+    return font8x8_block[codepoint];
+  } else if (codepoint >= 0x3040 && codepoint <= 0x309F) {
+    codepoint = codepoint - 0x3040;
+    return font8x8_hiragana[codepoint];
+  } else if (codepoint >= 0xE541 && codepoint <= 0xE55A) {
+    codepoint = codepoint - 0xE541;
+    return font8x8_sga[codepoint];
+  } else {
+    return empty;
+  }
+}
 
 internal void
 ENGINE_print(ENGINE* engine, char* text, int64_t x, int64_t y, uint32_t c) {
   int fontWidth = 8;
   int fontHeight = 8;
   int cursor = 0;
-  for (size_t pos = 0; pos < strlen(text); pos++) {
-    uint8_t letter = text[pos];
-
-    uint8_t* glyph = (uint8_t*)font8x8_basic[letter];
-    if (*glyph == '\n') {
-      break;
-    }
+  utf8_int32_t codepoint;
+  void* v = utf8codepoint(text, &codepoint);
+  size_t len = utf8len(text);
+  for (size_t pos = 0; pos < len; pos++) {
+    uint8_t* glyph = (uint8_t*)defaultFontLookup(codepoint);
     for (int j = 0; j < fontHeight; j++) {
       for (int i = 0; i < fontWidth; i++) {
         uint8_t v = (glyph[j] >> i) & 1;
-        // uint8_t v = glyph[j * fontWidth + i];
         if (v != 0) {
           ENGINE_pset(engine, x + cursor + i, y + j, c);
         }
       }
     }
     cursor += fontWidth;
+    v = utf8codepoint(v, &codepoint);
   }
 }
 
@@ -767,7 +831,7 @@ ENGINE_getMouseX(ENGINE* engine) {
   int winY;
   SDL_GetMouseState(&mouseX, &mouseY);
   SDL_GetWindowSize(engine->window, &winX, &winY);
-  return mouseX * max(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.x;
+  return mouseX * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.x;
 }
 
 internal float
@@ -780,7 +844,7 @@ ENGINE_getMouseY(ENGINE* engine) {
   int winY;
   SDL_GetMouseState(&mouseX, &mouseY);
   SDL_GetWindowSize(engine->window, &winX, &winY);
-  return mouseY * max(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.y;
+  return mouseY * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.y;
 }
 
 internal bool
