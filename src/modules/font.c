@@ -88,13 +88,15 @@ FONT_RASTER_print(WrenVM* vm) {
   int32_t posX = x;
   int32_t posY = y;
   int32_t baseY = y - offsetY;
-  int len = strlen(text);
-  for (int letter = 0; letter < len; letter++) {
+  int len = utf8len(text);
+  utf8_int32_t codepoint;
+  void* v = utf8codepoint(text, &codepoint);
+  for (int charIndex = 0; charIndex < len; charIndex++) {
     int ax;
     int lsb;
     int oY, oX;
-    stbtt_GetCodepointHMetrics(&info, text[letter], &ax, &lsb);
-    bitmap = stbtt_GetCodepointBitmap(&info, 0, scale, text[letter], &w, &h, &oX, &oY);
+    stbtt_GetCodepointHMetrics(&info, codepoint, &ax, &lsb);
+    bitmap = stbtt_GetCodepointBitmap(&info, 0, scale, codepoint, &w, &h, &oX, &oY);
     posX += oX;
     posY = baseY + oY;
     uint32_t outColor;
@@ -114,7 +116,9 @@ FONT_RASTER_print(WrenVM* vm) {
     posX += ax * scale;
     /* add kerning */
     int kern;
-    kern = stbtt_GetCodepointKernAdvance(&info, text[letter], text[letter + 1]);
+    long oldCodepoint = codepoint;
+    v = utf8codepoint(v, &codepoint);
+    kern = stbtt_GetCodepointKernAdvance(&info, oldCodepoint, codepoint);
     posX += kern * scale;
   }
 }

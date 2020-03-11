@@ -12,6 +12,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <tinydir.h>
+#include <utf8.h>
 
 #include <unistd.h>
 #include <sys/stat.h>
