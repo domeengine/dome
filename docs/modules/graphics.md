@@ -156,7 +156,7 @@ DOME includes a built-in fixed 8x8 pixel font, but you can also load and use fon
 #### `static load(name: String, path: String, size: Number): Font`
 Load the font file at `path`, rasterize it to the pixel height of `size`, and map this to the `name` for later reference. You will need to call this once for each font size, and `name` must be unique, or you will overwrite the old font.
 
-#### `[fontName]: Font`
+#### `static [fontName]: Font`
 You can retrieve a specific font using the index operator, for example `Font["NewFont"]`.
 
 ### Instance Methods
