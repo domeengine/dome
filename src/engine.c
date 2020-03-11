@@ -451,20 +451,10 @@ ENGINE_print(ENGINE* engine, char* text, int64_t x, int64_t y, uint32_t c) {
   void* v = utf8codepoint(text, &codepoint);
   size_t len = utf8len(text);
   for (size_t pos = 0; pos < len; pos++) {
-    // uint8_t letter = text[pos];
-
-    // uint8_t* glyph = (uint8_t*)font8x8_basic[letter];
-    uint8_t* glyph = defaultFontLookup(codepoint);
-    /*
-    if (codepoint == '\n') {
-      y = y + fontHeight;
-      continue;
-    }
-    */
+    uint8_t* glyph = (uint8_t*)defaultFontLookup(codepoint);
     for (int j = 0; j < fontHeight; j++) {
       for (int i = 0; i < fontWidth; i++) {
         uint8_t v = (glyph[j] >> i) & 1;
-        // uint8_t v = glyph[j * fontWidth + i];
         if (v != 0) {
           ENGINE_pset(engine, x + cursor + i, y + j, c);
         }
