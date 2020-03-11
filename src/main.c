@@ -12,6 +12,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <tinydir.h>
+#include <utf8.h>
 
 #include <unistd.h>
 #include <sys/stat.h>
@@ -45,6 +46,9 @@
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
+
+#define STB_TRUETYPE_IMPLEMENTATION
+#include <stb_truetype.h>
 
 // Setup STB_VORBIS
 #define STB_VORBIS_NO_PUSHDATA_API
@@ -114,6 +118,7 @@ global_variable size_t GIF_SCALE = 1;
 #if DOME_OPT_FFI
 #include "modules/ffi.c"
 #endif
+#include "modules/font.c"
 #include "modules/io.c"
 #include "modules/audio.c"
 #include "modules/graphics.c"

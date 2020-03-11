@@ -54,11 +54,18 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.allocate = GAMEPAD_allocate;
       methods.finalize = GAMEPAD_finalize;
     }
+  } else if (STRINGS_EQUAL(module, "font")) {
+    if (STRINGS_EQUAL(className, "FontFile")) {
+      methods.allocate = FONT_allocate;
+      methods.finalize = FONT_finalize;
+    } else if (STRINGS_EQUAL(className, "RasterizedFont")) {
+      methods.allocate = FONT_RASTER_allocate;
+      methods.finalize = FONT_RASTER_finalize;
+    }
   } else {
     // TODO: Check if it's a module we lazy-loaded
 
   }
-
 
   return methods;
 }
@@ -202,6 +209,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.width", CANVAS_getWidth);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.height", CANVAS_getHeight);
 
+  // Font
+  MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.f_print(_,_,_,_)", FONT_RASTER_print);
+  MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.antialias=(_)", FONT_RASTER_setAntiAlias);
   // Image
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.draw(_,_)", IMAGE_draw);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.width", IMAGE_getWidth);

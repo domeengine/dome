@@ -340,11 +340,11 @@ ENGINE_pget(ENGINE* engine, int64_t x, int64_t y) {
 }
 inline internal void
 ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
-  
+
   // Account for canvas offset
   x += engine->offsetX;
   y += engine->offsetY;
-  
+
   // Draw pixel at (x,y)
   int32_t width = engine->width;
   int32_t height = engine->height;
@@ -381,11 +381,11 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 internal void
 ENGINE_blitBuffer(ENGINE* engine, int32_t x, int32_t y) {
   PIXEL_BUFFER buffer = engine->blitBuffer;
-  
+
   // Account for Canvas offset
   x += engine->offsetX;
   y += engine->offsetY;
-  
+
   uint32_t* blitBuffer = buffer.pixels;
   for (size_t j = 0; j < buffer.height; j++) {
     for (size_t i = 0; i < buffer.width; i++) {
@@ -411,29 +411,57 @@ ENGINE_resizeBlitBuffer(ENGINE* engine, size_t width, size_t height) {
   return buffer->pixels;
 }
 
+inline internal char*
+defaultFontLookup(utf8_int32_t codepoint) {
+  local_persist char empty[8] = { 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F };
+  if (codepoint >= 0 && codepoint < 0x7F) {
+    return font8x8_basic[codepoint];
+  } else if (codepoint >= 0x80 && codepoint <= 0x9F) {
+    codepoint = codepoint - 0x80;
+    return font8x8_control[codepoint];
+  } else if (codepoint >= 0xA0 && codepoint <= 0xFF) {
+    codepoint = codepoint - 0xA0;
+    return font8x8_ext_latin[codepoint];
+  } else if (codepoint >= 0x390 && codepoint <= 0x3C9) {
+    codepoint = codepoint - 0x390;
+    return font8x8_greek[codepoint];
+  } else if (codepoint >= 0x2500 && codepoint <= 0x257F) {
+    codepoint = codepoint - 0x2500;
+    return font8x8_box[codepoint];
+  } else if (codepoint >= 0x2580 && codepoint <= 0x259F) {
+    codepoint = codepoint - 0x2580;
+    return font8x8_block[codepoint];
+  } else if (codepoint >= 0x3040 && codepoint <= 0x309F) {
+    codepoint = codepoint - 0x3040;
+    return font8x8_hiragana[codepoint];
+  } else if (codepoint >= 0xE541 && codepoint <= 0xE55A) {
+    codepoint = codepoint - 0xE541;
+    return font8x8_sga[codepoint];
+  } else {
+    return empty;
+  }
+}
 
 internal void
 ENGINE_print(ENGINE* engine, char* text, int64_t x, int64_t y, uint32_t c) {
   int fontWidth = 8;
   int fontHeight = 8;
   int cursor = 0;
-  for (size_t pos = 0; pos < strlen(text); pos++) {
-    uint8_t letter = text[pos];
-
-    uint8_t* glyph = (uint8_t*)font8x8_basic[letter];
-    if (*glyph == '\n') {
-      break;
-    }
+  utf8_int32_t codepoint;
+  void* v = utf8codepoint(text, &codepoint);
+  size_t len = utf8len(text);
+  for (size_t pos = 0; pos < len; pos++) {
+    uint8_t* glyph = (uint8_t*)defaultFontLookup(codepoint);
     for (int j = 0; j < fontHeight; j++) {
       for (int i = 0; i < fontWidth; i++) {
         uint8_t v = (glyph[j] >> i) & 1;
-        // uint8_t v = glyph[j * fontWidth + i];
         if (v != 0) {
           ENGINE_pset(engine, x + cursor + i, y + j, c);
         }
       }
     }
     cursor += fontWidth;
+    v = utf8codepoint(v, &codepoint);
   }
 }
 

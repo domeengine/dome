@@ -5,6 +5,7 @@ declare -a arr=(
 "dome" 
 "input" 
 "graphics"
+"font"
 "io"
 "audio"
 "vector"

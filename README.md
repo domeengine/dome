@@ -99,8 +99,10 @@ DOME currently depends on a few libraries to achieve it's functions.
 - Wren (This is built by `make` automatically)
 - SDL2 (version 2.0.2 or newer, this is a shared library and you must install it seperately)
 - libffi (version 3.3 or newer, but optional and can be built by `make DOME_OPT_FFI=1`)
+- utf8.h
 - stb_image
 - stb_image_write
+- stb_truetype
 - stb_vorbis
 - microtar
 - optparse
@@ -116,14 +118,16 @@ Apart from SDL2, all other dependancies are baked in or linked statically. DOME 
 - Special thanks to [lqdev](https://github.com/liquid600pgm) for the fantastic logo!
 - Glenn Fiedler for the most referenced [resources](https://gafferongames.com/) on Game Loops, Physics and Networking in games
 - Casey Muratori for creating [Handmade Hero](https://hero.handmade.network), an inspiration and educational resource that makes this project possible. 
-- Font comes from [here](https://opengameart.org/content/ascii-bitmap-font-cellphone) and [here](https://github.com/dhepper/font8x8).
+- Built-in font comes from [here](https://github.com/dhepper/font8x8).
 - Sean Barrett for [multiple libraries](https://github.com/nothings/stb)
 - rxi for [microtar](https://github.com/rxi/microtar)
-- Jon Olick for [jo_gif](https://www.jonolick.com/home/gif-writer)
+- Neil Henning for [utf8.h](https://github.com/sheredom/utf8.h)
 - Chris Wellons for [optparse](https://github.com/skeeto/optparse)
 - cxong for [tinydir](https://github.com/cxong/tinydir)
+- Jon Olick for [jo_gif](https://www.jonolick.com/home/gif-writer)
 
 ### Example Game Resources
 - Example game and graphics are derived from [this](https://ztiromoritz.github.io/pico-8-shooter/) fantastic PICO-8 tutorial.
 - Aerith's Piano Theme (res/AerisPiano.ogg) by Tanner Helland is available under a CC BY-SA 3.0 license: [Link](http://www.tannerhelland.com/68/aeris-theme-piano/)
 - Game Over Theme (res/music.wav) by Doppelganger is available under a CC BY-SA 3.0 license: [Link](https://opengameart.org/content/game-over-theme)
+- Font "Memory" is provided by Eeve Somepx, and is available on their patreon [here](https://www.patreon.com/posts/free-font-memory-28150678) under a [common sense license](http://www.palmentieri.it/somepx/license.txt).

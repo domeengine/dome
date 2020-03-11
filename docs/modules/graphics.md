@@ -10,6 +10,7 @@ It contains the following classes:
 * [Canvas](#canvas)
 * [Color](#color)
 * [Drawable](#drawable)
+* [Font](#font)
 * [ImageData](#imagedata)
 
 ## Canvas
@@ -52,7 +53,10 @@ Draw an 1px wide line between (_x0, y0_) and (_x1, y1_) in the color _c_.
 Offset all following draw operations by (_x, y_). Calling this without arguments resets the offset to zero. You can use this to implement screen scrolling, or screenshake-style effects.
 
 #### `static print(str, x: Number, y: Number, c: Color) `
-Print the text _str_ with the top-left corner at (_x, y_) in color _c_.
+Print the text _str_ with the top-left corner at (_x, y_) in color _c_, using the currently set default font. See `Canvas.font` for more information.
+
+#### `static print(str, x: Number, y: Number, c: Color, fontName: String) `
+Print the text _str_ with the top-left corner at (_x, y_) in color _c_, in the specified font.
 
 #### `static pset(x: Number, y: Number, c: Color) `
 Set the pixel at (_x, y_) to the color _c_.
@@ -70,10 +74,14 @@ Draw a filled rectangle with the top-left corner at (_x, y_), with a width of _w
 Resize the canvas to the given `width` and `height`, and reset the color of the canvas to `c`.
 If `c` isn't provided, we default to black.
 
+### Instance Field
+#### `font: String`
+This sets the name of the default font used for `Canvas.print(str, x, y, color)`. You can set this to `Font.default` to return to the DOME built-in font.
+
 ## Color
 
 An instance of the `Color` class represents a single color which can be used for drawing to the `Canvas`.
-DOME comes built in with the PICO-8 palette, but you can also define and use your own colors in your games.
+DOME comes built-in with the PICO-8 palette, but you can also define and use your own colors in your games.
 
 ### Constructors
 
@@ -139,6 +147,25 @@ Represents an object which can be drawn to the screen. Objects which conform to 
 ### Instance Methods
 #### `draw(x: Number, y: Number): Void`
 Draw the image at the given `(x, y)` position on the screen.
+
+## Font
+
+DOME includes a built-in fixed 8x8 pixel font, but you can also load and use fonts from TTF files stored on the file system.
+
+### Static Methods
+#### `static load(name: String, path: String, size: Number): Font`
+Load the font file at `path`, rasterize it to the pixel height of `size`, and map this to the `name` for later reference. You will need to call this once for each font size, and `name` must be unique, or you will overwrite the old font.
+
+#### `[fontName]: Font`
+You can retrieve a specific font using the index operator, for example `Font["NewFont"]`.
+
+### Instance Methods
+#### `print(text: String, x: Number, y: Number, color: Color): Void`
+Print the `text` on the canvas at `(x, y)`, in the given `color`.
+
+### Instance Field
+#### `antialias: Boolean`
+TTF fonts can be scaled to any size, but to look good at certain sizes, you can set antialias to `true` so that some pixels are made partially transparent, to appear smoother. This is `false` by default.
 
 ## ImageData
 ### _extends Drawable_
