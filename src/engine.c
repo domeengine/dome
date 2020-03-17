@@ -403,7 +403,6 @@ ENGINE_resizeBlitBuffer(ENGINE* engine, size_t width, size_t height) {
   size_t newBufferSize = width * height * sizeof(uint32_t);
 
   if (oldBufferSize < newBufferSize) {
-    printf("realloc blitbuffer %lli %lli\n", oldBufferSize, newBufferSize);
     buffer->width = width;
     buffer->height = height;
     buffer->pixels = realloc(buffer->pixels, newBufferSize);
