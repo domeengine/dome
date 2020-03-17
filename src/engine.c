@@ -403,11 +403,13 @@ ENGINE_resizeBlitBuffer(ENGINE* engine, size_t width, size_t height) {
   size_t newBufferSize = width * height * sizeof(uint32_t);
 
   if (oldBufferSize < newBufferSize) {
+    printf("realloc blitbuffer %lli %lli\n", oldBufferSize, newBufferSize);
     buffer->width = width;
     buffer->height = height;
     buffer->pixels = realloc(buffer->pixels, newBufferSize);
+    oldBufferSize = newBufferSize;
   }
-  memset(buffer->pixels, 0, newBufferSize);
+  memset(buffer->pixels, 0, oldBufferSize);
   return buffer->pixels;
 }
 
@@ -633,6 +635,7 @@ ENGINE_circle(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t c) {
 
   size_t pitch = r * 2 + 1;
   uint32_t* blitBuffer = ENGINE_resizeBlitBuffer(engine, pitch, pitch);
+  pitch = engine->blitBuffer.width;
 
   while (x <= y) {
     blitPixel(blitBuffer, pitch, r + x, r + y , c);
