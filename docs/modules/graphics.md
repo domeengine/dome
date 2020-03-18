@@ -31,10 +31,10 @@ Draw a circle, centered at co-ordinates (_x_, _y_), with a radius _r_, in the co
 Draw a filled circle, centered at co-ordinates (_x_, _y_), with a radius _r_, in the color _c_.
 
 #### `static cls() `
-This clears the canvas fully, to black.
+This clears the canvas fully, to black. This ignores the `Canvas.offset` command.
 
 #### `static cls(c: Color) `
-This clears the canvas fully, to the color _c_.
+This clears the canvas fully, to the color _c_. This ignores the `Canvas.offset` command.
 
 #### `static draw(object: Drawable, x: Number, y: Number) `
 This method is syntactic sugar, to draw objects with a "draw(x: Number, y: Number)" method.
