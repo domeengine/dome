@@ -153,6 +153,17 @@ CANVAS_rectfill(WrenVM* vm)
 }
 
 internal void
+CANVAS_cls(WrenVM* vm)
+{
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "color");
+  uint32_t c = round(wrenGetSlotDouble(vm, 1));
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  // Backgrounds are opaque
+  c = c | (0xFF << 24);
+  ENGINE_rectfill(engine, 0, 0, engine->width, engine->height, c);
+}
+
+internal void
 CANVAS_getWidth(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   wrenSetSlotDouble(vm, 0, engine->width);

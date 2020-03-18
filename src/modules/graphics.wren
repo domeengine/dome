@@ -164,6 +164,8 @@ class Canvas {
       f_print(str, x, y, color.toNum)
     }
   }
+
+  foreign static f_cls(color)
   static cls() {
     cls(Color.black)
   }
@@ -172,7 +174,7 @@ class Canvas {
     if (c is Color) {
       color = c
     }
-    rectfill(0, 0, Canvas.width, Canvas.height, color.toNum)
+    f_cls(color.toNum)
   }
   foreign static width
   foreign static height
