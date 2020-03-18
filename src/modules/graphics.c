@@ -158,9 +158,11 @@ CANVAS_cls(WrenVM* vm)
   ASSERT_SLOT_TYPE(vm, 1, NUM, "color");
   uint32_t c = round(wrenGetSlotDouble(vm, 1));
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  int64_t offsetX = engine->offsetX;
+  int64_t offsetY = engine->offsetY;
   // Backgrounds are opaque
   c = c | (0xFF << 24);
-  ENGINE_rectfill(engine, 0, 0, engine->width, engine->height, c);
+  ENGINE_rectfill(engine, -offsetX, -offsetY, engine->width, engine->height, c);
 }
 
 internal void

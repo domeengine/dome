@@ -382,10 +382,6 @@ internal void
 ENGINE_blitBuffer(ENGINE* engine, int32_t x, int32_t y) {
   PIXEL_BUFFER buffer = engine->blitBuffer;
 
-  // Account for Canvas offset
-  x += engine->offsetX;
-  y += engine->offsetY;
-
   uint32_t* blitBuffer = buffer.pixels;
   for (size_t j = 0; j < buffer.height; j++) {
     for (size_t i = 0; i < buffer.width; i++) {
@@ -486,15 +482,23 @@ blitLine(void* dest, size_t destPitch, int64_t x, int64_t y, int64_t w, uint32_t
 
 internal void
 ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) {
+  y += engine->offsetY;
   if (y < 0 || y >= engine->height) {
     return;
   }
+
+  int64_t offsetX = engine->offsetX;
+
   size_t pitch = engine->width;
+
   char* pixels = engine->pixels;
-  int64_t startX = mid(0, x, pitch);
-  int64_t endX = mid(0, x + w, pitch);
+  int64_t screenX = x + offsetX;
+
+  int64_t startX = mid(0, screenX, pitch);
+  int64_t endX = mid(0, screenX + w, pitch);
   size_t lineWidth = min(endX, pitch) - startX;
-  uint32_t* bufStart = buf + (size_t)fabs(fmin(0, x));
+  uint32_t* bufStart = buf;
+
   char* line = pixels + ((y * pitch + startX) * 4);
   memcpy(line, bufStart, lineWidth * 4);
 }
@@ -791,9 +795,8 @@ ENGINE_rectfill(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint
   if (alpha == 0x00) {
     return;
   } else {
-    int32_t height = engine->height;
-    int64_t y1 = mid(0, y, height);
-    int64_t y2 = mid(0, y + h, height);
+    int64_t y1 = y;
+    int64_t y2 = y + h;
 
     if (alpha == 0xFF) {
       size_t lineWidth = w; // x2 - x1;
@@ -805,9 +808,8 @@ ENGINE_rectfill(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint
         ENGINE_blitLine(engine, x, j, lineWidth, buf);
       }
     } else {
-      int32_t width = engine->width;
-      int64_t x1 = mid(0, x, width);
-      int64_t x2 = mid(0, x + w, width);
+      int64_t x1 = x;
+      int64_t x2 = x + w;
 
       for (int64_t j = y1; j < y2; j++) {
         for (int64_t i = x1; i < x2; i++) {
