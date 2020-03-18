@@ -403,12 +403,12 @@ ENGINE_resizeBlitBuffer(ENGINE* engine, size_t width, size_t height) {
   size_t newBufferSize = width * height * sizeof(uint32_t);
 
   if (oldBufferSize < newBufferSize) {
-    buffer->width = width;
-    buffer->height = height;
     buffer->pixels = realloc(buffer->pixels, newBufferSize);
     oldBufferSize = newBufferSize;
   }
   memset(buffer->pixels, 0, oldBufferSize);
+  buffer->width = width;
+  buffer->height = height;
   return buffer->pixels;
 }
 
@@ -601,17 +601,18 @@ ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t
     }
   } else {
     uint32_t* blitBuffer = ENGINE_resizeBlitBuffer(engine, bufWidth, bufWidth);
+    size_t pitch = engine->blitBuffer.width;
     while (x <= y) {
       int64_t c = r;
       size_t lineWidthX = x * 2 + 1;
       size_t lineWidthY = y * 2 + 1;
-      blitLine(blitBuffer, bufWidth, c - x, c + y, lineWidthX, buf);
+      blitLine(blitBuffer, pitch, c - x, c + y, lineWidthX, buf);
       if (y != 0) {
-        blitLine(blitBuffer, bufWidth, c - x, c - y, lineWidthX, buf);
+        blitLine(blitBuffer, pitch, c - x, c - y, lineWidthX, buf);
       }
-      blitLine(blitBuffer, bufWidth, c - y, c + x, lineWidthY, buf);
+      blitLine(blitBuffer, pitch, c - y, c + x, lineWidthY, buf);
       if (x != 0) {
-        blitLine(blitBuffer, bufWidth, c - y, c - x, lineWidthY, buf);
+        blitLine(blitBuffer, pitch, c - y, c - x, lineWidthY, buf);
       }
 
       if (d < 0) {
@@ -683,6 +684,7 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
     buf[i] = c;
   }
   uint32_t* blitBuffer = ENGINE_resizeBlitBuffer(engine, dx, dy);
+  size_t pitch = engine->blitBuffer.width;
 
   // Start drawing at (0, ry)
   int32_t x = 0;
@@ -699,8 +701,8 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
     if (d > 0) {
       y--;
     }
-    blitLine(blitBuffer, bufWidth, rx - x, ry + y, lineWidthX, buf);
-    blitLine(blitBuffer, bufWidth, rx - x, ry - y, lineWidthX, buf);
+    blitLine(blitBuffer, pitch, rx - x, ry + y, lineWidthX, buf);
+    blitLine(blitBuffer, pitch, rx - x, ry - y, lineWidthX, buf);
   }
 
   while (y > 0) {
@@ -713,8 +715,8 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
       x++;
     }
     size_t lineWidthY = x * 2 + 1;
-    blitLine(blitBuffer, bufWidth, rx - x, ry + y, lineWidthY, buf);
-    blitLine(blitBuffer, bufWidth, rx - x, ry - y, lineWidthY, buf);
+    blitLine(blitBuffer, pitch, rx - x, ry + y, lineWidthY, buf);
+    blitLine(blitBuffer, pitch, rx - x, ry - y, lineWidthY, buf);
   };
 
   ENGINE_blitBuffer(engine, x0, y0);
@@ -738,9 +740,10 @@ ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, u
   int32_t width = (rx + 1) * 2;
   int32_t height = (ry + 1) * 2;
   uint32_t* blitBuffer = ENGINE_resizeBlitBuffer(engine, width, height);
+  size_t pitch = engine->blitBuffer.width;
 
-  blitPixel(blitBuffer, width, rx + x, ry + y , c);
-  blitPixel(blitBuffer, width, rx + x, ry - y , c);
+  blitPixel(blitBuffer, pitch, rx + x, ry + y , c);
+  blitPixel(blitBuffer, pitch, rx + x, ry - y , c);
 
   while (fabs(ellipse_getRegion(x, y, rx, ry)) < 1) {
     x++;
@@ -751,10 +754,10 @@ ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, u
     if (d > 0) {
       y--;
     }
-    blitPixel(blitBuffer, width, rx + x, ry + y , c);
-    blitPixel(blitBuffer, width, rx - x, ry - y , c);
-    blitPixel(blitBuffer, width, rx - x, ry + y , c);
-    blitPixel(blitBuffer, width, rx + x, ry - y , c);
+    blitPixel(blitBuffer, pitch, rx + x, ry + y , c);
+    blitPixel(blitBuffer, pitch, rx - x, ry - y , c);
+    blitPixel(blitBuffer, pitch, rx - x, ry + y , c);
+    blitPixel(blitBuffer, pitch, rx + x, ry - y , c);
   }
 
   while (y > 0) {
@@ -766,10 +769,10 @@ ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, u
     if (d <= 0) {
       x++;
     }
-    blitPixel(blitBuffer, width, rx + x, ry + y , c);
-    blitPixel(blitBuffer, width, rx - x, ry - y , c);
-    blitPixel(blitBuffer, width, rx - x, ry + y , c);
-    blitPixel(blitBuffer, width, rx + x, ry - y , c);
+    blitPixel(blitBuffer, pitch, rx + x, ry + y , c);
+    blitPixel(blitBuffer, pitch, rx - x, ry - y , c);
+    blitPixel(blitBuffer, pitch, rx - x, ry + y , c);
+    blitPixel(blitBuffer, pitch, rx + x, ry - y , c);
   };
   ENGINE_blitBuffer(engine, x0, y0);
 }
