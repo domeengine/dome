@@ -383,7 +383,7 @@ internal void AUDIO_CHANNEL_getLoop(WrenVM* vm) {
 internal void AUDIO_CHANNEL_setVolume(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   ASSERT_SLOT_TYPE(vm, 1, NUM, "volume");
-  channel->volume = (float)max(0, wrenGetSlotDouble(vm, 1));
+  channel->volume = fmax(0, wrenGetSlotDouble(vm, 1));
 }
 
 internal void AUDIO_CHANNEL_getVolume(WrenVM* vm) {
