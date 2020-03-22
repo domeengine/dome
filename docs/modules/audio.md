@@ -90,7 +90,7 @@ You can read and modify the pan position, as a bounded value between -1.0 and 1.
 
 #### `position: Number`
 This marks the position of the next sample to be loaded into the AudioEngine mix buffer (which happens on a seperate thread).
-You cannot change the position, and it may not change on every frame, depending on the size of the buffer.
+You can set a new position for the channel, but it isn't going to be exact, due to delays in audio processing.
 
 You should divide this by `44100` to get the position in seconds.
 
