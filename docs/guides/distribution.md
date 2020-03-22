@@ -5,7 +5,12 @@ Distributing your games
 
 DOME is designed to be cross-platform, and so the same Wren game files and assets should work across Windows, Mac and Linux. On Mac and Linux, the SDL2 shared library will need to be provided.
 
-## NEST - Easy packaging
+## Basic Packaging
+The easiest way to share a game you've made is to place a DOME binary, your source code and game assets into a single zip file. Do this once for each platform you wish to support, and share those zip files with your users.
+
+## NEST - Easy bundling
+
+_(Please note: NEST is still in development, and has to be built from source)_
 
 For easy distribution, you can package all of your games resources into a single `.egg` file using a tool called [NEST](https://github.com/avivbeeri/nest). DOME automatically plays any file named `game.egg` in the current working directory.
 
@@ -18,6 +23,8 @@ Install NEST, and then navigate to your main game directory, before running the 
 ```
 
 ## Cross-Platform Distribution
+_(You can ignore this section if you are using pre-compiled DOME binaries.)_
+
 This section discusses the needs of various platforms when distributing games with DOME.
 
 ### Windows
