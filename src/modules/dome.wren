@@ -17,6 +17,8 @@ class Window {
   foreign static lockstep=(value)
   foreign static fullscreen=(value)
   foreign static fullscreen
+  foreign static width
+  foreign static height
 
   foreign static resize(width, height)
 }
