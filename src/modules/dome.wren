@@ -21,3 +21,7 @@ class Window {
   foreign static resize(width, height)
 }
 
+class Version {
+  foreign static dome
+  foreign static hash
+}
