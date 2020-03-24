@@ -25,4 +25,15 @@ class Version {
   foreign static name
   foreign static hash
   foreign static number
+
+  static print() {
+    System.print("Debug: DOME Version %(name) | %(number) | %(hash)")
+  }
+
+  static isAtLeast(version) {
+    if(version > number) {
+      System.print("Error: DOME Version %(version) or greater required. Current %(name) (%(number))")
+      Process.exit(-1)
+    }
+  }
 }
