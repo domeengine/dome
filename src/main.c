@@ -7,13 +7,15 @@
 
 #ifndef DOME_VERSION_NUMBER
 // The same as DOME_VERSION but only in numeric form
-// major.minor.patch.status
+// major.minor.patch-status
 // status must be one of these
-// 0 = alpha, 1 = beta, 2 = rc, 3 = stable, 4 = hotfix, 5 = reserved
+// 0 = alpha, 1 = beta, 2 = rc, 3 = stable, 4 = hotfix, 5 - 9 = reserved
 // numbers after the status start from 1
 // example 1.0.0-alpha would be 100.01
-// example 1.0.0-beta would be 100.11
+// example 1.0.2-beta would be 102.11
 // example 1.1.2-alpha30 would be 112.030
+// with this number games can check for compatibility
+// in the events of dome api changes
 #define DOME_VERSION_NUMBER 100.01
 #endif
 
