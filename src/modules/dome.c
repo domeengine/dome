@@ -22,7 +22,7 @@ WINDOW_resize(WrenVM* vm) {
 internal void
 WINDOW_getWidth(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  uint32_t width = 0;
+  int width = 0;
   SDL_GetWindowSize(engine->window, &width, NULL);
   wrenSetSlotDouble(vm, 0, width);
 }
@@ -30,7 +30,7 @@ WINDOW_getWidth(WrenVM* vm) {
 internal void
 WINDOW_getHeight(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  uint32_t height = 0;
+  int height = 0;
   SDL_GetWindowSize(engine->window, NULL, &height);
   wrenSetSlotDouble(vm, 0, height);
 }
