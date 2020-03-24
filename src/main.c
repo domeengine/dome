@@ -11,10 +11,10 @@
 // status must be one of these
 // 0 = alpha, 1 = beta, 2 = rc, 3 = stable, 4 = hotfix, 5 = reserved
 // numbers after the status start from 1
-// example 1.0.0-alpha would be 10001
-// example 1.0.0-beta would be 10011
-// example 1.1.2-alpha30 would be 112030
-#define DOME_VERSION_NUMBER 10001
+// example 1.0.0-alpha would be 100.01
+// example 1.0.0-beta would be 100.11
+// example 1.1.2-alpha30 would be 112.030
+#define DOME_VERSION_NUMBER 100.01
 #endif
 
 // Standard libs
