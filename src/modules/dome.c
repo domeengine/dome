@@ -9,15 +9,20 @@ PROCESS_exit(WrenVM* vm) {
 }
 
 internal void
-VERSION_getDome(WrenVM* vm) {
+VERSION_getName(WrenVM* vm) {
   wrenSetSlotString(vm, 0, DOME_VERSION);
 }
+
+internal void
+VERSION_getNumber(WrenVM* vm) {
+  wrenSetSlotDouble(vm, 0, DOME_VERSION_NUMBER);
+}
+
 
 internal void
 VERSION_getHash(WrenVM* vm) {
   wrenSetSlotString(vm, 0, HASH);
 }
-
 
 internal void
 WINDOW_resize(WrenVM* vm) {

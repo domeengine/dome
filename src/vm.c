@@ -181,8 +181,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.title", WINDOW_getTitle);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.fullscreen=(_)", WINDOW_setFullscreen);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.fullscreen", WINDOW_getFullscreen);
-  MAP_addFunction(&engine->moduleMap, "dome", "static Version.dome", VERSION_getDome);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Version.name", VERSION_getName);
   MAP_addFunction(&engine->moduleMap, "dome", "static Version.hash", VERSION_getHash);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Version.number", VERSION_getNumber);
 
 #if DOME_OPT_FFI
   // FFI

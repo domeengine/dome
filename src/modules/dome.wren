@@ -22,6 +22,7 @@ class Window {
 }
 
 class Version {
-  foreign static dome
+  foreign static name
   foreign static hash
+  foreign static number
 }

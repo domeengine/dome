@@ -5,6 +5,18 @@
 #define DOME_VERSION "1.0.0-alpha"
 #endif
 
+#ifndef DOME_VERSION_NUMBER
+// The same as DOME_VERSION but only in numeric form
+// major.minor.patch.status
+// status must be one of these
+// 0 = alpha, 1 = beta, 2 = rc, 3 = stable, 4 = hotfix, 5 = reserved
+// numbers after the status start from 1
+// example 1.0.0-alpha would be 10001
+// example 1.0.0-beta would be 10011
+// example 1.1.2-alpha30 would be 112030
+#define DOME_VERSION_NUMBER 10001
+#endif
+
 // Standard libs
 #include <stdio.h>
 #include <errno.h>
