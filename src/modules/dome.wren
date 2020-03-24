@@ -31,6 +31,12 @@ class Version {
   }
 
   static isAtLeast(version) {
+    // check for versions in short format like Version.isAtLeast(1)
+    // will be 100
+    if(version < 100) {
+      version = version * 100
+    }
+
     if(version > number) {
       System.print("Error: DOME Version %(version) or greater required. Current %(name) (%(number))")
       Process.exit(-1)
