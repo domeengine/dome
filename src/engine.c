@@ -573,6 +573,8 @@ ENGINE_line(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint
 
 internal void
 ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t c) {
+  // a circle cannot have negative radius
+  r = llabs(r);
   int64_t x = 0;
   int64_t y = r;
   int64_t d = round(M_PI - (2*r));
@@ -633,6 +635,7 @@ ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t
 
 internal void
 ENGINE_circle(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t c) {
+  r = llabs(r);
   int64_t x = 0;
   int64_t y = r;
   int64_t d = round(M_PI - (2*r));
