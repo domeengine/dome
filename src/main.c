@@ -257,63 +257,57 @@ int main(int argc, char* args[])
   {
     char* defaultEggName = "game.egg";
     char* mainFileName = "main.wren";
-    char* fileName = defaultEggName;
 
     char* base = BASEPATH_get();
     char* arg = optparse_arg(&options);
+
+    char pathBuf[PATH_MAX];
+
+    char* fileName = NULL;
+
     if (arg != NULL) {
-      fileName = arg;
-    } else {
-      fileName = defaultEggName;
-    }
-
-    size_t baseLen = strlen(base);
-    size_t fileNameLen = strlen(fileName);
-    char* pathBuf = calloc(baseLen + fileNameLen + 1, sizeof(char));
-    strcpy(pathBuf, base);
-    strcat(pathBuf, fileName);
-    // Re-target basepath to the argument given
-    if (isDirectory(pathBuf)) {
-      BASEPATH_set(pathBuf);
-      fileName = defaultEggName;
-      fileNameLen = strlen(fileName);
-      arg = NULL;
-    } else {
-      BASEPATH_set(dirname(pathBuf));
-    }
-    base = BASEPATH_get();
-    baseLen = strlen(base);
-
-    if (isDirectory(pathBuf)) {
-      pathBuf = realloc(pathBuf, (baseLen + fileNameLen + 1) *  sizeof(char));
       strcpy(pathBuf, base);
-      strcat(pathBuf, defaultEggName);
+      strcat(pathBuf, arg);
+      if (isDirectory(pathBuf)) {
+        BASEPATH_set(pathBuf);
+      } else {
+        char* dirc = strdup(pathBuf);
+        char* basec = strdup(pathBuf);
+        fileName = basename(dirc);
+        BASEPATH_set(dirname(basec));
+        free(dirc);
+        free(basec);
+      }
+
+      base = BASEPATH_get();
     }
 
+    strcpy(pathBuf, base);
+    strcat(pathBuf, fileName ? fileName : defaultEggName);
 
     if (doesFileExist(pathBuf)) {
       engine.tar = malloc(sizeof(mtar_t));
       int tarResult = mtar_open(engine.tar, pathBuf, "r");
-      if (tarResult != MTAR_ESUCCESS) {
+      if (tarResult == MTAR_ESUCCESS) {
+        ENGINE_printLog(&engine, "Loading bundle %s\n", pathBuf);
+      } else {
         free(engine.tar);
         engine.tar = NULL;
-        fileName = basename(pathBuf);
-      } else {
-        ENGINE_printLog(&engine, "Loading bundle %s\n", pathBuf);
-        fileName = mainFileName;
       }
-    } else if (arg == NULL) {
-      fileName = mainFileName;
     }
-    free(pathBuf);
-    gameFile = ENGINE_readFile(&engine, fileName, &gameFileLength);
+
+    if (engine.tar != NULL) {
+      strcpy(pathBuf, mainFileName);
+    } else {
+      strcpy(pathBuf, fileName ? fileName : mainFileName);
+    }
+
+    gameFile = ENGINE_readFile(&engine, pathBuf, &gameFileLength);
     if (gameFile == NULL) {
       if (engine.tar != NULL) {
-        ENGINE_printLog(&engine, "Error: Could not load main.wren in bundle.\n\n");
-      } else if (arg == NULL) {
-        ENGINE_printLog(&engine, "Error: Could not find a default entry path.\n\n");
+        ENGINE_printLog(&engine, "Error: Could not load %s in bundle.\n", pathBuf);
       } else {
-        ENGINE_printLog(&engine, "Error: %s does not exist.\n", arg);
+        ENGINE_printLog(&engine, "Error: Could not load %s.\n", pathBuf);
       }
       printUsage(&engine);
       result = EXIT_FAILURE;

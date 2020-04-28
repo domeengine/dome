@@ -13,8 +13,10 @@ MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
 SYS=$(shell uname -s)
 
+BUILTIN_RANDOM = 1
+BUILTIN_META = 1
 
-DOME_OPTS = -DHASH="\"$(BUILD_VALUE)\""
+DOME_OPTS = -DHASH="\"$(BUILD_VALUE)\"" -DWREN_OPT_RANDOM=$(BUILTIN_RANDOM) -DWREN_OPT_META=$(BUILTIN_META)
 CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `which sdl2-config 1>/dev/null && sdl2-config --cflags`
 IFLAGS = -isystem $(INCLUDES)
 SDL_CONFIG ?= $(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "$(LIBS)/sdl2-config")
@@ -105,7 +107,7 @@ $(LIBS)/libffi.a: $(LIBS)/libffi
 	./setup_ffi.sh
 
 $(LIBS)/libwren.a: $(LIBS)/wren
-	./setup_wren.sh
+	./setup_wren.sh WREN_OPT_RANDOM=$(BUILTIN_RANDOM) WREN_OPT_META=$(BUILTIN_META)
 
 $(INCLUDES)/ffi.h: $(LIBS)/libffi.a
 $(INCLUDES)/ffitarget.h: $(LIBS)/libffi.a
