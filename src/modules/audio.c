@@ -37,7 +37,8 @@ typedef struct {
 
   // Position is the sample value to play next
   size_t position;
-  size_t length;
+  size_t newPosition;
+  bool resetPosition;
   AUDIO_DATA* audio;
 } AUDIO_CHANNEL;
 
@@ -267,6 +268,11 @@ internal void AUDIO_ENGINE_update(WrenVM* vm) {
       wrenGetListElement(vm, 1, i, 2);
       if (wrenGetSlotType(vm, 2) != WREN_TYPE_NULL) {
         data->channelList->channels[i] = wrenGetSlotForeign(vm, 2);
+        AUDIO_CHANNEL* channel = data->channelList->channels[i];
+        if (channel->resetPosition) {
+          channel->position = channel->newPosition;
+          channel->resetPosition = false;
+        }
       }
     } else {
       data->channelList->channels[i] = NULL;
@@ -380,6 +386,13 @@ internal void AUDIO_CHANNEL_getLoop(WrenVM* vm) {
   wrenSetSlotBool(vm, 0, channel->loop);
 }
 
+internal void AUDIO_CHANNEL_setPosition(WrenVM* vm) {
+  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "position");
+  size_t newPosition = round(wrenGetSlotDouble(vm, 1));
+  channel->newPosition = mid(0, newPosition, channel->audio->length);
+  channel->resetPosition = true;
+}
 internal void AUDIO_CHANNEL_setVolume(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   ASSERT_SLOT_TYPE(vm, 1, NUM, "volume");

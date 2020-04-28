@@ -258,6 +258,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.pan", AUDIO_CHANNEL_getPan);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.volume", AUDIO_CHANNEL_getVolume);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.volume=(_)", AUDIO_CHANNEL_setVolume);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.position=(_)", AUDIO_CHANNEL_setPosition);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.state=(_)", AUDIO_CHANNEL_setState);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.audio=(_)", AUDIO_CHANNEL_setAudio);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.state", AUDIO_CHANNEL_getState);
