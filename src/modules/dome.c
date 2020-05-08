@@ -20,6 +20,22 @@ WINDOW_resize(WrenVM* vm) {
 }
 
 internal void
+WINDOW_getWidth(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  int width = 0;
+  SDL_GetWindowSize(engine->window, &width, NULL);
+  wrenSetSlotDouble(vm, 0, width);
+}
+
+internal void
+WINDOW_getHeight(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  int height = 0;
+  SDL_GetWindowSize(engine->window, NULL, &height);
+  wrenSetSlotDouble(vm, 0, height);
+}
+
+internal void
 WINDOW_setTitle(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASSERT_SLOT_TYPE(vm, 1, STRING, "title");
