@@ -6,6 +6,9 @@
 #endif
 
 // Standard libs
+#ifdef __MINGW32__
+#include <windows.h>
+#endif
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -195,6 +198,9 @@ int main(int argc, char* args[])
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
     {"buffer", 'b', OPTPARSE_REQUIRED},
+    #ifdef __MINGW32__
+    {"console", 'c', OPTPARSE_NONE},
+    #endif
     {"debug", 'd', OPTPARSE_NONE},
     {"help", 'h', OPTPARSE_NONE},
     {"version", 'v', OPTPARSE_NONE},
@@ -226,6 +232,14 @@ int main(int argc, char* args[])
           }
           AUDIO_BUFFER_SIZE = 1 << shift;
         } break;
+#ifdef __MINGW32__
+      case 'c': {
+          AllocConsole();
+          freopen("CONIN$", "r", stdin);
+          freopen("CONOUT$", "w", stdout);
+          freopen("CONOUT$", "w", stderr);
+      } break;
+#endif
       case 'd':
         DEBUG_MODE = true;
         ("Debug Mode enabled\n");
