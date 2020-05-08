@@ -156,12 +156,15 @@ printVersion(ENGINE* engine) {
 internal void
 printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "\nUsage: \n");
-  ENGINE_printLog(engine, "  dome [-d | --debug] [-r<gif> | --record=<gif>] [-b<buf> | --buffer=<buf>] [entry path]\n");
+  ENGINE_printLog(engine, "  dome [-c] [-d | --debug] [-r<gif> | --record=<gif>] [-b<buf> | --buffer=<buf>] [entry path]\n");
   ENGINE_printLog(engine, "  dome -h | --help\n");
   ENGINE_printLog(engine, "  dome -v | --version\n");
   ENGINE_printLog(engine, "\nOptions: \n");
   ENGINE_printLog(engine, "  -b --buffer=<buf>   Set the audio buffer size (default: 11)\n");
-  ENGINE_printLog(engine, "  -d --debug          Enables debug mode\n");
+#ifdef __MINGW32__
+  ENGINE_printLog(engine, "  -c --console        Opens a console window for development.\n");
+#endif
+  ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
   ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
   ENGINE_printLog(engine, "  -r --record=<gif>   Record video to <gif>.\n");
