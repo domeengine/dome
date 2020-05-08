@@ -661,6 +661,17 @@ internal void
 ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, uint32_t c) {
 
   // Calculate radius
+  int64_t swap = x1;
+  if (x1 < x0) {
+    x1 = x0;
+    x0 = swap;
+  }
+  swap = y1;
+  if (y1 < y0) {
+    y1 = y0;
+    y0 = swap;
+  }
+
   int32_t rx = (x1 - x0) / 2; // Radius on x
   int32_t ry = (y1 - y0) / 2; // Radius on y
   uint32_t rxSquare = rx*rx;
@@ -716,6 +727,17 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
 
 internal void
 ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, uint32_t c) {
+
+  int64_t swap = x1;
+  if (x1 < x0) {
+    x1 = x0;
+    x0 = swap;
+  }
+  swap = y1;
+  if (y1 < y0) {
+    y1 = y0;
+    y0 = swap;
+  }
 
   // Calculate radius
   int32_t rx = llabs(x1 - x0) / 2; // Radius on x

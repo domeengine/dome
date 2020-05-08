@@ -49,6 +49,10 @@ CANVAS_circle_filled(WrenVM* vm)
   int64_t x = round(wrenGetSlotDouble(vm, 1));
   int64_t y = round(wrenGetSlotDouble(vm, 2));
   int64_t r = round(wrenGetSlotDouble(vm, 3));
+  if (r < 0) {
+    VM_ABORT(vm, "Circle radius must not be negative");
+    return;
+  }
   uint32_t c = round(wrenGetSlotDouble(vm, 4));
   ENGINE_circle_filled(engine, x, y, r, c);
 }
@@ -64,6 +68,10 @@ CANVAS_circle(WrenVM* vm)
   int64_t x = round(wrenGetSlotDouble(vm, 1));
   int64_t y = round(wrenGetSlotDouble(vm, 2));
   int64_t r = round(wrenGetSlotDouble(vm, 3));
+  if (r < 0) {
+    VM_ABORT(vm, "Circle radius must not be negative");
+    return;
+  }
   uint32_t c = round(wrenGetSlotDouble(vm, 4));
   ENGINE_circle(engine, x, y, r, c);
 }
@@ -121,16 +129,24 @@ CANVAS_ellipsefill(WrenVM* vm)
 internal void
 CANVAS_rect(WrenVM* vm)
 {
-  ASSERT_SLOT_TYPE(vm, 1, NUM, "x1");
-  ASSERT_SLOT_TYPE(vm, 2, NUM, "y1");
-  ASSERT_SLOT_TYPE(vm, 3, NUM, "x2");
-  ASSERT_SLOT_TYPE(vm, 4, NUM, "y2");
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "w");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "h");
   ASSERT_SLOT_TYPE(vm, 5, NUM, "color");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int64_t x = round(wrenGetSlotDouble(vm, 1));
   int64_t y = round(wrenGetSlotDouble(vm, 2));
   int64_t w = round(wrenGetSlotDouble(vm, 3));
   int64_t h = round(wrenGetSlotDouble(vm, 4));
+  if (w < 0) {
+    VM_ABORT(vm, "Rectangle width must not be negative");
+    return;
+  }
+  if (h < 0) {
+    VM_ABORT(vm, "Rectangle height must not be negative");
+    return;
+  }
   uint32_t c = round(wrenGetSlotDouble(vm, 5));
   ENGINE_rect(engine, x, y, w, h, c);
 }
@@ -138,16 +154,24 @@ CANVAS_rect(WrenVM* vm)
 internal void
 CANVAS_rectfill(WrenVM* vm)
 {
-  ASSERT_SLOT_TYPE(vm, 1, NUM, "x1");
-  ASSERT_SLOT_TYPE(vm, 2, NUM, "y1");
-  ASSERT_SLOT_TYPE(vm, 3, NUM, "x2");
-  ASSERT_SLOT_TYPE(vm, 4, NUM, "y2");
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "w");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "h");
   ASSERT_SLOT_TYPE(vm, 5, NUM, "color");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int64_t x = round(wrenGetSlotDouble(vm, 1));
   int64_t y = round(wrenGetSlotDouble(vm, 2));
   int64_t w = round(wrenGetSlotDouble(vm, 3));
   int64_t h = round(wrenGetSlotDouble(vm, 4));
+  if (w < 0) {
+    VM_ABORT(vm, "Rectangle width must not be negative");
+    return;
+  }
+  if (h < 0) {
+    VM_ABORT(vm, "Rectangle height must not be negative");
+    return;
+  }
   uint32_t c = round(wrenGetSlotDouble(vm, 5));
   ENGINE_rectfill(engine, x, y, w, h, c);
 }
