@@ -7,6 +7,7 @@ The `dome` module allows you to control various aspects of how DOME as an applic
 It contains the following classes:
 
 - [Process](#process)
+- [Version](#version)
 - [Window](#window)
 
 ## Process
@@ -21,6 +22,28 @@ Allows you to programmatically close DOME. This command behaves a little differe
 
 - If `code` is `0`, then this will immediately shutdown DOME in a graceful manner, but no other Wren code will execute after this call.
 - Otherwise, the current Fiber will be aborted, the game loop will exit and DOME will shutdown.
+
+## Version
+This class provides information about the version of DOME which is currently running. You can use this to check that all the features you require are supported.
+DOME uses semantic versioning, split into a major.minor.patch breakdown.
+
+### Static Fields
+#### `static major: Number`
+The major component of the version number.
+#### `static minor: Number`
+The minor component of the version number.
+#### `static patch: Number`
+The patch component of the version number.
+#### `static toString: String`
+A string containing the complete semantic version of the DOME instance running.
+
+#### `static toList: List<Number>`
+A list of the version components, in `[major, minor, patch]` order.
+
+### Static Methods
+#### `static atLeast(version: String): boolean`
+This takes a version as a string of the form `x.y.z`, and returns true if the current version of DOME is at least that of the version specified.
+
 
 ## Window
 

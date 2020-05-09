@@ -77,3 +77,16 @@ WINDOW_getFullscreen(WrenVM* vm) {
   uint32_t flags = SDL_GetWindowFlags(engine->window);
   wrenSetSlotBool(vm, 0, (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0);
 }
+
+
+internal void
+VERSION_getString(WrenVM* vm) {
+  size_t len;
+  char* version = DOME_VERSION;
+  for (len = 0; len < strlen(version); len++) {
+    if (version[len] != '.' && !isdigit(version[len])) {
+      break;
+    }
+  }
+  wrenSetSlotBytes(vm, 0, version, len);
+}
