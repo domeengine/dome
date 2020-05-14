@@ -81,6 +81,7 @@ ENGINE_printLog(ENGINE* engine, char* line, ...) {
   if (engine->debug.logFile != NULL) {
     // Output to file
     fputs(buffer, engine->debug.logFile);
+    fflush(engine->debug.logFile);
   }
 }
 
