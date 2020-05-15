@@ -81,6 +81,7 @@ ENGINE_printLog(ENGINE* engine, char* line, ...) {
   if (engine->debug.logFile != NULL) {
     // Output to file
     fputs(buffer, engine->debug.logFile);
+    fflush(engine->debug.logFile);
   }
 }
 
@@ -113,51 +114,39 @@ ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
 
 internal char*
 ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
-  if (engine->tar != NULL) {
-    char pathBuf[PATH_MAX];
-    strcpy(pathBuf, "\0");
-    if (strncmp(path, "./", 2) != 0) {
-      strcpy(pathBuf, "./");
-    }
-    strcat(pathBuf, path);
-    mtar_header_t h;
-    int success = mtar_find(engine->tar, pathBuf, &h);
-    if (success == MTAR_ESUCCESS) {
-      ENGINE_printLog(engine, "Reading from bundle: %s\n", path);
-      char* file = readFileFromTar(engine->tar, pathBuf, lengthPtr);
-      if (file == NULL) {
-        ENGINE_printLog(engine, "Error: Couldn't read the data from the bundle.");
-      }
-      return file;
-    } else if (success != MTAR_ENOTFOUND) {
-      ENGINE_printLog(engine, "Error: There was a problem reading %s from the bundle.\n", pathBuf);
-      return NULL;
-    }
-    ENGINE_printLog(engine, "Couldn't find %s in bundle, falling back.\n", pathBuf);
+  char pathBuf[PATH_MAX];
+
+  if (strncmp(path, "./", 2) == 0) {
+    strcpy(pathBuf, path + 2);
+  } else {
+    strcpy(pathBuf, path);
   }
 
-  char* fullPath = NULL;
+  if (engine->tar != NULL) {
+    ENGINE_printLog(engine, "Reading from bundle: %s\n", pathBuf);
+
+    char* file = NULL;
+    int err = readFileFromTar(engine->tar, pathBuf, lengthPtr, &file);
+    if (err == MTAR_ESUCCESS) {
+      return file;
+    }
+
+    if (DEBUG_MODE) {
+      ENGINE_printLog(engine, "Couldn't read %s from bundle: %s. Falling back\n", pathBuf, mtar_strerror(err));
+    }
+  }
+
   if (path[0] != '/') {
-    char* base = BASEPATH_get();
-    fullPath = malloc(strlen(base)+strlen(path)+1);
-    strcpy(fullPath, base); /* copy name into the new var */
-    strcat(fullPath, path); /* add the extension */
-  } else {
-    fullPath = path;
+    strcpy(pathBuf, BASEPATH_get());
+    strcat(pathBuf, path);
   }
-  if (!doesFileExist(fullPath)) {
-    if (path[0] != '/') {
-      free(fullPath);
-    }
+
+  if (!doesFileExist(pathBuf)) {
     return NULL;
-  } else {
-    ENGINE_printLog(engine, "Reading from filesystem: %s\n", path);
-    char* data = readEntireFile(fullPath, lengthPtr);
-    if (path[0] != '/') {
-      free(fullPath);
-    }
-    return data;
   }
+
+  ENGINE_printLog(engine, "Reading from filesystem: %s\n", pathBuf);
+  return readEntireFile(pathBuf, lengthPtr);
 }
 
 internal int
@@ -673,6 +662,17 @@ internal void
 ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, uint32_t c) {
 
   // Calculate radius
+  int64_t swap = x1;
+  if (x1 < x0) {
+    x1 = x0;
+    x0 = swap;
+  }
+  swap = y1;
+  if (y1 < y0) {
+    y1 = y0;
+    y0 = swap;
+  }
+
   int32_t rx = (x1 - x0) / 2; // Radius on x
   int32_t ry = (y1 - y0) / 2; // Radius on y
   uint32_t rxSquare = rx*rx;
@@ -728,6 +728,17 @@ ENGINE_ellipsefill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y
 
 internal void
 ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, uint32_t c) {
+
+  int64_t swap = x1;
+  if (x1 < x0) {
+    x1 = x0;
+    x0 = swap;
+  }
+  swap = y1;
+  if (y1 < y0) {
+    y1 = y0;
+    y0 = swap;
+  }
 
   // Calculate radius
   int32_t rx = llabs(x1 - x0) / 2; // Radius on x

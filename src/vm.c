@@ -88,23 +88,53 @@ internal WrenForeignMethodFn VM_bind_foreign_method(
 internal char* VM_load_module(WrenVM* vm, const char* name) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   MAP moduleMap = engine->moduleMap;
-  if (strncmp("./", name, 2) != 0) {
-    if (DEBUG_MODE) {
-      ENGINE_printLog(engine, "Loading module %s\n", name);
-    }
-    return (char*)MAP_getSource(&moduleMap, name);
+
+  if (DEBUG_MODE) {
+    ENGINE_printLog(engine, "Loading module %s from ", name);
   }
 
-  ENGINE_printLog(engine, "Loading module %s\n", name);
+  // Check against wren optional modules
+#if WREN_OPT_META
+  if (strcmp(name, "meta") == 0) {
+    if (DEBUG_MODE) {
+      ENGINE_printLog(engine, "wren\n", name);
+    }
+    return NULL;
+  }
+#endif
+#if WREN_OPT_RANDOM
+  if (strcmp(name, "random") == 0) {
+    if (DEBUG_MODE) {
+      ENGINE_printLog(engine, "wren\n", name);
+    }
+    return NULL;
+  }
+#endif
 
+  // Check against dome modules
+  char* module = (char*)MAP_getSource(&moduleMap, name);
+
+  if (module != NULL) {
+    if (DEBUG_MODE) {
+      ENGINE_printLog(engine, "dome\n", name);
+    }
+    return module;
+  }
+
+  // Otherwise, search on filesystem
   char* extension = ".wren";
   char* path;
   path = malloc(strlen(name)+strlen(extension)+1); /* make space for the new string (should check the return value ...) */
   strcpy(path, name); /* add the extension */
   strcat(path, extension); /* add the extension */
 
+  if (DEBUG_MODE) {
+    ENGINE_printLog(engine, "%s\n", engine->tar ? "egg bundle" : "filesystem");
+  }
+
   // This pointer becomes owned by the WrenVM and freed later.
   char* file = ENGINE_readFile(engine, path, NULL);
+
   free(path);
   return file;
 }
@@ -181,6 +211,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.title", WINDOW_getTitle);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.fullscreen=(_)", WINDOW_setFullscreen);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.fullscreen", WINDOW_getFullscreen);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.width", WINDOW_getWidth);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.height", WINDOW_getHeight);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Version.toString", VERSION_getString);
 
 #if DOME_OPT_FFI
   // FFI
@@ -228,6 +261,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.pan", AUDIO_CHANNEL_getPan);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.volume", AUDIO_CHANNEL_getVolume);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.volume=(_)", AUDIO_CHANNEL_setVolume);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.position=(_)", AUDIO_CHANNEL_setPosition);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.state=(_)", AUDIO_CHANNEL_setState);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.audio=(_)", AUDIO_CHANNEL_setAudio);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.state", AUDIO_CHANNEL_getState);

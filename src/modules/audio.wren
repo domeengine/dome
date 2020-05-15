@@ -36,6 +36,7 @@ foreign class SystemChannel is AudioChannel {
   foreign length
   foreign soundId
   foreign position
+  foreign position=(v)
 
   foreign state
   foreign state=(value)
@@ -58,7 +59,7 @@ class AudioChannelFacade is AudioChannel {
     _channel = channel
     _length = channel.length
     _soundId = channel.soundId
-    _position = 0
+    _position = null // This is only set by the user
     _volume = 1
     _pan = 0
     _loop = false
@@ -114,7 +115,10 @@ class AudioChannelFacade is AudioChannel {
     _channel.volume = _volume
     _channel.pan = _pan
     _channel.loop = _loop
-    _position = _channel.position
+    if (_position != null) {
+      _channel.position = _position
+      _position = null
+    }
   }
 
   // Private
@@ -122,7 +126,8 @@ class AudioChannelFacade is AudioChannel {
   id { _id }
 
   // Public
-  position { _position }
+  position { _position || _channel.position }
+  position=(v) { _position = v }
   length { _length }
   soundId { _soundId }
   volume { _volume }

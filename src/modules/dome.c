@@ -20,6 +20,22 @@ WINDOW_resize(WrenVM* vm) {
 }
 
 internal void
+WINDOW_getWidth(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  int width = 0;
+  SDL_GetWindowSize(engine->window, &width, NULL);
+  wrenSetSlotDouble(vm, 0, width);
+}
+
+internal void
+WINDOW_getHeight(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  int height = 0;
+  SDL_GetWindowSize(engine->window, NULL, &height);
+  wrenSetSlotDouble(vm, 0, height);
+}
+
+internal void
 WINDOW_setTitle(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASSERT_SLOT_TYPE(vm, 1, STRING, "title");
@@ -60,4 +76,17 @@ WINDOW_getFullscreen(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   uint32_t flags = SDL_GetWindowFlags(engine->window);
   wrenSetSlotBool(vm, 0, (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0);
+}
+
+
+internal void
+VERSION_getString(WrenVM* vm) {
+  size_t len;
+  char* version = DOME_VERSION;
+  for (len = 0; len < strlen(version); len++) {
+    if (version[len] != '.' && !isdigit(version[len])) {
+      break;
+    }
+  }
+  wrenSetSlotBytes(vm, 0, version, len);
 }

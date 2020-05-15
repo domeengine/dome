@@ -29,3 +29,5 @@ If you find a bug, or want to suggest a new feature or piece of functionality, s
 People who have contributed code or documentation to the project:
 * Aviv Beeri, aka springogeek [https://github.com/avivbeeri]
 * scholar-mage [https://github.com/scholar-mage]
+* Francisco Requena, aka frarees [https://github.com/frarees]
+* Camilo Castro, aka clsource [https://github.com/clsource]

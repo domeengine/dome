@@ -5,19 +5,18 @@ Importing User Modules
 
 Wren allows scripts to import modules of reusable functionality specific to the embedding environment.
 
-In our case, DOME allows for [built-in modules](../modules) to be imported by name like this:
+In our case, DOME allows for modules to be imported by path like this:
 
 ```
-import "[module_name]" for ClassName
+import "[module_path]" for ClassName
 ```
 
-However, imagine you wanted to import a class called `Map` from a custom module in a file called `map.wren` in the same directory as your current game. You would import it like this:
+DOME currently resolves paths in a very simple way: All are relative to the entry point of the game, which is usually `main.wren`. 
 
-```
-import "./map" for ClassName
-```
-
-DOME currently resolves paths in a very simple way: All are relative to the entry point of the game, which is usually `main.wren`, and must begin with `./`.
+Module paths are resolved with the following priority:
+* DOME's [built-in modules](../modules)
+* Wren VM built-in modules `random` and `meta`.
+* User-provided modules at the specified path, relative to the game entry point
   
 As an example, imagine this directory structure:
 ```
