@@ -87,7 +87,7 @@ ifneq (, $(findstring MINGW, $(SYS)))
 endif
 
 ifneq (, $(findstring Linux, $(SYS)))
-  CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
+  CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered --no-pie
 endif
 
 
