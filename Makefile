@@ -12,6 +12,7 @@ EXAMPLES = examples
 
 MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
 ARCH ?= $(shell cat $(ARCH_FILE) 2>/dev/null || echo 64bit)
+$(shell echo $(ARCH) > $(ARCH_FILE))
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
 SYS=$(shell uname -s)
 
