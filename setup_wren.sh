@@ -18,6 +18,6 @@ else
 fi
 
 make clean
-make $@ config=debug_64bit wren && cp ../../lib/libwrend.a ../../../libwrend.a
+make ${@:2} config=debug_$1 wren && cp ../../lib/libwrend.a ../../../libwrend.a
 make clean
-make $@ MODE=release_64bit wren && cp ../../lib/libwren.a ../../../libwren.a
+make ${@:2} MODE=release_$1 wren && cp ../../lib/libwren.a ../../../libwren.a
