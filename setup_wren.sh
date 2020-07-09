@@ -20,4 +20,4 @@ fi
 make clean
 make ${@:2} config=debug_$1 wren && cp ../../lib/libwrend.a ../../../libwrend.a
 make clean
-make ${@:2} MODE=release_$1 wren && cp ../../lib/libwren.a ../../../libwren.a
+make ${@:2} config=release_$1 wren && cp ../../lib/libwren.a ../../../libwren.a
