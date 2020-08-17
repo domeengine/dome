@@ -1,6 +1,7 @@
 CC = cc
 EXENAME = dome
 MODE_FILE=.mode
+ARCH_FILE=.arch
 
 SOURCE  = src
 UTILS = $(SOURCE)/util
@@ -10,6 +11,8 @@ MODULES = $(SOURCE)/modules
 EXAMPLES = examples
 
 MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
+ARCH ?= $(shell cat $(ARCH_FILE) 2>/dev/null || echo 64bit)
+$(shell echo $(ARCH) > $(ARCH_FILE))
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
 SYS=$(shell uname -s)
 
@@ -107,7 +110,7 @@ $(LIBS)/libffi.a: $(LIBS)/libffi
 	./setup_ffi.sh
 
 $(LIBS)/libwren.a: $(LIBS)/wren
-	./setup_wren.sh WREN_OPT_RANDOM=$(BUILTIN_RANDOM) WREN_OPT_META=$(BUILTIN_META)
+	./setup_wren.sh $(ARCH) WREN_OPT_RANDOM=$(BUILTIN_RANDOM) WREN_OPT_META=$(BUILTIN_META)
 
 $(INCLUDES)/ffi.h: $(LIBS)/libffi.a
 $(INCLUDES)/ffitarget.h: $(LIBS)/libffi.a
