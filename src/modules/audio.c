@@ -95,7 +95,7 @@ void AUDIO_ENGINE_mix(void*  userdata,
           float* readCursor = (float*)(audio->buffer);
           readCursor += channel->position * channels;
           float volume = channel->volume;
-          float pan = (channel->pan + 1) * M_PI / 4; // Channel pan is [-1,1] real pan needs to be [0,1]
+          float pan = (channel->pan + 1) * M_PI / 4.0; // Channel pan is [-1,1] real pan needs to be [0,1]
 
           left += readCursor[0] * cos(pan) * volume;
           right += readCursor[1] * sin(pan) * volume;
@@ -408,7 +408,7 @@ internal void AUDIO_CHANNEL_getVolume(WrenVM* vm) {
 internal void AUDIO_CHANNEL_setPan(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   ASSERT_SLOT_TYPE(vm, 1, NUM, "pan");
-  channel->pan = (float)mid(-1.0, wrenGetSlotDouble(vm, 1), 1.0f);
+  channel->pan = fmid(-1.0, wrenGetSlotDouble(vm, 1), 1.0f);
 }
 
 internal void AUDIO_CHANNEL_getPan(WrenVM* vm) {
