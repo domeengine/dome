@@ -1,8 +1,59 @@
 import "vector" for Vector
 
+class Key {
+  construct init() {
+    _down = false
+    _previous = false
+    _repeats = 0
+  }
+  update(state) {
+    _previous = _down
+    _down = state
+    if (_down && _previous == _down) {
+      _repeats = _repeats + 1
+    } else {
+      _repeats = 0
+    }
+  }
+
+  down { _down }
+  previous { _previous }
+  repeats { _repeats }
+}
+
 class Keyboard {
   foreign static isKeyDown(key)
+
+  static [name] {
+    if (__keys == null) {
+      __keys = {}
+    }
+    if (!__keys.containsKey(name)) {
+      update(name, false)
+    }
+    return __keys[name]
+  }
+
+  // PRIVATE, called by game loop
+  static update(keyName, state) {
+    if (__keys == null) {
+      __keys = {}
+    }
+    if (!__keys.containsKey(keyName)) {
+      __keys[keyName] = Key.init()
+    }
+    __keys[keyName].update(state)
+  }
+
+  foreign static f_captureVariable()
 }
+Keyboard.f_captureVariable()
+
+
+//# Keyboard.isKeyDown(keyname)
+//# Keyboard[keyname].down
+//# Keyboard[keyname].up
+//# Keyboard[keyname].repeats
 
 class Mouse {
   foreign static x

@@ -94,6 +94,7 @@
 // Used in the io variable, but we need to catch it here
 global_variable WrenHandle* bufferClass = NULL;
 global_variable WrenHandle* audioEngineClass = NULL;
+global_variable WrenHandle* keyboardClass = NULL;
 
 // These are set by cmd arguments
 #ifdef DEBUG
@@ -408,6 +409,16 @@ int main(int argc, char* args[])
               engine.debugEnabled = !engine.debugEnabled;
             } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               ENGINE_takeScreenshot(&engine);
+            } else {
+              if (keyboardClass != NULL) {
+                WrenHandle* updateKeyboardMethod = wrenMakeCallHandle(vm, "update(_,_)");
+                wrenEnsureSlots(vm, 3);
+                wrenSetSlotHandle(vm, 0, keyboardClass);
+                wrenSetSlotString(vm, 1, SDL_GetKeyName(keyCode));
+                wrenSetSlotBool(vm, 2, event.key.state == SDL_PRESSED);
+                interpreterResult = wrenCall(vm, updateKeyboardMethod);
+                wrenReleaseHandle(vm, updateKeyboardMethod);
+              }
             }
           } break;
         case SDL_CONTROLLERDEVICEADDED:
@@ -541,6 +552,9 @@ vm_cleanup:
 
   if (audioEngineClass != NULL) {
     wrenReleaseHandle(vm, audioEngineClass);
+  }
+  if (keyboardClass != NULL) {
+    wrenReleaseHandle(vm, keyboardClass);
   }
 
 cleanup:

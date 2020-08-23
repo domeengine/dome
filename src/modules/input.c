@@ -1,3 +1,12 @@
+internal void
+KEYBOARD_capture(WrenVM* vm) {
+  if (keyboardClass == NULL) {
+    printf("KEYBOARD CAPTURE\n");
+    wrenGetVariable(vm, "input", "Keyboard", 0);
+    keyboardClass = wrenGetSlotHandle(vm, 0);
+  }
+}
+
 internal void KEYBOARD_isKeyDown(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASSERT_SLOT_TYPE(vm, 1, STRING, "key name");
