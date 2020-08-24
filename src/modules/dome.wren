@@ -68,3 +68,6 @@ class Window {
   foreign static resize(width, height)
 }
 
+class StringUtils {
+  foreign static toLowercase(string)
+}

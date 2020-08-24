@@ -95,6 +95,8 @@
 global_variable WrenHandle* bufferClass = NULL;
 global_variable WrenHandle* audioEngineClass = NULL;
 global_variable WrenHandle* keyboardClass = NULL;
+global_variable WrenHandle* updateKeyboardMethod = NULL;
+global_variable WrenHandle* commitMethod = NULL;
 
 // These are set by cmd arguments
 #ifdef DEBUG
@@ -352,6 +354,7 @@ int main(int argc, char* args[])
   WrenHandle* initMethod = wrenMakeCallHandle(vm, "init()");
   WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update()");
   WrenHandle* drawMethod = wrenMakeCallHandle(vm, "draw(_)");
+  commitMethod = wrenMakeCallHandle(vm, "commit()");
   wrenGetVariable(vm, "main", "Game", 0);
   WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
 
@@ -409,15 +412,17 @@ int main(int argc, char* args[])
               engine.debugEnabled = !engine.debugEnabled;
             } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               ENGINE_takeScreenshot(&engine);
-            } else {
+            } else if (event.key.repeat == 0) {
               if (keyboardClass != NULL) {
-                WrenHandle* updateKeyboardMethod = wrenMakeCallHandle(vm, "update(_,_)");
                 wrenEnsureSlots(vm, 3);
                 wrenSetSlotHandle(vm, 0, keyboardClass);
-                wrenSetSlotString(vm, 1, SDL_GetKeyName(keyCode));
+
+                char* buttonName = strToLower(SDL_GetKeyName(keyCode));
+                wrenSetSlotString(vm, 1, buttonName);
                 wrenSetSlotBool(vm, 2, event.key.state == SDL_PRESSED);
                 interpreterResult = wrenCall(vm, updateKeyboardMethod);
-                wrenReleaseHandle(vm, updateKeyboardMethod);
+                free(buttonName);
+                // TODO: handle result here
               }
             }
           } break;
@@ -437,6 +442,11 @@ int main(int argc, char* args[])
             }
           }
       }
+    }
+    if (keyboardClass != NULL) {
+      wrenEnsureSlots(vm, 1);
+      wrenSetSlotHandle(vm, 0, keyboardClass);
+      interpreterResult = wrenCall(vm, commitMethod);
     }
 
     uint64_t currentTime = SDL_GetPerformanceCounter();
@@ -544,6 +554,7 @@ vm_cleanup:
   wrenReleaseHandle(vm, initMethod);
   wrenReleaseHandle(vm, drawMethod);
   wrenReleaseHandle(vm, updateMethod);
+  wrenReleaseHandle(vm, commitMethod);
   wrenReleaseHandle(vm, gameClass);
 
   if (bufferClass != NULL) {
@@ -555,6 +566,7 @@ vm_cleanup:
   }
   if (keyboardClass != NULL) {
     wrenReleaseHandle(vm, keyboardClass);
+    wrenReleaseHandle(vm, updateKeyboardMethod);
   }
 
 cleanup:

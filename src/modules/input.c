@@ -1,9 +1,9 @@
 internal void
 KEYBOARD_capture(WrenVM* vm) {
   if (keyboardClass == NULL) {
-    printf("KEYBOARD CAPTURE\n");
     wrenGetVariable(vm, "input", "Keyboard", 0);
     keyboardClass = wrenGetSlotHandle(vm, 0);
+    updateKeyboardMethod = wrenMakeCallHandle(vm, "update(_,_)");
   }
 }
 
@@ -51,9 +51,9 @@ internal void MOUSE_isButtonPressed(WrenVM* vm) {
       buttonIndex = SDL_BUTTON_MIDDLE;
     } else if (STRINGS_EQUAL(buttonName, "right")) {
       buttonIndex = SDL_BUTTON_RIGHT;
-    } else if (STRINGS_EQUAL(buttonName, "X1")) {
+    } else if (STRINGS_EQUAL(buttonName, "x1")) {
       buttonIndex = SDL_BUTTON_X1;
-    } else if (STRINGS_EQUAL(buttonName, "X2")) {
+    } else if (STRINGS_EQUAL(buttonName, "x2")) {
       buttonIndex = SDL_BUTTON_X2;
     } else {
       VM_ABORT(vm, "Unknown mouse button name");

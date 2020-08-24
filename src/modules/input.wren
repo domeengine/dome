@@ -1,19 +1,26 @@
 import "vector" for Vector
+import "dome" for StringUtils
 
 class Key {
   construct init() {
     _down = false
+    _current = false
     _previous = false
+    _halfTransitions = 0
     _repeats = 0
   }
-  update(state) {
+  commit() {
     _previous = _down
-    _down = state
+    _down = _current
     if (_down && _previous == _down) {
       _repeats = _repeats + 1
     } else {
       _repeats = 0
     }
+  }
+
+  update(state) {
+    _current = state
   }
 
   down { _down }
@@ -22,12 +29,16 @@ class Key {
 }
 
 class Keyboard {
-  foreign static isKeyDown(key)
+  static isKeyDown(key) {
+    return Keyboard[StringUtils.toLowercase(key)].down
+  }
+  static init() {
+    __keys = {}
+    Keyboard.f_captureVariable()
+  }
 
   static [name] {
-    if (__keys == null) {
-      __keys = {}
-    }
+    name = StringUtils.toLowercase(name)
     if (!__keys.containsKey(name)) {
       update(name, false)
     }
@@ -36,18 +47,19 @@ class Keyboard {
 
   // PRIVATE, called by game loop
   static update(keyName, state) {
-    if (__keys == null) {
-      __keys = {}
-    }
     if (!__keys.containsKey(keyName)) {
       __keys[keyName] = Key.init()
     }
     __keys[keyName].update(state)
   }
 
+  static commit() {
+    __keys.values.each {|key| key.commit() }
+  }
+
   foreign static f_captureVariable()
 }
-Keyboard.f_captureVariable()
+Keyboard.init()
 
 
 //# Keyboard.isKeyDown(keyname)

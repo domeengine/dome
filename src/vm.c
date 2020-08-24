@@ -203,6 +203,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Set modules
 
   // DOME
+  MAP_addFunction(&engine->moduleMap, "dome", "static StringUtils.toLowercase(_)", STRING_UTILS_toLowercase);
   MAP_addFunction(&engine->moduleMap, "dome", "static Process.f_exit(_)", PROCESS_exit);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.resize(_,_)", WINDOW_resize);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.title=(_)", WINDOW_setTitle);
