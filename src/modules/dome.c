@@ -13,7 +13,7 @@ STRING_UTILS_toLowercase(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "string");
   int length;
   char* str = wrenGetSlotBytes(vm, 1, &length);
-  char* dest = malloc(sizeof(char) * length);
+  char* dest = calloc(length + 1, sizeof(char));
   utf8ncpy(dest, str, length);
   utf8lwr(dest);
   wrenSetSlotBytes(vm, 0, dest, length);
