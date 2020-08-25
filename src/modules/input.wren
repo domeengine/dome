@@ -1,7 +1,10 @@
 import "vector" for Vector
 import "dome" for StringUtils
 
-class Key {
+class Input {
+  // This sets up the whole module's event loop behaviour
+  foreign static f_captureVariables()
+
   construct init() {
     _down = false
     _current = false
@@ -32,9 +35,8 @@ class Keyboard {
   static isKeyDown(key) {
     return Keyboard[StringUtils.toLowercase(key)].down
   }
-  static init() {
+  static init_() {
     __keys = {}
-    Keyboard.f_captureVariable()
   }
 
   static [name] {
@@ -48,7 +50,7 @@ class Keyboard {
   // PRIVATE, called by game loop
   static update(keyName, state) {
     if (!__keys.containsKey(keyName)) {
-      __keys[keyName] = Key.init()
+      __keys[keyName] = Input.init()
     }
     __keys[keyName].update(state)
   }
@@ -56,24 +58,42 @@ class Keyboard {
   static commit() {
     __keys.values.each {|key| key.commit() }
   }
-
-  foreign static f_captureVariable()
 }
-Keyboard.init()
 
-
-//# Keyboard.isKeyDown(keyname)
-//# Keyboard[keyname].down
-//# Keyboard[keyname].up
-//# Keyboard[keyname].repeats
 
 class Mouse {
   foreign static x
   foreign static y
-  foreign static isButtonPressed(key)
 
   foreign static hidden
   foreign static hidden=(value)
+
+  static isButtonPressed(key) {
+    return Mouse[StringUtils.toLowercase(key)].down
+  }
+
+  static init_() {
+    __buttons = {}
+  }
+  static [name] {
+    name = StringUtils.toLowercase(name)
+    if (!__buttons.containsKey(name)) {
+      update(name, false)
+    }
+    return __buttons[name]
+  }
+
+  // PRIVATE, called by game loop
+  static update(keyName, state) {
+    if (!__buttons.containsKey(keyName)) {
+      __buttons[keyName] = Input.init()
+    }
+    __buttons[keyName].update(state)
+  }
+
+  static commit() {
+    __buttons.values.each {|button| button.commit() }
+  }
 }
 
 foreign class GamePad {
@@ -134,5 +154,8 @@ foreign class GamePad {
   foreign static f_getGamePadIds()
 }
 
+// Module Setup
+Keyboard.init_()
+Mouse.init_()
 GamePad.init_()
-
+Input.f_captureVariables()

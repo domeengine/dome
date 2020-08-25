@@ -95,7 +95,8 @@
 global_variable WrenHandle* bufferClass = NULL;
 global_variable WrenHandle* audioEngineClass = NULL;
 global_variable WrenHandle* keyboardClass = NULL;
-global_variable WrenHandle* updateKeyboardMethod = NULL;
+global_variable WrenHandle* mouseClass = NULL;
+global_variable WrenHandle* updateInputMethod = NULL;
 global_variable WrenHandle* commitMethod = NULL;
 
 // These are set by cmd arguments
@@ -413,16 +414,12 @@ int main(int argc, char* args[])
             } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               ENGINE_takeScreenshot(&engine);
             } else if (event.key.repeat == 0) {
-              if (keyboardClass != NULL) {
-                wrenEnsureSlots(vm, 3);
-                wrenSetSlotHandle(vm, 0, keyboardClass);
-
-                char* buttonName = strToLower(SDL_GetKeyName(keyCode));
-                wrenSetSlotString(vm, 1, buttonName);
-                wrenSetSlotBool(vm, 2, event.key.state == SDL_PRESSED);
-                interpreterResult = wrenCall(vm, updateKeyboardMethod);
-                free(buttonName);
-                // TODO: handle result here
+              char* buttonName = strToLower(SDL_GetKeyName(keyCode));
+              WrenInterpretResult interpreterResult = KEYBOARD_updateKey(vm, buttonName, event.key.state == SDL_PRESSED);
+              free(buttonName);
+              if (interpreterResult != WREN_RESULT_SUCCESS) {
+                result = EXIT_FAILURE;
+                goto vm_cleanup;
               }
             }
           } break;
@@ -434,6 +431,25 @@ int main(int argc, char* args[])
           {
             GAMEPAD_eventRemoved(vm, event.cdevice.which);
           } break;
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+          {
+            char* buttonName;
+            switch (event.button.button) {
+              case SDL_BUTTON_LEFT: buttonName = "left"; break;
+              case SDL_BUTTON_MIDDLE: buttonName = "middle"; break;
+              case SDL_BUTTON_RIGHT: buttonName = "right"; break;
+              case SDL_BUTTON_X1: buttonName = "x1"; break;
+              default:
+              case SDL_BUTTON_X2: buttonName = "x2"; break;
+            }
+            bool state = event.button.state == SDL_PRESSED;
+            WrenInterpretResult result = INPUT_update(vm, DOME_INPUT_MOUSE, buttonName, state);
+            if (interpreterResult != WREN_RESULT_SUCCESS) {
+              result = EXIT_FAILURE;
+              goto vm_cleanup;
+            }
+          } break;
         case SDL_USEREVENT:
           {
             ENGINE_printLog(&engine, "Event code %i\n", event.user.code);
@@ -443,10 +459,12 @@ int main(int argc, char* args[])
           }
       }
     }
-    if (keyboardClass != NULL) {
-      wrenEnsureSlots(vm, 1);
-      wrenSetSlotHandle(vm, 0, keyboardClass);
-      interpreterResult = wrenCall(vm, commitMethod);
+    if (inputCaptured) {
+      interpreterResult = INPUT_commit(vm);
+      if (interpreterResult != WREN_RESULT_SUCCESS) {
+        result = EXIT_FAILURE;
+        goto vm_cleanup;
+      }
     }
 
     uint64_t currentTime = SDL_GetPerformanceCounter();
@@ -564,10 +582,8 @@ vm_cleanup:
   if (audioEngineClass != NULL) {
     wrenReleaseHandle(vm, audioEngineClass);
   }
-  if (keyboardClass != NULL) {
-    wrenReleaseHandle(vm, keyboardClass);
-    wrenReleaseHandle(vm, updateKeyboardMethod);
-  }
+
+  INPUT_release(vm);
 
 cleanup:
   // Free resources

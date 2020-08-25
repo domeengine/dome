@@ -296,7 +296,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "io", "AsyncOperation.complete", ASYNCOP_getComplete);
 
   // Input
-  MAP_addFunction(&engine->moduleMap, "input", "static Keyboard.f_captureVariable()", KEYBOARD_capture);
+  MAP_addFunction(&engine->moduleMap, "input", "static Input.f_captureVariables()", INPUT_capture);
   MAP_addFunction(&engine->moduleMap, "input", "static Keyboard.isKeyDown(_)", KEYBOARD_isKeyDown);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.x", MOUSE_getX);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.y", MOUSE_getY);

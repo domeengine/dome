@@ -1,10 +1,74 @@
+global_variable bool inputCaptured = false;
+
 internal void
-KEYBOARD_capture(WrenVM* vm) {
-  if (keyboardClass == NULL) {
+INPUT_capture(WrenVM* vm) {
+  if (!inputCaptured) {
     wrenGetVariable(vm, "input", "Keyboard", 0);
     keyboardClass = wrenGetSlotHandle(vm, 0);
-    updateKeyboardMethod = wrenMakeCallHandle(vm, "update(_,_)");
+
+    wrenGetVariable(vm, "input", "Mouse", 0);
+    mouseClass = wrenGetSlotHandle(vm, 0);
+
+    updateInputMethod = wrenMakeCallHandle(vm, "update(_,_)");
+    inputCaptured = true;
   }
+}
+
+internal WrenInterpretResult
+INPUT_commit(WrenVM* vm) {
+  wrenEnsureSlots(vm, 1);
+  wrenSetSlotHandle(vm, 0, keyboardClass);
+  WrenInterpretResult interpreterResult = wrenCall(vm, commitMethod);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    return interpreterResult;
+  }
+  wrenEnsureSlots(vm, 1);
+  wrenSetSlotHandle(vm, 0, mouseClass);
+  interpreterResult = wrenCall(vm, commitMethod);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    return interpreterResult;
+  }
+
+  return WREN_RESULT_SUCCESS;
+}
+
+
+
+internal void
+INPUT_release(WrenVM* vm) {
+  if (inputCaptured) {
+    wrenReleaseHandle(vm, keyboardClass);
+    wrenReleaseHandle(vm, mouseClass);
+    wrenReleaseHandle(vm, updateInputMethod);
+    inputCaptured = false;
+  }
+}
+
+typedef enum {
+  DOME_INPUT_KEYBOARD,
+  DOME_INPUT_MOUSE,
+  DOME_INPUT_CONTROLLER
+} DOME_INPUT_TYPE;
+
+internal WrenInterpretResult
+INPUT_update(WrenVM* vm, DOME_INPUT_TYPE type, char* inputName, bool state) {
+  if (inputCaptured) {
+    switch (type) {
+      default:
+      case DOME_INPUT_KEYBOARD: wrenSetSlotHandle(vm, 0, keyboardClass); break;
+      // case DOME_INPUT_CONTROLLER: wrenSetSlotHandle(vm, 0, gamepadClass); break;
+      case DOME_INPUT_MOUSE: wrenSetSlotHandle(vm, 0, mouseClass); break;
+    }
+    wrenSetSlotString(vm, 1, inputName);
+    wrenSetSlotBool(vm, 2, state);
+    return wrenCall(vm, updateInputMethod);
+  }
+  return WREN_RESULT_SUCCESS;
+}
+
+internal WrenInterpretResult
+KEYBOARD_updateKey(WrenVM* vm, char* name, bool state) {
+  return INPUT_update(vm, DOME_INPUT_KEYBOARD, name, state);
 }
 
 internal void KEYBOARD_isKeyDown(WrenVM* vm) {
