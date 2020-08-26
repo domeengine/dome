@@ -102,14 +102,6 @@ KEYBOARD_updateKey(WrenVM* vm, char* name, bool state) {
   return INPUT_update(vm, DOME_INPUT_KEYBOARD, name, state);
 }
 
-internal void KEYBOARD_isKeyDown(WrenVM* vm) {
-  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  ASSERT_SLOT_TYPE(vm, 1, STRING, "key name");
-  const char* keyName = wrenGetSlotString(vm, 1);
-  bool result = ENGINE_getKeyState(engine, keyName);
-  wrenSetSlotBool(vm, 0, result);
-}
-
 internal void MOUSE_getX(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int x = ENGINE_getMouseX(engine);
@@ -133,36 +125,6 @@ internal void
 MOUSE_getHidden(WrenVM* vm) {
   bool shown = SDL_ShowCursor(SDL_QUERY);
   wrenSetSlotBool(vm, 0, !shown);
-}
-
-internal void MOUSE_isButtonPressed(WrenVM* vm) {
-  WrenType type = wrenGetSlotType(vm, 1);
-  int buttonIndex = 0;
-  if (type == WREN_TYPE_STRING) {
-    char* buttonName = strToLower(wrenGetSlotString(vm, 1));
-    if (STRINGS_EQUAL(buttonName, "left")) {
-      buttonIndex = SDL_BUTTON_LEFT;
-    } else if (STRINGS_EQUAL(buttonName, "middle")) {
-      buttonIndex = SDL_BUTTON_MIDDLE;
-    } else if (STRINGS_EQUAL(buttonName, "right")) {
-      buttonIndex = SDL_BUTTON_RIGHT;
-    } else if (STRINGS_EQUAL(buttonName, "x1")) {
-      buttonIndex = SDL_BUTTON_X1;
-    } else if (STRINGS_EQUAL(buttonName, "x2")) {
-      buttonIndex = SDL_BUTTON_X2;
-    } else {
-      VM_ABORT(vm, "Unknown mouse button name");
-      return;
-    }
-    free(buttonName);
-  } else if (type == WREN_TYPE_NUM) {
-    buttonIndex = wrenGetSlotDouble(vm, 1);
-  } else {
-    VM_ABORT(vm, "Invalid button index given")
-    return;
-  }
-
-  wrenSetSlotBool(vm, 0, ENGINE_getMouseButton(buttonIndex));
 }
 
 typedef struct {
@@ -204,66 +166,9 @@ GAMEPAD_close(WrenVM* vm) {
   closeController(gamepad);
 }
 
-
 internal void
 GAMEPAD_finalize(void* data) {
   closeController((GAMEPAD*)data);
-}
-
-internal void
-GAMEPAD_isButtonPressed(WrenVM* vm) {
-  GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
-  if (gamepad->controller == NULL) {
-    wrenSetSlotBool(vm, 0, false);
-    return;
-  }
-  int buttonIndex = 0;
-  WrenType type = wrenGetSlotType(vm, 1);
-  if (type == WREN_TYPE_STRING) {
-    char* buttonName = strToLower(wrenGetSlotString(vm, 1));
-    if (STRINGS_EQUAL(buttonName, "up")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_DPAD_UP;
-    } else if (STRINGS_EQUAL(buttonName, "left")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_DPAD_LEFT;
-    } else if (STRINGS_EQUAL(buttonName, "right")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_DPAD_RIGHT;
-    } else if (STRINGS_EQUAL(buttonName, "down")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_DPAD_DOWN;
-    } else if (STRINGS_EQUAL(buttonName, "start")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_START;
-    } else if (STRINGS_EQUAL(buttonName, "back")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_BACK;
-    } else if (STRINGS_EQUAL(buttonName, "guide")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_GUIDE;
-    } else if (STRINGS_EQUAL(buttonName, "leftstick")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_LEFTSTICK;
-    } else if (STRINGS_EQUAL(buttonName, "rightstick")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_RIGHTSTICK;
-    } else if (STRINGS_EQUAL(buttonName, "leftshoulder")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
-    } else if (STRINGS_EQUAL(buttonName, "rightshoulder")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
-    } else if (STRINGS_EQUAL(buttonName, "a")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_A;
-    } else if (STRINGS_EQUAL(buttonName, "b")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_B;
-    } else if (STRINGS_EQUAL(buttonName, "x")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_X;
-    } else if (STRINGS_EQUAL(buttonName, "y")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_Y;
-    } else {
-      VM_ABORT(vm, "Unknown controller button name");
-      return;
-    }
-    free(buttonName);
-  } else if (type == WREN_TYPE_NUM) {
-    buttonIndex = wrenGetSlotDouble(vm, 1);
-  } else {
-    VM_ABORT(vm, "Invalid controller button index")
-    return;
-  }
-  bool isPressed = SDL_GameControllerGetButton(gamepad->controller, buttonIndex);
-  wrenSetSlotBool(vm, 0, isPressed);
 }
 
 internal void

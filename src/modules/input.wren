@@ -105,7 +105,6 @@ foreign class SystemGamePad {
   foreign id
   foreign name
 
-  foreign f_isButtonPressed(key)
   foreign f_getAnalogStick(side)
   foreign getTrigger(side)
 
