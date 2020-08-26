@@ -4,6 +4,9 @@ import "dome" for StringUtils
 class Input {
   // This sets up the whole module's event loop behaviour
   foreign static f_captureVariables()
+}
+
+class DigitalInput {
 
   construct init() {
     _down = false
@@ -50,7 +53,7 @@ class Keyboard {
   // PRIVATE, called by game loop
   static update(keyName, state) {
     if (!__keys.containsKey(keyName)) {
-      __keys[keyName] = Input.init()
+      __keys[keyName] = DigitalInput.init()
     }
     __keys[keyName].update(state)
   }
@@ -86,7 +89,7 @@ class Mouse {
   // PRIVATE, called by game loop
   static update(keyName, state) {
     if (!__buttons.containsKey(keyName)) {
-      __buttons[keyName] = Input.init()
+      __buttons[keyName] = DigitalInput.init()
     }
     __buttons[keyName].update(state)
   }
@@ -133,7 +136,7 @@ class GamePad {
   [button] {
     var name = StringUtils.toLowercase(button)
     if (!_buttons.containsKey(name)) {
-      _buttons[name] = Input.init()
+      _buttons[name] = DigitalInput.init()
     }
     return _buttons[name]
   }
