@@ -12,7 +12,6 @@ class DigitalInput {
     _down = false
     _current = false
     _previous = false
-    _halfTransitions = 0
     _repeats = 0
   }
   commit() {

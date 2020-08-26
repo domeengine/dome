@@ -7,13 +7,32 @@ The `input` module allows you to retrieve the state of input devices such as the
 
 It contains the following classes:
 
+* [DigitalInput](#digitalinput)
 * [Keyboard](#keyboard)
 * [Mouse](#mouse)
 * [GamePad](#gamepad)
 
+## DigitalInput
+
+An instance of `DigitalInput` represents an input such as a keyboard key, mouse button or controller button, which can be either "pressed" or "unpressed".
+
+### Instance Fields
+
+#### `static down: Boolean`
+This is true if the digital input is "pressed" or otherwise engaged.
+
+#### `static previous: Boolean`
+This gives you the value of "down" on the previous tick, since input was last processed. (Depending on game loop lag, input may be processed once for multiple update ticks.)
+
+#### `static repeats: Number`
+This counts the number of ticks that an input has been engaged for. If the input isn't engaged, this should be zero.
+
 ## Keyboard
 
 ### Static Methods
+
+#### `static [name]: DigitalInput`
+This returns a digital input of a valid name. See `Keyboard.isKeyDown` for a list of valid names.
 
 #### `static isKeyDown(key: String): Boolean`
 Returns true if the named key is pressed. The key uses the SDL key name, which can be referenced [here](https://wiki.libsdl.org/SDL_Keycode).
@@ -32,6 +51,9 @@ The y position relative to the Canvas. This accounts for the window being resize
 Controls whether the mouse cursor is shown or hidden. You can set and read from this field.
 
 ### Static Methods
+
+#### `static [name]: DigitalInput`
+This returns a digital input of a valid name. See `Mouse.isButtonPressed` for a list of valid names.
 
 #### `static isButtonPressed(name: String/Number): Boolean`
 Returns true if the named mouse button is pressed. 
@@ -71,7 +93,10 @@ If the gamepad is attached, this returns the SDL internal name for that device.
 
 ### Instance Methods
 
-#### `isButtonPressed(key: String): Boolean`
+#### `[name]: DigitalInput`
+This returns a digital input of a valid name. See `GamePad.isButtonPressed` for a list of valid names.
+
+#### `isButtonPressed(button: String): Boolean`
 Returns true if the named button is pressed. Valid button names are:
  * `left` - D-Pad Left
  * `right` - D-Pad Right
