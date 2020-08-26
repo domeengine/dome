@@ -3,9 +3,6 @@
   @Module graphics
   The graphics module provides all the system functions required for drawing to the screen.
 */
-import "vector" for Point, Vec, Vector
-import "image" for Drawable, ImageData
-import "font" for Font, RasterizedFont
 
 /**
     @Class Canvas
@@ -190,6 +187,25 @@ class Canvas {
     @Class Color
       An instance of this class represents an rgb color, which can be passed to Canvas methods.
 */
+
+var ToHex = Fn.new {|dec|
+  if (dec < 10) {
+    return String.fromByte(dec + 48)
+  } else if (dec < 16) {
+    return String.fromByte((dec - 10) + 65)
+  }
+}
+var NumToHex = Fn.new {|num|
+  var value = num
+  var strings = []
+  while (value > 0) {
+    var remainder = value % 16
+    strings.insert(0, ToHex.call(remainder))
+    value = (value / 16).floor
+  }
+  return strings.join("")
+}
+
 var HexToNum = Fn.new {|hex|
   var first = hex[0]
   var second = hex[1]
@@ -219,6 +235,7 @@ var SubStr = Fn.new {|str, start, len|
 }
 
 class Color {
+
   construct hex(hex) {
     if (hex is String) {
       var offset = 0
@@ -319,6 +336,16 @@ class Color {
     return a << 24 | b << 16 | g << 8 | r
   }
 
+  toString {
+    var num = _r << 24 | _g << 16 | _b << 8 | _a
+    var hexString = NumToHex.call(num).codePoints.toList
+    while (hexString.count < 8) {
+      hexString.insert(0, "0")
+    }
+    hexString.insert(0, "#")
+    return "Color (%(hexString.join("")))"
+  }
+
   a { _a }
   r { _r }
   g { _g }
@@ -364,5 +391,10 @@ var AllColors = {
   "peach": Color.rgb(255, 204, 170),
   "none": Color.rgb(0, 0, 0, 0)
 }
+
+// These need to be at the bottom to prevent cyclic dependancy
+import "image" for Drawable, ImageData
+import "vector" for Point, Vec, Vector
+import "font" for Font, RasterizedFont
 
 Canvas.init_()

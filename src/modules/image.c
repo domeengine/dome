@@ -274,3 +274,22 @@ void IMAGE_getHeight(WrenVM* vm) {
   IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
   wrenSetSlotDouble(vm, 0, image->height);
 }
+
+void IMAGE_pget(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 0, FOREIGN, "image");
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+
+  IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
+  int64_t width = image->width;
+  int64_t height = image->height;
+  int64_t x = round(wrenGetSlotDouble(vm, 1));
+  int64_t y = round(wrenGetSlotDouble(vm, 2));
+  if (0 <= x && x < width && 0 <= y && y < height) {
+    uint32_t* pixels = image->pixels;
+    uint32_t c = pixels[y * width + x];
+    wrenSetSlotDouble(vm, 0, c);
+  } else {
+    VM_ABORT(vm, "pget co-ordinates out of bounds")
+  }
+}
