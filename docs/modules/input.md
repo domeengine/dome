@@ -39,8 +39,8 @@ You can use an index from 1-5 (button 0 is invalid) or a lowercase name:
 * `left`
 * `middle`
 * `right`
-* `X1`
-* `X2`
+* `x1`
+* `x2`
 
 ## GamePad
 

@@ -96,17 +96,14 @@ class Mouse {
   }
 }
 
-foreign class GamePad {
-
+foreign class SystemGamePad {
   construct open(index) {}
+
   foreign close()
 
   foreign attached
   foreign id
   foreign name
-  isButtonPressed(key) {
-    return f_isButtonPressed(key)
-  }
 
   foreign f_isButtonPressed(key)
   foreign f_getAnalogStick(side)
@@ -116,11 +113,53 @@ foreign class GamePad {
     var stick = f_getAnalogStick(side)
     return Vector.new(stick[0], stick[1])
   }
+  foreign static f_getGamePadIds()
+}
+
+class GamePad {
+
+  construct open(index) {
+    _pad = SystemGamePad.open(index)
+    _buttons = {}
+  }
+
+  close() {
+    _pad.close()
+  }
+
+  attached { _pad.attached }
+  id { _pad.id }
+  name { _pad.name }
+
+  [button] {
+    var name = StringUtils.toLowercase(button)
+    if (!_buttons.containsKey(name)) {
+      _buttons[name] = Input.init()
+    }
+    return _buttons[name]
+  }
+
+  isButtonPressed(key) {
+    return this[key].down
+  }
+
+  getTrigger(side) { _pad.getTrigger(side) }
+  getAnalogStick(side) { _pad.getAnalogStick(side) }
+
+  // PRIVATE, called by game loop
+  update(buttonName, state) {
+    var button = this[buttonName]
+    button.update(state)
+  }
+  commit() {
+    _buttons.values.each {|button| button.commit() }
+  }
+
 
   static init_() {
     __pads = {}
     __dummy = GamePad.open(-1)
-    f_getGamePadIds().each {|id|
+    SystemGamePad.f_getGamePadIds().each {|id|
       addGamePad(id)
     }
   }
@@ -133,6 +172,14 @@ foreign class GamePad {
   }
 
   static all { __pads.values }
+
+
+  static commit() {
+    __pads.values.where {|pad| pad.attached }.each {|pad|
+      pad.commit()
+    }
+  }
+
   static next {
     if (__pads.count > 0) {
       return __pads.values.where {|pad| pad.attached }.toList[0]
@@ -151,11 +198,10 @@ foreign class GamePad {
     __pads.remove(instanceId)
   }
 
-  foreign static f_getGamePadIds()
 }
 
 // Module Setup
+Input.f_captureVariables()
+GamePad.init_()
 Keyboard.init_()
 Mouse.init_()
-GamePad.init_()
-Input.f_captureVariables()

@@ -50,7 +50,7 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.finalize = AUDIO_CHANNEL_finalize;
     }
   } else if (STRINGS_EQUAL(module, "input")) {
-    if (STRINGS_EQUAL(className, "GamePad")) {
+    if (STRINGS_EQUAL(className, "SystemGamePad")) {
       methods.allocate = GAMEPAD_allocate;
       methods.finalize = GAMEPAD_finalize;
     }
@@ -303,14 +303,14 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.isButtonPressed(_)", MOUSE_isButtonPressed);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.hidden=(_)", MOUSE_setHidden);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.hidden", MOUSE_getHidden);
-  MAP_addFunction(&engine->moduleMap, "input", "static GamePad.f_getGamePadIds()", GAMEPAD_getGamePadIds);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.f_isButtonPressed(_)", GAMEPAD_isButtonPressed);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.getTrigger(_)", GAMEPAD_getTrigger);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.close()", GAMEPAD_close);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.f_getAnalogStick(_)", GAMEPAD_getAnalogStick);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.attached", GAMEPAD_isAttached);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.name", GAMEPAD_getName);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.id", GAMEPAD_getId);
+  MAP_addFunction(&engine->moduleMap, "input", "static SystemGamePad.f_getGamePadIds()", GAMEPAD_getGamePadIds);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.f_isButtonPressed(_)", GAMEPAD_isButtonPressed);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.getTrigger(_)", GAMEPAD_getTrigger);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.close()", GAMEPAD_close);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.f_getAnalogStick(_)", GAMEPAD_getAnalogStick);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.attached", GAMEPAD_isAttached);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.name", GAMEPAD_getName);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.id", GAMEPAD_getId);
 
   return vm;
 }

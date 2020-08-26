@@ -1,3 +1,23 @@
+// Inspired by the SDL2 approach to button mapping
+
+global_variable const char* controllerButtonMap[] = {
+  "a",
+  "b",
+  "x",
+  "y",
+  "back",
+  "guide",
+  "start",
+  "leftstick",
+  "rightstick",
+  "leftshoulder",
+  "rightshoulder",
+  "up",
+  "down",
+  "left",
+  "right",
+  NULL
+};
 global_variable bool inputCaptured = false;
 
 internal void
@@ -8,6 +28,9 @@ INPUT_capture(WrenVM* vm) {
 
     wrenGetVariable(vm, "input", "Mouse", 0);
     mouseClass = wrenGetSlotHandle(vm, 0);
+
+    wrenGetVariable(vm, "input", "GamePad", 0);
+    gamepadClass  = wrenGetSlotHandle(vm, 0);
 
     updateInputMethod = wrenMakeCallHandle(vm, "update(_,_)");
     inputCaptured = true;
@@ -28,6 +51,12 @@ INPUT_commit(WrenVM* vm) {
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     return interpreterResult;
   }
+  wrenEnsureSlots(vm, 1);
+  wrenSetSlotHandle(vm, 0, gamepadClass);
+  interpreterResult = wrenCall(vm, commitMethod);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    return interpreterResult;
+  }
 
   return WREN_RESULT_SUCCESS;
 }
@@ -39,6 +68,7 @@ INPUT_release(WrenVM* vm) {
   if (inputCaptured) {
     wrenReleaseHandle(vm, keyboardClass);
     wrenReleaseHandle(vm, mouseClass);
+    wrenReleaseHandle(vm, gamepadClass);
     wrenReleaseHandle(vm, updateInputMethod);
     inputCaptured = false;
   }
@@ -53,6 +83,7 @@ typedef enum {
 internal WrenInterpretResult
 INPUT_update(WrenVM* vm, DOME_INPUT_TYPE type, char* inputName, bool state) {
   if (inputCaptured) {
+    wrenEnsureSlots(vm, 3);
     switch (type) {
       default:
       case DOME_INPUT_KEYBOARD: wrenSetSlotHandle(vm, 0, keyboardClass); break;
@@ -330,19 +361,57 @@ GAMEPAD_getGamePadIds(WrenVM* vm) {
 
 internal void
 GAMEPAD_eventAdded(WrenVM* vm, int joystickId) {
-  WrenHandle* addedMethod = wrenMakeCallHandle(vm, "addGamePad(_)");
-  wrenSetSlotDouble(vm, 1, joystickId);
-  wrenGetVariable(vm, "input", "GamePad", 0);
-  wrenCall(vm, addedMethod);
-  wrenReleaseHandle(vm, addedMethod);
+  if (inputCaptured) {
+    WrenHandle* addedMethod = wrenMakeCallHandle(vm, "addGamePad(_)");
+    wrenEnsureSlots(vm, 2);
+    wrenSetSlotDouble(vm, 1, joystickId);
+    wrenSetSlotHandle(vm, 0, gamepadClass);
+    wrenCall(vm, addedMethod);
+    wrenReleaseHandle(vm, addedMethod);
+  }
 }
 
+internal WrenInterpretResult
+GAMEPAD_eventButtonPressed(WrenVM* vm, int joystickId, char* buttonName, bool state) {
+  if (inputCaptured) {
+    WrenHandle* lookupMethod = wrenMakeCallHandle(vm, "[_]");
+    wrenEnsureSlots(vm, 3);
+    wrenSetSlotDouble(vm, 1, joystickId);
+    wrenSetSlotHandle(vm, 0, gamepadClass);
+    WrenInterpretResult result = wrenCall(vm, lookupMethod);
+    wrenReleaseHandle(vm, lookupMethod);
+    if (result != WREN_RESULT_SUCCESS) {
+      return result;
+    }
+    // A gamepad instance should be in the 0 slot now
+    wrenEnsureSlots(vm, 3);
+    wrenSetSlotString(vm, 1, buttonName);
+    wrenSetSlotBool(vm, 2, state);
+    result = wrenCall(vm, updateInputMethod);
+    if (result != WREN_RESULT_SUCCESS) {
+      return result;
+    }
+  }
+
+  return WREN_RESULT_SUCCESS;
+}
 
 internal void
 GAMEPAD_eventRemoved(WrenVM* vm, int instanceId) {
-  WrenHandle* removeMethod = wrenMakeCallHandle(vm, "removeGamePad(_)");
-  wrenSetSlotDouble(vm, 1, instanceId);
-  wrenGetVariable(vm, "input", "GamePad", 0);
-  wrenCall(vm, removeMethod);
-  wrenReleaseHandle(vm, removeMethod);
+  if (inputCaptured) {
+    WrenHandle* removeMethod = wrenMakeCallHandle(vm, "removeGamePad(_)");
+    wrenEnsureSlots(vm, 2);
+    wrenSetSlotDouble(vm, 1, instanceId);
+    wrenSetSlotHandle(vm, 0, gamepadClass);
+    wrenCall(vm, removeMethod);
+    wrenReleaseHandle(vm, removeMethod);
+  }
+}
+
+internal char*
+GAMEPAD_stringFromButton(SDL_GameControllerButton button) {
+  if (button > SDL_CONTROLLER_BUTTON_INVALID && button < SDL_CONTROLLER_BUTTON_MAX) {
+    return controllerButtonMap[button];
+  }
+  return NULL;
 }

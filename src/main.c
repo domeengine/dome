@@ -96,6 +96,7 @@ global_variable WrenHandle* bufferClass = NULL;
 global_variable WrenHandle* audioEngineClass = NULL;
 global_variable WrenHandle* keyboardClass = NULL;
 global_variable WrenHandle* mouseClass = NULL;
+global_variable WrenHandle* gamepadClass = NULL;
 global_variable WrenHandle* updateInputMethod = NULL;
 global_variable WrenHandle* commitMethod = NULL;
 
@@ -430,6 +431,17 @@ int main(int argc, char* args[])
         case SDL_CONTROLLERDEVICEREMOVED:
           {
             GAMEPAD_eventRemoved(vm, event.cdevice.which);
+          } break;
+        case SDL_CONTROLLERBUTTONDOWN:
+        case SDL_CONTROLLERBUTTONUP:
+          {
+            SDL_ControllerButtonEvent cbutton = event.cbutton;
+            char* buttonName = GAMEPAD_stringFromButton(cbutton.button);
+            WrenInterpretResult interpreterResult = GAMEPAD_eventButtonPressed(vm, cbutton.which, buttonName, cbutton.state == SDL_PRESSED);
+            if (interpreterResult != WREN_RESULT_SUCCESS) {
+              result = EXIT_FAILURE;
+              goto vm_cleanup;
+            }
           } break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
