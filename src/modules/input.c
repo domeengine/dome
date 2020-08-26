@@ -45,6 +45,14 @@ INPUT_commit(WrenVM* vm) {
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     return interpreterResult;
   }
+
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  if (engine->mouseRelative) {
+    SDL_GetRelativeMouseState(&(engine->mouseX), &(engine->mouseY));
+  } else {
+    SDL_GetMouseState(&(engine->mouseX), &(engine->mouseY));
+  }
+
   wrenEnsureSlots(vm, 1);
   wrenSetSlotHandle(vm, 0, mouseClass);
   interpreterResult = wrenCall(vm, commitMethod);
@@ -112,6 +120,20 @@ internal void MOUSE_getY(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int y = ENGINE_getMouseY(engine);
   wrenSetSlotDouble(vm, 0, y);
+}
+
+internal void
+MOUSE_setRelative(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, BOOL, "relative");
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  bool relative = wrenGetSlotBool(vm, 1);
+  ENGINE_setMouseRelative(engine, relative);
+}
+
+internal void
+MOUSE_getRelative(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotBool(vm, 0, engine->mouseRelative);
 }
 
 internal void

@@ -42,13 +42,16 @@ Returns true if the named key is pressed. The key uses the SDL key name, which c
 ### Static Fields
 
 #### `static x: Number`
-The x position relative to the Canvas. This accounts for the window being resized and the viewport moving.
+The x position relative to the Canvas. This accounts for the window being resized and the viewport moving. If `Mouse.relative` is set, this will be the relative change of the mouse x position since the previous tick.
 
 #### `static y: Number`
-The y position relative to the Canvas. This accounts for the window being resized and the viewport moving.
+The y position relative to the Canvas. This accounts for the window being resized and the viewport moving. If `Mouse.relative` is set, this will be the relative change of the mouse y position since the previous tick.
 
 #### `static hidden: Boolean`
 Controls whether the mouse cursor is shown or hidden. You can set and read from this field.
+
+#### `static relative: Boolean`
+If set to true, the mouse is placed into relative mode. In this mode, the mouse will be fixed to the center of the screen. You can set and read from this field. This changes the behaviour of the `x` and `y` fields.
 
 ### Static Methods
 

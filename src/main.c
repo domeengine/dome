@@ -202,6 +202,7 @@ int main(int argc, char* args[])
   if (result == EXIT_FAILURE) {
     goto cleanup;
   };
+  SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1");
 
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
