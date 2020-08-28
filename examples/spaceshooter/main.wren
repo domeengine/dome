@@ -37,8 +37,7 @@ class Game {
     __x = Mouse.x
     __y = Mouse.y
     Mouse.hidden = Mouse.isButtonPressed("right")
-    System.print(Mouse.isButtonPressed("right"))
-    // Mouse.relative = Keyboard.isKeyDown("r")
+    Mouse.relative = Keyboard.isKeyDown("r")
 
     __state.update()
     if (__state.next) {
