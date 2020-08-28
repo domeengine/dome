@@ -457,7 +457,7 @@ int main(int argc, char* args[])
               case SDL_BUTTON_X2: buttonName = "x2"; break;
             }
             bool state = event.button.state == SDL_PRESSED;
-            WrenInterpretResult result = INPUT_update(vm, DOME_INPUT_MOUSE, buttonName, state);
+            interpreterResult = INPUT_update(vm, DOME_INPUT_MOUSE, buttonName, state);
             if (interpreterResult != WREN_RESULT_SUCCESS) {
               result = EXIT_FAILURE;
               goto vm_cleanup;
