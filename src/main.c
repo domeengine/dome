@@ -417,7 +417,7 @@ int main(int argc, char* args[])
               ENGINE_takeScreenshot(&engine);
             } else if (event.key.repeat == 0) {
               char* buttonName = strToLower(SDL_GetKeyName(keyCode));
-              WrenInterpretResult interpreterResult = KEYBOARD_updateKey(vm, buttonName, event.key.state == SDL_PRESSED);
+              interpreterResult = KEYBOARD_updateKey(vm, buttonName, event.key.state == SDL_PRESSED);
               free(buttonName);
               if (interpreterResult != WREN_RESULT_SUCCESS) {
                 result = EXIT_FAILURE;
@@ -438,7 +438,7 @@ int main(int argc, char* args[])
           {
             SDL_ControllerButtonEvent cbutton = event.cbutton;
             char* buttonName = GAMEPAD_stringFromButton(cbutton.button);
-            WrenInterpretResult interpreterResult = GAMEPAD_eventButtonPressed(vm, cbutton.which, buttonName, cbutton.state == SDL_PRESSED);
+            interpreterResult = GAMEPAD_eventButtonPressed(vm, cbutton.which, buttonName, cbutton.state == SDL_PRESSED);
             if (interpreterResult != WREN_RESULT_SUCCESS) {
               result = EXIT_FAILURE;
               goto vm_cleanup;
