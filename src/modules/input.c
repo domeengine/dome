@@ -95,19 +95,15 @@ INPUT_update(WrenVM* vm, DOME_INPUT_TYPE type, char* inputName, bool state) {
     switch (type) {
       default:
       case DOME_INPUT_KEYBOARD: wrenSetSlotHandle(vm, 0, keyboardClass); break;
-      // case DOME_INPUT_CONTROLLER: wrenSetSlotHandle(vm, 0, gamepadClass); break;
       case DOME_INPUT_MOUSE: wrenSetSlotHandle(vm, 0, mouseClass); break;
+      // It's assumed the controller object is preloaded.
+      case DOME_INPUT_CONTROLLER: break;
     }
     wrenSetSlotString(vm, 1, inputName);
     wrenSetSlotBool(vm, 2, state);
     return wrenCall(vm, updateInputMethod);
   }
   return WREN_RESULT_SUCCESS;
-}
-
-internal WrenInterpretResult
-KEYBOARD_updateKey(WrenVM* vm, char* name, bool state) {
-  return INPUT_update(vm, DOME_INPUT_KEYBOARD, name, state);
 }
 
 internal void MOUSE_getX(WrenVM* vm) {
@@ -311,10 +307,7 @@ GAMEPAD_eventButtonPressed(WrenVM* vm, int joystickId, char* buttonName, bool st
       return result;
     }
     // A gamepad instance should be in the 0 slot now
-    wrenEnsureSlots(vm, 3);
-    wrenSetSlotString(vm, 1, buttonName);
-    wrenSetSlotBool(vm, 2, state);
-    result = wrenCall(vm, updateInputMethod);
+    result = INPUT_update(vm, DOME_INPUT_CONTROLLER, buttonName, state);
     if (result != WREN_RESULT_SUCCESS) {
       return result;
     }

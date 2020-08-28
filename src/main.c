@@ -417,7 +417,7 @@ int main(int argc, char* args[])
               ENGINE_takeScreenshot(&engine);
             } else if (event.key.repeat == 0) {
               char* buttonName = strToLower(SDL_GetKeyName(keyCode));
-              interpreterResult = KEYBOARD_updateKey(vm, buttonName, event.key.state == SDL_PRESSED);
+              interpreterResult = INPUT_update(vm, DOME_INPUT_KEYBOARD, buttonName, event.key.state == SDL_PRESSED);
               free(buttonName);
               if (interpreterResult != WREN_RESULT_SUCCESS) {
                 result = EXIT_FAILURE;
