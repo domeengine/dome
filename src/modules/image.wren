@@ -28,8 +28,13 @@ foreign class DrawCommand is Drawable {
 
 
 foreign class ImageData is Drawable {
+  construct init(width, height) {}
+
   // This constructor is private
-  construct initFromFile(data) {}
+  construct initFromFile(data) {
+    f_loadFromFile(data)
+  }
+  foreign f_loadFromFile(data)
 
   static loadFromFile(path) {
     if (!__cache) {
@@ -60,6 +65,15 @@ foreign class ImageData is Drawable {
   foreign draw(x, y)
   foreign width
   foreign height
+
+  foreign f_pset(x, y, color)
+  pset(x, y, c) {
+    if (c is Color) {
+      f_pset(x, y, c.toNum)
+    } else {
+      f_pset(x, y, c)
+    }
+  }
 
   foreign f_pget(x, y)
   pget(x, y) {
