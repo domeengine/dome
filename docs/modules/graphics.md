@@ -191,6 +191,12 @@ Draw the image at the given `(x, y)` position on the screen.
 #### `drawArea(srcX: Number, srcY: Number, srcW: Number, srcH: Number, destX: Number, destY: Number): Void`
 Draw a subsection of the image, defined by the rectangle `(srcX, srcY)` to `(srcX + srcW, srcY + srcH)`. The resulting section is placed at `(destX, destY)`.
 
+#### `pset(x: Number, y: Number, color: Color): Void`
+Set a pixel at `(x, y)` in the ImageData to color `c`.
+
+#### `pget(x: Number, y: Number): Color`
+Fetch the current pixel at `(x, y)` in the ImageData.
+
 #### `transform(parameterMap): Drawable`
 This returns a `Drawable` which will perform the specified transforms, allowing for more fine-grained control over how images are drawn. You can store the returned drawable and reuse it across frames, while the image is loaded.
 
