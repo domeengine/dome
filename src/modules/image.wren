@@ -28,6 +28,7 @@ foreign class DrawCommand is Drawable {
 
 
 foreign class ImageData is Drawable {
+  // Creates an empty image
   construct init(width, height) {}
 
   // This constructor is private
@@ -36,6 +37,15 @@ foreign class ImageData is Drawable {
   }
   foreign f_loadFromFile(data)
 
+  static create(name, width, height) {
+    if (!__cache) {
+      __cache = {}
+    }
+    if (!__cache.containsKey(name)) {
+      __cache[name] = ImageData.init(width, height)
+    }
+    return __cache[name]
+  }
   static loadFromFile(path) {
     if (!__cache) {
       __cache = {}

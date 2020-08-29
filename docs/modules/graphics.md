@@ -177,6 +177,9 @@ DOME supports the following formats:
  * BMP non-1bpp, non-RLE
 
 ### Static Methods
+#### `static create(name: String, width: Number, height: Number): ImageData`
+Creates a blank image of the size `width x height` and caches it as `name` for future use.
+
 #### `static loadFromFile(path: String): ImageData`
 Load an image at the given `path` and cache it for use.
 
