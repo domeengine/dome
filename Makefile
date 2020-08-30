@@ -43,6 +43,8 @@ endif
 
 ifdef DOME_OPT_VERSION
   DOME_OPTS += -DDOME_VERSION=\"$(DOME_OPT_VERSION)\"
+else
+  DOME_OPTS += -DDOME_VERSION=\"$(shell git describe --tags)\"
 endif
 
 
