@@ -330,3 +330,21 @@ void IMAGE_pget(WrenVM* vm) {
     VM_ABORT(vm, "pget co-ordinates out of bounds")
   }
 }
+
+internal void
+IMAGE_getPNGOutput(void* vm, void* data, int size) {
+  wrenSetSlotBytes(vm, 0, data, size);
+}
+
+internal void
+IMAGE_getPNG(WrenVM* vm) {
+  IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
+  ASSERT_SLOT_TYPE(vm, 0, FOREIGN, "image");
+
+  if (image->pixels != NULL) {
+    stbi_write_png_to_func(IMAGE_getPNGOutput, vm, image->width, image->height, image->channels, image->pixels, image->width * sizeof(uint8_t) * image->channels);
+  } else {
+    wrenSetSlotNull(vm, 0);
+  }
+}
+

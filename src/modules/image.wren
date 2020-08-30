@@ -37,6 +37,15 @@ foreign class ImageData is Drawable {
   }
   foreign f_loadFromFile(data)
 
+  foreign f_getPNG()
+  saveToFile(path) {
+    import "io" for FileSystem
+    var data = f_getPNG()
+    if (data != null) {
+      FileSystem.save(path, data)
+    }
+  }
+
   static create(name, width, height) {
     if (!__cache) {
       __cache = {}

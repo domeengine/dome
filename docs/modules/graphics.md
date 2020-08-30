@@ -200,6 +200,9 @@ Set a pixel at `(x, y)` in the ImageData to color `c`.
 #### `pget(x: Number, y: Number): Color`
 Fetch the current pixel at `(x, y)` in the ImageData.
 
+#### `save(path: String): Void`
+Saves the current image data at the given `path`.
+
 #### `transform(parameterMap): Drawable`
 This returns a `Drawable` which will perform the specified transforms, allowing for more fine-grained control over how images are drawn. You can store the returned drawable and reuse it across frames, while the image is loaded.
 
@@ -227,6 +230,4 @@ The code snippet above:
  * crops an 8x8 tile from a spritesheet, starting from (8, 8) in it's image data
  * It then rotates it 90 degrees clockwise
  * Finally, it scales the tile up by 2 in both the X and Y direction, but it flips the tile vertically.
-
-
 
