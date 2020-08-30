@@ -22,6 +22,7 @@ global_variable bool inputCaptured = false;
 
 internal void
 INPUT_capture(WrenVM* vm) {
+  SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC);
   if (!inputCaptured) {
     wrenGetVariable(vm, "input", "Keyboard", 0);
     keyboardClass = wrenGetSlotHandle(vm, 0);
@@ -148,6 +149,7 @@ MOUSE_getHidden(WrenVM* vm) {
 typedef struct {
   int instanceId;
   SDL_GameController* controller;
+  SDL_Haptic* haptics;
 } GAMEPAD;
 
 internal void
@@ -158,6 +160,7 @@ GAMEPAD_allocate(WrenVM* vm) {
 
   if (joystickId == -1 || SDL_IsGameController(joystickId) == SDL_FALSE) {
     gamepad->controller = NULL;
+    gamepad->haptics = NULL;
     gamepad->instanceId = -1;
     return;
   }
@@ -166,12 +169,22 @@ GAMEPAD_allocate(WrenVM* vm) {
     VM_ABORT(vm, "Could not open gamepad");
     return;
   }
-  gamepad->instanceId = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller));
+  SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
+  gamepad->instanceId = SDL_JoystickInstanceID(joystick);
   gamepad->controller = controller;
+  gamepad->haptics = SDL_HapticOpenFromJoystick(joystick);
+  if (SDL_HapticRumbleInit(gamepad->haptics) != 0) {
+    SDL_HapticClose(gamepad->haptics);
+    gamepad->haptics = NULL;
+  }
 }
 
 internal void
 closeController(GAMEPAD* gamepad) {
+  if (gamepad->haptics != NULL) {
+    SDL_HapticClose(gamepad->haptics);
+  }
+
   if (gamepad->controller != NULL) {
     SDL_GameControllerClose(gamepad->controller);
     gamepad->controller = NULL;
@@ -187,6 +200,14 @@ GAMEPAD_close(WrenVM* vm) {
 internal void
 GAMEPAD_finalize(void* data) {
   closeController((GAMEPAD*)data);
+}
+
+internal void
+GAMEPAD_rumble(WrenVM* vm) {
+  GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
+  float strength = fmid(0, wrenGetSlotDouble(vm, 1), 1);
+  double length = fmax(0, wrenGetSlotDouble(vm, 2));
+  SDL_HapticRumblePlay(gamepad->haptics, strength, length);
 }
 
 internal void
@@ -267,7 +288,6 @@ GAMEPAD_getId(WrenVM* vm) {
 
 internal void
 GAMEPAD_getGamePadIds(WrenVM* vm) {
-  SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
   int maxJoysticks = SDL_NumJoysticks();
   int listCount = 0;
   wrenEnsureSlots(vm, 2);

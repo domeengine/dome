@@ -307,6 +307,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.getTrigger(_)", GAMEPAD_getTrigger);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.close()", GAMEPAD_close);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.f_getAnalogStick(_)", GAMEPAD_getAnalogStick);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.rumble(_,_)", GAMEPAD_rumble);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.attached", GAMEPAD_isAttached);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.name", GAMEPAD_getName);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.id", GAMEPAD_getId);

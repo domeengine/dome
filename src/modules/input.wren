@@ -111,6 +111,7 @@ foreign class SystemGamePad {
 
   foreign f_getAnalogStick(side)
   foreign getTrigger(side)
+  foreign rumble(strength, length)
 
   getAnalogStick(side) {
     var stick = f_getAnalogStick(side)
@@ -140,6 +141,10 @@ class GamePad {
       _buttons[name] = DigitalInput.init()
     }
     return _buttons[name]
+  }
+
+  rumble(strength, length) {
+    _pad.rumble(strength, length)
   }
 
   isButtonPressed(key) {
