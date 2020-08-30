@@ -200,7 +200,7 @@ Set a pixel at `(x, y)` in the ImageData to color `c`.
 #### `pget(x: Number, y: Number): Color`
 Fetch the current pixel at `(x, y)` in the ImageData.
 
-#### `save(path: String): Void`
+#### `saveToFile(path: String): Void`
 Saves the current image data at the given `path`.
 
 #### `transform(parameterMap): Drawable`
