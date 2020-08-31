@@ -55,6 +55,14 @@ foreign class ImageData is Drawable {
     }
     return __cache[name]
   }
+
+  static [name] {
+    if (!__cache) {
+      __cache = {}
+    }
+    return __cache[name]
+  }
+
   static loadFromFile(path) {
     if (!__cache) {
       __cache = {}
