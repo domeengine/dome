@@ -2,7 +2,7 @@
 #define NOMINMAX
 
 #ifndef DOME_VERSION
-#define DOME_VERSION "1.0.0-alpha"
+#define DOME_VERSION "0.0.0 - CUSTOM"
 #endif
 
 // Standard libs
@@ -177,11 +177,6 @@ printUsage(ENGINE* engine) {
 
 int main(int argc, char* args[])
 {
-
-#if defined _WIN32
-  SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
-#endif
-
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   size_t gameFileLength;
@@ -190,19 +185,7 @@ int main(int argc, char* args[])
   engine.record.gifName = "test.gif";
   engine.record.makeGif = false;
 
-  //Initialize SDL
-  if (SDL_Init(SDL_INIT_VIDEO) < 0)
-  {
-    ENGINE_printLog(&engine, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-    result = EXIT_FAILURE;
-    goto cleanup;
-  }
-
-  result = ENGINE_init(&engine);
-  if (result == EXIT_FAILURE) {
-    goto cleanup;
-  };
-  SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1");
+  ENGINE_init(&engine);
 
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
@@ -338,6 +321,10 @@ int main(int argc, char* args[])
     }
   }
 
+  result = ENGINE_start(&engine);
+  if (result == EXIT_FAILURE) {
+    goto cleanup;
+  }
 
   // Configure Wren VM
   vm = VM_create(&engine);

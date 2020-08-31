@@ -186,9 +186,8 @@ ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
   return true;
 }
 
-internal int
+internal ENGINE*
 ENGINE_init(ENGINE* engine) {
-  int result = EXIT_SUCCESS;
   engine->window = NULL;
   engine->renderer = NULL;
   engine->texture = NULL;
@@ -212,6 +211,23 @@ ENGINE_init(ENGINE* engine) {
   engine->width = GAME_WIDTH;
   engine->height = GAME_HEIGHT;
 
+  return engine;
+}
+
+internal int
+ENGINE_start(ENGINE* engine) {
+  int result = EXIT_SUCCESS;
+#if defined _WIN32
+  SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
+#endif
+  SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1");
+
+  //Initialize SDL
+  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    ENGINE_printLog(engine, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+    result = EXIT_FAILURE;
+    goto engine_init_end;
+  }
 
   //Create window
   engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
@@ -255,6 +271,7 @@ ENGINE_init(ENGINE* engine) {
 
 engine_init_end:
   return result;
+
 }
 
 internal void
