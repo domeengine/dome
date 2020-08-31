@@ -839,30 +839,44 @@ ENGINE_getKeyState(ENGINE* engine, char* keyName) {
   return state[scancode];
 }
 
+internal void
+ENGINE_setMouseRelative(ENGINE* engine, bool relative) {
+  engine->mouseRelative = relative;
+  if (relative) {
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+  } else {
+    SDL_SetRelativeMouseMode(SDL_FALSE);
+  }
+}
+
 internal float
 ENGINE_getMouseX(ENGINE* engine) {
   SDL_Rect viewport = engine->viewport;
 
-  int mouseX;
-  int mouseY;
+  int mouseX = engine->mouseX;
   int winX;
   int winY;
-  SDL_GetMouseState(&mouseX, &mouseY);
   SDL_GetWindowSize(engine->window, &winX, &winY);
-  return mouseX * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.x;
+  if (engine->mouseRelative) {
+    return (engine->width) / 2 + mouseX * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.x;
+  } else {
+    return mouseX * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.x;
+  }
 }
 
 internal float
 ENGINE_getMouseY(ENGINE* engine) {
   SDL_Rect viewport = engine->viewport;
 
-  int mouseX;
-  int mouseY;
+  int mouseY = engine->mouseY;
   int winX;
   int winY;
-  SDL_GetMouseState(&mouseX, &mouseY);
   SDL_GetWindowSize(engine->window, &winX, &winY);
-  return mouseY * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.y;
+  if (engine->mouseRelative) {
+    return (engine->height / 2) + mouseY * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.y;
+  } else {
+    return mouseY * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.y;
+  }
 }
 
 internal bool

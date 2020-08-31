@@ -43,6 +43,9 @@ typedef struct {
   mtar_t* tar;
   bool running;
   bool lockstep;
+  bool mouseRelative;
+  int mouseX;
+  int mouseY;
   int exit_status;
   struct AUDIO_ENGINE_t* audioEngine;
   PIXEL_BUFFER blitBuffer;

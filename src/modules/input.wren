@@ -1,31 +1,114 @@
 import "vector" for Vector
+import "dome" for StringUtils
+
+class Input {
+  // This sets up the whole module's event loop behaviour
+  foreign static f_captureVariables()
+}
+
+class DigitalInput {
+
+  construct init() {
+    _down = false
+    _current = false
+    _previous = false
+    _repeats = 0
+  }
+  commit() {
+    _previous = _down
+    _down = _current
+    if (_down && _previous == _down) {
+      _repeats = _repeats + 1
+    } else {
+      _repeats = 0
+    }
+  }
+
+  update(state) {
+    _current = state
+  }
+
+  down { _down }
+  previous { _previous }
+  repeats { _repeats }
+}
 
 class Keyboard {
-  foreign static isKeyDown(key)
+  static isKeyDown(key) {
+    return Keyboard[StringUtils.toLowercase(key)].down
+  }
+  static init_() {
+    __keys = {}
+  }
+
+  static [name] {
+    name = StringUtils.toLowercase(name)
+    if (!__keys.containsKey(name)) {
+      update(name, false)
+    }
+    return __keys[name]
+  }
+
+  // PRIVATE, called by game loop
+  static update(keyName, state) {
+    if (!__keys.containsKey(keyName)) {
+      __keys[keyName] = DigitalInput.init()
+    }
+    __keys[keyName].update(state)
+  }
+
+  static commit() {
+    __keys.values.each {|key| key.commit() }
+  }
 }
+
 
 class Mouse {
   foreign static x
   foreign static y
-  foreign static isButtonPressed(key)
 
   foreign static hidden
   foreign static hidden=(value)
+  foreign static relative=(value)
+  foreign static relative
+
+  static isButtonPressed(key) {
+    return Mouse[StringUtils.toLowercase(key)].down
+  }
+
+  static init_() {
+    __buttons = {}
+  }
+  static [name] {
+    name = StringUtils.toLowercase(name)
+    if (!__buttons.containsKey(name)) {
+      update(name, false)
+    }
+    return __buttons[name]
+  }
+
+  // PRIVATE, called by game loop
+  static update(keyName, state) {
+    if (!__buttons.containsKey(keyName)) {
+      __buttons[keyName] = DigitalInput.init()
+    }
+    __buttons[keyName].update(state)
+  }
+
+  static commit() {
+    __buttons.values.each {|button| button.commit() }
+  }
 }
 
-foreign class GamePad {
-
+foreign class SystemGamePad {
   construct open(index) {}
+
   foreign close()
 
   foreign attached
   foreign id
   foreign name
-  isButtonPressed(key) {
-    return f_isButtonPressed(key)
-  }
 
-  foreign f_isButtonPressed(key)
   foreign f_getAnalogStick(side)
   foreign getTrigger(side)
 
@@ -33,11 +116,53 @@ foreign class GamePad {
     var stick = f_getAnalogStick(side)
     return Vector.new(stick[0], stick[1])
   }
+  foreign static f_getGamePadIds()
+}
+
+class GamePad {
+
+  construct open(index) {
+    _pad = SystemGamePad.open(index)
+    _buttons = {}
+  }
+
+  close() {
+    _pad.close()
+  }
+
+  attached { _pad.attached }
+  id { _pad.id }
+  name { _pad.name }
+
+  [button] {
+    var name = StringUtils.toLowercase(button)
+    if (!_buttons.containsKey(name)) {
+      _buttons[name] = DigitalInput.init()
+    }
+    return _buttons[name]
+  }
+
+  isButtonPressed(key) {
+    return this[key].down
+  }
+
+  getTrigger(side) { _pad.getTrigger(side) }
+  getAnalogStick(side) { _pad.getAnalogStick(side) }
+
+  // PRIVATE, called by game loop
+  update(buttonName, state) {
+    var button = this[buttonName]
+    button.update(state)
+  }
+  commit() {
+    _buttons.values.each {|button| button.commit() }
+  }
+
 
   static init_() {
     __pads = {}
     __dummy = GamePad.open(-1)
-    f_getGamePadIds().each {|id|
+    SystemGamePad.f_getGamePadIds().each {|id|
       addGamePad(id)
     }
   }
@@ -50,6 +175,14 @@ foreign class GamePad {
   }
 
   static all { __pads.values }
+
+
+  static commit() {
+    __pads.values.where {|pad| pad.attached }.each {|pad|
+      pad.commit()
+    }
+  }
+
   static next {
     if (__pads.count > 0) {
       return __pads.values.where {|pad| pad.attached }.toList[0]
@@ -68,8 +201,10 @@ foreign class GamePad {
     __pads.remove(instanceId)
   }
 
-  foreign static f_getGamePadIds()
 }
 
+// Module Setup
+Input.f_captureVariables()
 GamePad.init_()
-
+Keyboard.init_()
+Mouse.init_()
