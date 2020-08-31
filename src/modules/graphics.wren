@@ -1,3 +1,4 @@
+import "math" for HexToNum, NumToHex
 /**
 
   @Module graphics
@@ -183,57 +184,14 @@ class Canvas {
   }
 }
 
-/**
-    @Class Color
-      An instance of this class represents an rgb color, which can be passed to Canvas methods.
-*/
-
-var ToHex = Fn.new {|dec|
-  if (dec < 10) {
-    return String.fromByte(dec + 48)
-  } else if (dec < 16) {
-    return String.fromByte((dec - 10) + 65)
-  }
-}
-var NumToHex = Fn.new {|num|
-  var value = num
-  var strings = []
-  while (value > 0) {
-    var remainder = value % 16
-    strings.insert(0, ToHex.call(remainder))
-    value = (value / 16).floor
-  }
-  return strings.join("")
-}
-
-var HexToNum = Fn.new {|hex|
-  var first = hex[0]
-  var second = hex[1]
-  if (48 <= first && first <= 57) {
-    first = first - 48
-  } else if (65 <= first && first <= 70) {
-    first = 10 + first - 65
-  } else if (97 <= first && first <= 102) {
-    first = 10 + first - 97
-  } else {
-    Fiber.abort("Invalid hex")
-  }
-  if (48 <= second && second <= 57) {
-    second = second - 48
-  } else if (65 <= second && second <= 70) {
-    second = 10 + second - 65
-  } else if (97 <= second && second <= 102) {
-    second = 10 + second - 97
-  } else {
-    Fiber.abort("Invalid hex")
-  }
-  return first << 4 | second
-}
-
 var SubStr = Fn.new {|str, start, len|
   return str.bytes.skip(start).take(len).toList
 }
 
+/**
+    @Class Color
+      An instance of this class represents an rgb color, which can be passed to Canvas methods.
+*/
 class Color {
 
   construct hex(hex) {

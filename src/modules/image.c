@@ -208,7 +208,7 @@ IMAGE_allocate(WrenVM* vm) {
   IMAGE* image = (IMAGE*)wrenSetSlotNewForeign(vm,
       0, 0, sizeof(IMAGE));
   image->pixels = NULL;
-  if (wrenGetSlotCount(vm) < 2) {
+  if (wrenGetSlotCount(vm) < 3) {
     image->width = 0;
     image->height = 0;
     image->channels = 0;
