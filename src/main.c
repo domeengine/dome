@@ -414,7 +414,7 @@ int main(int argc, char* args[])
             } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               ENGINE_takeScreenshot(&engine);
             } else if (event.key.repeat == 0) {
-              char* buttonName = strToLower(SDL_GetKeyName(keyCode));
+              char* buttonName = strToLower((char*)SDL_GetKeyName(keyCode));
               interpreterResult = INPUT_update(vm, DOME_INPUT_KEYBOARD, buttonName, event.key.state == SDL_PRESSED);
               free(buttonName);
               if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -435,7 +435,7 @@ int main(int argc, char* args[])
         case SDL_CONTROLLERBUTTONUP:
           {
             SDL_ControllerButtonEvent cbutton = event.cbutton;
-            char* buttonName = GAMEPAD_stringFromButton(cbutton.button);
+            const char* buttonName = GAMEPAD_stringFromButton(cbutton.button);
             interpreterResult = GAMEPAD_eventButtonPressed(vm, cbutton.which, buttonName, cbutton.state == SDL_PRESSED);
             if (interpreterResult != WREN_RESULT_SUCCESS) {
               result = EXIT_FAILURE;

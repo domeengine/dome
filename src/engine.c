@@ -86,13 +86,13 @@ ENGINE_printLog(ENGINE* engine, char* line, ...) {
 }
 
 internal ENGINE_WRITE_RESULT
-ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
-  char* fullPath;
+ENGINE_writeFile(ENGINE* engine, const char* path, const char* buffer, size_t length) {
+  const char* fullPath;
   if (path[0] != '/') {
-    char* base = BASEPATH_get();
+    const char* base = BASEPATH_get();
     fullPath = malloc(strlen(base)+strlen(path)+1);
-    strcpy(fullPath, base); /* copy name into the new var */
-    strcat(fullPath, path); /* add the extension */
+    strcpy((void*)fullPath, base); /* copy name into the new var */
+    strcat((void*)fullPath, path); /* add the extension */
   } else {
     fullPath = path;
   }
@@ -106,14 +106,14 @@ ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
   }
 
   if (path[0] != '/') {
-    free(fullPath);
+    free((void*)fullPath);
   }
 
   return result;
 }
 
 internal char*
-ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
+ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr) {
   char pathBuf[PATH_MAX];
 
   if (strncmp(path, "./", 2) == 0) {
@@ -835,7 +835,7 @@ internal bool
 ENGINE_getKeyState(ENGINE* engine, char* keyName) {
   SDL_Keycode keycode =  SDL_GetKeyFromName(keyName);
   SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode);
-  uint8_t* state = SDL_GetKeyboardState(NULL);
+  const uint8_t* state = SDL_GetKeyboardState(NULL);
   return state[scancode];
 }
 

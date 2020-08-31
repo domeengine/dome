@@ -94,7 +94,7 @@ typedef enum {
 } DOME_INPUT_TYPE;
 
 internal WrenInterpretResult
-INPUT_update(WrenVM* vm, DOME_INPUT_TYPE type, char* inputName, bool state) {
+INPUT_update(WrenVM* vm, DOME_INPUT_TYPE type, const char* inputName, bool state) {
   if (inputCaptured) {
     wrenEnsureSlots(vm, 3);
     switch (type) {
@@ -225,7 +225,7 @@ GAMEPAD_getAnalogStick(WrenVM* vm) {
   int16_t y = 0;
   if (gamepad->controller != NULL) {
     ASSERT_SLOT_TYPE(vm, 1, STRING, "analog stick side");
-    char* side = strToLower(wrenGetSlotString(vm, 1));
+    const char* side = strToLower(wrenGetSlotString(vm, 1));
     if (STRINGS_EQUAL(side, "left")) {
       x = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_LEFTX);
       y = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_LEFTY);
@@ -233,7 +233,7 @@ GAMEPAD_getAnalogStick(WrenVM* vm) {
       x = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_RIGHTX);
       y = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_RIGHTY);
     }
-    free(side);
+    free((void*)side);
   }
 
   wrenSetSlotNewList(vm, 0);
@@ -323,7 +323,7 @@ GAMEPAD_eventAdded(WrenVM* vm, int joystickId) {
 }
 
 internal WrenInterpretResult
-GAMEPAD_eventButtonPressed(WrenVM* vm, int joystickId, char* buttonName, bool state) {
+GAMEPAD_eventButtonPressed(WrenVM* vm, int joystickId, const char* buttonName, bool state) {
   if (inputCaptured) {
     WrenHandle* lookupMethod = wrenMakeCallHandle(vm, "[_]");
     wrenEnsureSlots(vm, 3);
@@ -356,7 +356,7 @@ GAMEPAD_eventRemoved(WrenVM* vm, int instanceId) {
   }
 }
 
-internal char*
+internal const char*
 GAMEPAD_stringFromButton(SDL_GameControllerButton button) {
   if (button > SDL_CONTROLLER_BUTTON_INVALID && button < SDL_CONTROLLER_BUTTON_MAX) {
     return controllerButtonMap[button];

@@ -12,7 +12,7 @@ internal void
 STRING_UTILS_toLowercase(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "string");
   int length;
-  char* str = wrenGetSlotBytes(vm, 1, &length);
+  const char* str = wrenGetSlotBytes(vm, 1, &length);
   char* dest = calloc(length + 1, sizeof(char));
   utf8ncpy(dest, str, length);
   utf8lwr(dest);
@@ -51,7 +51,7 @@ internal void
 WINDOW_setTitle(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASSERT_SLOT_TYPE(vm, 1, STRING, "title");
-  char* title = wrenGetSlotString(vm, 1);
+  const char* title = wrenGetSlotString(vm, 1);
   SDL_SetWindowTitle(engine->window, title);
 }
 

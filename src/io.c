@@ -142,7 +142,7 @@ readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr, char** data) {
 }
 
 internal int
-writeEntireFile(char* path, char* data, size_t length) {
+writeEntireFile(const char* path, const char* data, size_t length) {
   FILE* file = fopen(path, "wb+");
   if (file == NULL) {
     return errno;

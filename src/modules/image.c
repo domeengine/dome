@@ -167,7 +167,7 @@ DRAW_COMMAND_allocate(WrenVM* vm) {
 
     wrenGetListElement(vm, 2, 7, 1);
     ASSERT_SLOT_TYPE(vm, 1, STRING, "color mode");
-    char* mode = wrenGetSlotString(vm, 1);
+    const char* mode = wrenGetSlotString(vm, 1);
     if (STRINGS_EQUAL(mode, "MONO")) {
       command->mode = COLOR_MODE_MONO;
     } else {
@@ -247,7 +247,7 @@ IMAGE_loadFromFile(WrenVM* vm) {
 
   if (image->pixels == NULL)
   {
-    char* errorMsg = stbi_failure_reason();
+    const char* errorMsg = stbi_failure_reason();
     size_t errorLength = strlen(errorMsg);
     char buf[errorLength + 8];
     snprintf(buf, errorLength + 8, "Error: %s\n", errorMsg);
