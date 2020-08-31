@@ -154,6 +154,7 @@ printVersion(ENGINE* engine) {
 #else
   ENGINE_printLog(engine, "FFI module is unavailable");
 #endif
+  ENGINE_printLog(engine, "\n");
 }
 
 
