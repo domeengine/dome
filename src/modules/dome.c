@@ -103,6 +103,5 @@ VERSION_getString(WrenVM* vm) {
       break;
     }
   }
-  printf("len: %i \n", len);
   wrenSetSlotBytes(vm, 0, version, len);
 }
