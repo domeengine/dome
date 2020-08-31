@@ -127,6 +127,9 @@ var ToHex = Fn.new {|dec|
   }
 }
 var NumToHex = Fn.new {|num|
+  if (num == 0) {
+    return "0"
+  }
   var value = num
   var strings = []
   while (value > 0) {

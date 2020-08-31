@@ -295,13 +295,12 @@ class Color {
   }
 
   toString {
-    var num = _r << 24 | _g << 16 | _b << 8 | _a
-    var hexString = NumToHex.call(num).codePoints.toList
+    var nums = _r << 24 | _g << 16 | _b << 8 | _a
+    var hexString = NumToHex.call(nums)
     while (hexString.count < 8) {
-      hexString.insert(0, "0")
+      hexString = "0%(hexString)"
     }
-    hexString.insert(0, "#")
-    return "Color (%(hexString.join("")))"
+    return "Color (#%(hexString))"
   }
 
   a { _a }
