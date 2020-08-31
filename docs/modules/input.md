@@ -127,3 +127,5 @@ Valid sides are `left` and `right`.
 Gets the current state of the specified analog stick as a Vector, with `x` and `y` values, which are normalised as values between -1.0 and 1.0.
 Valid sides are `left` and `right`.
 
+#### `rumble(strength: Number, duration: Number): Void`
+If the gamepad is able to vibrate, it will vibrate with a `strength`, clamped between `0.0` and `1.0`, for a `duration` of milliseconds. Rumble and haptic feedback is dependant on platform drivers.
