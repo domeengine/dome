@@ -206,6 +206,9 @@ GAMEPAD_finalize(void* data) {
 
 internal void
 GAMEPAD_rumble(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 0, FOREIGN, "GamePad");
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "strength");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "length");
   GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
   float strength = fmid(0, wrenGetSlotDouble(vm, 1), 1);
   double length = fmax(0, wrenGetSlotDouble(vm, 2));
