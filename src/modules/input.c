@@ -19,6 +19,7 @@ global_variable const char* controllerButtonMap[] = {
   NULL
 };
 global_variable bool inputCaptured = false;
+global_variable WrenHandle* commitMethod = NULL;
 
 internal void
 INPUT_capture(WrenVM* vm) {
@@ -33,6 +34,7 @@ INPUT_capture(WrenVM* vm) {
     gamepadClass  = wrenGetSlotHandle(vm, 0);
 
     updateInputMethod = wrenMakeCallHandle(vm, "update(_,_)");
+    commitMethod = wrenMakeCallHandle(vm, "commit()");
     inputCaptured = true;
   }
 }
@@ -78,6 +80,7 @@ INPUT_release(WrenVM* vm) {
     wrenReleaseHandle(vm, mouseClass);
     wrenReleaseHandle(vm, gamepadClass);
     wrenReleaseHandle(vm, updateInputMethod);
+    wrenReleaseHandle(vm, commitMethod);
     inputCaptured = false;
   }
 }

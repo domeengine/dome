@@ -98,7 +98,6 @@ global_variable WrenHandle* keyboardClass = NULL;
 global_variable WrenHandle* mouseClass = NULL;
 global_variable WrenHandle* gamepadClass = NULL;
 global_variable WrenHandle* updateInputMethod = NULL;
-global_variable WrenHandle* commitMethod = NULL;
 
 // These are set by cmd arguments
 #ifdef DEBUG
@@ -357,7 +356,6 @@ int main(int argc, char* args[])
   WrenHandle* initMethod = wrenMakeCallHandle(vm, "init()");
   WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update()");
   WrenHandle* drawMethod = wrenMakeCallHandle(vm, "draw(_)");
-  commitMethod = wrenMakeCallHandle(vm, "commit()");
   wrenGetVariable(vm, "main", "Game", 0);
   WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
 
@@ -585,7 +583,6 @@ vm_cleanup:
   wrenReleaseHandle(vm, initMethod);
   wrenReleaseHandle(vm, drawMethod);
   wrenReleaseHandle(vm, updateMethod);
-  wrenReleaseHandle(vm, commitMethod);
   wrenReleaseHandle(vm, gameClass);
 
   if (bufferClass != NULL) {
