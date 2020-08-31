@@ -135,7 +135,7 @@ global_variable size_t GIF_SCALE = 1;
 
 internal void
 printTitle(ENGINE* engine) {
-  ENGINE_printLog(engine, "DOME - Dynamic Opinionated Minimalist Engine\n");
+  ENGINE_printLog(engine, "DOME - Design-Oriented Minimalist Engine\n");
 }
 
 internal void
