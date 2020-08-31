@@ -24,7 +24,6 @@ internal void
 INPUT_capture(WrenVM* vm) {
   SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC);
 
-  printf("HAPTIC COUNT %i\n", SDL_NumHaptics());
   if (!inputCaptured) {
     wrenGetVariable(vm, "input", "Keyboard", 0);
     keyboardClass = wrenGetSlotHandle(vm, 0);
@@ -175,11 +174,11 @@ GAMEPAD_allocate(WrenVM* vm) {
   gamepad->instanceId = SDL_JoystickInstanceID(joystick);
   gamepad->controller = controller;
   gamepad->haptics = SDL_HapticOpenFromJoystick(joystick);
-  if (SDL_HapticRumbleInit(gamepad->haptics) != 0) {
+  if (SDL_HapticRumbleSupported(gamepad->haptics) == SDL_FALSE
+      || SDL_HapticRumbleInit(gamepad->haptics) != 0) {
     SDL_HapticClose(gamepad->haptics);
     gamepad->haptics = NULL;
   }
-  printf("Initialised haptics are %s\n", gamepad->haptics == NULL ? "null" : "ok");
 }
 
 internal void
