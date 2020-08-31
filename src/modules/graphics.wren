@@ -1,11 +1,9 @@
+import "math" for HexToNum, NumToHex
 /**
 
   @Module graphics
   The graphics module provides all the system functions required for drawing to the screen.
 */
-import "vector" for Point, Vec, Vector
-import "image" for Drawable, ImageData
-import "font" for Font, RasterizedFont
 
 /**
     @Class Canvas
@@ -186,39 +184,16 @@ class Canvas {
   }
 }
 
-/**
-    @Class Color
-      An instance of this class represents an rgb color, which can be passed to Canvas methods.
-*/
-var HexToNum = Fn.new {|hex|
-  var first = hex[0]
-  var second = hex[1]
-  if (48 <= first && first <= 57) {
-    first = first - 48
-  } else if (65 <= first && first <= 70) {
-    first = 10 + first - 65
-  } else if (97 <= first && first <= 102) {
-    first = 10 + first - 97
-  } else {
-    Fiber.abort("Invalid hex")
-  }
-  if (48 <= second && second <= 57) {
-    second = second - 48
-  } else if (65 <= second && second <= 70) {
-    second = 10 + second - 65
-  } else if (97 <= second && second <= 102) {
-    second = 10 + second - 97
-  } else {
-    Fiber.abort("Invalid hex")
-  }
-  return first << 4 | second
-}
-
 var SubStr = Fn.new {|str, start, len|
   return str.bytes.skip(start).take(len).toList
 }
 
+/**
+    @Class Color
+      An instance of this class represents an rgb color, which can be passed to Canvas methods.
+*/
 class Color {
+
   construct hex(hex) {
     if (hex is String) {
       var offset = 0
@@ -319,6 +294,15 @@ class Color {
     return a << 24 | b << 16 | g << 8 | r
   }
 
+  toString {
+    var nums = _r << 24 | _g << 16 | _b << 8 | _a
+    var hexString = NumToHex.call(nums)
+    while (hexString.count < 8) {
+      hexString = "0%(hexString)"
+    }
+    return "Color (#%(hexString))"
+  }
+
   a { _a }
   r { _r }
   g { _g }
@@ -364,5 +348,10 @@ var AllColors = {
   "peach": Color.rgb(255, 204, 170),
   "none": Color.rgb(0, 0, 0, 0)
 }
+
+// These need to be at the bottom to prevent cyclic dependancy
+import "image" for Drawable, ImageData
+import "vector" for Point, Vec, Vector
+import "font" for Font, RasterizedFont
 
 Canvas.init_()
