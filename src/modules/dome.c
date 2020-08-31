@@ -93,12 +93,16 @@ WINDOW_getFullscreen(WrenVM* vm) {
 
 internal void
 VERSION_getString(WrenVM* vm) {
-  size_t len;
+  size_t len = 0;
   char* version = DOME_VERSION;
+  if (version[len] == 'v') {
+    version++;
+  }
   for (len = 0; len < strlen(version); len++) {
     if (version[len] != '.' && !isdigit(version[len])) {
       break;
     }
   }
+  printf("len: %i \n", len);
   wrenSetSlotBytes(vm, 0, version, len);
 }
