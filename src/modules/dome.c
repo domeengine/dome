@@ -29,6 +29,7 @@ WINDOW_resize(WrenVM* vm) {
   uint32_t width = wrenGetSlotDouble(vm, 1);
   uint32_t height = wrenGetSlotDouble(vm, 2);
   SDL_SetWindowSize(engine->window, width, height);
+  SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
 }
 
 internal void

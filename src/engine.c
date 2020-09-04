@@ -183,6 +183,7 @@ ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
   if (engine->texture == NULL) {
     return false;
   }
+  SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
   return true;
 }
 
