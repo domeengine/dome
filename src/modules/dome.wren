@@ -108,7 +108,7 @@ class Json {
     stream_end()
   }
 
-  construct parseFromFile(path) {
+  construct fromFile(path) {
     var content = FileSystem.load(path)
     return Json.parse(content)
   }

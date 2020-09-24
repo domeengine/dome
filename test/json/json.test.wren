@@ -20,7 +20,7 @@ class Game {
       }
 
       System.print("Test that Load Object from File")
-      json = Json.parseFromFile("obj.test.json").json
+      json = Json.fromFile("obj.test.json").json
       if(!(json is Map)) {
           System.print("JSON must be a Map")
           System.print(json)
@@ -28,7 +28,7 @@ class Game {
       }
 
       System.print("Test that Load Array from File")
-      json = Json.parseFromFile("array.test.json").json
+      json = Json.fromFile("array.test.json").json
       if(!(json is List)) {
           System.print("JSON must be a List")
           System.print(json)
@@ -36,7 +36,7 @@ class Game {
       }
 
       System.print("Test that Load Number from File")
-      json = Json.parseFromFile("number.test.json").json
+      json = Json.fromFile("number.test.json").json
       if(!(json is Num)) {
           System.print("JSON must be a Num")
           System.print(json)
@@ -44,7 +44,7 @@ class Game {
       }
 
       System.print("Test that Load String from File")
-      json = Json.parseFromFile("string.test.json").json
+      json = Json.fromFile("string.test.json").json
       
       if(!(json is String)) {
           System.print("JSON must be a String")
@@ -53,7 +53,7 @@ class Game {
       }
 
       System.print("Test that Load Null from File")
-      json = Json.parseFromFile("null.test.json").json
+      json = Json.fromFile("null.test.json").json
       
       if(!(json is Null)) {
           System.print("JSON must be Null")
@@ -62,7 +62,7 @@ class Game {
       }
 
       System.print("Test that Load Bool from File")
-      json = Json.parseFromFile("bool.test.json").json
+      json = Json.fromFile("bool.test.json").json
       
       if(!(json is Bool)) {
           System.print("JSON must be a Bool")
@@ -71,7 +71,7 @@ class Game {
       }
 
       System.print("Test that Load Error from File")
-      json = Json.parseFromFile("error.test.json")
+      json = Json.fromFile("error.test.json")
 
       if(!(json.json is Null)) {
           System.print("json.json must be Null")
@@ -86,7 +86,7 @@ class Game {
       }
 
       System.print("Test that Load Complex from File")
-      json = Json.parseFromFile("complex.test.json")
+      json = Json.fromFile("complex.test.json")
       
       if(!(json.json is Map)) {
           System.print("JSON must be a Map")
@@ -107,7 +107,7 @@ class Game {
       }
 
       System.print("Test that Dumps and Raw are Equal")
-      json = Json.parseFromFile("match.test.json")
+      json = Json.fromFile("match.test.json")
       if(json.dumps() != json.raw.trim()) {
           
           System.print("Json strings does not match")
