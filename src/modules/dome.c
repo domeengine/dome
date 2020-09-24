@@ -179,10 +179,26 @@ JSON_escapechar(WrenVM * vm) {
   char * value = wrenGetSlotString(vm, 1);
   char * result = value;
 
-  if (strcmp(value, "\"") == 0) {
+  /*
+  "\0" // The NUL byte: 0.
+  "\"" // A double quote character.
+  "\\" // A backslash.
+  "\a" // Alarm beep. (Who uses this?)
+  "\b" // Backspace.
+  "\f" // Formfeed.
+  "\n" // Newline.
+  "\r" // Carriage return.
+  "\t" // Tab.
+  "\v" // Vertical tab.
+  */
+  if(strcmp(value, "\0") == 0) {
+    result = "\\0";
+  } else if (strcmp(value, "\"") == 0) {
     result = "\\\"";
   } else if (strcmp(value, "\\") == 0) {
     result = "\\\\";
+  } else if(strcmp(value, "\\") == 0) {
+    result = "\\a";
   } else if (strcmp(value, "\b") == 0) {
     result = "\\b";
   } else if (strcmp(value, "\f") == 0) {
@@ -196,6 +212,12 @@ JSON_escapechar(WrenVM * vm) {
   } else if (strcmp(value, "\v") == 0) {
     result = "\\v";
   } else if (strcmp(value, "/") == 0) {
+    // Escape / (solidus, slash)
+    // https://stackoverflow.com/a/9735430
+    // The feature of the slash escape allows JSON to be embedded in HTML (as SGML) and XML.
+    // https://www.w3.org/TR/html4/appendix/notes.html#h-B.3.2
+    // This is optional escaping. Maybe an option should be provided
+    // to disable this escaping if not wanted.
     result = "\\/";
   }
 
