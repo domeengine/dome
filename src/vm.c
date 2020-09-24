@@ -215,6 +215,15 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.height", WINDOW_getHeight);
   MAP_addFunction(&engine->moduleMap, "dome", "static Version.toString", VERSION_getString);
 
+  MAP_addFunction(&engine->moduleMap, "dome", "Json.stream_begin(_)", JSON_streamBegin);
+  MAP_addFunction(&engine->moduleMap, "dome", "Json.stream_end()", JSON_streamEnd);
+  MAP_addFunction(&engine->moduleMap, "dome", "Json.next", JSON_next);
+  MAP_addFunction(&engine->moduleMap, "dome", "Json.value", JSON_value);
+  MAP_addFunction(&engine->moduleMap, "dome", "Json.error_message", JSON_error_message);
+  MAP_addFunction(&engine->moduleMap, "dome", "Json.lineno", JSON_lineno);
+  MAP_addFunction(&engine->moduleMap, "dome", "Json.pos", JSON_pos);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Json.escapechar(_)", JSON_escapechar);
+
 #if DOME_OPT_FFI
   // FFI
   MAP_addFunction(&engine->moduleMap, "ffi", "Function.f_call(_)", FUNCTION_call);

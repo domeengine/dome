@@ -1,0 +1,37 @@
+{
+  "uid": "76-buteo-albigula",
+  "name": {
+    "spanish": "Aguilucho Chico",
+    "english": "White-throated Hawk",
+    "latin": "Buteo albigula"
+  },
+  "map": {
+    "image": "https://aves.ninjas.cl/api/site/assets/files/3100/map.svg",
+    "title": "Entre la Regi\u00f3n de Valpara\u00edso y la Regi\u00f3n de Ays\u00e9n"
+  },
+  "iucn": {
+    "title": "Menor riesgo (LC)",
+    "description": "Seg\u00fan la lista roja de los vertebrados del mundo de la Uni\u00f3n Internacional para la Conservaci\u00f3n de la Naturaleza (IUCN), el aguilucho chico est\u00e1 catalogado como especie de preocupaci\u00f3n menor (LC), sin embargo, su poblaci\u00f3n podr\u00eda verse afectada por la destrucci\u00f3n y contaminaci\u00f3,n de su h\u00e1bitat, caza, recolecci\u00f3n de huevos y por el ataque de perros, gatos, visones o interacci\u00f3n con otros animales ex\u00f3ticos invasivos."
+  },
+  "habitat": "Se le puede observar solitario o en parejas volando \u00e1gilmente en los bosques de Nothofagus (robles, coig\u00fces, peumos y Araucarias, pero vuela en zonas abiertas y monta\u00f1osas. Su rango de distribuci\u00f3n en Chile va desde la regi\u00f3n de Atacama hasta Ays\u00e9n desde la costa hasta los 2.000 msnm. El aguilucho chico tambi\u00e9n habita en el sur de Argentina. En oto\u00f1o estas aves migran a otras zonas de Latinoam\u00e9rica como Per\u00fa, Bolivia, Ecuador, Colombia y Venezuela. Su nido lo fabrica con ramas, musgos y l\u00edquenes en el cual coloca hasta entre uno a dos huevos blancos.",
+  "didyouknow": "El Aguilucho chico es el \u00fanico rapaz que se reproduce en el sur de Sudam\u00e9rica y realiza migraciones trans-hemisf\u00e9ricas durante el invierno austral. La incubaci\u00f3n de los huevos dura alrededor de un mes y es efectuada por ambos padres.",
+  "migration": true,
+  "dimorphism": false,
+  "size": "38 - 48 cm.",
+  "order": "Accipitriformes",
+  "species": "Nativa",
+  "images": {
+    "main": "https://aves.ninjas.cl/api/site/assets/files/3099/17082018024245aguilucho_chico_tomas_rivas_web.jpg",
+    "gallery": [
+      {
+        "url": "https://aves.ninjas.cl/api/site/assets/files/3099/17082018024245aguilucho_chico_tomas_rivas_web-1.jpg"
+      }
+    ]
+  },
+  "audio": {},
+  "_links": {
+    "self": "https://aves.ninjas.cl/api/birds/76-buteo-albigula",
+    "parent": "https://aves.ninjas.cl/api/birds"
+  },
+  "sort": 0
+}
