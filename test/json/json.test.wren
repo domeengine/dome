@@ -4,7 +4,7 @@ import "dome" for Json, Process
 class Game {
     static init() {
       
-      System.print("Load from String")
+      System.print("Test that Load from String")
       var json = Json.parse("{\"George\":\"Harrison\",\"Paul\":\"McCartney\",\"John\":\"Lennon\",\"Ringo\":\"Starr\"}").json
       
       if(!(json is Map)) {
@@ -13,7 +13,13 @@ class Game {
           Process.exit(-1)
       }
 
-      System.print("Load Object from File")
+      if(json["George"] != "Harrison") {
+          System.print("JSON was parsed badly")
+          System.print(json)
+          Process.exit(-1)
+      }
+
+      System.print("Test that Load Object from File")
       json = Json.parseFromFile("obj.test.json").json
       if(!(json is Map)) {
           System.print("JSON must be a Map")
@@ -21,7 +27,7 @@ class Game {
           Process.exit(-1)
       }
 
-      System.print("Load Array from File")
+      System.print("Test that Load Array from File")
       json = Json.parseFromFile("array.test.json").json
       if(!(json is List)) {
           System.print("JSON must be a List")
@@ -29,7 +35,7 @@ class Game {
           Process.exit(-1)
       }
 
-      System.print("Load Number from File")
+      System.print("Test that Load Number from File")
       json = Json.parseFromFile("number.test.json").json
       if(!(json is Num)) {
           System.print("JSON must be a Num")
@@ -37,7 +43,7 @@ class Game {
           Process.exit(-1)
       }
 
-      System.print("Load String from File")
+      System.print("Test that Load String from File")
       json = Json.parseFromFile("string.test.json").json
       
       if(!(json is String)) {
@@ -46,7 +52,7 @@ class Game {
           Process.exit(-1)
       }
 
-      System.print("Load Null from File")
+      System.print("Test that Load Null from File")
       json = Json.parseFromFile("null.test.json").json
       
       if(!(json is Null)) {
@@ -55,7 +61,7 @@ class Game {
           Process.exit(-1)
       }
 
-      System.print("Load Bool from File")
+      System.print("Test that Load Bool from File")
       json = Json.parseFromFile("bool.test.json").json
       
       if(!(json is Bool)) {
@@ -64,7 +70,7 @@ class Game {
           Process.exit(-1)
       }
 
-      System.print("Load Error from File")
+      System.print("Test that Load Error from File")
       json = Json.parseFromFile("error.test.json")
 
       if(!(json.json is Null)) {
@@ -79,24 +85,39 @@ class Game {
           Process.exit(-1)
       }
 
-      System.print("Load Complex from File")
-      json = Json.parseFromFile("complex.test.json").json
+      System.print("Test that Load Complex from File")
+      json = Json.parseFromFile("complex.test.json")
       
-      if(!(json is Map)) {
+      if(!(json.json is Map)) {
           System.print("JSON must be a Map")
           System.print(json)
           Process.exit(-1)
       }
 
-      if(json["uid"] != "76-buteo-albigula") {
+      if(json.json["uid"] != "76-buteo-albigula") {
           System.print("uid not found")
-          System.print(json)
+          System.print(json.json)
           Process.exit(-1)
       }
 
-      if(json["name"]["latin"] != "Buteo albigula") {
+      if(json.json["name"]["latin"] != "Buteo albigula") {
           System.print("name.latin not found")
-          System.print(json)
+          System.print(json.json)
+          Process.exit(-1)
+      }
+
+      System.print("Test that Dumps and Raw are Equal")
+      json = Json.parseFromFile("match.test.json")
+      if(json.dumps() != json.raw.trim()) {
+          
+          System.print("Json strings does not match")
+          System.print("Dumps")
+          System.print(json.dumps())
+          System.print("Bytes: " + json.dumps().bytes.join())
+          
+          System.print("Raw")
+          System.print(json.raw)
+          System.print("Bytes: " + json.raw.bytes.join())
           Process.exit(-1)
       }
 

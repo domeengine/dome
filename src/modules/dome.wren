@@ -98,10 +98,12 @@ class Json {
   error { _error }
 
   construct parse(string) {
-    _raw = string
     _lastEvent = isInit
     _error = null
-    stream_begin(string)
+
+    _raw = string
+    
+    stream_begin(_raw)
     _json = load(next)
     stream_end()
   }
@@ -169,10 +171,7 @@ class Json {
   }
 
   dumps() {
-    if(_lastEvent == isDone) {
-      return Json.dumps(_json)
-    }
-    return null
+    return Json.dumps(_json)
   }
 
   // https://github.com/brandly/wren-json/blob/master/json.wren
