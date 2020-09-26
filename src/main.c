@@ -38,6 +38,9 @@
 #include <microtar/microtar.h>
 #include <microtar/microtar.c>
 
+#include <json/pdjson.h>
+#include <json/pdjson.c>
+
 // Set up STB_IMAGE
 #define STBI_FAILURE_USERMSG
 #define STBI_NO_STDIO
