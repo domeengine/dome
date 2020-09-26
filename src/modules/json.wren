@@ -6,7 +6,7 @@ class JsonOptions {
     static ABORT_ON_ERROR { 2 }
 
     static shouldAbort(options) {
-        return (options == ABORT_ON_ERROR || options == (ABORT_ON_ERROR | ESCAPE_SLASHES))
+        return (options == JsonOptions.ABORT_ON_ERROR || options == (JsonOptions.ABORT_ON_ERROR | JsonOptions.ESCAPE_SLASHES))
     }
 }
 
@@ -131,7 +131,7 @@ class Json {
 
             _error = error
             if(JsonOptions.shouldAbort(_options)) {
-                Fiber.abort("%(lineno)/%(pos): %(error_message)")
+                Fiber.abort("JSON Error: line %(lineno) pos %(pos): %(error_message)")
             }
         }
     }
