@@ -11,6 +11,7 @@ declare -a arr=(
 "vector"
 "image"
 "math"
+"json"
 )
  
 declare -a opts=(

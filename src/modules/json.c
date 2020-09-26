@@ -1,5 +1,5 @@
-// JSON parser
-const char json_typename[][32] = {
+// JSON Parser Events
+const char json_typename[][64] = {
     [JSON_ERROR]      = "com.domeengine.json:JSON_ERROR",
     [JSON_DONE]       = "com.domeengine.json:JSON_DONE",
     [JSON_OBJECT]     = "com.domeengine.json:JSON_OBJECT",
@@ -89,7 +89,7 @@ JSON_escapechar(WrenVM * vm) {
   ASSERT_SLOT_TYPE(vm, 2, NUM, "options");
   
   char * value = wrenGetSlotString(vm, 1);
-  double options = wrenSetSlotDouble(vm, 2);
+  double options = wrenGetSlotDouble(vm, 2);
 
   char * result = value;
 
