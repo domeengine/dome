@@ -7,7 +7,6 @@ class Input {
 }
 
 class DigitalInput {
-
   construct init() {
     _down = false
     _current = false
@@ -31,9 +30,12 @@ class DigitalInput {
   down { _down }
   previous { _previous }
   repeats { _repeats }
+  justPressed { _down && _repeats == 0 }
 }
 
 class Keyboard {
+
+  static isButtonPressed(key) { isKeyDown(key) }
   static isKeyDown(key) {
     return Keyboard[StringUtils.toLowercase(key)].down
   }

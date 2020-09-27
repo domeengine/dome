@@ -21,6 +21,9 @@ An instance of `DigitalInput` represents an input such as a keyboard key, mouse 
 #### `static down: Boolean`
 This is true if the digital input is "pressed" or otherwise engaged.
 
+#### `static justPressed: Boolean`
+Returns true if the input was "pressed" down on this tick.
+
 #### `static previous: Boolean`
 This gives you the value of "down" on the previous tick, since input was last processed. (Depending on game loop lag, input may be processed once for multiple update ticks.)
 
@@ -34,6 +37,7 @@ This counts the number of ticks that an input has been engaged for. If the input
 #### `static [name]: DigitalInput`
 This returns a digital input of a valid name. See `Keyboard.isKeyDown` for a list of valid names.
 
+#### `static isButtonPressed(key: String): Boolean`
 #### `static isKeyDown(key: String): Boolean`
 Returns true if the named key is pressed. The key uses the SDL key name, which can be referenced [here](https://wiki.libsdl.org/SDL_Keycode).
 
