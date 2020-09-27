@@ -97,7 +97,7 @@ endif
 
 
 
-.PHONY: all clean reset cloc
+.PHONY: all clean reset cloc test
 all: $(EXENAME)
 
 $(LIBS)/libffi/autogen.sh:
@@ -152,3 +152,5 @@ clean:
 cloc:
 	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util|include|lib" -not-match-f ".inc" src
 
+test:
+	./dome --debug src/test/main.test.wren
