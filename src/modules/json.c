@@ -95,27 +95,27 @@ JSON_escapechar(WrenVM * vm) {
   "\t" // Tab.
   "\v" // Vertical tab.
   */
-  if(strcmp(value, "\0") == 0) {
+  if(utf8cmp(value, "\0") == 0) {
     result = "\\0";
-  } else if (strcmp(value, "\"") == 0) {
+  } else if (utf8cmp(value, "\"") == 0) {
     result = "\\\"";
-  } else if (strcmp(value, "\\") == 0) {
+  } else if (utf8cmp(value, "\\") == 0) {
     result = "\\\\";
-  } else if(strcmp(value, "\\") == 0) {
+  } else if(utf8cmp(value, "\\") == 0) {
     result = "\\a";
-  } else if (strcmp(value, "\b") == 0) {
+  } else if (utf8cmp(value, "\b") == 0) {
     result = "\\b";
-  } else if (strcmp(value, "\f") == 0) {
+  } else if (utf8cmp(value, "\f") == 0) {
     result = "\\f";
-  } else if (strcmp(value, "\n") == 0) {
+  } else if (utf8cmp(value, "\n") == 0) {
     result = "\\n";
-  } else if (strcmp(value, "\r") == 0) {
+  } else if (utf8cmp(value, "\r") == 0) {
     result = "\\r";
-  } else if (strcmp(value, "\t") == 0) {
+  } else if (utf8cmp(value, "\t") == 0) {
     result = "\\t";
-  } else if (strcmp(value, "\v") == 0) {
+  } else if (utf8cmp(value, "\v") == 0) {
     result = "\\v";
-  } else if (strcmp(value, "/") == 0) {
+  } else if (utf8cmp(value, "/") == 0) {
     // Escape / (solidus, slash)
     // https://stackoverflow.com/a/9735430
     // The feature of the slash escape allows JSON to be embedded in HTML (as SGML) and XML.
