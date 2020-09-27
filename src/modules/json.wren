@@ -1,7 +1,7 @@
 import "io" for FileSystem
 
 class JsonOptions {
-    static NIL_OPTIONS { 0 }
+    static NIL { 0 }
     static ESCAPE_SLASHES { 1 }
     static ABORT_ON_ERROR { 2 }
 
@@ -14,16 +14,21 @@ class JsonError {
     line { _line }
     position { _position }
     message { _message }
+    found { _found }
 
-    constructor new(line, pos, message) {
+    construct new(line, pos, message, found) {
         _line = line
         _position = pos
         _message = message
+        _found = found
+    }
+
+    static empty() {
+        return JsonError.new(0, 0, "", false)
     }
 }
 
-class Json {
-
+class JsonStream {
     foreign stream_begin(value)
     foreign stream_end()
     foreign next
@@ -31,7 +36,6 @@ class Json {
     foreign error_message
     foreign lineno
     foreign pos
-
     foreign static escapechar(value, options)
 
     namespace { "com.domeengine.json:" }
@@ -48,47 +52,29 @@ class Json {
     isError { namespace + "JSON_ERROR" }
     isInit { namespace + "JSON_INIT" }
 
-    json { _json }
-    raw { _raw }
+    result { _result }
     error { _error }
     options { _options }
+    raw { _raw }
 
-    construct parse(string, options) {
+    construct new(raw, options) {
+        _result = {}
+        _error = JsonError.empty()
         _lastEvent = isInit
-        _error = null
-        _raw = string
+        _raw = raw
         _options = options
+    }
 
+    begin() {
         stream_begin(_raw)
-        _json = process_event(next)
+        _result = process(next)
+    }
+
+    end() {
         stream_end()
     }
 
-    dumps() {
-        return Json.dumps(_json)
-    }
-
-    dumps(options) {
-        return Json.dumps(_json, options)
-    }
-
-    stringify() {
-        return Json.dumps(_json)
-    }
-
-    stringify(options) {
-        return Json.dumps(_json, options)
-    }
-
-    save(path) {
-        return Json.save(path, _json)
-    }
-
-    save(path, options) {
-        return Json.save(path, _json, options)
-    }
-
-    process_event(event) {
+    process(event) {
 
         _lastEvent = event
 
@@ -116,7 +102,7 @@ class Json {
                 if(event == isArrayEnd || event == isDone || event == isError) {
                     break
                 }
-                elements.add(process_event(event))
+                elements.add(process(event))
             }
             return elements
         }
@@ -129,32 +115,66 @@ class Json {
                 if(event == isObjectEnd || event == isDone || event == isError) {
                     break
                 }
-                elements[this.value] = process_event(next)
+                elements[this.value] = process(next)
             }
             return elements
         }
 
         if(event == isError) {
-            
-            var error = JsonError.new(lineno, pos, error_message)
-
-            _error = error
+            _error = JsonError.new(lineno, pos, error_message, true)
             if(JsonOptions.shouldAbort(_options)) {
                 Fiber.abort("JSON Error: line %(lineno) pos %(pos): %(error_message)")
             }
         }
     }
+}
+
+class Json {
+
+    json { _json }
+    raw { _raw }
+    error { _error }
+    options { _options }
+
+    construct parse(string, options) {
+        _raw = string
+        _options = options
+
+        var stream = JsonStream.new(string, options)
+        stream.begin()
+        _json = stream.result
+        _error = stream.error
+        stream.end()
+    }
+
+    dumps() {
+        return Json.dumps(_json)
+    }
+
+    dumps(options) {
+        return Json.dumps(_json, options)
+    }
+
+    // convenience methods for dumps
+    // more similar with javascript
+    stringify() {
+        return Json.dumps(_json)
+    }
+
+    stringify(options) {
+        return Json.dumps(_json, options)
+    }
+
+    save(path) {
+        return Json.save(path, _json)
+    }
+
+    save(path, options) {
+        return Json.save(path, _json, options)
+    }
 
     static parse(string) {
-        return Json.parse(string, JsonOptions.NIL_OPTIONS)
-    }
-
-    static load(string) {
-        return Json.parse(string)
-    }
-
-    static load(string, options) {
-        return Json.parse(string, options)
+        return Json.parse(string, JsonOptions.NIL)
     }
 
     static fromFile(path, options) {
@@ -168,7 +188,7 @@ class Json {
     }
 
     static save(path, obj) {
-        return Json.save(path, obj, JsonOptions.NIL_OPTIONS)
+        return Json.save(path, obj, JsonOptions.NIL)
     }
 
     static save(path, obj, options) {
@@ -186,7 +206,7 @@ class Json {
             // Escape special characters
             var substrings = []
             for (char in obj) {
-                substrings.add(Json.escapechar(char, options))
+                substrings.add(JsonStream.escapechar(char, options))
             }
 
             // Compile error if you use normal escaping sequence
@@ -208,7 +228,18 @@ class Json {
     }
 
     static dumps(obj) {
-        return Json.dumps(obj, JsonOptions.NIL_OPTIONS)
+        return Json.dumps(obj, JsonOptions.NIL)
+    }
+
+    // Convenience methods
+    // alternative for parse and dumps
+    // more similar with python and javascript
+    static load(string) {
+        return Json.parse(string)
+    }
+
+    static load(string, options) {
+        return Json.parse(string, options)
     }
 
     static stringify(obj) {

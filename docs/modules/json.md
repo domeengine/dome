@@ -73,7 +73,7 @@ This will execute `static dumps(object, options)` and then save the result to a 
 
 ### Constants
 
-#### `static NIL_OPTIONS: Num`
+#### `static NIL: Num`
 _Default_ value. No options selected.
 
 #### `static ESCAPE_SLASHES: Num`
@@ -105,3 +105,6 @@ Stores the last parsed cursor position.
 
 #### `message: String`
 Stores the generated error message.
+
+#### `found: Bool`
+Tells if an error was found.
