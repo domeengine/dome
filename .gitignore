@@ -1,5 +1,6 @@
 DOME-out.log
 .mode
+.arch
 dome
 nest
 libwren.a
