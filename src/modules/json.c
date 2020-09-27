@@ -58,21 +58,11 @@ JSON_pos(WrenVM * vm) {
 internal void
 JSON_next(WrenVM * vm) {
   enum json_type type = json_next(jsonStream);
-  switch (type) {
-      case JSON_NULL:
-      case JSON_TRUE:
-      case JSON_FALSE:
-      case JSON_NUMBER:
-      case JSON_STRING:
-      case JSON_ARRAY:
-      case JSON_OBJECT:
-      case JSON_OBJECT_END:
-      case JSON_ARRAY_END:
-      case JSON_DONE:
-      case JSON_ERROR:
-          wrenSetSlotString(vm, 0, json_typename[type]);
-          break;
+  if (json_typename[type]) {
+    wrenSetSlotString(vm, 0, json_typename[type]);
+    return;
   }
+  wrenSetSlotNull(vm, 0);
 }
 
 // We have to use C functions for escaping chars
