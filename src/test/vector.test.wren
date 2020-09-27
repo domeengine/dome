@@ -1,5 +1,5 @@
 import "vector" for Vector
-import "unit" for Assert
+import "./unit" for Assert
 
 class VectorTests {
   static name { "modules/vector.wren" }

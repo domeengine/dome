@@ -11,7 +11,6 @@ declare -a arr=(
 "vector"
 "image"
 "math"
-"unit"
 )
  
 declare -a opts=(

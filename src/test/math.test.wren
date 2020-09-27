@@ -1,5 +1,5 @@
 import "math" for Math
-import "unit" for Assert
+import "./unit" for Assert
 
 class MathTests {
   static name { "modules/math.wren" }

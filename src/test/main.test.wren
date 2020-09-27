@@ -1,4 +1,4 @@
-import "unit" for Runner
+import "./unit" for Runner
 import "./math.test" for MathTests
 import "./vector.test" for VectorTests
 
