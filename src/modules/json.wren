@@ -10,6 +10,18 @@ class JsonOptions {
     }
 }
 
+class JsonError {
+    line { _line }
+    position { _position }
+    message { _message }
+
+    constructor new(line, pos, message) {
+        _line = line
+        _position = pos
+        _message = message
+    }
+}
+
 class Json {
 
     foreign stream_begin(value)
@@ -123,11 +135,8 @@ class Json {
         }
 
         if(event == isError) {
-            var error = {}
             
-            error["line"] = lineno
-            error["pos"] = pos
-            error["message"] = error_message
+            var error = JsonError.new(lineno, pos, error_message)
 
             _error = error
             if(JsonOptions.shouldAbort(_options)) {
