@@ -78,28 +78,28 @@ class JsonStream {
 
         _lastEvent = event
 
-        if(event == isBoolTrue || event == isBoolFalse) {
+        if (event == isBoolTrue || event == isBoolFalse) {
             return (event == isBoolTrue)
         }
 
-        if(event == isNumeric) {
+        if (event == isNumeric) {
             return Num.fromString(this.value)
         }
 
-        if(event == isString) {
+        if (event == isString) {
             return this.value
         }
 
-        if(event == isNull) {
+        if (event == isNull) {
             return null
         }
 
-        if(event == isArray) {
+        if (event == isArray) {
             var elements = []
-            while(true) {
+            while (true) {
                 event = next
                 _lastEvent = event
-                if(event == isArrayEnd || event == isDone || event == isError) {
+                if (event == isArrayEnd || event == isDone || event == isError) {
                     break
                 }
                 elements.add(process(event))
@@ -107,12 +107,12 @@ class JsonStream {
             return elements
         }
 
-        if(event == isObject) {
+        if (event == isObject) {
             var elements = {}
-            while(true) {
+            while (true) {
                 event = next
                 _lastEvent = event
-                if(event == isObjectEnd || event == isDone || event == isError) {
+                if (event == isObjectEnd || event == isDone || event == isError) {
                     break
                 }
                 elements[this.value] = process(next)
@@ -120,9 +120,9 @@ class JsonStream {
             return elements
         }
 
-        if(event == isError) {
+        if (event == isError) {
             _error = JsonError.new(lineno, pos, error_message, true)
-            if(JsonOptions.shouldAbort(_options)) {
+            if (JsonOptions.shouldAbort(_options)) {
                 Fiber.abort("JSON Error: line %(lineno) pos %(pos): %(error_message)")
             }
         }
