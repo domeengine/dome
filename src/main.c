@@ -209,12 +209,14 @@ int main(int argc, char* args[])
     {"version", 'v', OPTPARSE_NONE},
     {"record", 'r', OPTPARSE_OPTIONAL},
     {"scale", 's', OPTPARSE_REQUIRED},
+    {"args", 'a', OPTPARSE_OPTIONAL}, // Game exclusive settings
     {0}
   };
   // char *arg;
   int option;
   struct optparse options;
   optparse_init(&options, args);
+
   while ((option = optparse_long(&options, longopts, NULL)) != -1) {
     switch (option) {
       case 's':
@@ -268,6 +270,9 @@ int main(int argc, char* args[])
         fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
         result = EXIT_FAILURE;
         goto cleanup;
+      case 'a':
+        engine.args = optparse_arg(&options);
+        break;
     }
   }
 

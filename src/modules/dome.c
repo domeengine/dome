@@ -8,6 +8,17 @@ PROCESS_exit(WrenVM* vm) {
   wrenSetSlotNull(vm, 0);
 }
 
+internal void
+PROCESS_args(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  char * args = engine->args;
+  if(args) {
+    wrenSetSlotString(vm, 0, args);
+    return;
+  }
+  wrenSetSlotNull(vm, 0);
+}
+
 
 internal void
 WINDOW_resize(WrenVM* vm) {

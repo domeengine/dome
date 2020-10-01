@@ -49,6 +49,7 @@ typedef struct {
   bool initialized;
   bool debugEnabled;
   bool vsyncEnabled;
+  char* args;
   ENGINE_DEBUG debug;
 } ENGINE;
 
