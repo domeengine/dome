@@ -114,9 +114,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "io.c"
 #include "engine.c"
 #include "modules/dome.c"
-#if DOME_OPT_FFI
-#include "modules/ffi.c"
-#endif
+
 #include "modules/font.c"
 #include "modules/io.c"
 #include "modules/audio.c"
@@ -140,12 +138,6 @@ printVersion(ENGINE* engine) {
   SDL_GetVersion(&linked);
   ENGINE_printLog(engine, "SDL version: %d.%d.%d (Compiled)\n", compiled.major, compiled.minor, compiled.patch);
   ENGINE_printLog(engine, "SDL version %d.%d.%d (Linked)\n", linked.major, linked.minor, linked.patch);
-
-#if DOME_OPT_FFI
-  ENGINE_printLog(engine, "FFI module is available");
-#else
-  ENGINE_printLog(engine, "FFI module is unavailable");
-#endif
 }
 
 
