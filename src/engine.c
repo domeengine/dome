@@ -213,7 +213,8 @@ ENGINE_init(ENGINE* engine) {
   engine->height = GAME_HEIGHT;
 
   // Arguments
-  engine->args = NULL;
+  engine->argv = NULL;
+  engine->argc = 0;
 
 
   //Create window

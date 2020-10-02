@@ -11,12 +11,15 @@ PROCESS_exit(WrenVM* vm) {
 internal void
 PROCESS_args(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  char * args = engine->args;
-  if(args) {
-    wrenSetSlotString(vm, 0, args);
-    return;
+  
+  wrenEnsureSlots(vm, 2);
+  wrenSetSlotNewList(vm, 0);
+
+  for (int i = 0; i < engine->argc; i++)
+  {
+    wrenSetSlotString(vm, 1, engine->argv[i]);
+    wrenInsertInList(vm, 0, -1, 1);
   }
-  wrenSetSlotNull(vm, 0);
 }
 
 

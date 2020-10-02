@@ -46,7 +46,7 @@ class Version {
 class Process {
   foreign static f_exit(n)
   foreign static args
-  
+
   static exit(n) {
     f_exit(n)
     Fiber.suspend()
