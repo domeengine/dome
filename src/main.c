@@ -28,10 +28,6 @@
 #include <SDL.h>
 #include <jo_gif.h>
 
-#if DOME_OPT_FFI
-#include <ffi.h>
-#endif
-
 #define OPTPARSE_IMPLEMENTATION
 #include <optparse.h>
 
