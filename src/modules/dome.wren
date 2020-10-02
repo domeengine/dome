@@ -47,6 +47,8 @@ class Process {
   foreign static f_exit(n)
   foreign static args
 
+  static arguments { args[2..-1] }
+
   static exit(n) {
     f_exit(n)
     Fiber.suspend()
