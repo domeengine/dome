@@ -60,7 +60,7 @@ class Process {
     var result = null
     Fiber.new {
       args.each {|value|
-        if ("%(value)".contains(needle)) {
+        if (value.contains(needle)) {
           result = value
           // Skip all other values
           Fiber.abort()
