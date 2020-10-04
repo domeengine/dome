@@ -45,9 +45,30 @@ class Version {
 
 class Process {
   foreign static f_exit(n)
-  foreign static args
+  foreign static f_args
 
-  static arguments { args[2..-1] }
+  static arguments {
+    var args = Process.f_args
+    if (args.count > 1) {
+      return args[2..-1]
+    }
+    return args
+  }
+
+  static arguments(needle) {
+    var args = Process.arguments
+    var result = null
+    Fiber.new {
+      args.each {|value|
+        if ("%(value)".contains(needle)) {
+          result = value
+          // Skip all other values
+          Fiber.abort()
+        }
+      }
+    }.try()
+    return result
+  }
 
   static exit(n) {
     f_exit(n)

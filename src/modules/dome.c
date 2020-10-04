@@ -12,6 +12,8 @@ internal void
 PROCESS_args(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   
+  // Code extracted from wren-cli project
+  // https://github.com/wren-lang/wren-cli/blob/main/src/module/os.c#L62
   wrenEnsureSlots(vm, 2);
   wrenSetSlotNewList(vm, 0);
 

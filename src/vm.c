@@ -204,7 +204,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // DOME
   MAP_addFunction(&engine->moduleMap, "dome", "static Process.f_exit(_)", PROCESS_exit);
-  MAP_addFunction(&engine->moduleMap, "dome", "static Process.args", PROCESS_args);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Process.f_args", PROCESS_args);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.resize(_,_)", WINDOW_resize);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.title=(_)", WINDOW_setTitle);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.vsync=(_)", WINDOW_setVsync);
