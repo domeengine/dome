@@ -47,14 +47,7 @@ class Process {
   foreign static f_exit(n)
   foreign static f_args
 
-  static arguments {
-    var args = Process.f_args
-    if (args.count > 1) {
-      return args[2..-1]
-    }
-    return args
-  }
-
+  static arguments {Process.f_args}
   static arguments(needle) {
     var args = Process.arguments
     var result = null
