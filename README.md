@@ -8,7 +8,13 @@ A lightweight game framework which melds SDL2 and the [Wren scripting language](
 
 ## How to Use
 
+### Download
+
+You can download production-ready binaries from our [Releases page](https://github.com/avivbeeri/dome/releases/latest)
+
 ### Build
+
+If you want to build DOME yourself, to make modifications or other reasons, follow these instruction instead.
 
 Ensure you have the shared SDL2 libraries installed on your system first, then to build, run:
 
