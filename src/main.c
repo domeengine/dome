@@ -209,7 +209,6 @@ int main(int argc, char* args[])
     {"version", 'v', OPTPARSE_NONE},
     {"record", 'r', OPTPARSE_OPTIONAL},
     {"scale", 's', OPTPARSE_REQUIRED},
-    {"args", 'a', OPTPARSE_OPTIONAL}, // Game exclusive settings
     {0}
   };
   // char *arg;
