@@ -48,21 +48,7 @@ class Process {
   foreign static f_args
 
   static arguments {Process.f_args}
-  static arguments(needle) {
-    var args = Process.arguments
-    var result = null
-    Fiber.new {
-      args.each {|value|
-        if (value.contains(needle)) {
-          result = value
-          // Skip all other values
-          Fiber.abort()
-        }
-      }
-    }.try()
-    return result
-  }
-
+  
   static exit(n) {
     f_exit(n)
     Fiber.suspend()
