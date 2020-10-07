@@ -1,17 +1,27 @@
-class Version {
-  foreign static toString
+class Dependency {
+  
+  version {_version}
+  name {_name}
 
-  static major { this.toList[0] }
-  static minor { this.toList[1] }
-  static patch { this.toList[2] }
-
-  static toList {
-    if (!__list) {
-      __list = toString.split(".").map {|value| Num.fromString(value) }.toList
-    }
-    return __list
+  construct new(name, version) {
+    _name = name
+    _version = version
   }
-  static atLeast(version) {
+
+  major { toList[0] }
+  minor { toList[1] }
+  patch { toList[2] }
+
+  toString {{"name":name, "version":version}.toString}
+
+  toList {
+    if (!_list) {
+      _list = version.split(".").map {|value| Num.fromString(value) }.toList
+    }
+    return _list
+  }
+
+  atLeast(version) {
     var values = version.split(".").map {|value| Num.fromString(value) }.toList
     var actual = this.toList
     if (values[0] > actual[0]) {
@@ -40,8 +50,26 @@ class Version {
   }
 }
 
+class Version {
+  foreign static toString
 
+  static dome  { Dependency.new("dome", Version.toString) }
+  static wren  { Dependency.new("wren", "3.0.0") }
 
+  static deps  {{
+    "dome": Version.dome,
+    "wren": Version.wren
+  }}
+
+  static major { Version.dome.major }
+  static minor { Version.dome.minor }
+  static patch { Version.dome.patch }
+
+  static toList {Version.dome.toList}
+  static atLeast (version) {
+    return Version.dome.atLeast(version)
+  }
+}
 
 class Process {
   foreign static f_exit(n)
