@@ -78,6 +78,17 @@ WINDOW_getFullscreen(WrenVM* vm) {
   wrenSetSlotBool(vm, 0, (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0);
 }
 
+internal void
+WINDOW_getFps(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ENGINE_DEBUG* debug = &engine->debug;
+  // Choose alpha depending on how fast or slow you want old averages to decay.
+  // 0.9 is usually a good choice.
+  double framesThisSecond = 1000.0 / (debug->elapsed+1);
+  double alpha = debug->alpha;
+  debug->avgFps = alpha * debug->avgFps + (1.0 - alpha) * framesThisSecond;
+  wrenSetSlotDouble(vm, 0, debug->avgFps);
+}
 
 internal void
 VERSION_getString(WrenVM* vm) {
