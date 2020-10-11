@@ -1,3 +1,5 @@
+#include "config.h"
+
 // Forward-declaring some methods for interacting with the AudioEngine
 // for managing memory and initialization
 struct AUDIO_ENGINE_t;
@@ -50,6 +52,7 @@ typedef struct {
   bool debugEnabled;
   bool vsyncEnabled;
   ENGINE_DEBUG debug;
+  CONFIG_STORAGE config;
 } ENGINE;
 
 

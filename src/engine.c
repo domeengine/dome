@@ -141,11 +141,12 @@ ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
     strcat(pathBuf, path);
   }
 
+  ENGINE_printLog(engine, "Reading from filesystem: %s\n", pathBuf);
+  
   if (!doesFileExist(pathBuf)) {
     return NULL;
   }
 
-  ENGINE_printLog(engine, "Reading from filesystem: %s\n", pathBuf);
   return readEntireFile(pathBuf, lengthPtr);
 }
 

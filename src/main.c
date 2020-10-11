@@ -111,13 +111,16 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/map.c"
 #include "engine.h"
 #include "debug.c"
+
 /*
 #include "util/font.c"
 */
 #include "util/font8x8.h"
 #include "io.c"
+#include "config.c"
 #include "engine.c"
 #include "modules/dome.c"
+
 #if DOME_OPT_FFI
 #include "modules/ffi.c"
 #endif
@@ -313,11 +316,30 @@ int main(int argc, char* args[])
       }
     }
 
+
     if (engine.tar != NULL) {
       strcpy(pathBuf, mainFileName);
     } else {
       strcpy(pathBuf, fileName ? fileName : mainFileName);
     }
+
+    // Read config
+    char* configFileName = "dome.ini";
+    char configPathBuf[PATH_MAX];
+    size_t configFileLength;
+
+    strcpy(configPathBuf, base);
+    strcat(configPathBuf, configFileName);
+
+    char * configFile = ENGINE_readFile(&engine, configPathBuf, &configFileLength);
+    if (configFile != NULL) {
+      //ENGINE_printLog(&engine, "%s\n", configFile);
+      engine.config = CONFIG_readFile(configFile);
+
+    } else {
+      ENGINE_printLog(&engine, "No 'dome.ini' config file found\n");
+    }
+    
 
     gameFile = ENGINE_readFile(&engine, pathBuf, &gameFileLength);
     if (gameFile == NULL) {

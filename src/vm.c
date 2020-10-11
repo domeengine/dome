@@ -134,6 +134,20 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
 
   // This pointer becomes owned by the WrenVM and freed later.
   char* file = ENGINE_readFile(engine, path, NULL);
+  if (file == NULL) {
+    // Look for the modules inside config
+    char * importPath = CONFIG_readValue(&engine->config, "imports", name);
+    if (importPath != NULL) {
+      path = malloc(strlen(importPath) + strlen(name) + strlen(extension) + 1);
+      strcpy(path, importPath);
+      strcat(path, name);
+      strcat(path, extension);
+      ENGINE_printLog(engine, "Import Path %s\n Full:%s\n", importPath, path);
+      file = ENGINE_readFile(engine, path, NULL);
+    } else {
+      ENGINE_printLog(engine, "No import Path Found for Module %s\n", name);
+    }
+  }
 
   free(path);
   return file;
