@@ -135,15 +135,60 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
   // This pointer becomes owned by the WrenVM and freed later.
   char* file = ENGINE_readFile(engine, path, NULL);
   if (file == NULL) {
+    
+    if (DEBUG_MODE) {
+      ENGINE_printLog(engine, "Path not found. Looking in dome.ini\n", path);
+    }
+
+    // Search for / in the name
+    char * solidus = "/";
+    char * full = strdup(name);
+    
+    #define MAX_PATHS 255
+
+    char paths[MAX_PATHS][MAX_PATHS];
+    int index = 0;
+    
+    char * token = strtok(name, solidus);
+    while (token != NULL && index < MAX_PATHS) {
+      strcpy(paths[index], token);
+      token = strtok(NULL, solidus);
+      index++;
+    }
+
+    // Search for the import key
+    char * key = strdup(full);
+
+    // There are more values after solidus
+    // We append the solidus for the key
+    int isSolidus = 0;
+    if (index > 1) {
+      strcpy(key, paths[0]);
+      strcat(key, solidus);
+      isSolidus = 1;
+    }
+
     // Look for the modules inside config
-    char * importPath = CONFIG_readValue(&engine->config, "imports", name);
+    char * importPath = CONFIG_readValue(&engine->config, "imports", key);
     if (importPath != NULL) {
-      path = malloc(strlen(importPath) + strlen(name) + strlen(extension) + 1);
+      path = malloc(strlen(importPath) + strlen(full) + strlen(extension) + 1);
       strcpy(path, importPath);
-      strcat(path, name);
+
+      if (isSolidus == 1) {
+        // We dont need to append the part with solidus just the next one
+        for(int i = 1; i < index; i++) {
+          strcat(path, paths[i]);
+          if (i < index - 1) {
+            strcat(path, solidus);
+          }
+        }
+      } else {
+        strcat(path, full);
+      }
+
       strcat(path, extension);
-      ENGINE_printLog(engine, "Import Path %s\n Full:%s\n", importPath, path);
       file = ENGINE_readFile(engine, path, NULL);
+
     } else {
       ENGINE_printLog(engine, "No import Path Found for Module %s\n", name);
     }

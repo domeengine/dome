@@ -1,5 +1,5 @@
 
-import "code2" for Code2
+import "code/code2" for Code2
 
 class Code {
     static init() {
