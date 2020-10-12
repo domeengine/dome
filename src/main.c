@@ -383,7 +383,8 @@ int main(int argc, char* args[])
           break;
         case SDL_WINDOWEVENT:
           {
-            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED ||
+                event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
               SDL_RenderGetViewport(engine.renderer, &(engine.viewport));
             } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
               AUDIO_ENGINE_pause(engine.audioEngine);
