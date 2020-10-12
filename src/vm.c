@@ -137,7 +137,7 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
   if (file == NULL) {
     
     if (DEBUG_MODE) {
-      ENGINE_printLog(engine, "Path not found. Looking in dome.ini\n", path);
+      ENGINE_printLog(engine, "Path not found. Looking in dome.ini\n");
     }
 
     // Search for / in the name
