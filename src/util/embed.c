@@ -1,4 +1,4 @@
-//Using SDL and standard IO
+//Using standard IO only
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,7 +56,6 @@ int main(int argc, char* args[])
     if (*ptr == '\n') {
       fputs("'\\n',", fp);
       fputs("\n", fp);
-      // fputs("\", fp);
     } else {
       fputs("'", fp);
       if (*ptr == '\'') {
