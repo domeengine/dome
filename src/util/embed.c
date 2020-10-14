@@ -39,31 +39,38 @@ int main(int argc, char* args[])
     printf("./embed [WrenFile] [VariableName] [OutputFile]\n");
     printf("Not enough arguments.\n");
     return EXIT_FAILURE;
-  } 
+  }
   size_t length;
   char* fileToConvert = readEntireFile(args[1], &length);
   char* moduleName = args[2];
   FILE *fp;
   fp = fopen(args[3], "w+");
   fputs("// auto-generated file, do not modify\n", fp);
-  fputs("const char* ", fp);
+  fputs("const char ", fp);
   fputs(moduleName, fp);
-  fputs(" = \"", fp);
+  fputs("[", fp);
+  fprintf(fp, "%li", length + 1);
+  fputs("] = {", fp);
   for (size_t i = 0; i < length; i++ ) {
     char* ptr = fileToConvert + i;
-    if (*ptr == '\"') {
-      fputs("\\\"", fp);
-    } else if (*ptr == '\n') {
-      fputs("\\n\"", fp);
+    if (*ptr == '\n') {
+      fputs("'\\n',", fp);
       fputs("\n", fp);
-      fputs("\"", fp);
+      // fputs("\", fp);
     } else {
-      fwrite(ptr, sizeof(char), 1, fp);
+      fputs("'", fp);
+      if (*ptr == '\'') {
+        fputs("\\\'", fp);
+      } else {
+        fwrite(ptr, sizeof(char), 1, fp);
+      }
+      fputs("', ", fp);
     }
   }
-  
-  fputs("\";\n", fp);
-  
+  fputs("\0", fp);
+
+  fputs(" };\n", fp);
+
   fclose(fp);
   free(fileToConvert);
   return EXIT_SUCCESS;

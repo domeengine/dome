@@ -16,6 +16,10 @@ It contains the following classes:
 
 An instance of `DigitalInput` represents an input such as a keyboard key, mouse button or controller button, which can be either "pressed" or "unpressed".
 
+### Instance Methods
+#### `reset(): Void`
+Resets the input state, as if the input was just set to no longer be down. This is useful in certain scenarios where an input's state may be tested repeatedly, but before the user has had a chance to release the input.
+
 ### Instance Fields
 
 #### `static down: Boolean`
@@ -32,6 +36,11 @@ This counts the number of ticks that an input has been engaged for. If the input
 
 ## Keyboard
 
+### Static Fields
+
+#### `static allPressed: Map<string, DigitalInput>`
+This returns a map containing the key names and corresponding `DigitalInput` objects, for all keys which are currently "down".
+
 ### Static Methods
 
 #### `static [name]: DigitalInput`
@@ -45,17 +54,20 @@ Returns true if the named key is pressed. The key uses the SDL key name, which c
 
 ### Static Fields
 
-#### `static x: Number`
-The x position relative to the Canvas. This accounts for the window being resized and the viewport moving. If `Mouse.relative` is set, this will be the relative change of the mouse x position since the previous tick.
-
-#### `static y: Number`
-The y position relative to the Canvas. This accounts for the window being resized and the viewport moving. If `Mouse.relative` is set, this will be the relative change of the mouse y position since the previous tick.
+#### `static allPressed: Map<string, DigitalInput>`
+This returns a map containing the key names and corresponding `DigitalInput` objects, for all keys which are currently "down".
 
 #### `static hidden: Boolean`
 Controls whether the mouse cursor is shown or hidden. You can set and read from this field.
 
 #### `static relative: Boolean`
 If set to true, the mouse is placed into relative mode. In this mode, the mouse will be fixed to the center of the screen. You can set and read from this field. This changes the behaviour of the `x` and `y` fields.
+
+#### `static x: Number`
+The x position relative to the Canvas. This accounts for the window being resized and the viewport moving. If `Mouse.relative` is set, this will be the relative change of the mouse x position since the previous tick.
+
+#### `static y: Number`
+The y position relative to the Canvas. This accounts for the window being resized and the viewport moving. If `Mouse.relative` is set, this will be the relative change of the mouse y position since the previous tick.
 
 ### Static Methods
 
@@ -91,6 +103,10 @@ This will return an object representing a GamePad. You can then read the state o
 If no gamepads are attached, you will receive a "dummy" object which will report null or empty values.
 
 ### Instance Fields
+
+#### `allPressed: Map<string, DigitalInput>`
+This returns a map containing the key names and corresponding `DigitalInput` objects, for all keys which are currently "down".
+
 #### `attached: Boolean`
 This returns true if the gamepad is still attached to the system.
 #### `id: Number`
