@@ -31,6 +31,9 @@ class DigitalInput {
     _down = false
     commit()
   }
+  repeat() {
+    commit()
+  }
 
   down { _down }
   previous { _previous }

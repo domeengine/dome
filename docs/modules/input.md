@@ -17,6 +17,9 @@ It contains the following classes:
 An instance of `DigitalInput` represents an input such as a keyboard key, mouse button or controller button, which can be either "pressed" or "unpressed".
 
 ### Instance Methods
+#### `repeat(): Void`
+Causes the current state of the input to be repeated, which can affect the `justPressed` property. This is useful in certain scenarios where an input's state may be tested repeatedly, but before the user has had a chance to release the input.
+
 #### `reset(): Void`
 Resets the input state, as if the input was just set to no longer be down. This is useful in certain scenarios where an input's state may be tested repeatedly, but before the user has had a chance to release the input.
 
