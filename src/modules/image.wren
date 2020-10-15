@@ -1,4 +1,4 @@
-import "graphics" for Color
+import "color" for Color
 class Drawable {
   draw(x, y) {}
 }
