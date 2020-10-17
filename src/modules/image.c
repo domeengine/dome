@@ -167,7 +167,7 @@ DRAW_COMMAND_allocate(WrenVM* vm) {
 
     wrenGetListElement(vm, 2, 7, 1);
     ASSERT_SLOT_TYPE(vm, 1, STRING, "color mode");
-    char* mode = wrenGetSlotString(vm, 1);
+    const char* mode = wrenGetSlotString(vm, 1);
     if (STRINGS_EQUAL(mode, "MONO")) {
       command->mode = COLOR_MODE_MONO;
     } else {
@@ -203,30 +203,23 @@ DRAW_COMMAND_draw(WrenVM* vm) {
   DRAW_COMMAND_execute(engine, command);
 }
 
-void IMAGE_allocate(WrenVM* vm) {
-  ASSERT_SLOT_TYPE(vm, 1, STRING, "image");
-  // TODO: We should read this from a "DataBuffer" which is file loaded, rather than loading ourselves.
-  // So that we can defer the file loading to a thread.
-  int length;
-  const char* fileBuffer = wrenGetSlotBytes(vm, 1, &length);
+internal void
+IMAGE_allocate(WrenVM* vm) {
   IMAGE* image = (IMAGE*)wrenSetSlotNewForeign(vm,
       0, 0, sizeof(IMAGE));
+  image->pixels = NULL;
+  if (wrenGetSlotCount(vm) < 3) {
+    image->width = 0;
+    image->height = 0;
+    image->channels = 0;
+  } else {
+    ASSERT_SLOT_TYPE(vm, 1, NUM, "width");
+    ASSERT_SLOT_TYPE(vm, 2, NUM, "height");
+    image->width = wrenGetSlotDouble(vm, 1);
+    image->height = wrenGetSlotDouble(vm, 2);
+    image->channels = 4;
 
-  image->pixels = (uint32_t*)stbi_load_from_memory((const stbi_uc*)fileBuffer, length,
-      &image->width,
-      &image->height,
-      &image->channels,
-      STBI_rgb_alpha);
-
-  if (image->pixels == NULL)
-  {
-    char* errorMsg = stbi_failure_reason();
-    size_t errorLength = strlen(errorMsg);
-    char buf[errorLength + 8];
-    snprintf(buf, errorLength + 8, "Error: %s\n", errorMsg);
-    wrenSetSlotString(vm, 0, buf);
-    wrenAbortFiber(vm, 0);
-    return;
+    image->pixels = calloc(image->width * image->height, image->channels * sizeof(uint8_t));
   }
 }
 
@@ -235,7 +228,32 @@ IMAGE_finalize(void* data) {
   IMAGE* image = data;
 
   if (image->pixels != NULL) {
-    stbi_image_free(image->pixels);
+    free(image->pixels);
+  }
+}
+
+internal void
+IMAGE_loadFromFile(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 0, FOREIGN, "ImageData");
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "image");
+  int length;
+  const char* fileBuffer = wrenGetSlotBytes(vm, 1, &length);
+  IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
+  image->pixels = (uint32_t*)stbi_load_from_memory((const stbi_uc*)fileBuffer, length,
+      &image->width,
+      &image->height,
+      &image->channels,
+      STBI_rgb_alpha);
+
+  if (image->pixels == NULL)
+  {
+    const char* errorMsg = stbi_failure_reason();
+    size_t errorLength = strlen(errorMsg);
+    char buf[errorLength + 8];
+    snprintf(buf, errorLength + 8, "Error: %s\n", errorMsg);
+    wrenSetSlotString(vm, 0, buf);
+    wrenAbortFiber(vm, 0);
+    return;
   }
 }
 
@@ -274,3 +292,59 @@ void IMAGE_getHeight(WrenVM* vm) {
   IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
   wrenSetSlotDouble(vm, 0, image->height);
 }
+
+void IMAGE_pset(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 0, FOREIGN, "image");
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "color");
+
+  IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
+  int64_t width = image->width;
+  int64_t height = image->height;
+  int64_t x = round(wrenGetSlotDouble(vm, 1));
+  int64_t y = round(wrenGetSlotDouble(vm, 2));
+  uint64_t color = wrenGetSlotDouble(vm, 3);
+  if (0 <= x && x < width && 0 <= y && y < height) {
+    uint32_t* pixels = image->pixels;
+    pixels[y * width + x] = color;
+  } else {
+    VM_ABORT(vm, "pset co-ordinates out of bounds")
+  }
+}
+void IMAGE_pget(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 0, FOREIGN, "image");
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+
+  IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
+  int64_t width = image->width;
+  int64_t height = image->height;
+  int64_t x = round(wrenGetSlotDouble(vm, 1));
+  int64_t y = round(wrenGetSlotDouble(vm, 2));
+  if (0 <= x && x < width && 0 <= y && y < height) {
+    uint32_t* pixels = image->pixels;
+    uint32_t c = pixels[y * width + x];
+    wrenSetSlotDouble(vm, 0, c);
+  } else {
+    VM_ABORT(vm, "pget co-ordinates out of bounds")
+  }
+}
+
+internal void
+IMAGE_getPNGOutput(void* vm, void* data, int size) {
+  wrenSetSlotBytes(vm, 0, data, size);
+}
+
+internal void
+IMAGE_getPNG(WrenVM* vm) {
+  IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
+  ASSERT_SLOT_TYPE(vm, 0, FOREIGN, "image");
+
+  if (image->pixels != NULL) {
+    stbi_write_png_to_func(IMAGE_getPNGOutput, vm, image->width, image->height, image->channels, image->pixels, image->width * sizeof(uint8_t) * image->channels);
+  } else {
+    wrenSetSlotNull(vm, 0);
+  }
+}
+

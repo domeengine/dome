@@ -1,14 +1,20 @@
-# DOME - Dynamic Opinionated Minimalist Engine
+# DOME - Design-Oriented Minimalist Engine
 
-A lightweight game framework which melds SDL2 and the [Wren scripting language](http://wren.io), written in C.
+A comfortable framework for game development which melds SDL2 and the [Wren scripting language](http://wren.io), written in C.
 
 ![Image of DOME logo](https://avivbeeri.github.com/dome/assets/logo200.png)
 
-### For more information on how to use DOME and get started, read the docs [here](https://avivbeeri.github.io/dome).
+### For more information on how to use DOME and get started, read the docs [here](https://domeengine.com).
 
 ## How to Use
 
+### Download
+
+You can download production-ready binaries from our [Releases page](https://github.com/avivbeeri/dome/releases/latest)
+
 ### Build
+
+If you want to build DOME yourself, to make modifications or other reasons, follow these instruction instead.
 
 Ensure you have the shared SDL2 libraries installed on your system first, then to build, run:
 

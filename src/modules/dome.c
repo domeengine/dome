@@ -8,6 +8,18 @@ PROCESS_exit(WrenVM* vm) {
   wrenSetSlotNull(vm, 0);
 }
 
+internal void
+STRING_UTILS_toLowercase(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "string");
+  int length;
+  const char* str = wrenGetSlotBytes(vm, 1, &length);
+  char* dest = calloc(length + 1, sizeof(char));
+  utf8ncpy(dest, str, length);
+  utf8lwr(dest);
+  wrenSetSlotBytes(vm, 0, dest, length);
+  free(dest);
+}
+
 
 internal void
 WINDOW_resize(WrenVM* vm) {
@@ -17,6 +29,12 @@ WINDOW_resize(WrenVM* vm) {
   uint32_t width = wrenGetSlotDouble(vm, 1);
   uint32_t height = wrenGetSlotDouble(vm, 2);
   SDL_SetWindowSize(engine->window, width, height);
+  // Window may not have resized to the specified value because of
+  // desktop restraints, but SDL doesn't check this.
+  // We can fetch the final display size from the renderer output.
+  int32_t newWidth, newHeight;
+  SDL_GetRendererOutputSize(engine->renderer, &newWidth, &newHeight);
+  SDL_SetWindowSize(engine->window, newWidth, newHeight);
 }
 
 internal void
@@ -39,7 +57,7 @@ internal void
 WINDOW_setTitle(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASSERT_SLOT_TYPE(vm, 1, STRING, "title");
-  char* title = wrenGetSlotString(vm, 1);
+  const char* title = wrenGetSlotString(vm, 1);
   SDL_SetWindowTitle(engine->window, title);
 }
 
@@ -91,6 +109,5 @@ VERSION_getString(WrenVM* vm) {
       break;
     }
   }
-  printf("len: %i \n", len);
   wrenSetSlotBytes(vm, 0, version, len);
 }

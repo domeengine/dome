@@ -86,13 +86,13 @@ ENGINE_printLog(ENGINE* engine, char* line, ...) {
 }
 
 internal ENGINE_WRITE_RESULT
-ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
-  char* fullPath;
+ENGINE_writeFile(ENGINE* engine, const char* path, const char* buffer, size_t length) {
+  const char* fullPath;
   if (path[0] != '/') {
-    char* base = BASEPATH_get();
+    const char* base = BASEPATH_get();
     fullPath = malloc(strlen(base)+strlen(path)+1);
-    strcpy(fullPath, base); /* copy name into the new var */
-    strcat(fullPath, path); /* add the extension */
+    strcpy((void*)fullPath, base); /* copy name into the new var */
+    strcat((void*)fullPath, path); /* add the extension */
   } else {
     fullPath = path;
   }
@@ -106,14 +106,14 @@ ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
   }
 
   if (path[0] != '/') {
-    free(fullPath);
+    free((void*)fullPath);
   }
 
   return result;
 }
 
 internal char*
-ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
+ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr) {
   char pathBuf[PATH_MAX];
 
   if (strncmp(path, "./", 2) == 0) {
@@ -183,12 +183,12 @@ ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
   if (engine->texture == NULL) {
     return false;
   }
+  SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
   return true;
 }
 
-internal int
+internal ENGINE*
 ENGINE_init(ENGINE* engine) {
-  int result = EXIT_SUCCESS;
   engine->window = NULL;
   engine->renderer = NULL;
   engine->texture = NULL;
@@ -212,9 +212,26 @@ ENGINE_init(ENGINE* engine) {
   engine->width = GAME_WIDTH;
   engine->height = GAME_HEIGHT;
 
+  return engine;
+}
+
+internal int
+ENGINE_start(ENGINE* engine) {
+  int result = EXIT_SUCCESS;
+#if defined _WIN32
+  SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
+#endif
+  SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1");
+
+  //Initialize SDL
+  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    ENGINE_printLog(engine, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+    result = EXIT_FAILURE;
+    goto engine_init_end;
+  }
 
   //Create window
-  engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
+  engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
   if(engine->window == NULL)
   {
     char* message = "Window could not be created! SDL_Error: %s\n";
@@ -255,6 +272,7 @@ ENGINE_init(ENGINE* engine) {
 
 engine_init_end:
   return result;
+
 }
 
 internal void
@@ -835,34 +853,50 @@ internal bool
 ENGINE_getKeyState(ENGINE* engine, char* keyName) {
   SDL_Keycode keycode =  SDL_GetKeyFromName(keyName);
   SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode);
-  uint8_t* state = SDL_GetKeyboardState(NULL);
+  const uint8_t* state = SDL_GetKeyboardState(NULL);
   return state[scancode];
+}
+
+internal void
+ENGINE_setMouseRelative(ENGINE* engine, bool relative) {
+  engine->mouseRelative = relative;
+  if (relative) {
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+    SDL_GetRelativeMouseState(&(engine->mouseX), &(engine->mouseY));
+  } else {
+    SDL_SetRelativeMouseMode(SDL_FALSE);
+    SDL_GetMouseState(&(engine->mouseX), &(engine->mouseY));
+  }
 }
 
 internal float
 ENGINE_getMouseX(ENGINE* engine) {
   SDL_Rect viewport = engine->viewport;
 
-  int mouseX;
-  int mouseY;
+  int mouseX = engine->mouseX;
   int winX;
   int winY;
-  SDL_GetMouseState(&mouseX, &mouseY);
   SDL_GetWindowSize(engine->window, &winX, &winY);
-  return mouseX * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.x;
+  if (engine->mouseRelative) {
+    return mouseX;
+  } else {
+    return mouseX * fmax((engine->width / (float)winX), engine->height / (float)winY) - viewport.x;
+  }
 }
 
 internal float
 ENGINE_getMouseY(ENGINE* engine) {
   SDL_Rect viewport = engine->viewport;
 
-  int mouseX;
-  int mouseY;
+  int mouseY = engine->mouseY;
   int winX;
   int winY;
-  SDL_GetMouseState(&mouseX, &mouseY);
   SDL_GetWindowSize(engine->window, &winX, &winY);
-  return mouseY * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.y;
+  if (engine->mouseRelative) {
+    return mouseY;
+  } else {
+    return mouseY * fmax((engine->width / (float)winX), engine->height / (float)winY) - viewport.y;
+  }
 }
 
 internal bool
