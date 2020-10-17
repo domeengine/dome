@@ -531,8 +531,8 @@ int main(int argc, char* args[])
       goto vm_cleanup;
     }
 
+    engine.debug.elapsed = elapsed;
     if (engine.debugEnabled) {
-      engine.debug.elapsed = elapsed;
       ENGINE_drawDebug(&engine);
     }
 

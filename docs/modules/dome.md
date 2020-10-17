@@ -49,6 +49,10 @@ This takes a version as a string of the form `x.y.z`, and returns true if the cu
 
 ### Static Fields
 
+#### `static fps: Number`
+
+This is the current frames per second number.
+
 #### `static fullscreen: Boolean`
 
 Set this to switch between Windowed and Fullscreen modes.
