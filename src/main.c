@@ -148,6 +148,7 @@ printVersion(ENGINE* engine) {
   SDL_GetVersion(&linked);
   ENGINE_printLog(engine, "SDL version: %d.%d.%d (Compiled)\n", compiled.major, compiled.minor, compiled.patch);
   ENGINE_printLog(engine, "SDL version %d.%d.%d (Linked)\n", linked.major, linked.minor, linked.patch);
+  ENGINE_printLog(engine, "Wren version: %d.%d.%d\n", WREN_VERSION_MAJOR, WREN_VERSION_MINOR, WREN_VERSION_PATCH);
 
 #if DOME_OPT_FFI
   ENGINE_printLog(engine, "FFI module is available");
