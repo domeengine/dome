@@ -306,7 +306,7 @@ internal void AUDIO_CHANNEL_allocate(WrenVM* vm) {
   wrenEnsureSlots(vm, 1);
   AUDIO_CHANNEL* data = (AUDIO_CHANNEL*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_CHANNEL));
   ASSERT_SLOT_TYPE(vm, 1, STRING, "sound id");
-  char* soundId = wrenGetSlotString(vm, 1);
+  const char* soundId = wrenGetSlotString(vm, 1);
   size_t len = strlen(soundId);
   data->soundId = malloc((1 + len) * sizeof(char));
   strcpy(data->soundId, soundId);

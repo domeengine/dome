@@ -24,7 +24,7 @@ FONT_allocate(WrenVM* vm) {
     return;
   }
   font->file = malloc(size * sizeof(char));
-  memcpy(font->file, file, size * sizeof(char));
+  memcpy((void*)font->file, file, size * sizeof(char));
   int result = stbtt_InitFont(&(font->info), font->file, stbtt_GetFontOffsetForIndex(file, 0));
 
   if (!result) {
@@ -35,7 +35,7 @@ FONT_allocate(WrenVM* vm) {
 internal void
 FONT_finalize(void* data) {
   FONT* font = data;
-  free(font->file);
+  free((void*)font->file);
 }
 
 internal void
@@ -74,7 +74,7 @@ FONT_RASTER_print(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 2, NUM, "x");
   ASSERT_SLOT_TYPE(vm, 3, NUM, "y");
   ASSERT_SLOT_TYPE(vm, 4, NUM, "color");
-  char* text = wrenGetSlotString(vm, 1);
+  const char* text = wrenGetSlotString(vm, 1);
   int64_t x = wrenGetSlotDouble(vm, 2);
   int64_t y = wrenGetSlotDouble(vm, 3);
   uint32_t color = wrenGetSlotDouble(vm, 4);

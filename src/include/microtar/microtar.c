@@ -97,8 +97,10 @@ static int raw_to_header(mtar_header_t *h, const mtar_raw_header_t *rh) {
 
   /* Build and compare checksum */
   chksum1 = checksum(rh);
-  sscanf(rh->checksum, "%o", &chksum2);
-  if (chksum1 != chksum2) {
+  if (rh->checksum[6] != '\0' || rh->checksum[7] != ' ') {
+    return MTAR_EBADCHKSUM;
+  }
+  if (sscanf(rh->checksum, "%o", &chksum2) != 1 || chksum1 != chksum2) {
     return MTAR_EBADCHKSUM;
   }
 
@@ -373,4 +375,62 @@ int mtar_write_data(mtar_t *tar, const void *data, unsigned size) {
 int mtar_finalize(mtar_t *tar) {
   /* Write two NULL records */
   return write_null_bytes(tar, sizeof(mtar_raw_header_t) * 2);
+}
+
+static int mtar_discard_data(mtar_t *tar, int n) {
+  int err;
+  char tmp[512];
+
+  while(n > 0) {
+    int sz = n > sizeof(tmp) ? sizeof(tmp) : n;
+    err = tread(tar, tmp, sz);
+    if(err) {
+      return err;
+    }
+    n -= sizeof(tmp);
+  }
+  return MTAR_ESUCCESS;
+}
+
+int mtar_stream_next(mtar_t *tar, unsigned file_size) {
+  int n;
+  /* Seek to next record */
+  n = round_up(file_size, 512);
+
+  return mtar_discard_data(tar, n);
+}
+
+int mtar_stream_read_header(mtar_t *tar, mtar_header_t *h) {
+  int err;
+  mtar_raw_header_t rh;
+  /* Save header position */
+  tar->last_header = tar->pos;
+  /* Read raw header */
+  err = tread(tar, &rh, sizeof(rh));
+  if (err) {
+    return err;
+  }
+  /* Load raw header into header struct and return */
+  return raw_to_header(h, &rh);
+}
+
+int mtar_stream_read_data(mtar_t *tar, mtar_header_t *h, void *ptr, unsigned size) {
+  int err;
+  /* If we have no remaining data then this is the first read, we
+   * set the remaining data */
+  if (tar->remaining_data == 0) {
+    tar->remaining_data = h->size;
+  }
+  /* Read data */
+  err = tread(tar, ptr, size);
+  if (err) {
+    return err;
+  }
+  tar->remaining_data -= size;
+  /* If there is no remaining data we've finished reading and eat padding */
+  if (tar->remaining_data == 0) {
+    int remainder = round_up(h->size, 512) - h->size;
+    return mtar_discard_data(tar, remainder);
+  }
+  return MTAR_ESUCCESS;
 }
