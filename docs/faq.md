@@ -24,4 +24,5 @@ Sort of! Take a look:
 * A entry to "A Game By It's Cover 2018": [Grid](https://avivbeeri.itch.io/grid) - [Source](https://github.com/avivbeeri/grid)
 * [Station Salvage](https://avivbeeri.itch.io/station-salvage), a fine 7DRL 2020 entry.
 * [CyberRunner](https://github.com/Sandvich/CyberRunner), an experimental endless runner (WIP)
+* A entry to "A Game By It's Cover 2020": [ALLNIGHTER](https://avivbeeri.itch.io/allnighter) - Parts of ALLNIGHTER's development were live streamed, with recordings available [here](https://www.youtube.com/channel/UCAk93TqgFFQLabjRsxp6bSA).
 

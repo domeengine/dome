@@ -44,7 +44,7 @@ MAP_getModule(MAP* map, const char* name) {
 }
 
 internal const char*
-MAP_getSource(MAP* map, char* moduleName) {
+MAP_getSource(MAP* map, const char* moduleName) {
   MODULE_NODE* module = MAP_getModule(map, moduleName);
   if (module == NULL) {
     // We don't have the module, but it might be built into Wren (aka Random,Meta)
@@ -72,7 +72,7 @@ MAP_addFunction(MAP* map, char* moduleName, char* signature, WrenForeignMethodFn
 }
 
 internal WrenForeignMethodFn
-MAP_getFunction(MAP* map, char* moduleName, const char* signature) {
+MAP_getFunction(MAP* map, const char* moduleName, const char* signature) {
   MODULE_NODE* module = MAP_getModule(map, moduleName);
   if (module == NULL) {
     // We don't have the module, but it might be built into Wren (aka Random,Meta)
