@@ -15,7 +15,6 @@ declare -a arr=(
 )
  
 declare -a opts=(
-"ffi" 
 )
 
 rm ../modules/modules.inc 2> /dev/null

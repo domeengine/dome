@@ -5,26 +5,7 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   methods.allocate = NULL;
   methods.finalize = NULL;
 
-  #if DOME_OPT_FFI
-
-  if (STRINGS_EQUAL(module, "ffi")) {
-    if (STRINGS_EQUAL(className, "LibraryHandle")) {
-      methods.allocate = LIBRARY_HANDLE_allocate;
-      methods.finalize = LIBRARY_HANDLE_finalize;
-    } else if (STRINGS_EQUAL(className, "Function")) {
-      methods.allocate = FUNCTION_allocate;
-      methods.finalize = FUNCTION_finalize;
-    } else if (STRINGS_EQUAL(className, "StructTypeData")) {
-      methods.allocate = STRUCT_TYPE_allocate;
-      methods.finalize = STRUCT_TYPE_finalize;
-    } else if (STRINGS_EQUAL(className, "Struct")) {
-      methods.allocate = STRUCT_allocate;
-      methods.finalize = STRUCT_finalize;
-    } else if (STRINGS_EQUAL(className, "Pointer")) {
-      methods.allocate = POINTER_allocate;
-    }
-  }
-  #endif
+  
   if (STRINGS_EQUAL(module, "image")) {
     if (STRINGS_EQUAL(className, "ImageData")) {
       methods.allocate = IMAGE_allocate;
@@ -216,17 +197,6 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.height", WINDOW_getHeight);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.fps", WINDOW_getFps);
   MAP_addFunction(&engine->moduleMap, "dome", "static Version.toString", VERSION_getString);
-
-#if DOME_OPT_FFI
-  // FFI
-  MAP_addFunction(&engine->moduleMap, "ffi", "Function.f_call(_)", FUNCTION_call);
-  MAP_addFunction(&engine->moduleMap, "ffi", "StructTypeData.getMemberOffset(_)", STRUCT_TYPE_getOffset);
-  MAP_addFunction(&engine->moduleMap, "ffi", "Struct.getValue(_)", STRUCT_getValue);
-  MAP_addFunction(&engine->moduleMap, "ffi", "Pointer.asString()", POINTER_asString);
-  MAP_addFunction(&engine->moduleMap, "ffi", "Pointer.asBytes(_)", POINTER_asBytes);
-  MAP_addFunction(&engine->moduleMap, "ffi", "static Pointer.reserve(_)", POINTER_reserve);
-  MAP_addFunction(&engine->moduleMap, "ffi", "Pointer.free()", POINTER_free);
-#endif
 
   // Canvas
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_pset(_,_,_)", CANVAS_pset);
