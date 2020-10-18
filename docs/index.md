@@ -13,7 +13,6 @@ Check out the documentation:
 * [Modules](modules/)
   * [audio](modules/audio)
   * [dome](modules/dome)
-  * [ffi](modules/ffi)
   * [graphics](modules/graphics)
   * [input](modules/input)
   * [io](modules/io)
