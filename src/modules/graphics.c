@@ -91,7 +91,7 @@ CANVAS_line(WrenVM* vm)
   int64_t y2 = round(wrenGetSlotDouble(vm, 4));
   uint32_t c = round(wrenGetSlotDouble(vm, 5));
   uint64_t size = round(wrenGetSlotDouble(vm, 6));
-  ENGINE_maskedLine(engine, x1, y1, x2, y2, c, size);
+  ENGINE_line(engine, x1, y1, x2, y2, c, size);
 }
 
 internal void

@@ -577,7 +577,7 @@ ENGINE_line_low(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, 
 }
 
 internal void
-ENGINE_maskedLine(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c, uint64_t size) {
+ENGINE_line(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c, uint64_t size) {
   ENGINE_createMask(engine, size, c);
 
   if (llabs(y2 - y1) < llabs(x2 - x1)) {
@@ -594,11 +594,6 @@ ENGINE_maskedLine(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2
     }
 
   }
-}
-
-internal void
-ENGINE_line(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c) {
-  ENGINE_maskedLine(engine, x1, y1, x2, y2, c, 3);
 }
 
 internal void
@@ -835,10 +830,10 @@ ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, u
 
 internal void
 ENGINE_rect(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint32_t c) {
-  ENGINE_line(engine, x, y, x, y+h-1, c);
-  ENGINE_line(engine, x, y, x+w-1, y, c);
-  ENGINE_line(engine, x, y+h-1, x+w-1, y+h-1, c);
-  ENGINE_line(engine, x+w-1, y, x+w-1, y+h-1, c);
+  ENGINE_line(engine, x, y, x, y+h-1, c, 1);
+  ENGINE_line(engine, x, y, x+w-1, y, c, 1);
+  ENGINE_line(engine, x, y+h-1, x+w-1, y+h-1, c, 1);
+  ENGINE_line(engine, x+w-1, y, x+w-1, y+h-1, c, 1);
 }
 
 internal void
