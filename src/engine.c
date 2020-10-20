@@ -513,20 +513,11 @@ ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) 
 internal uint32_t*
 ENGINE_createMask(ENGINE* engine, uint64_t originalSize, uint32_t color) {
   uint64_t size = originalSize;
-  if (size % 2 == 0) {
-    size = size + 1;
-  }
   uint32_t* mask = ENGINE_resizeBlitBuffer(engine, size, size);
   for (uint64_t y = 0; y < size; y++) {
     for (uint64_t x = 0; x < size; x++) {
       blitPixel(mask, size, x, y, color);
     }
-  }
-  if (originalSize % 2 == 0) {
-    blitPixel(mask, size, 0, 0, 0);
-    blitPixel(mask, size, 0, originalSize, 0);
-    blitPixel(mask, size, originalSize, 0, 0);
-    blitPixel(mask, size, originalSize, originalSize, 0);
   }
   return mask;
 }
