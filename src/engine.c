@@ -543,7 +543,6 @@ ENGINE_line_high(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2,
   int64_t x = x1;
   while(y <= y2) {
     ENGINE_drawMask(engine, x, y);
-    // ENGINE_pset(engine, x, y, c);
     if (p > 0) {
       x += xi;
       p = p - 2 * dy;
@@ -568,7 +567,6 @@ ENGINE_line_low(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, 
   int64_t x = x1;
   while(x <= x2) {
     ENGINE_drawMask(engine, x, y);
-    // ENGINE_pset(engine, x, y, c);
     if (p > 0) {
       y += yi;
       p = p - 2 * dx;
