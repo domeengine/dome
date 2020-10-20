@@ -14,9 +14,15 @@ By participating in this project you agree to abide by its terms.
 
 If you find a bug, or want to suggest a new feature or piece of functionality, simply raise an issue and we will consider it.
 
+### Contributing code changes
+
+The DOME repository is managed using a variation of [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow). In order to start working on DOME, fork and clone the repository, and then checkout the `develop` branch. From here, you should create a feature branch for your changes.
+
 ### Submitting a Pull Request
 
-To submit a pull request, you should fork the repository and create a new branch for your feature. You can then push this back to GitHub and open a Pull Request in the DOME repository.
+Once you finish working on your feature, you should create a pull request, targeting the `develop` branch of the repository.
+Your code will be checked for code style, presence of documentation if necessary as well as whether your changes match the project Design Philosophy.
+When these things have been checked, your changes will be merged.
 
 ## Where can I ask for help?
 

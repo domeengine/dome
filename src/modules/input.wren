@@ -27,11 +27,20 @@ class DigitalInput {
     _current = state
   }
 
+  reset() {
+    _down = false
+    commit()
+  }
+  repeat() {
+    commit()
+  }
+
   down { _down }
   previous { _previous }
   repeats { _repeats }
   justPressed { _down && _repeats == 0 }
 }
+
 
 class Keyboard {
 
@@ -49,6 +58,12 @@ class Keyboard {
       update(name, false)
     }
     return __keys[name]
+  }
+
+  static allPressed {
+    var pressed = {}
+    __keys.keys.where {|key| __keys[key].down }.each {|key| pressed[key] = __keys[key] }
+    return pressed
   }
 
   // PRIVATE, called by game loop
@@ -87,6 +102,11 @@ class Mouse {
       update(name, false)
     }
     return __buttons[name]
+  }
+  static allPressed {
+    var pressed = {}
+    __buttons.keys.where {|key| __buttons[key].down }.each {|key| pressed[key] = __buttons[key] }
+    return pressed
   }
 
   // PRIVATE, called by game loop
@@ -143,6 +163,12 @@ class GamePad {
       _buttons[name] = DigitalInput.init()
     }
     return _buttons[name]
+  }
+
+  allPressed {
+    var pressed = {}
+    __buttons.keys.where {|key| __buttons[key].down }.each {|key| pressed[key] = __buttons[key] }
+    return pressed
   }
 
   rumble(strength, length) {

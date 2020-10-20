@@ -231,7 +231,7 @@ ENGINE_start(ENGINE* engine) {
   }
 
   //Create window
-  engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
+  engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
   if(engine->window == NULL)
   {
     char* message = "Window could not be created! SDL_Error: %s\n";
@@ -914,7 +914,7 @@ ENGINE_getMouseX(ENGINE* engine) {
   if (engine->mouseRelative) {
     return mouseX;
   } else {
-    return mouseX * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.x;
+    return mouseX * fmax((engine->width / (float)winX), engine->height / (float)winY) - viewport.x;
   }
 }
 
@@ -927,9 +927,9 @@ ENGINE_getMouseY(ENGINE* engine) {
   int winY;
   SDL_GetWindowSize(engine->window, &winX, &winY);
   if (engine->mouseRelative) {
-    return /*(engine->height / 2) +*/ mouseY; //* fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.y;
+    return mouseY;
   } else {
-    return mouseY * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.y;
+    return mouseY * fmax((engine->width / (float)winX), engine->height / (float)winY) - viewport.y;
   }
 }
 
