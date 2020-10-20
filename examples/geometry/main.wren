@@ -20,7 +20,7 @@ class Game {
       Canvas.cls()
       var x = CENTER_X + M.cos(__angle) * RADIUS
       var y = CENTER_Y + M.sin(__angle) * RADIUS
-      Canvas.line(CENTER_X, CENTER_Y, x, y, Color.blue)
+      Canvas.line(CENTER_X, CENTER_Y, x, y, Color.blue, 6)
       Canvas.print("%(x)", 1, 1, Color.red)
       Canvas.print("%(y)", 1, 10, Color.red)
       Canvas.print("%(__angle)", 1, 18, Color.red)

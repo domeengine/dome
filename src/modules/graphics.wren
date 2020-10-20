@@ -57,7 +57,7 @@ class Canvas {
   }
 
   foreign static f_pget(x, y)
-  foreign static f_line(x1, y1, x2, y2, c)
+  foreign static f_line(x1, y1, x2, y2, c, size)
   foreign static f_rectfill(x, y, w, h, c)
   foreign static f_rect(x, y, w, h, c)
   foreign static f_print(str, x, y, c)
@@ -90,11 +90,12 @@ class Canvas {
     }
   }
 
-  static line(x0, y0, x1, y1, c) {
+  static line(x0, y0, x1, y1, c) { line(x0, y0, x1, y1, c, 1) }
+  static line(x0, y0, x1, y1, c, size) {
     if (c is Color) {
-      f_line(x0, y0, x1, y1, c.toNum)
+      f_line(x0, y0, x1, y1, c.toNum, size)
     } else {
-      f_line(x0, y0, x1, y1, c)
+      f_line(x0, y0, x1, y1, c, size)
     }
   }
   static ellipse(x0, y0, x1, y1, c) {

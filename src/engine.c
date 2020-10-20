@@ -510,6 +510,24 @@ ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) 
   memcpy(line, bufStart, lineWidth * 4);
 }
 
+internal uint32_t*
+ENGINE_createMask(ENGINE* engine, uint64_t originalSize, uint32_t color) {
+  uint64_t size = originalSize;
+  uint32_t* mask = ENGINE_resizeBlitBuffer(engine, size, size);
+  for (uint64_t y = 0; y < size; y++) {
+    for (uint64_t x = 0; x < size; x++) {
+      blitPixel(mask, size, x, y, color);
+    }
+  }
+  return mask;
+}
+
+internal void
+ENGINE_drawMask(ENGINE* engine, int64_t x, int64_t y) {
+  size_t offset = engine->blitBuffer.width / 2;
+  ENGINE_blitBuffer(engine, x - offset, y - offset);
+}
+
 internal void
 ENGINE_line_high(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c) {
   int64_t dx = x2 - x1;
@@ -524,7 +542,7 @@ ENGINE_line_high(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2,
   int64_t y = y1;
   int64_t x = x1;
   while(y <= y2) {
-    ENGINE_pset(engine, x, y, c);
+    ENGINE_drawMask(engine, x, y);
     if (p > 0) {
       x += xi;
       p = p - 2 * dy;
@@ -548,7 +566,7 @@ ENGINE_line_low(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, 
   int64_t y = y1;
   int64_t x = x1;
   while(x <= x2) {
-    ENGINE_pset(engine, x, y, c);
+    ENGINE_drawMask(engine, x, y);
     if (p > 0) {
       y += yi;
       p = p - 2 * dx;
@@ -559,7 +577,9 @@ ENGINE_line_low(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, 
 }
 
 internal void
-ENGINE_line(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c) {
+ENGINE_line(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c, uint64_t size) {
+  ENGINE_createMask(engine, size, c);
+
   if (llabs(y2 - y1) < llabs(x2 - x1)) {
     if (x1 > x2) {
       ENGINE_line_low(engine, x2, y2, x1, y1, c);
@@ -574,9 +594,7 @@ ENGINE_line(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint
     }
 
   }
-
 }
-
 
 internal void
 ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t c) {
@@ -812,10 +830,10 @@ ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, u
 
 internal void
 ENGINE_rect(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint32_t c) {
-  ENGINE_line(engine, x, y, x, y+h-1, c);
-  ENGINE_line(engine, x, y, x+w-1, y, c);
-  ENGINE_line(engine, x, y+h-1, x+w-1, y+h-1, c);
-  ENGINE_line(engine, x+w-1, y, x+w-1, y+h-1, c);
+  ENGINE_line(engine, x, y, x, y+h-1, c, 1);
+  ENGINE_line(engine, x, y, x+w-1, y, c, 1);
+  ENGINE_line(engine, x, y+h-1, x+w-1, y+h-1, c, 1);
+  ENGINE_line(engine, x+w-1, y, x+w-1, y+h-1, c, 1);
 }
 
 internal void
