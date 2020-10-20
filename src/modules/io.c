@@ -308,3 +308,25 @@ internal void
 FILESYSTEM_getBasePath(WrenVM* vm) {
   wrenSetSlotString(vm, 0, BASEPATH_get());
 }
+
+internal void
+FILESYSTEM_createDirectory(WrenVM *vm) {
+  const char* path = wrenGetSlotString(vm, 1);
+  const char* fullPath;
+  mode_t mode = 0700;
+  if (path[0] != '/') {
+    char* base = BASEPATH_get();
+    fullPath = malloc(strlen(base)+strlen(path)+1);
+    strcpy((char*)fullPath, base);
+    strcat((char*)fullPath, path);
+  } else {
+    fullPath = path;
+  }
+  int result = mkdirp(fullPath, mode);
+  if (path[0] != '/') {
+    free((void*)fullPath);
+  }
+  if (result == -1) {
+    VM_ABORT(vm, "Directory could not be created");
+  }
+}

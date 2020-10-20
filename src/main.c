@@ -38,6 +38,9 @@
 #include <microtar/microtar.h>
 #include <microtar/microtar.c>
 
+#include <mkdirp/mkdirp.h>
+#include <mkdirp/mkdirp.c>
+
 // Set up STB_IMAGE
 #define STBI_FAILURE_USERMSG
 #define STBI_NO_STDIO
