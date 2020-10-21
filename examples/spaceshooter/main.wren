@@ -5,12 +5,6 @@ import "random" for Random
 import "dome" for Process, Window
 import "io" for FileSystem
 
-// ONLY ENABLE THIS IF FFI IS ENABLED
-// Make sure to run `make libadd.so` before running this
-// ---------------------------------
-// import "./test/test"
-// ---------------------------------
-
 // Consider moving Box to "graphics"
 class Box {
   construct new(x1, y1, x2, y2) {
@@ -31,17 +25,19 @@ class Box {
 class Game {
   static init() {
     Window.title = "Example Game"
-    System.print(Window.title)
     __state = MainGame
     __state.init()
 
     __settingsFile = FileSystem.load("config.txt")
     System.print(__settingsFile)
   }
+
   static update() {
 
     __x = Mouse.x
     __y = Mouse.y
+    Mouse.hidden = Mouse.isButtonPressed("right")
+    Mouse.relative = Keyboard.isKeyDown("r")
 
     __state.update()
     if (__state.next) {
@@ -49,6 +45,7 @@ class Game {
       __state.init()
     }
   }
+
   static draw(dt) {
     __state.draw(dt)
     if (Mouse.isButtonPressed("right")) {
@@ -247,8 +244,11 @@ class MainGame {
     __t = __t + 1
     var x = 0
     var y = 0
-    AudioEngine.setChannelPan(__channel, (((__t / 60) % 20) * 0.1) - 1 )
+    __channel.pan = (((__t / 60) % 20) * 0.1) - 1
     var gamepad = GamePad.next
+    if (Keyboard.isKeyDown("u")) {
+      AudioEngine.unload("music")
+    }
     if (Keyboard.isKeyDown("l")) {
       Window.lockstep = true
     }
@@ -293,8 +293,6 @@ class MainGame {
         }
       }
     }
-    // TODO: Remove this and embed it in main engine
-    // AudioEngine.update()
 
     __ship.move(x, y)
 

@@ -1,4 +1,3 @@
-
 internal WrenForeignClassMethods
 VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   WrenForeignClassMethods methods;
@@ -6,30 +5,14 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   methods.allocate = NULL;
   methods.finalize = NULL;
 
-  #if DOME_OPT_FFI
-
-  if (STRINGS_EQUAL(module, "ffi")) {
-    if (STRINGS_EQUAL(className, "LibraryHandle")) {
-      methods.allocate = LIBRARY_HANDLE_allocate;
-      methods.finalize = LIBRARY_HANDLE_finalize;
-    } else if (STRINGS_EQUAL(className, "Function")) {
-      methods.allocate = FUNCTION_allocate;
-      methods.finalize = FUNCTION_finalize;
-    } else if (STRINGS_EQUAL(className, "StructTypeData")) {
-      methods.allocate = STRUCT_TYPE_allocate;
-      methods.finalize = STRUCT_TYPE_finalize;
-    } else if (STRINGS_EQUAL(className, "Struct")) {
-      methods.allocate = STRUCT_allocate;
-      methods.finalize = STRUCT_finalize;
-    } else if (STRINGS_EQUAL(className, "Pointer")) {
-      methods.allocate = POINTER_allocate;
-    }
-  }
-  #endif
-  if (STRINGS_EQUAL(module, "graphics")) {
+  
+  if (STRINGS_EQUAL(module, "image")) {
     if (STRINGS_EQUAL(className, "ImageData")) {
       methods.allocate = IMAGE_allocate;
       methods.finalize = IMAGE_finalize;
+    } else if (STRINGS_EQUAL(className, "DrawCommand")) {
+      methods.allocate = DRAW_COMMAND_allocate;
+      methods.finalize = DRAW_COMMAND_finalize;
     }
   } else if (STRINGS_EQUAL(module, "io")) {
     if (STRINGS_EQUAL(className, "DataBuffer")) {
@@ -43,20 +26,27 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
     if (STRINGS_EQUAL(className, "AudioData")) {
       methods.allocate = AUDIO_allocate;
       methods.finalize = AUDIO_finalize;
-    } else if (STRINGS_EQUAL(className, "AudioChannel")) {
+    } else if (STRINGS_EQUAL(className, "SystemChannel")) {
       methods.allocate = AUDIO_CHANNEL_allocate;
       methods.finalize = AUDIO_CHANNEL_finalize;
     }
   } else if (STRINGS_EQUAL(module, "input")) {
-    if (STRINGS_EQUAL(className, "GamePad")) {
+    if (STRINGS_EQUAL(className, "SystemGamePad")) {
       methods.allocate = GAMEPAD_allocate;
       methods.finalize = GAMEPAD_finalize;
+    }
+  } else if (STRINGS_EQUAL(module, "font")) {
+    if (STRINGS_EQUAL(className, "FontFile")) {
+      methods.allocate = FONT_allocate;
+      methods.finalize = FONT_finalize;
+    } else if (STRINGS_EQUAL(className, "RasterizedFont")) {
+      methods.allocate = FONT_RASTER_allocate;
+      methods.finalize = FONT_RASTER_finalize;
     }
   } else {
     // TODO: Check if it's a module we lazy-loaded
 
   }
-
 
   return methods;
 }
@@ -68,59 +58,115 @@ internal WrenForeignMethodFn VM_bind_foreign_method(
     bool isStatic,
     const char* signature) {
 
+  // This file is seperate because it has a Copyright notice with it.
+#include "signature.c.inc"
+
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  ForeignFunctionMap fnMap = engine->fnMap;
-  return MAP_get(&fnMap, module, className, signature, isStatic);
+  MAP moduleMap = engine->moduleMap;
+  return MAP_getFunction(&moduleMap, module, fullName);
 }
 
 internal char* VM_load_module(WrenVM* vm, const char* name) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  ModuleMap moduleMap = engine->moduleMap;
-  if (strncmp("./", name, 2) != 0) {
-    if (DEBUG_MODE) {
-      printf("Loading module %s\n", name);
-    }
-    return (char*)ModuleMap_get(&moduleMap, name);
+  MAP moduleMap = engine->moduleMap;
+
+  if (DEBUG_MODE) {
+    ENGINE_printLog(engine, "Loading module %s from ", name);
   }
 
-  printf("Loading module %s\n", name);
+  // Check against wren optional modules
+#if WREN_OPT_META
+  if (strcmp(name, "meta") == 0) {
+    if (DEBUG_MODE) {
+      ENGINE_printLog(engine, "wren\n", name);
+    }
+    return NULL;
+  }
+#endif
+#if WREN_OPT_RANDOM
+  if (strcmp(name, "random") == 0) {
+    if (DEBUG_MODE) {
+      ENGINE_printLog(engine, "wren\n", name);
+    }
+    return NULL;
+  }
+#endif
 
+  // Check against dome modules
+  char* module = (char*)MAP_getSource(&moduleMap, name);
+
+  if (module != NULL) {
+    if (DEBUG_MODE) {
+      ENGINE_printLog(engine, "dome\n", name);
+    }
+    return module;
+  }
+
+  // Otherwise, search on filesystem
   char* extension = ".wren";
   char* path;
   path = malloc(strlen(name)+strlen(extension)+1); /* make space for the new string (should check the return value ...) */
   strcpy(path, name); /* add the extension */
   strcat(path, extension); /* add the extension */
 
+  if (DEBUG_MODE) {
+    ENGINE_printLog(engine, "%s\n", engine->tar ? "egg bundle" : "filesystem");
+  }
+
   // This pointer becomes owned by the WrenVM and freed later.
   char* file = ENGINE_readFile(engine, path, NULL);
+
   free(path);
   return file;
 }
 
 // Debug output for VM
 internal void VM_write(WrenVM* vm, const char* text) {
-  printf("%s", text);
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ENGINE_printLog(engine, "%s", text);
 }
 
 internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
     int line, const char* message) {
 
-  if (DEBUG_MODE == false) {
-    ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-    ModuleMap moduleMap = engine->moduleMap;
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
 
-    if (module != NULL && ModuleMap_get(&moduleMap, module) != NULL) {
+  if (DEBUG_MODE == false) {
+    MAP moduleMap = engine->moduleMap;
+
+    if (module != NULL && MAP_getModule(&moduleMap, module) != NULL) {
       return;
     }
   }
 
+
+  size_t bufSize = 255;
+  char error[bufSize];
+
   if (type == WREN_ERROR_COMPILE) {
-    printf("%s:%d: %s\n", module, line, message);
+    snprintf(error, bufSize, "%s:%d: %s\n", module, line, message);
   } else if (type == WREN_ERROR_RUNTIME) {
-    printf("Runtime error: %s\n", message);
+    snprintf(error, bufSize, "Runtime error: %s\n", message);
   } else if (type == WREN_ERROR_STACK_TRACE) {
-    printf("  %d: %s\n", line, module);
+    snprintf(error, bufSize, "  %d: %s\n", line, module);
   }
+  size_t len = strlen(error);
+  while ((len + engine->debug.errorBufLen) >= engine->debug.errorBufMax) {
+    char* oldBuf = engine->debug.errorBuf;
+    engine->debug.errorBufMax += 64;
+    engine->debug.errorBuf = realloc(engine->debug.errorBuf, sizeof(char) * engine->debug.errorBufMax);
+    if (engine->debug.errorBufMax == 64) {
+      engine->debug.errorBuf[0] = '\0';
+    }
+    if (engine->debug.errorBuf == NULL) {
+      // If we can't allocate more memory, rollback to the old pointer.
+      engine->debug.errorBuf = oldBuf;
+      engine->debug.errorBufMax -= 64;
+      return;
+    }
+  }
+  strcat(engine->debug.errorBuf, error);
+  engine->debug.errorBufLen += len;
 }
 
 internal WrenVM* VM_create(ENGINE* engine) {
@@ -131,8 +177,6 @@ internal WrenVM* VM_create(ENGINE* engine) {
   config.bindForeignMethodFn = VM_bind_foreign_method;
   config.bindForeignClassFn = VM_bind_foreign_class;
   config.loadModuleFn = VM_load_module;
-  config.initialHeapSize = INITIAL_HEAP_SIZE;
-  config.minHeapSize = 1024 * 1024 * 10;
 
   WrenVM* vm = wrenNewVM(&config);
   wrenSetUserData(vm, engine);
@@ -140,81 +184,108 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Set modules
 
   // DOME
-  MAP_add(&engine->fnMap, "dome", "Process", "f_exit(_)", true, PROCESS_exit);
-  MAP_add(&engine->fnMap, "dome", "Window", "resize(_,_)", true, WINDOW_resize);
-  MAP_add(&engine->fnMap, "dome", "Window", "title=(_)", true, WINDOW_setTitle);
-  MAP_add(&engine->fnMap, "dome", "Window", "vsync=(_)", true, WINDOW_setVsync);
-  MAP_add(&engine->fnMap, "dome", "Window", "lockstep=(_)", true, WINDOW_setLockStep);
-  MAP_add(&engine->fnMap, "dome", "Window", "title", true, WINDOW_getTitle);
-
-#if DOME_OPT_FFI
-  // FFI
-  MAP_add(&engine->fnMap, "ffi", "Function", "f_call(_)", false, FUNCTION_call);
-  MAP_add(&engine->fnMap, "ffi", "StructTypeData", "getMemberOffset(_)", false, STRUCT_TYPE_getOffset);
-  MAP_add(&engine->fnMap, "ffi", "Struct", "getValue(_)", false, STRUCT_getValue);
-  MAP_add(&engine->fnMap, "ffi", "Pointer", "asString()", false, POINTER_asString);
-  MAP_add(&engine->fnMap, "ffi", "Pointer", "asBytes(_)", false, POINTER_asBytes);
-  MAP_add(&engine->fnMap, "ffi", "Pointer", "reserve(_)", true, POINTER_reserve);
-  MAP_add(&engine->fnMap, "ffi", "Pointer", "free()", false, POINTER_free);
-#endif
+  MAP_addFunction(&engine->moduleMap, "dome", "static StringUtils.toLowercase(_)", STRING_UTILS_toLowercase);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Process.f_exit(_)", PROCESS_exit);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.resize(_,_)", WINDOW_resize);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.title=(_)", WINDOW_setTitle);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.vsync=(_)", WINDOW_setVsync);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.lockstep=(_)", WINDOW_setLockStep);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.title", WINDOW_getTitle);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.fullscreen=(_)", WINDOW_setFullscreen);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.fullscreen", WINDOW_getFullscreen);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.width", WINDOW_getWidth);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.height", WINDOW_getHeight);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.fps", WINDOW_getFps);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Version.toString", VERSION_getString);
 
   // Canvas
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_pset(_,_,_)", true, CANVAS_pset);
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_rectfill(_,_,_,_,_)", true, CANVAS_rectfill);
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_rect(_,_,_,_,_)", true, CANVAS_rect);
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_line(_,_,_,_,_)", true, CANVAS_line);
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_circle(_,_,_,_)", true, CANVAS_circle);
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_circlefill(_,_,_,_)", true, CANVAS_circle_filled);
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_ellipse(_,_,_,_,_)", true, CANVAS_ellipse);
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_ellipsefill(_,_,_,_,_)", true, CANVAS_ellipsefill);
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_print(_,_,_,_)", true, CANVAS_print);
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "f_resize(_,_,_)", true, CANVAS_resize);
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "width", true, CANVAS_getWidth);
-  MAP_add(&engine->fnMap, "graphics", "Canvas", "height", true, CANVAS_getHeight);
-  MAP_add(&engine->fnMap, "graphics", "ImageData", "draw(_,_)", false, IMAGE_draw);
-  MAP_add(&engine->fnMap, "graphics", "ImageData", "width", false, IMAGE_getWidth);
-  MAP_add(&engine->fnMap, "graphics", "ImageData", "height", false, IMAGE_getHeight);
-  MAP_add(&engine->fnMap, "graphics", "ImageData", "drawArea(_,_,_,_,_,_)", false, IMAGE_drawArea);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_pset(_,_,_)", CANVAS_pset);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_pget(_,_)", CANVAS_pget);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_rectfill(_,_,_,_,_)", CANVAS_rectfill);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_cls(_)", CANVAS_cls);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_rect(_,_,_,_,_)", CANVAS_rect);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_line(_,_,_,_,_,_)", CANVAS_line);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_circle(_,_,_,_)", CANVAS_circle);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_circlefill(_,_,_,_)", CANVAS_circle_filled);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_ellipse(_,_,_,_,_)", CANVAS_ellipse);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_ellipsefill(_,_,_,_,_)", CANVAS_ellipsefill);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_print(_,_,_,_)", CANVAS_print);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.offset(_,_)", CANVAS_offset);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_resize(_,_,_)", CANVAS_resize);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.width", CANVAS_getWidth);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.height", CANVAS_getHeight);
+
+  // Font
+  MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.f_print(_,_,_,_)", FONT_RASTER_print);
+  MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.antialias=(_)", FONT_RASTER_setAntiAlias);
+  // Image
+  MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_loadFromFile(_)", IMAGE_loadFromFile);
+  MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_getPNG()", IMAGE_getPNG);
+  MAP_addFunction(&engine->moduleMap, "image", "ImageData.draw(_,_)", IMAGE_draw);
+  MAP_addFunction(&engine->moduleMap, "image", "ImageData.width", IMAGE_getWidth);
+  MAP_addFunction(&engine->moduleMap, "image", "ImageData.height", IMAGE_getHeight);
+  MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_pget(_,_)", IMAGE_pget);
+  MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_pset(_,_,_)", IMAGE_pset);
+  MAP_addFunction(&engine->moduleMap, "image", "DrawCommand.draw(_,_)", DRAW_COMMAND_draw);
 
   // Audio
-  MAP_add(&engine->fnMap, "audio", "AudioChannel", "enabled=(_)", false, AUDIO_CHANNEL_setEnabled);
-  MAP_add(&engine->fnMap, "audio", "AudioChannel", "loop=(_)", false, AUDIO_CHANNEL_setLoop);
-  MAP_add(&engine->fnMap, "audio", "AudioChannel", "pan=(_)", false, AUDIO_CHANNEL_setPan);
-  MAP_add(&engine->fnMap, "audio", "AudioChannel", "volume=(_)", false, AUDIO_CHANNEL_setVolume);
-  MAP_add(&engine->fnMap, "audio", "AudioChannel", "isFinished", false, AUDIO_CHANNEL_isFinished);
-  MAP_add(&engine->fnMap, "audio", "AudioChannel", "id", false, AUDIO_CHANNEL_getId);
-  MAP_add(&engine->fnMap, "audio", "AudioData", "unload()", false, AUDIO_unload);
-  MAP_add(&engine->fnMap, "audio", "AudioEngine", "f_update(_)", true, AUDIO_ENGINE_update);
-  MAP_add(&engine->fnMap, "audio", "AudioEngine", "f_captureVariable()", true, AUDIO_ENGINE_capture);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.enabled=(_)", AUDIO_CHANNEL_setEnabled);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.enabled", AUDIO_CHANNEL_getEnabled);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.loop=(_)", AUDIO_CHANNEL_setLoop);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.loop", AUDIO_CHANNEL_getLoop);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.pan=(_)", AUDIO_CHANNEL_setPan);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.pan", AUDIO_CHANNEL_getPan);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.volume", AUDIO_CHANNEL_getVolume);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.volume=(_)", AUDIO_CHANNEL_setVolume);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.position=(_)", AUDIO_CHANNEL_setPosition);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.state=(_)", AUDIO_CHANNEL_setState);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.audio=(_)", AUDIO_CHANNEL_setAudio);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.state", AUDIO_CHANNEL_getState);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.length", AUDIO_CHANNEL_getLength);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.position", AUDIO_CHANNEL_getPosition);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.soundId", AUDIO_CHANNEL_getSoundId);
+
+  MAP_addFunction(&engine->moduleMap, "audio", "AudioData.length", AUDIO_getLength);
+
+  MAP_addFunction(&engine->moduleMap, "audio", "static AudioEngine.f_update(_)", AUDIO_ENGINE_update);
+  MAP_addFunction(&engine->moduleMap, "audio", "static AudioEngine.f_captureVariable()", AUDIO_ENGINE_capture);
 
   // FileSystem
-  MAP_add(&engine->fnMap, "io", "FileSystem", "f_load(_,_)", true, FILESYSTEM_loadAsync);
-  MAP_add(&engine->fnMap, "io", "FileSystem", "load(_)", true, FILESYSTEM_loadSync);
-  MAP_add(&engine->fnMap, "io", "FileSystem", "save(_,_)", true, FILESYSTEM_saveSync);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.f_load(_,_)", FILESYSTEM_loadAsync);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.load(_)", FILESYSTEM_loadSync);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.save(_,_)", FILESYSTEM_saveSync);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.listFiles(_)", FILESYSTEM_listFiles);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.listDirectories(_)", FILESYSTEM_listDirectories);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.prefPath(_,_)", FILESYSTEM_getPrefPath);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.basePath()", FILESYSTEM_getBasePath);
+
 
   // Buffer
-  MAP_add(&engine->fnMap, "io", "DataBuffer", "f_capture()", true, DBUFFER_capture);
-  MAP_add(&engine->fnMap, "io", "DataBuffer", "f_data", false, DBUFFER_getData);
-  MAP_add(&engine->fnMap, "io", "DataBuffer", "ready", false, DBUFFER_getReady);
-  MAP_add(&engine->fnMap, "io", "DataBuffer", "f_length", false, DBUFFER_getLength);
+  MAP_addFunction(&engine->moduleMap, "io", "static DataBuffer.f_capture()", DBUFFER_capture);
+  MAP_addFunction(&engine->moduleMap, "io", "DataBuffer.f_data", DBUFFER_getData);
+  MAP_addFunction(&engine->moduleMap, "io", "DataBuffer.ready", DBUFFER_getReady);
+  MAP_addFunction(&engine->moduleMap, "io", "DataBuffer.f_length", DBUFFER_getLength);
 
   // AsyncOperation
-  MAP_add(&engine->fnMap, "io", "AsyncOperation", "result", false, ASYNCOP_getResult);
-  MAP_add(&engine->fnMap, "io", "AsyncOperation", "complete", false, ASYNCOP_getComplete);
+  MAP_addFunction(&engine->moduleMap, "io", "AsyncOperation.result", ASYNCOP_getResult);
+  MAP_addFunction(&engine->moduleMap, "io", "AsyncOperation.complete", ASYNCOP_getComplete);
 
   // Input
-  MAP_add(&engine->fnMap, "input", "Keyboard", "isKeyDown(_)", true, KEYBOARD_isKeyDown);
-  MAP_add(&engine->fnMap, "input", "Mouse", "x", true, MOUSE_getX);
-  MAP_add(&engine->fnMap, "input", "Mouse", "y", true, MOUSE_getY);
-  MAP_add(&engine->fnMap, "input", "Mouse", "isButtonPressed(_)", true, MOUSE_isButtonPressed);
-  MAP_add(&engine->fnMap, "input", "GamePad", "f_getGamePadIds()", true, GAMEPAD_getGamePadIds);
-  MAP_add(&engine->fnMap, "input", "GamePad", "f_isButtonPressed(_)", false, GAMEPAD_isButtonPressed);
-  MAP_add(&engine->fnMap, "input", "GamePad", "getTrigger(_)", false, GAMEPAD_getTrigger);
-  MAP_add(&engine->fnMap, "input", "GamePad", "close()", false, GAMEPAD_close);
-  MAP_add(&engine->fnMap, "input", "GamePad", "f_getAnalogStick(_)", false, GAMEPAD_getAnalogStick);
-  MAP_add(&engine->fnMap, "input", "GamePad", "attached", false, GAMEPAD_isAttached);
-  MAP_add(&engine->fnMap, "input", "GamePad", "name", false, GAMEPAD_getName);
-  MAP_add(&engine->fnMap, "input", "GamePad", "id", false, GAMEPAD_getId);
+  MAP_addFunction(&engine->moduleMap, "input", "static Input.f_captureVariables()", INPUT_capture);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.x", MOUSE_getX);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.y", MOUSE_getY);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.hidden=(_)", MOUSE_setHidden);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.hidden", MOUSE_getHidden);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.relative=(_)", MOUSE_setRelative);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.relative", MOUSE_getRelative);
+  MAP_addFunction(&engine->moduleMap, "input", "static SystemGamePad.f_getGamePadIds()", GAMEPAD_getGamePadIds);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.getTrigger(_)", GAMEPAD_getTrigger);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.close()", GAMEPAD_close);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.f_getAnalogStick(_)", GAMEPAD_getAnalogStick);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.rumble(_,_)", GAMEPAD_rumble);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.attached", GAMEPAD_isAttached);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.name", GAMEPAD_getName);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.id", GAMEPAD_getId);
 
   return vm;
 }

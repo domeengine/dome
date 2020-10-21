@@ -1,12 +1,3 @@
-internal void DEBUG_printFloat(float f) {
-  printf("%f\n", f);
-}
-internal void DEBUG_printInt(int i) {
-  printf("%i\n", i);
-}
-internal void DEBUG_printString(char* str) {
-  printf("%s\n", str);
-}
 
 internal char*
 DEBUG_printWrenType(WrenType type) {
@@ -21,27 +12,32 @@ DEBUG_printWrenType(WrenType type) {
   }
 }
 
-internal void DEBUG_printAudioSpec(SDL_AudioSpec spec, AUDIO_TYPE type) {
+// forward declare
+internal void ENGINE_printLog(ENGINE* engine, char* line, ...);
+#define eprintf(...) ENGINE_printLog(engine, __VA_ARGS__)
+
+internal void DEBUG_printAudioSpec(ENGINE* engine, SDL_AudioSpec spec, AUDIO_TYPE type) {
   if (type == AUDIO_TYPE_WAV) {
-    printf("WAV ");
-  } else if (type == AUDIO_TYPE_WAV) {
-    printf("OGG ");
+    eprintf("WAV ");
+  } else if (type == AUDIO_TYPE_OGG) {
+    eprintf("OGG ");
   } else {
-    printf("Unknown audio file detected\n");
+    eprintf("Unknown audio file detected\n");
   }
-  printf("Audio: %i Hz ", spec.freq);
-  printf("%s", spec.channels == 0 ? "Mono" : "Stereo");
-  printf(" - ");
+  eprintf("Audio: %i Hz ", spec.freq);
+  eprintf("%s", spec.channels == 0 ? "Mono" : "Stereo");
+  eprintf(" - ");
   if (SDL_AUDIO_ISSIGNED(spec.format)) {
-    printf("Signed ");
+    eprintf("Signed ");
   } else {
-    printf("Unsigned ");
+    eprintf("Unsigned ");
   }
-  printf("%i bit (", SDL_AUDIO_BITSIZE(spec.format));
+  eprintf("%i bit (", SDL_AUDIO_BITSIZE(spec.format));
   if (SDL_AUDIO_ISLITTLEENDIAN(spec.format)) {
-    printf("LSB");
+    eprintf("LSB");
   } else {
-    printf("MSB");
+    eprintf("MSB");
   }
-  printf(")\n");
+  eprintf(")\n");
 }
+#undef eprintf

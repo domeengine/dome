@@ -1,36 +1,32 @@
-// TODO: We need this for realpath in BSD, but it won't be available in windows (_fullpath)
 #define _DEFAULT_SOURCE
+#define NOMINMAX
 
-#define DOME_VERSION "1.0.0-alpha"
+#ifndef DOME_VERSION
+#define DOME_VERSION "0.0.0 - CUSTOM"
+#endif
 
 // Standard libs
+#ifdef __MINGW32__
+#include <windows.h>
+#endif
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <ctype.h>
+#include <tinydir.h>
+#include <utf8.h>
 
 #include <unistd.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <math.h>
 #include <libgen.h>
-#include <setjmp.h>
-#ifdef __MINGW32__
-#define SET_JMP __builtin_setjmp
-#define LONG_JMP __builtin_longjmp
-#else
-#define SET_JMP setjmp
-#define LONG_JMP longjmp
-#endif
 
 
 #include <wren.h>
 #include <SDL.h>
 #include <jo_gif.h>
-
-#if DOME_OPT_FFI
-#include <ffi.h>
-#endif
 
 #define OPTPARSE_IMPLEMENTATION
 #include <optparse.h>
@@ -49,6 +45,9 @@
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
+
+#define STB_TRUETYPE_IMPLEMENTATION
+#include <stb_truetype.h>
 
 // Setup STB_VORBIS
 #define STB_VORBIS_NO_PUSHDATA_API
@@ -88,11 +87,13 @@
 #define SCREEN_WIDTH GAME_WIDTH * 2
 #define SCREEN_HEIGHT GAME_HEIGHT * 2
 
-// We need this here so it can be used by the DOME module
-global_variable jmp_buf loop_exit;
 // Used in the io variable, but we need to catch it here
 global_variable WrenHandle* bufferClass = NULL;
 global_variable WrenHandle* audioEngineClass = NULL;
+global_variable WrenHandle* keyboardClass = NULL;
+global_variable WrenHandle* mouseClass = NULL;
+global_variable WrenHandle* gamepadClass = NULL;
+global_variable WrenHandle* updateInputMethod = NULL;
 
 // These are set by cmd arguments
 #ifdef DEBUG
@@ -100,26 +101,25 @@ global_variable bool DEBUG_MODE = true;
 #else
 global_variable bool DEBUG_MODE = false;
 #endif
-global_variable size_t INITIAL_HEAP_SIZE = 1024 * 1024 * 100;
 global_variable size_t AUDIO_BUFFER_SIZE = 2048;
+global_variable size_t GIF_SCALE = 1;
 
 // Game code
 #include "math.c"
 #include "strings.c"
 #include "audio_types.c"
+#include "modules/map.c"
+#include "engine.h"
 #include "debug.c"
 /*
 #include "util/font.c"
 */
 #include "util/font8x8.h"
 #include "io.c"
-#include "map.c"
-#include "modules/modules.c"
 #include "engine.c"
 #include "modules/dome.c"
-#if DOME_OPT_FFI
-#include "modules/ffi.c"
-#endif
+
+#include "modules/font.c"
 #include "modules/io.c"
 #include "modules/audio.c"
 #include "modules/graphics.c"
@@ -128,74 +128,66 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "vm.c"
 
 internal void
-printTitle(void) {
-  printf("DOME - Dynamic Opinionated Mini Engine\n");
+printTitle(ENGINE* engine) {
+  ENGINE_printLog(engine, "DOME - Design-Oriented Minimalist Engine\n");
 }
 
 internal void
-printVersion(void) {
-  printf("Version: " DOME_VERSION " - " HASH"\n");
+printVersion(ENGINE* engine) {
+  ENGINE_printLog(engine, "Version: " DOME_VERSION " - " HASH"\n");
   SDL_version compiled;
   SDL_version linked;
 
   SDL_VERSION(&compiled);
   SDL_GetVersion(&linked);
-  printf("SDL version: %d.%d.%d (Compiled)\n", compiled.major, compiled.minor, compiled.patch);
-  printf("SDL version %d.%d.%d (Linked)\n", linked.major, linked.minor, linked.patch);
+  ENGINE_printLog(engine, "SDL version: %d.%d.%d (Compiled)\n", compiled.major, compiled.minor, compiled.patch);
+  ENGINE_printLog(engine, "SDL version %d.%d.%d (Linked)\n", linked.major, linked.minor, linked.patch);
+  ENGINE_printLog(engine, "Wren version: %d.%d.%d\n", WREN_VERSION_MAJOR, WREN_VERSION_MINOR, WREN_VERSION_PATCH);
 
-#if DOME_OPT_FFI
-  printf("FFI module is available");
-#else
-  printf("FFI module is unavailable");
-#endif
+  ENGINE_printLog(engine, "\n");
 }
 
 
 internal void
-printUsage(void) {
-  printf("\nUsage: \n");
-  printf("  dome [-d | --debug] [-r<gif> | --record=<gif>] [-b<buf> | --buffer=<buf>] [-i<size> | --initial-heap=<size>] [entry path]\n");
-  printf("  dome -h | --help\n");
-  printf("  dome -v | --version\n");
-  printf("\nOptions: \n");
-  printf("  -b --buffer=<buf>   Set the audio buffer size (default: 11)\n");
-  printf("  -d --debug          Enables debug mode\n");
-  printf("  -h --help           Show this screen.\n");
-  printf("  -v --version        Show version.\n");
-  printf("  -r --record=<gif>   Record video to <gif>.\n");
+printUsage(ENGINE* engine) {
+  ENGINE_printLog(engine, "\nUsage: \n");
+  ENGINE_printLog(engine, "  dome [-c] [-d | --debug] [-r<gif> | --record=<gif>] [-b<buf> | --buffer=<buf>] [entry path]\n");
+  ENGINE_printLog(engine, "  dome -h | --help\n");
+  ENGINE_printLog(engine, "  dome -v | --version\n");
+  ENGINE_printLog(engine, "\nOptions: \n");
+  ENGINE_printLog(engine, "  -b --buffer=<buf>   Set the audio buffer size (default: 11)\n");
+#ifdef __MINGW32__
+  ENGINE_printLog(engine, "  -c --console        Opens a console window for development.\n");
+#endif
+  ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
+  ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
+  ENGINE_printLog(engine, "  -v --version        Show version.\n");
+  ENGINE_printLog(engine, "  -r --record=<gif>   Record video to <gif>.\n");
 }
 
 int main(int argc, char* args[])
 {
-
-#if defined _WIN32
-  SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
-#endif
-
-  bool makeGif = false;
-  char* gifName = "test.gif";
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   size_t gameFileLength;
   char* gameFile;
   INIT_TO_ZERO(ENGINE, engine);
+  engine.record.gifName = "test.gif";
+  engine.record.makeGif = false;
 
-  //Initialize SDL
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0)
-  {
-    printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-    result = EXIT_FAILURE;
-    goto cleanup;
-  }
+  ENGINE_init(&engine);
 
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
     {"buffer", 'b', OPTPARSE_REQUIRED},
+    #ifdef __MINGW32__
+    {"console", 'c', OPTPARSE_NONE},
+    #endif
     {"debug", 'd', OPTPARSE_NONE},
-    {"initial", 'i', OPTPARSE_REQUIRED},
     {"help", 'h', OPTPARSE_NONE},
     {"version", 'v', OPTPARSE_NONE},
     {"record", 'r', OPTPARSE_OPTIONAL},
+    {"scale", 's', OPTPARSE_REQUIRED},
     {0}
   };
   // char *arg;
@@ -204,6 +196,15 @@ int main(int argc, char* args[])
   optparse_init(&options, args);
   while ((option = optparse_long(&options, longopts, NULL)) != -1) {
     switch (option) {
+      case 's':
+        {
+          int scale = atoi(options.optarg);
+          if (scale <= 0) {
+            // If it wasn't valid, set to a meaningful default.
+            GIF_SCALE = 1;
+          }
+          GIF_SCALE = scale;
+        } break;
       case 'b':
         {
           int shift = atoi(options.optarg);
@@ -213,33 +214,34 @@ int main(int argc, char* args[])
           }
           AUDIO_BUFFER_SIZE = 1 << shift;
         } break;
+#ifdef __MINGW32__
+      case 'c': {
+          AllocConsole();
+          freopen("CONIN$", "r", stdin);
+          freopen("CONOUT$", "w", stdout);
+          freopen("CONOUT$", "w", stderr);
+      } break;
+#endif
       case 'd':
         DEBUG_MODE = true;
-        printf("Debug Mode enabled\n");
+        ("Debug Mode enabled\n");
         break;
       case 'h':
-        printTitle();
-        printUsage();
+        printTitle(&engine);
+        printUsage(&engine);
         goto cleanup;
-      case 'i':
-        INITIAL_HEAP_SIZE = atoi(options.optarg) * 1024 * 1024;
-        if (INITIAL_HEAP_SIZE == 0) {
-          // If it wasn't valid, set to a meaningful default.
-          INITIAL_HEAP_SIZE = 100 * 1024 * 1024;
-        }
-        break;
       case 'r':
-        makeGif = true;
+        engine.record.makeGif = true;
         if (options.optarg != NULL) {
-          gifName = options.optarg;
+          engine.record.gifName = options.optarg;
         } else {
-          gifName = "dome.gif";
+          engine.record.gifName = "dome.gif";
         }
-        printf("GIF Recording is enabled: Saving to %s\n", gifName);
+        ENGINE_printLog(&engine, "GIF Recording is enabled: Saving to %s\n", engine.record.gifName);
         break;
       case 'v':
-        printTitle();
-        printVersion();
+        printTitle(&engine);
+        printVersion(&engine);
         goto cleanup;
       case '?':
         fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
@@ -251,74 +253,68 @@ int main(int argc, char* args[])
   {
     char* defaultEggName = "game.egg";
     char* mainFileName = "main.wren";
-    char* fileName = defaultEggName;
 
     char* base = BASEPATH_get();
     char* arg = optparse_arg(&options);
+
+    char pathBuf[PATH_MAX];
+
+    char* fileName = NULL;
+
     if (arg != NULL) {
-      fileName = arg;
-    } else {
-      fileName = defaultEggName;
-    }
-
-    size_t baseLen = strlen(base);
-    size_t fileNameLen = strlen(fileName);
-    char* pathBuf = calloc(baseLen + fileNameLen + 1, sizeof(char));
-    strcpy(pathBuf, base);
-    strcat(pathBuf, fileName);
-    // Re-target basepath to the argument given
-    if (isDirectory(pathBuf)) {
-      BASEPATH_set(pathBuf);
-      fileName = defaultEggName;
-      fileNameLen = strlen(fileName);
-      arg = NULL;
-    } else {
-      BASEPATH_set(dirname(pathBuf));
-    }
-    base = BASEPATH_get();
-    baseLen = strlen(base);
-
-    if (isDirectory(pathBuf)) {
-      pathBuf = realloc(pathBuf, (baseLen + fileNameLen + 1) *  sizeof(char));
       strcpy(pathBuf, base);
-      strcat(pathBuf, defaultEggName);
+      strcat(pathBuf, arg);
+      if (isDirectory(pathBuf)) {
+        BASEPATH_set(pathBuf);
+      } else {
+        char* dirc = strdup(pathBuf);
+        char* basec = strdup(pathBuf);
+        fileName = basename(dirc);
+        BASEPATH_set(dirname(basec));
+        free(dirc);
+        free(basec);
+      }
+
+      base = BASEPATH_get();
     }
 
+    strcpy(pathBuf, base);
+    strcat(pathBuf, fileName ? fileName : defaultEggName);
 
     if (doesFileExist(pathBuf)) {
       engine.tar = malloc(sizeof(mtar_t));
       int tarResult = mtar_open(engine.tar, pathBuf, "r");
-      if (tarResult != MTAR_ESUCCESS) {
+      if (tarResult == MTAR_ESUCCESS) {
+        ENGINE_printLog(&engine, "Loading bundle %s\n", pathBuf);
+      } else {
         free(engine.tar);
         engine.tar = NULL;
-        fileName = basename(pathBuf);
-      } else {
-        printf("Loading bundle %s\n", pathBuf);
-        fileName = mainFileName;
       }
-    } else if (arg == NULL) {
-      fileName = mainFileName;
     }
-    free(pathBuf);
-    gameFile = ENGINE_readFile(&engine, fileName, &gameFileLength);
+
+    if (engine.tar != NULL) {
+      strcpy(pathBuf, mainFileName);
+    } else {
+      strcpy(pathBuf, fileName ? fileName : mainFileName);
+    }
+
+    gameFile = ENGINE_readFile(&engine, pathBuf, &gameFileLength);
     if (gameFile == NULL) {
       if (engine.tar != NULL) {
-        printf("Error: Could not load main.wren in bundle.\n\n");
-      } else if (arg == NULL) {
-        printf("Error: Could not find a default entry path.\n\n");
+        ENGINE_printLog(&engine, "Error: Could not load %s in bundle.\n", pathBuf);
       } else {
-        printf("Error: %s does not exist.\n", arg);
+        ENGINE_printLog(&engine, "Error: Could not load %s.\n", pathBuf);
       }
-      printUsage();
+      printUsage(&engine);
       result = EXIT_FAILURE;
       goto cleanup;
     }
   }
 
-  result = ENGINE_init(&engine);
+  result = ENGINE_start(&engine);
   if (result == EXIT_FAILURE) {
     goto cleanup;
-  };
+  }
 
   // Configure Wren VM
   vm = VM_create(&engine);
@@ -333,6 +329,7 @@ int main(int argc, char* args[])
   }
   // Load the class into slot 0.
 
+
   wrenEnsureSlots(vm, 3);
   WrenHandle* initMethod = wrenMakeCallHandle(vm, "init()");
   WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update()");
@@ -343,170 +340,215 @@ int main(int argc, char* args[])
   // Initiate game loop
   uint8_t FPS = 60;
   double MS_PER_FRAME = ceil(1000.0 / FPS);
+  SDL_Thread* recordThread = NULL;
 
-  if (SET_JMP(loop_exit) == 0) {
-    wrenSetSlotHandle(vm, 0, gameClass);
-    interpreterResult = wrenCall(vm, initMethod);
-    if (interpreterResult != WREN_RESULT_SUCCESS) {
-      result = EXIT_FAILURE;
-      goto vm_cleanup;
-    }
-    SDL_ShowWindow(engine.window);
-    SDL_SetRenderDrawColor( engine.renderer, 0x00, 0x00, 0x00, 0xFF);
+  wrenSetSlotHandle(vm, 0, gameClass);
+  interpreterResult = wrenCall(vm, initMethod);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    result = EXIT_FAILURE;
+    goto vm_cleanup;
   }
+  engine.initialized = true;
 
-  jo_gif_t gif;
-  size_t imageSize = engine.width * engine.height;
-  uint8_t t = 0;
-  uint8_t* destroyableImage = NULL;
-  if (makeGif) {
-    destroyableImage = (uint8_t*)malloc(imageSize*4*sizeof(uint8_t));
-    gif = jo_gif_start(gifName, engine.width, engine.height, 0, 31);
+
+  SDL_ShowWindow(engine.window);
+  SDL_SetRenderDrawColor(engine.renderer, 0x00, 0x00, 0x00, 0xFF);
+
+  // Resizing from init must happen before we begin recording
+  if (engine.record.makeGif) {
+    recordThread = SDL_CreateThread(ENGINE_record, "DOMErecorder", &engine);
   }
-
   uint64_t previousTime = SDL_GetPerformanceCounter();
   int32_t lag = 0;
+  bool windowHasFocus = false;
   SDL_Event event;
-  if (SET_JMP(loop_exit) == 0) {
+  while (engine.running) {
 
-    while (engine.running) {
-
-      // processInput()
-      while(SDL_PollEvent(&event)) {
-        switch (event.type)
-        {
-          case SDL_QUIT:
-            engine.running = false;
-            break;
-          case SDL_WINDOWEVENT:
-            {
-              if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                SDL_RenderGetViewport(engine.renderer, &(engine.viewport));
-              }
-            } break;
-          case SDL_KEYDOWN:
-          case SDL_KEYUP:
-            {
-              SDL_Keycode keyCode = event.key.keysym.sym;
-              if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-                engine.debugEnabled = !engine.debugEnabled;
-              } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-                ENGINE_takeScreenshot(&engine);
-              }
-            } break;
-          case SDL_CONTROLLERDEVICEADDED:
-            {
-              GAMEPAD_eventAdded(vm, event.cdevice.which);
-            } break;
-          case SDL_CONTROLLERDEVICEREMOVED:
-            {
-              GAMEPAD_eventRemoved(vm, event.cdevice.which);
-            } break;
-          case SDL_USEREVENT:
-            {
-              printf("Event code %i\n", event.user.code);
-              if (event.user.code == EVENT_LOAD_FILE) {
-                FILESYSTEM_loadEventComplete(&event);
+    // processInput()
+    while(SDL_PollEvent(&event)) {
+      switch (event.type)
+      {
+        case SDL_QUIT:
+          engine.running = false;
+          break;
+        case SDL_WINDOWEVENT:
+          {
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED ||
+                event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+              SDL_RenderGetViewport(engine.renderer, &(engine.viewport));
+            } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+              AUDIO_ENGINE_pause(engine.audioEngine);
+              windowHasFocus = true;
+            } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+              AUDIO_ENGINE_resume(engine.audioEngine);
+              windowHasFocus = false;
+            }
+          } break;
+        case SDL_KEYDOWN:
+        case SDL_KEYUP:
+          {
+            SDL_Keycode keyCode = event.key.keysym.sym;
+            if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+              engine.debugEnabled = !engine.debugEnabled;
+            } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+              ENGINE_takeScreenshot(&engine);
+            } else if (event.key.repeat == 0) {
+              char* buttonName = strToLower((char*)SDL_GetKeyName(keyCode));
+              interpreterResult = INPUT_update(vm, DOME_INPUT_KEYBOARD, buttonName, event.key.state == SDL_PRESSED);
+              free(buttonName);
+              if (interpreterResult != WREN_RESULT_SUCCESS) {
+                result = EXIT_FAILURE;
+                goto vm_cleanup;
               }
             }
-        }
-      }
-
-      uint64_t currentTime = SDL_GetPerformanceCounter();
-      int32_t elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
-      previousTime = currentTime;
-
-      if(fabs(elapsed - 1.0/120.0) < .0002){
-        elapsed = 1.0/120.0;
-      }
-      if(fabs(elapsed - 1.0/60.0) < .0002){
-        elapsed = 1.0/60.0;
-      }
-      if(fabs(elapsed - 1.0/30.0) < .0002){
-        elapsed = 1.0/30.0;
-      }
-      lag += elapsed;
-
-      // update()
-      if (lag >= MS_PER_FRAME) {
-        t++;
-        if (makeGif && t > 3) {
-          t = 0;
-          for (size_t i = 0; i < imageSize; i++) {
-            uint32_t c = ((uint32_t*)engine.pixels)[i];
-            uint8_t a = (0xFF000000 & c) >> 24;
-            uint8_t r = (0x00FF0000 & c) >> 16;
-            uint8_t g = (0x0000FF00 & c) >> 8;
-            uint8_t b = (0x000000FF & c);
-            ((uint32_t*)destroyableImage)[i] = a << 24 | b << 16 | g << 8 | r;
+          } break;
+        case SDL_CONTROLLERDEVICEADDED:
+          {
+            GAMEPAD_eventAdded(vm, event.cdevice.which);
+          } break;
+        case SDL_CONTROLLERDEVICEREMOVED:
+          {
+            GAMEPAD_eventRemoved(vm, event.cdevice.which);
+          } break;
+        case SDL_CONTROLLERBUTTONDOWN:
+        case SDL_CONTROLLERBUTTONUP:
+          {
+            SDL_ControllerButtonEvent cbutton = event.cbutton;
+            const char* buttonName = GAMEPAD_stringFromButton(cbutton.button);
+            interpreterResult = GAMEPAD_eventButtonPressed(vm, cbutton.which, buttonName, cbutton.state == SDL_PRESSED);
+            if (interpreterResult != WREN_RESULT_SUCCESS) {
+              result = EXIT_FAILURE;
+              goto vm_cleanup;
+            }
+          } break;
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+          {
+            char* buttonName;
+            switch (event.button.button) {
+              case SDL_BUTTON_LEFT: buttonName = "left"; break;
+              case SDL_BUTTON_MIDDLE: buttonName = "middle"; break;
+              case SDL_BUTTON_RIGHT: buttonName = "right"; break;
+              case SDL_BUTTON_X1: buttonName = "x1"; break;
+              default:
+              case SDL_BUTTON_X2: buttonName = "x2"; break;
+            }
+            bool state = event.button.state == SDL_PRESSED;
+            interpreterResult = INPUT_update(vm, DOME_INPUT_MOUSE, buttonName, state);
+            if (interpreterResult != WREN_RESULT_SUCCESS) {
+              result = EXIT_FAILURE;
+              goto vm_cleanup;
+            }
+          } break;
+        case SDL_USEREVENT:
+          {
+            ENGINE_printLog(&engine, "Event code %i\n", event.user.code);
+            if (event.user.code == EVENT_LOAD_FILE) {
+              FILESYSTEM_loadEventComplete(&event);
+            }
           }
-          jo_gif_frame(&gif, destroyableImage, 8, true);
-        }
       }
-
-      while (lag > MS_PER_FRAME) {
-        wrenEnsureSlots(vm, 8);
-        wrenSetSlotHandle(vm, 0, gameClass);
-        interpreterResult = wrenCall(vm, updateMethod);
-        if (interpreterResult != WREN_RESULT_SUCCESS) {
-          result = EXIT_FAILURE;
-          goto vm_cleanup;
-        }
-        // updateAudio()
-        if (audioEngineClass != NULL) {
-          wrenEnsureSlots(vm, 3);
-          wrenSetSlotHandle(vm, 0, audioEngineClass);
-          interpreterResult = wrenCall(vm, updateMethod);
-          if (interpreterResult != WREN_RESULT_SUCCESS) {
-            result = EXIT_FAILURE;
-            goto vm_cleanup;
-          }
-        }
-        lag -= MS_PER_FRAME;
-
-        if (engine.lockstep) {
-          lag = mid(0, lag, MS_PER_FRAME);
-          break;
-        }
-      }
-
-      // render();
-      wrenEnsureSlots(vm, 8);
-      wrenSetSlotHandle(vm, 0, gameClass);
-      wrenSetSlotDouble(vm, 1, ((double)lag / MS_PER_FRAME));
-      interpreterResult = wrenCall(vm, drawMethod);
+    }
+    if (inputCaptured) {
+      interpreterResult = INPUT_commit(vm);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
         result = EXIT_FAILURE;
         goto vm_cleanup;
       }
+    }
 
-      if (engine.debugEnabled) {
-        engine.debug.elapsed = elapsed;
-        ENGINE_drawDebug(&engine);
+    uint64_t currentTime = SDL_GetPerformanceCounter();
+    int32_t elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
+    previousTime = currentTime;
+
+    // If we aren't focused, we skip the update loop and let the CPU sleep
+    // to be good citizens
+    if (windowHasFocus) {
+      SDL_Delay(50);
+      continue;
+    }
+
+    if(fabs(elapsed - 1.0/120.0) < .0002){
+      elapsed = 1.0/120.0;
+    }
+    if(fabs(elapsed - 1.0/60.0) < .0002){
+      elapsed = 1.0/60.0;
+    }
+    if(fabs(elapsed - 1.0/30.0) < .0002){
+      elapsed = 1.0/30.0;
+    }
+    lag += elapsed;
+
+    // update()
+
+    while (lag > MS_PER_FRAME) {
+      wrenEnsureSlots(vm, 8);
+      wrenSetSlotHandle(vm, 0, gameClass);
+      interpreterResult = wrenCall(vm, updateMethod);
+      if (interpreterResult != WREN_RESULT_SUCCESS) {
+        result = EXIT_FAILURE;
+        goto vm_cleanup;
       }
-
-      // Flip Buffer to Screen
-      SDL_UpdateTexture(engine.texture, 0, engine.pixels, engine.width * 4);
-
-      // clear screen
-      SDL_RenderClear(engine.renderer);
-      SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
-      SDL_RenderPresent(engine.renderer);
-
-      if (!engine.vsyncEnabled) {
-        SDL_Delay(1);
+      // updateAudio()
+      if (audioEngineClass != NULL) {
+        wrenEnsureSlots(vm, 3);
+        wrenSetSlotHandle(vm, 0, audioEngineClass);
+        AUDIO_ENGINE_lock(engine.audioEngine);
+        interpreterResult = wrenCall(vm, updateMethod);
+        AUDIO_ENGINE_unlock(engine.audioEngine);
+        if (interpreterResult != WREN_RESULT_SUCCESS) {
+          result = EXIT_FAILURE;
+          goto vm_cleanup;
+        }
       }
+      lag -= MS_PER_FRAME;
+
+      if (engine.lockstep) {
+        lag = mid(0, lag, MS_PER_FRAME);
+        break;
+      }
+    }
+
+
+    // render();
+    wrenEnsureSlots(vm, 8);
+    wrenSetSlotHandle(vm, 0, gameClass);
+    wrenSetSlotDouble(vm, 1, ((double)lag / MS_PER_FRAME));
+    interpreterResult = wrenCall(vm, drawMethod);
+    if (interpreterResult != WREN_RESULT_SUCCESS) {
+      result = EXIT_FAILURE;
+      goto vm_cleanup;
+    }
+
+    engine.debug.elapsed = elapsed;
+    if (engine.debugEnabled) {
+      ENGINE_drawDebug(&engine);
+    }
+
+
+    // Flip Buffer to Screen
+    SDL_UpdateTexture(engine.texture, 0, engine.pixels, engine.width * 4);
+    // Flip buffer for recording
+    if (engine.record.makeGif) {
+      size_t imageSize = engine.width * engine.height * 4;
+      memcpy(engine.record.gifPixels, engine.pixels, imageSize);
+    }
+
+    // clear screen
+    SDL_RenderClear(engine.renderer);
+    SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
+    SDL_RenderPresent(engine.renderer);
+
+    if (!engine.vsyncEnabled) {
+      SDL_Delay(1);
     }
   }
 
 vm_cleanup:
-  if (makeGif) {
-    jo_gif_end(&gif);
-    if (destroyableImage != NULL) {
-      free(destroyableImage);
-    }
-  }
 
+  if (recordThread != NULL) {
+    SDL_WaitThread(recordThread, NULL);
+  }
   // Finish processing async threads so we can release resources
   ENGINE_finishAsync(&engine);
   while(SDL_PollEvent(&event)) {
@@ -530,12 +572,16 @@ vm_cleanup:
     wrenReleaseHandle(vm, audioEngineClass);
   }
 
+  INPUT_release(vm);
+
 cleanup:
   // Free resources
   // TODO: Lock the Audio Engine here.
+  ENGINE_reportError(&engine);
   BASEPATH_free();
   AUDIO_ENGINE_halt(engine.audioEngine);
   VM_free(vm);
+  result = engine.exit_status;
   ENGINE_free(&engine);
   //Quit SDL subsystems
   if (strlen(SDL_GetError()) > 0) {

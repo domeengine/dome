@@ -1,6 +1,7 @@
 title: DOME
-description: "A comfortable framework for making games in Wren"
+description: "The comfortable framework for making games in Wren"
 theme: jekyll-theme-minimal
 show_downloads: false
-baseurl: "/dome"
+logo: https://domeengine.com/assets/dome-logo/dome-circle-flat.svg
+baseurl: "/"
 

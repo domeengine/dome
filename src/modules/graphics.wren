@@ -1,15 +1,29 @@
 /**
+
   @Module graphics
   The graphics module provides all the system functions required for drawing to the screen.
 */
-import "vector" for Point
 
 /**
     @Class Canvas
       This class provides static methods for drawing primitives and images.
 */
 class Canvas {
+  static init_() {
+    __defaultFont = null
+  }
+
+  static font=(v) {
+    if (v is String || v == Font.default) {
+      __defaultFont = v
+    } else {
+      Fiber.abort("Default font must be a font name")
+    }
+  }
+
   foreign static f_resize(width, height, color)
+  static offset() { offset(0, 0) }
+  foreign static offset(x, y)
   static resize(width, height) { resize(width, height, Color.black) }
   static resize(width, height, c) {
     if (width < 0) {
@@ -26,13 +40,24 @@ class Canvas {
       Fiber.abort("Window can't be wider than 2160")
     }
     if (c is Color) {
-      f_resize(width, height, c.rgb)
+      f_resize(width, height, c.toNum)
     } else {
       f_resize(width, height, c)
     }
   }
   foreign static f_pset(x, y, c)
-  foreign static f_line(x1, y1, x2, y2, c)
+  static pget(x, y) {
+    var c = f_pget(x, y)
+    // return a << 24 | b << 16 | g << 8 | r
+    var r = c & 255
+    var g = (c & 255 << 8) >> 8
+    var b = (c & 255 << 16) >> 16
+    var a = (c & 255 << 24) >> 24
+    return Color.rgb(r, g, b, a)
+  }
+
+  foreign static f_pget(x, y)
+  foreign static f_line(x1, y1, x2, y2, c, size)
   foreign static f_rectfill(x, y, w, h, c)
   foreign static f_rect(x, y, w, h, c)
   foreign static f_print(str, x, y, c)
@@ -59,68 +84,86 @@ class Canvas {
  */
   static pset(x, y, c) {
     if (c is Color) {
-      f_pset(x, y, c.rgb)
+      f_pset(x, y, c.toNum)
     } else {
       f_pset(x, y, c)
     }
   }
 
-  static line(x0, y0, x1, y1, c) {
+  static line(x0, y0, x1, y1, c) { line(x0, y0, x1, y1, c, 1) }
+  static line(x0, y0, x1, y1, c, size) {
     if (c is Color) {
-      f_line(x0, y0, x1, y1, c.rgb)
+      f_line(x0, y0, x1, y1, c.toNum, size)
     } else {
-      f_line(x0, y0, x1, y1, c)
+      f_line(x0, y0, x1, y1, c, size)
     }
   }
   static ellipse(x0, y0, x1, y1, c) {
     if (c is Color) {
-      f_ellipse(x0, y0, x1, y1, c.rgb)
+      f_ellipse(x0, y0, x1, y1, c.toNum)
     } else {
       f_ellipse(x0, y0, x1, y1, c)
     }
   }
   static ellipsefill(x0, y0, x1, y1, c) {
     if (c is Color) {
-      f_ellipsefill(x0, y0, x1, y1, c.rgb)
+      f_ellipsefill(x0, y0, x1, y1, c.toNum)
     } else {
+      return Color.new()
       f_ellipsefill(x0, y0, x1, y1, c)
     }
   }
   static rect(x, y, w, h, c) {
     if (c is Color) {
-      f_rect(x, y, w, h, c.rgb)
+      f_rect(x, y, w, h, c.toNum)
     } else {
       f_rect(x, y, w, h, c)
     }
   }
   static rectfill(x, y, w, h, c) {
     if (c is Color) {
-      f_rectfill(x, y, w, h, c.rgb)
+      f_rectfill(x, y, w, h, c.toNum)
     } else {
       f_rectfill(x, y, w, h, c)
     }
   }
   static circle(x, y, r, c) {
     if (c is Color) {
-      f_circle(x, y, r, c.rgb)
+      f_circle(x, y, r, c.toNum)
     } else {
       f_circle(x, y, r, c)
     }
   }
   static circlefill(x, y, r, c) {
     if (c is Color) {
-      f_circlefill(x, y, r, c.rgb)
+      f_circlefill(x, y, r, c.toNum)
     } else {
       f_circlefill(x, y, r, c)
     }
   }
+  static print(str, x, y, c, font) {
+    if (Font[font] != null) {
+      Font[font].print(str, x, y, c)
+    } else {
+      Fiber.abort("Font %(font) is not loaded")
+    }
+  }
   static print(str, x, y, c) {
+    if (!(str is String)) {
+      str = str.toString
+    }
     var color = Color.white
     if (c is Color) {
       color = c
     }
-    f_print(str, x, y, color.rgb)
+    if (__defaultFont != null) {
+      print(str, x, y, color, __defaultFont)
+    } else {
+      f_print(str, x, y, color.toNum)
+    }
   }
+
+  foreign static f_cls(color)
   static cls() {
     cls(Color.black)
   }
@@ -129,88 +172,23 @@ class Canvas {
     if (c is Color) {
       color = c
     }
-    rectfill(0, 0, Canvas.width, Canvas.height, color.rgb)
+    f_cls(color.toNum)
   }
   foreign static width
   foreign static height
 
   static draw(object, x, y) {
-    if (object is ImageData) {
+    if (object is Drawable) {
       object.draw(x, y)
     }
   }
 }
 
-/**
-    @Class Color
-      An instance of this class represents an RGBA color, which can be passed to Canvas methods.
-*/
-class Color {
-  construct new(r, g, b) {
-    _r = r
-    _g = g
-    _b = b
-    _a = 255
-  }
-  construct new(r, g, b, a) {
-    _r = r
-    _g = g
-    _b = b
-    _a = a
-  }
 
-  rgb { Color.rgb(_r, _g, _b, _a) }
+// These need to be at the bottom to prevent cyclic dependancy
+import "image" for Drawable, ImageData
+import "vector" for Point, Vec, Vector
+import "font" for Font, RasterizedFont
+import "color" for Color
 
-  static white { AllColors["white"] }
-  static black { AllColors["black"] }
-  static red { AllColors["red"] }
-  static orange { AllColors["orange"] }
-  static blue { AllColors["blue"] }
-  static green { AllColors["green"] }
-  static cyan { AllColors["cyan"] }
-  static darkgray { AllColors["darkgray"] }
-  static lightgray { AllColors["lightgray"] }
-
-  static rgb(r, g, b, a) {
-    return a << 24 | r << 16 | g << 8 | b
-  }
-}
-
-var AllColors = {
-  "black": Color.new(0, 0, 0),
-  "white": Color.new(255, 255, 255),
-  "orange": Color.new(255, 163, 0),
-  "red": Color.new(255, 0, 0),
-  "green": Color.new(0, 255, 0),
-  "blue": Color.new(0, 0, 255),
-  "cyan": Color.new(0, 255, 255),
-  "magenta": Color.new(255, 0, 255),
-  "yellow": Color.new(255, 255, 0),
-  "lightgray": Color.new(194, 195, 199),
-  "darkgray": Color.new(95, 87, 79)
-}
-
-foreign class ImageData {
-  // This constructor is private
-  construct initFromFile(data) {}
-
-  static loadFromFile(path) {
-    if (!__cache) {
-      __cache = {}
-    }
-
-    if (!__cache.containsKey(path)) {
-      import "io" for FileSystem
-      var data = FileSystem.load(path)
-      __cache[path] = ImageData.initFromFile(data)
-    }
-
-    return __cache[path]
-  }
-  foreign draw(x, y)
-  foreign drawArea(srcX, srcY, srcW, srcH, destX, destY)
-
-  foreign width
-  foreign height
-}
-
+Canvas.init_()

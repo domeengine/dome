@@ -1,35 +1,46 @@
+CC = cc
+EXENAME = dome
 MODE_FILE=.mode
-MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
-FRAMEWORK = unix
+ARCH_FILE=.arch
 
 SOURCE  = src
 UTILS = $(SOURCE)/util
 LIBS = $(SOURCE)/lib
 INCLUDES = $(SOURCE)/include
 MODULES = $(SOURCE)/modules
+EXAMPLES = examples
 
-# Optional Module Switches
-DOME_OPT_FFI=0
-ifeq ($(DOME_OPT_FFI),1)
-	DOME_OPTS ?= -D DOME_OPT_FFI=1
-endif
-
+MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
+ARCH ?= $(shell cat $(ARCH_FILE) 2>/dev/null || echo 64bit)
+$(shell echo $(ARCH) > $(ARCH_FILE))
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
-DOME_OPTS += -DHASH="\"$(BUILD_VALUE)\""
-CC = cc
+SYS=$(shell uname -s)
+
+BUILTIN_RANDOM = 1
+BUILTIN_META = 1
+
+DOME_OPTS = -DHASH="\"$(BUILD_VALUE)\"" -DWREN_OPT_RANDOM=$(BUILTIN_RANDOM) -DWREN_OPT_META=$(BUILTIN_META)
 CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `which sdl2-config 1>/dev/null && sdl2-config --cflags`
 IFLAGS = -isystem $(INCLUDES)
-SDLFLAGS= `which sdl2-config 1>/dev/null && sdl2-config --libs`
+SDL_CONFIG ?= $(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "$(LIBS)/sdl2-config")
+
+ifdef STATIC
+	FRAMEWORK = unix
+  SDLFLAGS = `$(SDL_CONFIG) --static-libs`
+  IFLAGS := -I$(INCLUDES)/SDL2 $(IFLAGS)
+else
+  SDLFLAGS = `$(SDL_CONFIG) --libs`
+endif
 LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm
 
-ifeq ($(DOME_OPT_FFI),1)
-  LDFLAGS  += -lffi
-  FFI_DEPS = $(LIBS)/libffi $(LIBS)/libffi.a $(INCLUDES)/ffi.h
+ifdef DOME_OPT_VERSION
+  DOME_OPTS += -DDOME_VERSION=\"$(DOME_OPT_VERSION)\"
+else
+  DOME_OPTS += -DDOME_VERSION=\"$(shell git describe --tags)\"
 endif
 
-EXENAME = dome
 
-
+## Handle Release/Debug build things
 ifeq ($(MODE), debug)
 	LDFLAGS += -lwrend
 	CFLAGS += -g -O0
@@ -38,37 +49,42 @@ ifneq ($(EXTRA), valgrind)
 endif
 
   DOME_OPTS += -DDEBUG=1
-  $(shell echo $(MODE) > .mode)
+$(shell echo $(MODE) > $(MODE_FILE))
 else
 	LDFLAGS += -lwren
 	CFLAGS += -O3
-  $(shell echo $(MODE) > .mode)
+$(shell echo $(MODE) > $(MODE_FILE))
 endif
 
-SYS=$(shell uname -s)
 
+## Handle OS Specific commands
 ifneq (, $(findstring Darwin, $(SYS)))
-	FRAMEWORK = $(shell which sdl2-config && echo unix || echo framework)
-	
-	CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
-ifdef MIN_MAC_VERSION
-	CFLAGS += -mmacosx-version-min=$(MIN_MAC_VERSION)
-endif
+  CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
+
+  ifdef MIN_MAC_VERSION
+    CFLAGS += -mmacosx-version-min=$(MIN_MAC_VERSION)
+  endif
+
+  FRAMEWORK ?= $(shell which sdl2-config && echo unix || echo framework)
   ifeq ($(FRAMEWORK), framework)
-	CFLAGS +=  -I /Library/Frameworks/SDL2.framework/Headers -framework SDL2
+    CFLAGS +=  -I /Library/Frameworks/SDL2.framework/Headers -framework SDL2
   endif
 endif
 
 ifneq (, $(findstring MINGW, $(SYS)))
-	CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
-	ifdef ICON_OBJECT_FILE
-	CFLAGS += $(ICON_OBJECT_FILE)
-endif
-SDLFLAGS= -mwindows `sdl2-config --static-libs` -static
+  WINDOW_MODE ?= windows
+  SDLFLAGS := -m$(WINDOW_MODE) $(SDLFLAGS)
+  CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
+  ifdef ICON_OBJECT_FILE
+    CFLAGS += $(ICON_OBJECT_FILE)
+  endif
+  ifdef STATIC
+    SDLFLAGS += -static
+  endif
 endif
 
 ifneq (, $(findstring Linux, $(SYS)))
-	CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
+  CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered --no-pie
 endif
 
 
@@ -76,22 +92,12 @@ endif
 .PHONY: all clean reset cloc
 all: $(EXENAME)
 
-$(LIBS)/libffi/autogen.sh:
-	git submodule update --init -- $(LIBS)/libffi
-$(LIBS)/libffi: $(LIBS)/libffi/autogen.sh
-
 $(LIBS)/wren/Makefile: 
 	git submodule update --init -- $(LIBS)/wren
 $(LIBS)/wren: $(LIBS)/wren/Makefile
-	
-$(LIBS)/libffi.a: $(LIBS)/libffi
-	./setup_ffi.sh
 
 $(LIBS)/libwren.a: $(LIBS)/wren
-	./setup_wren.sh
-
-$(INCLUDES)/ffi.h: $(LIBS)/libffi.a
-$(INCLUDES)/ffitarget.h: $(LIBS)/libffi.a
+	./setup_wren.sh $(ARCH) WREN_OPT_RANDOM=$(BUILTIN_RANDOM) WREN_OPT_META=$(BUILTIN_META)
 	
 $(INCLUDES)/wren.h: $(LIBS)/libwren.a
 	cp src/lib/wren/src/include/wren.h src/include/wren.h
@@ -99,7 +105,7 @@ $(INCLUDES)/wren.h: $(LIBS)/libwren.a
 $(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
 	cd $(UTILS) && ./generateEmbedModules.sh
 
-$(EXENAME): $(SOURCE)/*.c $(MODULES)/*.c $(UTILS)/font.c $(INCLUDES) $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwren.a $(FFI_DEPS)
+$(EXENAME): $(SOURCE)/*.c $(MODULES)/*.c $(UTILS)/font.c $(INCLUDES) $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwren.a
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(EXENAME) $(LDFLAGS) $(IFLAGS)
 	$(warning $(MODE))
 ifneq (, $(findstring Darwin, $(SYS)))
@@ -111,15 +117,9 @@ else
 endif
 endif
 
-# Used for the example game FFI test
-libadd.so: test/add.c
-	$(CC) -O -fno-common -c test/add.c $(IFLAGS) -o test/add.o -g
-	$(CC) -flat_namespace -bundle -undefined suppress -o libadd.so test/add.o
-	rm test/add.o
-
 reset:
 	git submodule foreach --recursive git clean -xfd
-	rm -rf .mode $(EXENAME) $(LIBS)/libwren.a $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwrend.a $(LIBS)/libffi.a $(INCLUDES)/ffi.h $(INCLUDES)/ffitarget.h
+	rm -rf .mode $(EXENAME) $(LIBS)/libwren.a $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwrend.a
 
 clean:
 	rm -rf $(EXENAME) $(MODULES)/*.inc

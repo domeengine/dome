@@ -9,10 +9,10 @@ The modules you can import are here:
 
 * [audio](audio)
 * [dome](dome)
-* [ffi](ffi)
 * [graphics](graphics)
 * [input](input)
 * [io](io)
+* [math](math)
 
 For example, the `graphics` module can be imported to access the `Canvas` and `Color` classes, like this:
 

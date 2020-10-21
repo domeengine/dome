@@ -1,20 +1,21 @@
+DOME-out.log
 .mode
+.arch
 dome
 nest
 libwren.a
 libwrend.a
-libffi.a
 libadd.so
 **/.DS_Store
 src/util/convert
 src/util/embed
 src/modules/*.inc
 src/include/wren.h
+src/include/SDL2/*
+src/lib/SDL2*
+src/lib/libSDL2*
 *.o
 *.swp
 *.dSYM
-
-ffi.h
-ffitarget.h
 
 node_modules

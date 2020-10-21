@@ -7,14 +7,49 @@ The `input` module allows you to retrieve the state of input devices such as the
 
 It contains the following classes:
 
+* [DigitalInput](#digitalinput)
 * [Keyboard](#keyboard)
 * [Mouse](#mouse)
 * [GamePad](#gamepad)
 
+## DigitalInput
+
+An instance of `DigitalInput` represents an input such as a keyboard key, mouse button or controller button, which can be either "pressed" or "unpressed".
+
+### Instance Methods
+#### `repeat(): Void`
+Causes the current state of the input to be repeated, which can affect the `justPressed` property. This is useful in certain scenarios where an input's state may be tested repeatedly, but before the user has had a chance to release the input.
+
+#### `reset(): Void`
+Resets the input state, as if the input was just set to no longer be down. This is useful in certain scenarios where an input's state may be tested repeatedly, but before the user has had a chance to release the input.
+
+### Instance Fields
+
+#### `static down: Boolean`
+This is true if the digital input is "pressed" or otherwise engaged.
+
+#### `static justPressed: Boolean`
+Returns true if the input was "pressed" down on this tick.
+
+#### `static previous: Boolean`
+This gives you the value of "down" on the previous tick, since input was last processed. (Depending on game loop lag, input may be processed once for multiple update ticks.)
+
+#### `static repeats: Number`
+This counts the number of ticks that an input has been engaged for. If the input isn't engaged, this should be zero.
+
 ## Keyboard
+
+### Static Fields
+
+#### `static allPressed: Map<string, DigitalInput>`
+This returns a map containing the key names and corresponding `DigitalInput` objects, for all keys which are currently "down".
 
 ### Static Methods
 
+#### `static [name]: DigitalInput`
+This returns a digital input of a valid name. See `Keyboard.isKeyDown` for a list of valid names.
+
+#### `static isButtonPressed(key: String): Boolean`
 #### `static isKeyDown(key: String): Boolean`
 Returns true if the named key is pressed. The key uses the SDL key name, which can be referenced [here](https://wiki.libsdl.org/SDL_Keycode).
 
@@ -22,13 +57,25 @@ Returns true if the named key is pressed. The key uses the SDL key name, which c
 
 ### Static Fields
 
+#### `static allPressed: Map<string, DigitalInput>`
+This returns a map containing the key names and corresponding `DigitalInput` objects, for all keys which are currently "down".
+
+#### `static hidden: Boolean`
+Controls whether the mouse cursor is shown or hidden. You can set and read from this field.
+
+#### `static relative: Boolean`
+If set to true, the mouse is placed into relative mode. In this mode, the mouse will be fixed to the center of the screen. You can set and read from this field. This changes the behaviour of the `x` and `y` fields.
+
 #### `static x: Number`
-The x position relative to the Canvas. This accounts for the window being resized and the viewport moving.
+The x position relative to the Canvas. This accounts for the window being resized and the viewport moving. If `Mouse.relative` is set, this will be the relative change of the mouse x position since the previous tick.
 
 #### `static y: Number`
-The y position relative to the Canvas. This accounts for the window being resized and the viewport moving.
+The y position relative to the Canvas. This accounts for the window being resized and the viewport moving. If `Mouse.relative` is set, this will be the relative change of the mouse y position since the previous tick.
 
 ### Static Methods
+
+#### `static [name]: DigitalInput`
+This returns a digital input of a valid name. See `Mouse.isButtonPressed` for a list of valid names.
 
 #### `static isButtonPressed(name: String/Number): Boolean`
 Returns true if the named mouse button is pressed. 
@@ -36,8 +83,8 @@ You can use an index from 1-5 (button 0 is invalid) or a lowercase name:
 * `left`
 * `middle`
 * `right`
-* `X1`
-* `X2`
+* `x1`
+* `x2`
 
 ## GamePad
 
@@ -59,6 +106,10 @@ This will return an object representing a GamePad. You can then read the state o
 If no gamepads are attached, you will receive a "dummy" object which will report null or empty values.
 
 ### Instance Fields
+
+#### `allPressed: Map<string, DigitalInput>`
+This returns a map containing the key names and corresponding `DigitalInput` objects, for all keys which are currently "down".
+
 #### `attached: Boolean`
 This returns true if the gamepad is still attached to the system.
 #### `id: Number`
@@ -68,7 +119,10 @@ If the gamepad is attached, this returns the SDL internal name for that device.
 
 ### Instance Methods
 
-#### `isButtonPressed(key: String): Boolean`
+#### `[name]: DigitalInput`
+This returns a digital input of a valid name. See `GamePad.isButtonPressed` for a list of valid names.
+
+#### `isButtonPressed(button: String): Boolean`
 Returns true if the named button is pressed. Valid button names are:
  * `left` - D-Pad Left
  * `right` - D-Pad Right
@@ -93,6 +147,8 @@ Gets the current state of the trigger on the specified `side`, as a number betwe
 Valid sides are `left` and `right`.
 
 #### `getAnalogStick(side: String): Vector`
-Gets the current state of the specified analog stick as a Vector, with `x` and `y` values. 
+Gets the current state of the specified analog stick as a Vector, with `x` and `y` values, which are normalised as values between -1.0 and 1.0.
 Valid sides are `left` and `right`.
 
+#### `rumble(strength: Number, duration: Number): Void`
+If the gamepad is able to vibrate, it will vibrate with a `strength`, clamped between `0.0` and `1.0`, for a `duration` of milliseconds. Rumble and haptic feedback is dependant on platform drivers.

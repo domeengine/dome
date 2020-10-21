@@ -4,11 +4,17 @@ global_variable char* basePath = NULL;
 
 internal void
 BASEPATH_set(char* path) {
-  size_t len = strlen(path);
-  basePath = realloc(basePath, sizeof(char) * (len + 2));
+  size_t len = strlen(path) + 1;
+  bool slash = path[len - 1] == '/';
+  if (!slash) {
+    len++;
+  }
+  basePath = realloc(basePath, len * sizeof(char));
   strcpy(basePath, path);
-  basePath[len] = '/';
-  basePath[len + 1] = '\0';
+  if (!slash) {
+    basePath[len - 2] = '/';
+  }
+  basePath[len - 1] = '\0';
 }
 
 internal char*
@@ -85,30 +91,58 @@ doesFileExist(char* path) {
   return access(path, F_OK) != -1;
 }
 
-internal char*
-readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr) {
+internal int
+readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr, char** data) {
   // We assume the tar open has been done already
-
-  printf("Reading from bundle: %s\n", path);
+  int err;
   mtar_header_t h;
-  mtar_find(tar, path, &h);
+
+  char compatiblePath[PATH_MAX];
+
+  strcpy(compatiblePath, "./");
+  strcat(compatiblePath, path);
+
+  err = mtar_rewind(tar);
+  if (err != MTAR_ESUCCESS) {
+    return err;
+  }
+
+  while ((err = mtar_read_header(tar, &h)) == MTAR_ESUCCESS) {
+    // search for "<path>", "./<path>" and "/<path>"
+    // see https://github.com/avivbeeri/nest/pull/2
+    if (!strcmp(h.name, path) ||
+        !strcmp(h.name, compatiblePath) ||
+        !strcmp(h.name, compatiblePath + 1)) {
+      break;
+    }
+    err = mtar_next(tar);
+
+    if (err != MTAR_ESUCCESS) {
+      return err;
+    }
+  }
+
+  if (err != MTAR_ESUCCESS) {
+    return err;
+  }
+
   size_t length = h.size;
-  char* buffer = calloc(1, length + 1);
-  if (mtar_read_data(tar, buffer, length) != MTAR_ESUCCESS) {
-    printf("Error: Couldn't read the data from the bundle.");
-    abort();
+  *data = calloc(1, length + 1);
+  if ((err = mtar_read_data(tar, *data, length)) != MTAR_ESUCCESS) {
+    // Some kind of problem reading the file
+    free(*data);
+    return err;
   }
 
   if (lengthPtr != NULL) {
     *lengthPtr = length;
   }
 
-  return buffer;
+  return err;
 }
 
 internal int
-writeEntireFile(char* path, char* data, size_t length) {
-  printf("Writing to filesystem: %s\n", path);
+writeEntireFile(const char* path, const char* data, size_t length) {
   FILE* file = fopen(path, "wb+");
   if (file == NULL) {
     return errno;
@@ -120,7 +154,6 @@ writeEntireFile(char* path, char* data, size_t length) {
 
 internal char*
 readEntireFile(char* path, size_t* lengthPtr) {
-  printf("Reading from filesystem: %s\n", path);
   FILE* file = fopen(path, "rb");
   if (file == NULL) {
     return NULL;
@@ -137,8 +170,8 @@ readEntireFile(char* path, size_t* lengthPtr) {
 
     /* Read the entire file into memory. */
     size_t newLen = fread(source, sizeof(char), bufsize, file);
-    if ( ferror( file ) != 0 ) {
-      fputs("Error reading file\n", stderr);
+    if (ferror(file) != 0) {
+      perror("Error reading file");
     } else {
       if (lengthPtr != NULL) {
         *lengthPtr = newLen;
