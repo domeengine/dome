@@ -9,7 +9,8 @@ jobs:
   build:
     runs-on: windows-latest
     strategy:
-      msystem: [MINGW32, MINGW64]
+      matrix:
+        msystem: [MINGW32, MINGW64]
     defaults:
       run:
         shell: msys2 {0}

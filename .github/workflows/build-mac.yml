@@ -8,25 +8,13 @@ on:
 
 jobs:
   build:
-
-    runs-on: macOS-10.14
-
+    runs-on: macOS-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v2.0.0
     - run: sudo xcode-select -switch /Applications/Xcode_11.app/Contents/Developer
-    - run: 
-        export SDL_NAME=SDL2-2.0.2 ;
-        curl -L https://www.libsdl.org/release/$SDL_NAME.tar.gz -o $SDL_NAME.tar.gz ;
-        tar -zxvf $SDL_NAME.tar.gz ;
-        cd $SDL_NAME ;
-        mkdir build ;
-        cd build ;
-        CC=$GITHUB_WORKSPACE/$SDL_NAME/build-scripts/gcc-fat.sh  ;
-        ../configure ;
-        make ;
-        make install
-    - run: make MIN_MAC_VERSION=10.12
+    - run: ./setup_static_mac_sdl.sh
+    - run: make MIN_MAC_VERSION=10.12 STATIC=1 MODE=release ARCH=64bit
     - uses: actions/upload-artifact@v1
       with:
         name: dome-macosx
