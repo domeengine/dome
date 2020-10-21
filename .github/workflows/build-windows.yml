@@ -8,19 +8,22 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
+    - uses: actions/checkout@v2
     - uses: msys2/setup-msys2@v2
       with:
         msystem: MINGW64
         update: true
-        install: "base-devel git mingw-w64-x86_64-SDL2"
+        install: "gcc git mingw-w64-x86_64-SDL2 make"
     #- run: git config --global core.autocrlf input
     #  shell: bash
-    - uses: actions/checkout@v2
     - run: git describe --dirty
-      shell: bash
+    - run: gcc -v
+    - run: make CC=gcc
     - run: make
-      shell: bash
     - uses: actions/upload-artifact@v1
       with:
         name: dome-windows-x64
