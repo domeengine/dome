@@ -115,6 +115,7 @@ DOME currently depends on a few libraries to achieve it's functions.
 - jo_gif
 - tinydir
 - [ABC_fifo](https://github.com/avivbeeri/abc) (A SPMC threadpool/task dispatching FIFO I wrote for this project)
+- mkdirp
 
 Apart from SDL2, all other dependancies are baked in or linked statically. DOME aspires to be both minimalist and cross platform, so it depends on as few external components as possible.
 

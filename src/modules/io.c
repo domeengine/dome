@@ -214,18 +214,11 @@ FILESYSTEM_loadEventComplete(SDL_Event* event) {
 internal void
 FILESYSTEM_listFiles(WrenVM* vm) {
   const char* path = wrenGetSlotString(vm, 1);
-  const char* fullPath;
-  if (path[0] != '/') {
-    char* base = BASEPATH_get();
-    fullPath = malloc(strlen(base)+strlen(path)+1);
-    strcpy((char*)fullPath, base); /* copy name into the new var */
-    strcat((char*)fullPath, path); /* add the extension */
-  } else {
-    fullPath = path;
-  }
+  bool shouldFree;
+  const char* fullPath = resolvePath(path, &shouldFree);
   tinydir_dir dir;
   int result = tinydir_open(&dir, fullPath);
-  if (path[0] != '/') {
+  if (shouldFree) {
     free((void*)fullPath);
   }
   if (result == -1) {
@@ -253,18 +246,11 @@ FILESYSTEM_listFiles(WrenVM* vm) {
 internal void
 FILESYSTEM_listDirectories(WrenVM* vm) {
   const char* path = wrenGetSlotString(vm, 1);
-  const char* fullPath;
-  if (path[0] != '/') {
-    char* base = BASEPATH_get();
-    fullPath = malloc(strlen(base)+strlen(path)+1);
-    strcpy((char*)fullPath, base); /* copy name into the new var */
-    strcat((char*)fullPath, path); /* add the extension */
-  } else {
-    fullPath = path;
-  }
+  bool shouldFree;
+  const char* fullPath = resolvePath(path, &shouldFree);
   tinydir_dir dir;
   int result = tinydir_open(&dir, fullPath);
-  if (path[0] != '/') {
+  if (shouldFree) {
     free((void*)fullPath);
   }
   if (result == -1) {
@@ -312,18 +298,12 @@ FILESYSTEM_getBasePath(WrenVM* vm) {
 internal void
 FILESYSTEM_createDirectory(WrenVM *vm) {
   const char* path = wrenGetSlotString(vm, 1);
-  const char* fullPath;
   mode_t mode = 0777;
-  if (path[0] != '/') {
-    char* base = BASEPATH_get();
-    fullPath = malloc(strlen(base)+strlen(path)+1);
-    strcpy((char*)fullPath, base);
-    strcat((char*)fullPath, path);
-  } else {
-    fullPath = path;
-  }
+
+  bool shouldFree;
+  const char* fullPath = resolvePath(path, &shouldFree);
   int result = mkdirp(fullPath, mode);
-  if (path[0] != '/') {
+  if (shouldFree) {
     free((void*)fullPath);
   }
   if (result == -1) {

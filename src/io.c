@@ -77,6 +77,26 @@ BASEPATH_free(void) {
   }
 }
 
+char* resolvePath(char* partialPath, bool* shouldFree) {
+    const char* fullPath;
+    if (partialPath[0] != '/') {
+      char* base = BASEPATH_get();
+      fullPath = malloc(strlen(base)+strlen(partialPath)+1);
+      strcpy((char*)fullPath, base);
+      strcat((char*)fullPath, partialPath);
+      if (shouldFree != NULL) {
+        *shouldFree = true;
+      }
+    } else {
+      fullPath = partialPath;
+      if (shouldFree != NULL) {
+        *shouldFree = false;
+      }
+    }
+
+    return fullPath;
+}
+
 internal inline bool
 isDirectory(const char *path) {
    struct stat statbuf;
