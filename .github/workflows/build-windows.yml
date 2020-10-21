@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      msystem: [MINGW32, MINGW64]
     defaults:
       run:
         shell: msys2 {0}
@@ -15,13 +17,23 @@ jobs:
     - uses: actions/checkout@v2
     - uses: msys2/setup-msys2@v2
       with:
-        msystem: MINGW64
+        msystem: ${{ matrix.msystem }}
         update: true
+        if: ${{ (matrix.msystem == 'MINGW64') }}
         install: "git mercurial subversion mingw-w64-x86_64-toolchain make mingw-w64-x86_64-SDL2"
+        if: ${{ (matrix.msystem == 'MINGW32') }}
+        install: "git mercurial subversion mingw-w64-i686-toolchain make mingw-w64-i686-SDL2"
     - run: git fetch --prune --unshallow
     - run: gcc -v
     - run: "make STATIC=1 WINDOW_MODE=windows EXENAME=dome-x64 ICON_OBJECT_FILE=assets/icon64.res MODE=release ARCH=64bit CC=gcc"
+      if: ${{ (matrix.msystem == 'MINGW64') }}
+    - run: "make STATIC=1 WINDOW_MODE=windows EXENAME=dome-x32 ICON_OBJECT_FILE=assets/icon32.res MODE=release ARCH=32bit CC=gcc"
+      if: ${{ (matrix.msystem == 'MINGW32') }}
     - uses: actions/upload-artifact@v1
       with:
-        name: dome-windows-x64
-        path: dome-x64.exe
+        - if: ${{ (matrix.msystem == 'MINGW64') }}
+          name: dome-windows-x64
+          path: dome.exe
+        - if: ${{ (matrix.msystem == 'MINGW32') }}
+          name: dome-windows-x32
+          path: dome.exe
