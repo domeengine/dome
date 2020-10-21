@@ -20,10 +20,8 @@ jobs:
         install: "gcc git mingw-w64-x86_64-SDL2 make"
     #- run: git config --global core.autocrlf input
     #  shell: bash
-    - run: git describe --dirty
     - run: gcc -v
     - run: make CC=gcc
-    - run: make
     - uses: actions/upload-artifact@v1
       with:
         name: dome-windows-x64
