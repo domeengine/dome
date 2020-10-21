@@ -13,7 +13,7 @@ jobs:
       with:
         msystem: MINGW64
         update: true
-        install: base-devel git SDL2
+        install: "base-devel git mingw-w64-x86_64-SDL2"
     #- run: git config --global core.autocrlf input
     #  shell: bash
     - uses: actions/checkout@v2
