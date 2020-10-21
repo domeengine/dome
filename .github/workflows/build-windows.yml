@@ -35,9 +35,5 @@ jobs:
       if: ${{ (matrix.msystem == 'MINGW32') }}
     - uses: actions/upload-artifact@v1
       with:
-        - if: ${{ (matrix.msystem == 'MINGW64') }}
-          name: dome-windows-x64
-          path: dome.exe
-        - if: ${{ (matrix.msystem == 'MINGW32') }}
-          name: dome-windows-x32
-          path: dome.exe
+        name: dome-window-${{matrix.msystem}}
+        path: dome.exe
