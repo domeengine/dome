@@ -18,8 +18,7 @@ jobs:
         msystem: MINGW64
         update: true
         install: "gcc git mingw-w64-x86_64-SDL2 make"
-    #- run: git config --global core.autocrlf input
-    #  shell: bash
+    - run: git fetch --prune --unshallow
     - run: gcc -v
     - run: make CC=gcc
     - uses: actions/upload-artifact@v1
