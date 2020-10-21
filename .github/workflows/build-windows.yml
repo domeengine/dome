@@ -12,7 +12,6 @@ jobs:
     - uses: msys2/setup-msys2@v2
       with:
         msystem: MINGW64
-      with:
         update: true
         install: base-devel git SDL2
     #- run: git config --global core.autocrlf input
