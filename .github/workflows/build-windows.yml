@@ -24,4 +24,4 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: dome-windows-x64
-        path: dome.exe
+        path: dome-x64.exe
