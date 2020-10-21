@@ -20,10 +20,13 @@ jobs:
       with:
         msystem: ${{ matrix.msystem }}
         update: true
-        if: ${{ (matrix.msystem == 'MINGW64') }}
-        install: "git mercurial subversion mingw-w64-x86_64-toolchain make mingw-w64-x86_64-SDL2"
-        if: ${{ (matrix.msystem == 'MINGW32') }}
-        install: "git mercurial subversion mingw-w64-i686-toolchain make mingw-w64-i686-SDL2"
+        install: git make mercurial subversion
+
+    - run: pacman --noconfirm -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-SDL2
+      if: ${{ (matrix.msystem == 'MINGW64') }}
+    - run: pacman --noconfirm -S mingw-w64-i686-toolchain mingw-w64-i686-SDL2
+      if: ${{ (matrix.msystem == 'MINGW32') }}
+
     - run: git fetch --prune --unshallow
     - run: gcc -v
     - run: "make STATIC=1 WINDOW_MODE=windows EXENAME=dome-x64 ICON_OBJECT_FILE=assets/icon64.res MODE=release ARCH=64bit CC=gcc"
