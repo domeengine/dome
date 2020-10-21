@@ -313,7 +313,7 @@ internal void
 FILESYSTEM_createDirectory(WrenVM *vm) {
   const char* path = wrenGetSlotString(vm, 1);
   const char* fullPath;
-  mode_t mode = 0700;
+  mode_t mode = 0777;
   if (path[0] != '/') {
     char* base = BASEPATH_get();
     fullPath = malloc(strlen(base)+strlen(path)+1);

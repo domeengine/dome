@@ -1,9 +1,21 @@
-#ifndef MKDIRP_H
-#define MKDIRP_H
+
+//
+// mkdirp.h
+//
+// Copyright (c) 2013 Stephen Mathieson
+// MIT licensed
+//
+
+#ifndef MKDIRP
+#define MKDIRP
 
 #include <sys/types.h>
 #include <sys/stat.h>
 
-int mkdirp(const char *, mode_t);
+/*
+ * Recursively `mkdir(path, mode)`
+ */
 
-#endif // MKDIRP_H
+int mkdirp(const char *, mode_t );
+
+#endif
