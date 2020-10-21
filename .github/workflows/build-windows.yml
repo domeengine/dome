@@ -1,14 +1,25 @@
-defaults:
-    run:
-      shell: msys2 {0}
-  steps:
-  - uses: msys2/setup-msys2@v2
-    with:
-      msystem: MINGW64
-    with:
-      update: true
-      install: base-devel git SDL2
-  #- run: git config --global core.autocrlf input
-  #  shell: bash
-  - uses: actions/checkout@v2
-  - run: git describe --dirty
+name: Windows x64 Build Release
+on:
+  push:
+    branches: 
+      - actions
+    tags: 
+      - release/*
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+      with:
+        update: true
+        install: base-devel git SDL2
+    #- run: git config --global core.autocrlf input
+    #  shell: bash
+    - uses: actions/checkout@v2
+    - run: git describe --dirty && make
+    - uses: actions/upload-artifact@v1
+      with:
+        name: dome-windows-x64
+        path: dome.exe
