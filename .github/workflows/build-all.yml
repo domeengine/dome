@@ -125,7 +125,7 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }} 
           asset_path: ./dome-linux-shared.zip
-          asset_name: dome-linux-shared.zip
+          asset_name: dome-${{github.event.release.tag_name}}-linux-x64-shared.zip
           asset_content_type: application/zip
       - name: Upload Linux Static
         uses: actions/upload-release-asset@v1
@@ -134,7 +134,7 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }} 
           asset_path: ./dome-linux.zip
-          asset_name: dome-linux.zip
+          asset_name: dome-${{github.event.release.tag_name}}-linux-x64.zip
           asset_content_type: application/zip
       - name: Upload Windows x64
         uses: actions/upload-release-asset@v1
@@ -143,7 +143,7 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }} 
           asset_path: ./dome-windows-x64.zip
-          asset_name: dome-windows-x64.zip
+          asset_name: dome-${{github.event.release.tag_name}}-windows-x64.zip
           asset_content_type: application/zip
       - name: Upload Windows x32
         uses: actions/upload-release-asset@v1
@@ -152,7 +152,7 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }} 
           asset_path: ./dome-windows-x32.zip
-          asset_name: dome-windows-x32.zip
+          asset_name: dome-${{github.event.release.tag_name}}-windows-x32.zip
           asset_content_type: application/zip
       - name: Upload Mac OS X
         uses: actions/upload-release-asset@v1
@@ -161,5 +161,5 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }} 
           asset_path: ./dome-macosx.zip
-          asset_name: dome-macosx.zip
+          asset_name: dome-${{github.event.release.tag_name}}-macosx.zip
           asset_content_type: application/zip
