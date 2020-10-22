@@ -64,6 +64,12 @@ jobs:
     - run: "make STATIC=1 WINDOW_MODE=windows EXENAME=dome ICON_OBJECT_FILE=assets/icon32.res MODE=release ARCH=32bit CC=gcc"
       if: ${{ (matrix.msystem == 'MINGW32') }}
     - uses: actions/upload-artifact@v1
+      if: ${{ (matrix.msystem == 'MINGW32') }}
       with:
-        name: dome-window-${{matrix.msystem}}
+        name: dome-windows-x32
+        path: dome.exe
+    - uses: actions/upload-artifact@v1
+      if: ${{ (matrix.msystem == 'MINGW64') }}
+      with:
+        name: dome-windows-x64
         path: dome.exe
