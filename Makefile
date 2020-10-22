@@ -20,9 +20,9 @@ BUILTIN_RANDOM = 1
 BUILTIN_META = 1
 
 DOME_OPTS = -DHASH="\"$(BUILD_VALUE)\"" -DWREN_OPT_RANDOM=$(BUILTIN_RANDOM) -DWREN_OPT_META=$(BUILTIN_META)
-CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `which sdl2-config 1>/dev/null && sdl2-config --cflags`
-IFLAGS = -isystem $(INCLUDES)
 SDL_CONFIG ?= $(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "$(LIBS)/sdl2-config")
+CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `$(SDL_CONFIG) --cflags`
+IFLAGS = -isystem $(INCLUDES)
 
 ifdef STATIC
 	FRAMEWORK = unix
