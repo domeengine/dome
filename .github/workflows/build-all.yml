@@ -102,7 +102,7 @@ jobs:
           main.wren
   release-artifacts:
     name: Create release-artifacts
-    if: ${{ github.event.action == "created" }}
+    if: ${{ github.event.action == 'created' }}
     needs: [ build-linux, build-mac, build-windows ]
     runs-on: ubuntu-latest
     steps:
