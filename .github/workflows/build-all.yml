@@ -95,7 +95,8 @@ jobs:
           dome.exe
           main.wren
 
-  make-zip:
+  release-artifacts:
+    if: ${{ github.event.action == 'created' }}
     needs: [ build-linux, build-mac, build-windows ]
     runs-on: ubuntu-latest
     name: Upload Release Artifacts
@@ -117,13 +118,6 @@ jobs:
         with:
           args: zip -qq -r dome-macosx.zip dome-macosx
       - run: ls -la
-
-  release-artifacts:
-    if: ${{ github.event.action == 'created' }}
-    needs: [ make-zip ]
-    runs-on: ubuntu-latest
-    name: Upload Release Artifacts
-    steps:
       - name: Upload Linux Shared
         uses: actions/upload-release-asset@v1
         env:
