@@ -11,21 +11,36 @@ jobs:
   build-linux:
 
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        static: [1, 0]
     steps:
     - name: Checkout
       uses: actions/checkout@v2.0.0
     - run: git fetch --prune --unshallow
     - run: sudo apt-get update
-    - run: sudo apt-get install build-essential mercurial make cmake autoconf automake libtool libasound2-dev libpulse-dev libaudio-dev libx11-dev libxext-dev   libxrandr-dev libxcursor-dev libxi-dev libxinerama-dev libxxf86vm-dev  libxss-dev libgl1-mesa-dev libdbus-1-dev libudev-dev libgles2-mesa-dev  libegl1-mesa-dev libibus-1.0-dev fcitx-libs-dev libsamplerate0-dev  libsndio-dev libwayland-dev libxkbcommon-dev libc6-dev
+    - run: sudo apt-get install build-essential mercurial make cmake autoconf automake libtool libasound2-dev libpulse-dev libaudio-dev libx11-dev libxext-dev   libxrandr-dev libxcursor-dev libxi-dev libxinerama-dev libxxf86vm-dev  libxss-dev libgl1-mesa-dev libdbus-1-dev libudev-dev libgles2-mesa-dev  libegl1-mesa-dev libibus-1.0-dev fcitx-libs-dev libsamplerate0-dev  libsndio-dev libwayland-dev libxkbcommon-dev 
+    - run: sudo apt-get install libsdl2-dev
+      if: ${{matrix.static == 0}}
     - run: ./setup_static_linux_sdl.sh
-    - run: make MODE=release ARCH=64bit STATIC=1 SDL_CONFIG=src/lib/sdl2-config
+      if: ${{matrix.static == 1}}
+    - run: make MODE=release ARCH=64bit STATIC=${{matrix.static}} 
     - uses: actions/upload-artifact@v2
+      if: ${{matrix.static == 1}}
       with:
         name: dome-linux
         path: |
           dome
           main.wren
+
+    - uses: actions/upload-artifact@v2
+      if: ${{matrix.static == 0}}
+      with:
+        name: dome-linux-shared
+        path: |
+          dome
+          main.wren
+
   build-mac:
     runs-on: macOS-latest
     steps:
