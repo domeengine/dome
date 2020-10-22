@@ -25,6 +25,7 @@ fi
 
 cp $DIRECTORY/${FOLDER}/libSDL2.a $DOME_DIR/lib
 cp $DIRECTORY/${FOLDER}/sdl2-config $DOME_DIR/lib/sdl2-config
+chmod +x $DOME_DIR/lib/sdl2-config
 
 cp -r $DIRECTORY/include $DOME_DIR/include/SDL2
 cp -r $DIRECTORY/${FOLDER}/include/SDL_config.h  $DOME_DIR/include/SDL2/SDL_config.h
