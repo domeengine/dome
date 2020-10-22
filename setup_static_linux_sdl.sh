@@ -12,7 +12,7 @@ fi
 if ! [ -d "$DIRECTORY/$FOLDER" ]; then
   cd $DIRECTORY
   mkdir ${FOLDER} ; cd ${FOLDER}
-  cmake -DSDL-SHARED=OFF -DSDL_TEST=OFF -DSDL_STATIC=ON -DJACK_SHARED=OFF -DPULSEAUDIO_SHARED=OFF -DALSA_SHARED=OFF ..
+  cmake -DSDL_SHARED=OFF -DSDL_TEST=OFF -DSDL_STATIC=ON -DJACK_SHARED=OFF -DPULSEAUDIO_SHARED=OFF -DALSA_SHARED=OFF -DSNDIO=OFF ..
 else
   cd $DIRECTORY/${FOLDER}
 fi
@@ -20,11 +20,11 @@ fi
 make
 make install
 
-if [ -f "$DIRECTORY/$FOLDER/build/.libs/libSDL2main.a" ]; then
-  cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2main.a $DOME_DIR/lib
+if [ -f "$DIRECTORY/$FOLDER/libSDL2main.a" ]; then
+  cp $DIRECTORY/${FOLDER}/libSDL2main.a $DOME_DIR/lib
 fi
 
-cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2.a $DOME_DIR/lib
+cp $DIRECTORY/${FOLDER}/libSDL2.a $DOME_DIR/lib
 cp $DIRECTORY/${FOLDER}/sdl2-config $DOME_DIR/lib/sdl2-config
 
 cp -r $DIRECTORY/include $DOME_DIR/include/SDL2
