@@ -120,7 +120,7 @@ jobs:
 
   release-artifacts:
     if: ${{ github.event.action == 'created' }}
-    needs: [ make-zips ]
+    needs: [ make-zip ]
     runs-on: ubuntu-latest
     name: Upload Release Artifacts
     steps:
