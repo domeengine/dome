@@ -1,10 +1,8 @@
-name: Windows x64 Build Release
+name: Windows Build Release
 on:
   push:
-    branches: 
-      - actions
-    tags: 
-      - release/*
+    branches-ignore:
+      - '**'
 jobs:
   build:
     runs-on: windows-latest
