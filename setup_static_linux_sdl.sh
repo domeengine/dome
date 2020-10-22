@@ -6,7 +6,7 @@ DIRECTORY=$PWD/src/lib/SDL2-${VERSION}
 
 if ! [ -d "$DIRECTORY" ]; then
   cd $DOME_DIR/lib
-  curl -L https://libsdl.org/release/SDL2-${VERSION}.tar.gz | tar -xvz
+  wget -q -O- https://libsdl.org/release/SDL2-${VERSION}.tar.gz | tar -xvz
 fi
 
 if ! [ -d "$DIRECTORY/$FOLDER" ]; then
