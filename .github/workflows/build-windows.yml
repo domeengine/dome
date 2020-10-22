@@ -1,0 +1,37 @@
+name: Windows Build Release
+on:
+  push:
+    branches-ignore:
+      - '**'
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        msystem: [MINGW32, MINGW64]
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.msystem }}
+        update: true
+        install: git make mercurial subversion
+
+    - run: pacman --noconfirm -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-SDL2
+      if: ${{ (matrix.msystem == 'MINGW64') }}
+    - run: pacman --noconfirm -S mingw-w64-i686-toolchain mingw-w64-i686-SDL2
+      if: ${{ (matrix.msystem == 'MINGW32') }}
+
+    - run: git fetch --prune --unshallow
+    - run: gcc -v
+    - run: "make STATIC=1 WINDOW_MODE=windows EXENAME=dome ICON_OBJECT_FILE=assets/icon64.res MODE=release ARCH=64bit CC=gcc"
+      if: ${{ (matrix.msystem == 'MINGW64') }}
+    - run: "make STATIC=1 WINDOW_MODE=windows EXENAME=dome ICON_OBJECT_FILE=assets/icon32.res MODE=release ARCH=32bit CC=gcc"
+      if: ${{ (matrix.msystem == 'MINGW32') }}
+    - uses: actions/upload-artifact@v1
+      with:
+        name: dome-window-${{matrix.msystem}}
+        path: dome.exe

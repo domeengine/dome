@@ -45,16 +45,16 @@ class Game {
 
   static update() {
     if (Keyboard.isKeyDown("left")) {
-      __x = __x - 1 
+      __x = __x - 1
     }
     if (Keyboard.isKeyDown("right")) {
-      __x = __x+ 1 
+      __x = __x+ 1
     }
     if (Keyboard.isKeyDown("up")) {
-      __y = __y - 1 
+      __y = __y - 1
     }
     if (Keyboard.isKeyDown("down")) {
-      __y = __y + 1 
+      __y = __y + 1
     }
   }
   static draw(alpha) {
@@ -69,6 +69,7 @@ class Game {
 ## Modules
 
 DOME provides the following modules/methods/classes:
+
 - Graphics
   - Canvas
     - Rect
@@ -87,9 +88,10 @@ DOME provides the following modules/methods/classes:
 - Audio (stereo and mono OGG and WAV files only)
 
 ## TODO
+
 You can follow my progress on implementing DOME on [my twitter](https://twitter.com/avivbeeri/status/1012448692119457798).
 
-- Graphics 
+- Graphics
   - Triangles
 - IO
   - Asynchronous Operations
@@ -102,9 +104,9 @@ You can follow my progress on implementing DOME on [my twitter](https://twitter.
 ## Dependencies
 
 DOME currently depends on a few libraries to achieve it's functions.
+
 - Wren (This is built by `make` automatically)
 - SDL2 (version 2.0.2 or newer, this is a shared library and you must install it seperately)
-- libffi (version 3.3 or newer, but optional and can be built by `make DOME_OPT_FFI=1`)
 - utf8.h
 - stb_image
 - stb_image_write
@@ -115,6 +117,7 @@ DOME currently depends on a few libraries to achieve it's functions.
 - jo_gif
 - tinydir
 - [ABC_fifo](https://github.com/avivbeeri/abc) (A SPMC threadpool/task dispatching FIFO I wrote for this project)
+- mkdirp
 
 Apart from SDL2, all other dependancies are baked in or linked statically. DOME aspires to be both minimalist and cross platform, so it depends on as few external components as possible.
 
@@ -123,7 +126,7 @@ Apart from SDL2, all other dependancies are baked in or linked statically. DOME 
 - Bob Nystrom for creating Wren and inspiring me to make games, thanks to [Game Programming Patterns](http://gameprogrammingpatterns.com)
 - Special thanks to [lqdev](https://github.com/liquid600pgm) for the fantastic logo!
 - Glenn Fiedler for the most referenced [resources](https://gafferongames.com/) on Game Loops, Physics and Networking in games
-- Casey Muratori for creating [Handmade Hero](https://hero.handmade.network), an inspiration and educational resource that makes this project possible. 
+- Casey Muratori for creating [Handmade Hero](https://hero.handmade.network), an inspiration and educational resource that makes this project possible.
 - Built-in font comes from [here](https://github.com/dhepper/font8x8).
 - Sean Barrett for [multiple libraries](https://github.com/nothings/stb)
 - rxi for [microtar](https://github.com/rxi/microtar)
@@ -133,6 +136,7 @@ Apart from SDL2, all other dependancies are baked in or linked statically. DOME 
 - Jon Olick for [jo_gif](https://www.jonolick.com/home/gif-writer)
 
 ### Example Game Resources
+
 - Example game and graphics are derived from [this](https://ztiromoritz.github.io/pico-8-shooter/) fantastic PICO-8 tutorial.
 - Aerith's Piano Theme (res/AerisPiano.ogg) by Tanner Helland is available under a CC BY-SA 3.0 license: [Link](http://www.tannerhelland.com/68/aeris-theme-piano/)
 - Game Over Theme (res/music.wav) by Doppelganger is available under a CC BY-SA 3.0 license: [Link](https://opengameart.org/content/game-over-theme)

@@ -64,6 +64,7 @@ class Window {
   foreign static fullscreen
   foreign static width
   foreign static height
+  foreign static fps
 
   foreign static resize(width, height)
 }

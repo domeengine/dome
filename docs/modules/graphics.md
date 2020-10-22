@@ -46,7 +46,8 @@ Draw an ellipse between (_x0, y0_) and (_x1, y1_) in the color _c_.
 Draw a filled ellipse between (_x0, y0_) and (_x1, y1_) in the color _c_.
 
 #### `static line(x0: Number, y0: Number, x1: Number, y1: Number, c: Color) `
-Draw an 1px wide line between (_x0, y0_) and (_x1, y1_) in the color _c_.
+#### `static line(x0: Number, y0: Number, x1: Number, y1: Number, c: Color, size: Number) `
+Draw a line `size` pixels wide between (_x0, y0_) and (_x1, y1_) in the color _c_. By default, `size` is 1.
 
 #### `static offset()`
 #### `static offset(x: Number, y: Number) `

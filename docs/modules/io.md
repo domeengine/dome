@@ -32,3 +32,6 @@ This gives you a safe path where you can write personal game files (saves and se
 #### `static save(path: String, buffer: String): Void`
 Given a valid file `path`, this will create or overwrite the file the data in the `buffer` String object.
 This is a blocking operation, and so execution will stop while the file is saved.
+
+#### `static createDirectory(path: String): Void`
+Given a valid `path`, creates the directory, if it doesn't already exist and makes parent directories as needed.
