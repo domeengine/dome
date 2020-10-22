@@ -98,22 +98,36 @@ jobs:
           dome.exe
           main.wren
 
-  test-upload:
+  make-zip:
     needs: [ build-linux, build-mac, build-windows ]
     runs-on: ubuntu-latest
     name: Upload Release Artifacts
     steps:
       - uses: actions/download-artifact@v2
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-linux.zip dome-linux
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-linux-shared.zip dome-linux-shared
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-windows-x64.zip dome-windows-x64
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-windows-x32.zip dome-windows-x32
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-macosx.zip dome-macosx
       - run: ls -la
 
   release-artifacts:
     if: ${{ github.event.action == 'created' }}
-    needs: [ build-linux, build-mac, build-windows ]
+    needs: [ make-zips ]
     runs-on: ubuntu-latest
     name: Upload Release Artifacts
     steps:
-      - uses: actions/download-artifact@v2
       - uses: shogo82148/actions-upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: dome-*
+          asset_path: dome-*.zip
