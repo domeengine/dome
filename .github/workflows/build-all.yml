@@ -4,6 +4,9 @@ on:
     types: [assigned, opened, synchronize, reopened]
   release:
     types: [created]
+  push:
+    branches: 
+      - release/1.3.1  
 
 jobs:
   build-linux:
@@ -94,6 +97,15 @@ jobs:
         path: |
           dome.exe
           main.wren
+
+  test-upload:
+    needs: [ build-linux, build-mac, build-windows ]
+    runs-on: ubuntu-latest
+    name: Upload Release Artifacts
+    steps:
+      - uses: actions/download-artifact@v2
+      - run: ls -la
+
   release-artifacts:
     if: ${{ github.event.action == 'created' }}
     needs: [ build-linux, build-mac, build-windows ]
