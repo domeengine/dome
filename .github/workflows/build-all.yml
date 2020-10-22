@@ -100,7 +100,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Upload Release Artifacts
     steps:
-      uses: skx/github-action-publish-binaries@master
+      - uses: skx/github-action-publish-binaries@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
