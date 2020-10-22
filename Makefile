@@ -85,8 +85,6 @@ endif
 
 ifneq (, $(findstring Linux, $(SYS)))
   CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered 
-	LDFLAGS += -ldl
-	# --no-pie
 endif
 
 
