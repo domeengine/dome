@@ -4,10 +4,6 @@ on:
     types: [assigned, opened, synchronize, reopened]
   release:
     types: [created]
-  push:
-    tags: 
-      - release/*
-      - v*
 
 jobs:
   build-linux:
@@ -98,14 +94,72 @@ jobs:
         path: |
           dome.exe
           main.wren
+
   release-artifacts:
-    name: Create release-artifacts
     if: ${{ github.event.action == 'created' }}
     needs: [ build-linux, build-mac, build-windows ]
     runs-on: ubuntu-latest
+    name: Upload Release Artifacts
     steps:
-      - uses: skx/github-action-publish-binaries@master
+      - uses: actions/download-artifact@v2
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-linux.zip dome-linux
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-linux-shared.zip dome-linux-shared
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-windows-x64.zip dome-windows-x64
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-windows-x32.zip dome-windows-x32
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-macosx.zip dome-macosx
+      - run: ls -la
+      - name: Upload Linux Shared
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: 'dome-*'
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-linux-shared.zip
+          asset_name: dome-${{github.event.release.tag_name}}-linux-x64-shared.zip
+          asset_content_type: application/zip
+      - name: Upload Linux Static
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-linux.zip
+          asset_name: dome-${{github.event.release.tag_name}}-linux-x64.zip
+          asset_content_type: application/zip
+      - name: Upload Windows x64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-windows-x64.zip
+          asset_name: dome-${{github.event.release.tag_name}}-windows-x64.zip
+          asset_content_type: application/zip
+      - name: Upload Windows x32
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-windows-x32.zip
+          asset_name: dome-${{github.event.release.tag_name}}-windows-x32.zip
+          asset_content_type: application/zip
+      - name: Upload Mac OS X
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-macosx.zip
+          asset_name: dome-${{github.event.release.tag_name}}-macosx.zip
+          asset_content_type: application/zip
