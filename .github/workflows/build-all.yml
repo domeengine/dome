@@ -100,8 +100,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Upload Release Artifacts
     steps:
+      - uses: actions/download-artifact@v2
       - uses: skx/github-action-publish-binaries@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: 'dome-*'
+          args: 'dome-*.zip'
