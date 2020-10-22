@@ -124,7 +124,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Upload Release Artifacts
     steps:
-      - uses: shogo82148/actions-upload-release-asset@v1
+      - name: Upload the artifacts
+        uses: skx/github-action-publish-binaries@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: dome-*.zip
+          args: 'dome-*.zip'
