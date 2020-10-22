@@ -18,7 +18,6 @@ else
 fi
 
 make
-make install
 
 if [ -f "$DIRECTORY/$FOLDER/libSDL2main.a" ]; then
   cp $DIRECTORY/${FOLDER}/libSDL2main.a $DOME_DIR/lib
