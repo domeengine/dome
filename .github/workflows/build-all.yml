@@ -4,10 +4,6 @@ on:
     types: [assigned, opened, synchronize, reopened]
   release:
     types: [created]
-  push:
-    tags: 
-      - release/*
-      - v*
 
 jobs:
   build-linux:
