@@ -1,0 +1,111 @@
+name: Multi-platform Build Release
+on:
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
+  release:
+    types: [created]
+  push:
+    tags: 
+      - release/*
+      - v*
+
+jobs:
+  build-linux:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        static: [1, 0]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+    - run: git fetch --prune --unshallow
+    - run: sudo apt-get update
+    - run: sudo apt-get install build-essential mercurial make cmake autoconf automake libtool libasound2-dev libpulse-dev libaudio-dev libx11-dev libxext-dev   libxrandr-dev libxcursor-dev libxi-dev libxinerama-dev libxxf86vm-dev  libxss-dev libgl1-mesa-dev libdbus-1-dev libudev-dev libgles2-mesa-dev  libegl1-mesa-dev libibus-1.0-dev fcitx-libs-dev libsamplerate0-dev  libsndio-dev libwayland-dev libxkbcommon-dev 
+    - run: sudo apt-get install libsdl2-dev
+      if: ${{matrix.static == 0}}
+    - run: ./setup_static_linux_sdl.sh
+      if: ${{matrix.static == 1}}
+    - run: make MODE=release ARCH=64bit STATIC=${{matrix.static}} 
+    - uses: actions/upload-artifact@v2
+      if: ${{matrix.static == 1}}
+      with:
+        name: dome-linux
+        path: |
+          dome
+          main.wren
+
+    - uses: actions/upload-artifact@v2
+      if: ${{matrix.static == 0}}
+      with:
+        name: dome-linux-shared
+        path: |
+          dome
+          main.wren
+
+  build-mac:
+    runs-on: macOS-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+    - run: sudo xcode-select -switch /Applications/Xcode_11.app/Contents/Developer
+    - run: ./setup_static_mac_sdl.sh
+    - run: make MIN_MAC_VERSION=10.12 STATIC=1 MODE=release ARCH=64bit
+    - uses: actions/upload-artifact@v2
+      with:
+        name: dome-macosx
+        path: |
+          dome
+          main.wren
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        msystem: [MINGW32, MINGW64]
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.msystem }}
+        update: true
+        install: git make mercurial subversion
+
+    - run: pacman --noconfirm -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-SDL2
+      if: ${{ (matrix.msystem == 'MINGW64') }}
+    - run: pacman --noconfirm -S mingw-w64-i686-toolchain mingw-w64-i686-SDL2
+      if: ${{ (matrix.msystem == 'MINGW32') }}
+
+    - run: git fetch --prune --unshallow
+    - run: gcc -v
+    - run: "make STATIC=1 WINDOW_MODE=windows EXENAME=dome ICON_OBJECT_FILE=assets/icon64.res MODE=release ARCH=64bit CC=gcc"
+      if: ${{ (matrix.msystem == 'MINGW64') }}
+    - run: "make STATIC=1 WINDOW_MODE=windows EXENAME=dome ICON_OBJECT_FILE=assets/icon32.res MODE=release ARCH=32bit CC=gcc"
+      if: ${{ (matrix.msystem == 'MINGW32') }}
+    - uses: actions/upload-artifact@v2
+      if: ${{ (matrix.msystem == 'MINGW32') }}
+      with:
+        name: dome-windows-x32
+        path: |
+          dome.exe
+          main.wren
+    - uses: actions/upload-artifact@v2
+      if: ${{ (matrix.msystem == 'MINGW64') }}
+      with:
+        name: dome-windows-x64
+        path: |
+          dome.exe
+          main.wren
+  release-artifacts:
+    name: Create release-artifacts
+    if: ${{ github.event.action == 'created' }}
+    needs: [ build-linux, build-mac, build-windows ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: skx/github-action-publish-binaries@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: 'dome-*'
