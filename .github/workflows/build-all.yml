@@ -163,16 +163,15 @@ jobs:
           asset_path: ./dome-macosx-x64.zip
           asset_name: dome-${{github.event.release.tag_name}}-macosx-x64.zip
           asset_content_type: application/zip
-
-    notify-discord:
-      runs-on: ubuntu-latest
-      if: ${{ github.event.action == 'created' }}
-      needs: [ release-artifacts ]
-      steps:
-      - name: Discord notification
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-            
-        uses: Ilshidur/action-discord@0.3.0
-        with:
-          args: 'New DOME Release "{{ github.event.release.full_name }}" is now available for download!'
+  notify-discord:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.action == 'created' }}
+    needs: [ release-artifacts ]
+    steps:
+    - name: Discord notification
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          
+      uses: Ilshidur/action-discord@0.3.0
+      with:
+        args: 'New DOME Release "{{ github.event.release.full_name }}" is now available for download!'
