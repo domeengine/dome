@@ -26,7 +26,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       if: ${{matrix.static == 1}}
       with:
-        name: dome-linux
+        name: dome-linux-x64
         path: |
           dome
           main.wren
@@ -34,7 +34,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       if: ${{matrix.static == 0}}
       with:
-        name: dome-linux-shared
+        name: dome-linux-x64-shared
         path: |
           dome
           main.wren
@@ -49,7 +49,7 @@ jobs:
     - run: make MIN_MAC_VERSION=10.12 STATIC=1 MODE=release ARCH=64bit
     - uses: actions/upload-artifact@v2
       with:
-        name: dome-macosx
+        name: dome-macosx-x64
         path: |
           dome
           main.wren
@@ -104,10 +104,10 @@ jobs:
       - uses: actions/download-artifact@v2
       - uses: montudor/action-zip@v0.1.0
         with:
-          args: zip -qq -r dome-linux.zip dome-linux
+          args: zip -qq -r dome-linux-x64.zip dome-linux-x64
       - uses: montudor/action-zip@v0.1.0
         with:
-          args: zip -qq -r dome-linux-shared.zip dome-linux-shared
+          args: zip -qq -r dome-linux-x64-shared.zip dome-linux-x64-shared
       - uses: montudor/action-zip@v0.1.0
         with:
           args: zip -qq -r dome-windows-x64.zip dome-windows-x64
@@ -116,7 +116,7 @@ jobs:
           args: zip -qq -r dome-windows-x32.zip dome-windows-x32
       - uses: montudor/action-zip@v0.1.0
         with:
-          args: zip -qq -r dome-macosx.zip dome-macosx
+          args: zip -qq -r dome-macosx-x64.zip dome-macosx-x64
       - run: ls -la
       - name: Upload Linux Shared
         uses: actions/upload-release-asset@v1
@@ -124,7 +124,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }} 
-          asset_path: ./dome-linux-shared.zip
+          asset_path: ./dome-linux-x64-shared.zip
           asset_name: dome-${{github.event.release.tag_name}}-linux-x64-shared.zip
           asset_content_type: application/zip
       - name: Upload Linux Static
@@ -133,7 +133,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }} 
-          asset_path: ./dome-linux.zip
+          asset_path: ./dome-linux-x64.zip
           asset_name: dome-${{github.event.release.tag_name}}-linux-x64.zip
           asset_content_type: application/zip
       - name: Upload Windows x64
@@ -160,6 +160,25 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }} 
-          asset_path: ./dome-macosx.zip
-          asset_name: dome-${{github.event.release.tag_name}}-macosx.zip
+          asset_path: ./dome-macosx-x64.zip
+          asset_name: dome-${{github.event.release.tag_name}}-macosx-x64.zip
           asset_content_type: application/zip
+  notify-discord:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.action == 'created' }}
+    needs: [ release-artifacts ]
+    steps:
+    - name: Discord notification
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        DISCORD_EMBEDS: >
+          [{ 
+             "title": "New Release: '${{github.event.release.name}}' is now available for download!", 
+             "url": "${{github.event.release.html_url}}",
+             "author": {
+               "name": "${{github.event.release.author.login}}",
+               "url": "${{github.event.release.author.html_url}}",
+               "icon_url": "${{github.event.release.author.avatar_url}}"
+             }
+          }]
+      uses: Ilshidur/action-discord@0.3.0
