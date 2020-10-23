@@ -179,9 +179,7 @@ jobs:
              "author": {
                "name": "${{github.event.release.author.login}}",
                "url": "${{github.event.release.author.html_url}}",
-               "icon_url": "${{github.event.release.author.avatar_url}}",
-    
+               "icon_url": "${{github.event.release.author.avatar_url}}"
              }
           }]
-
       uses: Ilshidur/action-discord@0.3.0
