@@ -171,5 +171,5 @@ jobs:
     - name: Discord notification
       env:
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        DISCORD_EMBEDS: '[{ title: "DOME ${{github.event.release.tag_name}} is now available for download!", url: "${{github.event.release.html_url}}" }]'
+        DISCORD_EMBEDS: '[{ "title": "DOME ${{github.event.release.tag_name}} is now available for download!", "url": "${{github.event.release.html_url}}" }]'
       uses: Ilshidur/action-discord@0.3.0
