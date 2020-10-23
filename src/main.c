@@ -324,26 +324,31 @@ int main(int argc, char* args[])
   WrenInterpretResult interpreterResult;
 
   // Load user game file
+  WrenHandle* initMethod = NULL;
+  WrenHandle* updateMethod = NULL;
+  WrenHandle* drawMethod = NULL;
+  WrenHandle* gameClass = NULL;
+  SDL_Thread* recordThread = NULL;
+
   interpreterResult = wrenInterpret(vm, "main", gameFile);
   free(gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
-    goto cleanup;
+    goto vm_cleanup;
   }
   // Load the class into slot 0.
 
 
   wrenEnsureSlots(vm, 3);
-  WrenHandle* initMethod = wrenMakeCallHandle(vm, "init()");
-  WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update()");
-  WrenHandle* drawMethod = wrenMakeCallHandle(vm, "draw(_)");
+  initMethod = wrenMakeCallHandle(vm, "init()");
+  updateMethod = wrenMakeCallHandle(vm, "update()");
+  drawMethod = wrenMakeCallHandle(vm, "draw(_)");
   wrenGetVariable(vm, "main", "Game", 0);
-  WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
+  gameClass = wrenGetSlotHandle(vm, 0);
 
   // Initiate game loop
   uint8_t FPS = 60;
   double MS_PER_FRAME = ceil(1000.0 / FPS);
-  SDL_Thread* recordThread = NULL;
 
   wrenSetSlotHandle(vm, 0, gameClass);
   interpreterResult = wrenCall(vm, initMethod);
@@ -563,10 +568,21 @@ vm_cleanup:
     }
   }
 
-  wrenReleaseHandle(vm, initMethod);
-  wrenReleaseHandle(vm, drawMethod);
-  wrenReleaseHandle(vm, updateMethod);
-  wrenReleaseHandle(vm, gameClass);
+  if (initMethod != NULL) {
+    wrenReleaseHandle(vm, initMethod);
+  }
+
+  if (drawMethod != NULL) {
+    wrenReleaseHandle(vm, drawMethod);
+  }
+
+  if (updateMethod != NULL) {
+    wrenReleaseHandle(vm, updateMethod);
+  }
+
+  if (gameClass != NULL) {
+    wrenReleaseHandle(vm, gameClass);
+  }
 
   if (bufferClass != NULL) {
     wrenReleaseHandle(vm, bufferClass);
