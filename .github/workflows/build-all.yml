@@ -166,14 +166,14 @@ jobs:
   notify-discord:
     runs-on: ubuntu-latest
     if: ${{ github.event.action == 'created' }}
-    # needs: [ release-artifacts ]
+    needs: [ release-artifacts ]
     steps:
     - name: Discord notification
       env:
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         DISCORD_EMBEDS: >
           [{ 
-             "title": "Release: ${{github.event.release.name}} is now available for download!", 
+             "title": "New Release: '${{github.event.release.name}}' is now available for download!", 
              "url": "${{github.event.release.html_url}}",
              "author": {
                "name": "${{github.event.release.author.login}}",
