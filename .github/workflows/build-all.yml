@@ -171,7 +171,6 @@ jobs:
     - name: Discord notification
       env:
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          
       uses: Ilshidur/action-discord@0.3.0
       with:
         args: 'New DOME Release "{{ github.event.release.full_name }}" is now available for download!'
