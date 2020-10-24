@@ -1,13 +1,3 @@
-/**
-
-  @Module graphics
-  The graphics module provides all the system functions required for drawing to the screen.
-*/
-
-/**
-    @Class Canvas
-      This class provides static methods for drawing primitives and images.
-*/
 class Canvas {
   static init_() {
     __defaultFont = null
@@ -66,22 +56,6 @@ class Canvas {
   foreign static f_ellipse(x1, y1, x2, y2, c)
   foreign static f_ellipsefill(x1, y1, x2, y2, c)
 
- /**
-     @Method pset
-       Sets the given (x, y) co-ordinate with the Color given.
-       @Param
-         @Name x
-         @Type number
-         The x-coordinate of the pixel to set.
-       @Param
-         @Name y
-         @Type number
-         The y-coordinate of the pixel to set.
-       @Param
-         @Name y
-         @Type Color | number
-         The 32-bit value or Color object representing the color the pixel should be set to.
- */
   static pset(x, y, c) {
     if (c is Color) {
       f_pset(x, y, c.toNum)
@@ -186,9 +160,9 @@ class Canvas {
 
 
 // These need to be at the bottom to prevent cyclic dependancy
+import "color" for Color
 import "image" for Drawable, ImageData
 import "vector" for Point, Vec, Vector
 import "font" for Font, RasterizedFont
-import "color" for Color
 
 Canvas.init_()

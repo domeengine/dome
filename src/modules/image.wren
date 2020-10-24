@@ -1,4 +1,3 @@
-import "color" for Color
 class Drawable {
   draw(x, y) {}
 }
@@ -7,7 +6,6 @@ foreign class DrawCommand is Drawable {
   construct new(image, params) {}
 
   static parse(image, map) {
-    import "graphics" for Color
     var list = [
       map["angle"] || 0,
       map["scaleX"] || 1,
@@ -39,7 +37,6 @@ foreign class ImageData is Drawable {
 
   foreign f_getPNG()
   saveToFile(path) {
-    import "io" for FileSystem
     var data = f_getPNG()
     if (data != null) {
       FileSystem.save(path, data)
@@ -69,7 +66,6 @@ foreign class ImageData is Drawable {
     }
 
     if (!__cache.containsKey(path)) {
-      import "io" for FileSystem
       var data = FileSystem.load(path)
       __cache[path] = ImageData.initFromFile(data)
     }
@@ -113,3 +109,5 @@ foreign class ImageData is Drawable {
   }
 }
 
+import "color" for Color
+import "io" for FileSystem

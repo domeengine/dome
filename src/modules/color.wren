@@ -1,14 +1,10 @@
 import "math" for HexToNum, NumToHex
+
 var SubStr = Fn.new {|str, start, len|
   return str.bytes.skip(start).take(len).toList
 }
 
-/**
-    @Class Color
-      An instance of this class represents an rgb color, which can be passed to Canvas methods.
-*/
 class Color {
-
   construct hex(hex) {
     if (hex is String) {
       var offset = 0
