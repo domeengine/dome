@@ -275,6 +275,7 @@ int main(int argc, char* args[])
 
     char* fileName = NULL;
 
+    // Get base directory
     if (arg != NULL) {
       strcpy(pathBuf, base);
       strcat(pathBuf, arg);
@@ -283,6 +284,7 @@ int main(int argc, char* args[])
       } else {
         char* dirc = strdup(pathBuf);
         char* basec = strdup(pathBuf);
+        // This sets the filename used.
         fileName = basename(dirc);
         BASEPATH_set(dirname(basec));
         free(dirc);
@@ -292,26 +294,32 @@ int main(int argc, char* args[])
       base = BASEPATH_get();
     }
 
+    // If a filename is given in the path, use it, or assume its 'game.egg'
     strcpy(pathBuf, base);
     strcat(pathBuf, fileName ? fileName : defaultEggName);
 
     if (doesFileExist(pathBuf)) {
+      // the current path exists, let's see if it's a TAR file.
       engine.tar = malloc(sizeof(mtar_t));
       int tarResult = mtar_open(engine.tar, pathBuf, "r");
       if (tarResult == MTAR_ESUCCESS) {
         ENGINE_printLog(&engine, "Loading bundle %s\n", pathBuf);
       } else {
+        // Not a valid tar file.
         free(engine.tar);
         engine.tar = NULL;
       }
     }
 
     if (engine.tar != NULL) {
+      // It is a tar file, we need to look for a "main.wren" entry point.
       strcpy(pathBuf, mainFileName);
     } else {
+      // Not a tar file, use the given path or main.wren
       strcpy(pathBuf, fileName ? fileName : mainFileName);
     }
 
+    // The basepath is incorporated later, so we pass the basename version to this method.
     gameFile = ENGINE_readFile(&engine, pathBuf, &gameFileLength);
     if (gameFile == NULL) {
       if (engine.tar != NULL) {
