@@ -13,7 +13,7 @@ Once the download is complete, unzip the downloaded archive and place its conten
 
 At this point, you should have an executable named `dome` in your current directory. Test your installation by opening a terminal/command-prompt, navigating to the directory and executing:
 
-```bash
+```
 > ./dome -v
 ```
 It should print out its version and SDL versions.
@@ -24,8 +24,8 @@ You can also download the example `game.egg` from the GitHub repository to test 
 If you have [Homebrew](https://brew.sh/) installed (Mac OS X, [Linux and WSL](https://docs.brew.sh/Homebrew-on-Linux)), you can install DOME using the following commands:
 
 ```
-brew tap avivbeeri/dome
-brew install dome
+> brew tap avivbeeri/dome
+> brew install dome
 ```
 This will install `dome` as a global command for use anywhere.
 
