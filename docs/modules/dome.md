@@ -12,6 +12,10 @@ It contains the following classes:
 
 ## Process
 
+### Static Fields
+#### `static arguments: String[]`
+Returns a string list of all command line arguments used to invoke DOME's execution, in the other they were provided.
+
 ### Static Methods
 
 #### `static exit(): Void`
