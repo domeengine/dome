@@ -21,7 +21,7 @@ It should print out its version and SDL versions.
 You can also download the example `game.egg` from the GitHub repository to test dome. Place it in the same folder as your executable and then run dome, and it should begin playing.
 
 ## Method 2: Install using Homebrew
-If you have Homebrew installed (Mac OS X or Linux), you can install DOME using the following commands:
+If you have [Homebrew](https://brew.sh/) installed (Mac OS X, [Linux and WSL](https://docs.brew.sh/Homebrew-on-Linux)), you can install DOME using the following commands:
 
 ```
 brew tap avivbeeri/dome
