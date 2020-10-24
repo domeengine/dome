@@ -154,7 +154,7 @@ printVersion(ENGINE* engine) {
 internal void
 printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "\nUsage: \n");
-  ENGINE_printLog(engine, "  dome [-c] [-d | --debug] [-r<gif> | --record=<gif>] [-b<buf> | --buffer=<buf>] [entry path]\n");
+  ENGINE_printLog(engine, "  dome [-b<buf> | --buffer=<buf>] [-c] [-d | --debug] [-p<path> | --path=<entry path>] [-r<gif> | --record=<gif>] [entry path]\n");
   ENGINE_printLog(engine, "  dome -h | --help\n");
   ENGINE_printLog(engine, "  dome -v | --version\n");
   ENGINE_printLog(engine, "\nOptions: \n");
@@ -164,8 +164,9 @@ printUsage(ENGINE* engine) {
 #endif
   ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
   ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
-  ENGINE_printLog(engine, "  -v --version        Show version.\n");
+  ENGINE_printLog(engine, "  -p --path           The path to your application entry point.\n");
   ENGINE_printLog(engine, "  -r --record=<gif>   Record video to <gif>.\n");
+  ENGINE_printLog(engine, "  -v --version        Show version.\n");
 }
 
 int main(int argc, char* args[])
