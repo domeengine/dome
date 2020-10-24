@@ -212,6 +212,9 @@ ENGINE_init(ENGINE* engine) {
   engine->width = GAME_WIDTH;
   engine->height = GAME_HEIGHT;
 
+  engine->argv = NULL;
+  engine->argc = 0;
+
   return engine;
 }
 
@@ -312,6 +315,10 @@ ENGINE_free(ENGINE* engine) {
 
   if (engine->pixels != NULL) {
     free(engine->pixels);
+  }
+
+  if (engine->argv != NULL) {
+    free(engine->argv);
   }
 
   if (engine->texture != NULL) {

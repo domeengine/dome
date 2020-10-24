@@ -179,6 +179,11 @@ int main(int argc, char* args[])
   engine.record.makeGif = false;
 
   ENGINE_init(&engine);
+  engine.argv = calloc(sizeof(char*), argc);
+  engine.argc = argc;
+  for (int i = 0; i < argc; i++) {
+    engine.argv[i] = args[i];
+  }
 
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
@@ -187,6 +192,7 @@ int main(int argc, char* args[])
     {"console", 'c', OPTPARSE_NONE},
     #endif
     {"debug", 'd', OPTPARSE_NONE},
+    {"path", 'p', OPTPARSE_REQUIRED},
     {"help", 'h', OPTPARSE_NONE},
     {"version", 'v', OPTPARSE_NONE},
     {"record", 'r', OPTPARSE_OPTIONAL},
@@ -195,6 +201,7 @@ int main(int argc, char* args[])
   };
   // char *arg;
   int option;
+  char* arg = NULL;
   struct optparse options;
   optparse_init(&options, args);
   while ((option = optparse_long(&options, longopts, NULL)) != -1) {
@@ -246,6 +253,9 @@ int main(int argc, char* args[])
         printTitle(&engine);
         printVersion(&engine);
         goto cleanup;
+      case 'p':
+        arg = options.optarg;
+        break;
       case '?':
         fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
         result = EXIT_FAILURE;
@@ -258,7 +268,7 @@ int main(int argc, char* args[])
     char* mainFileName = "main.wren";
 
     char* base = BASEPATH_get();
-    char* arg = optparse_arg(&options);
+    arg = arg ? arg : optparse_arg(&options);
 
     char pathBuf[PATH_MAX];
 

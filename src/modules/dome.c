@@ -9,6 +9,19 @@ PROCESS_exit(WrenVM* vm) {
 }
 
 internal void
+PROCESS_getArguments(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  size_t count = engine->argc;
+  char** arguments = engine->argv;
+  wrenEnsureSlots(vm, 2);
+  wrenSetSlotNewList(vm, 0);
+  for (size_t i = 0; i < count; i++) {
+    wrenSetSlotString(vm, 1, arguments[i]);
+    wrenInsertInList(vm, 0, i, 1);
+  }
+}
+
+internal void
 STRING_UTILS_toLowercase(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "string");
   int length;

@@ -44,6 +44,7 @@ class Version {
 
 
 class Process {
+  foreign static arguments
   foreign static f_exit(n)
   static exit(n) {
     f_exit(n)

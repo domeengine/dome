@@ -42,6 +42,8 @@ typedef struct {
   int32_t offsetY;
   mtar_t* tar;
   bool running;
+  char** argv;
+  size_t argc;
   bool lockstep;
   bool mouseRelative;
   int mouseX;
