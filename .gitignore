@@ -19,3 +19,8 @@ src/lib/libSDL2*
 *.dSYM
 
 node_modules
+docs/_site/**/*
+docs/.sass-cache/
+docs/.jekyll-cache/
+docs/.jekyll-metadata
+Gemfile.lock
