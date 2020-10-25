@@ -317,10 +317,6 @@ ENGINE_free(ENGINE* engine) {
     free(engine->pixels);
   }
 
-  if (engine->argv != NULL) {
-    free(engine->argv);
-  }
-
   if (engine->texture != NULL) {
     SDL_DestroyTexture(engine->texture);
   }
@@ -331,6 +327,10 @@ ENGINE_free(ENGINE* engine) {
 
   if (engine->window != NULL) {
     SDL_DestroyWindow(engine->window);
+  }
+
+  if (engine->argv != NULL) {
+    free(engine->argv);
   }
 
   // DEBUG features

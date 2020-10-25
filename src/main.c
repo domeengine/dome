@@ -182,11 +182,6 @@ int main(int argc, char* args[])
   engine.record.makeGif = false;
 
   ENGINE_init(&engine);
-  engine.argv = calloc(sizeof(char*), argc);
-  engine.argc = argc;
-  for (int i = 0; i < argc; i++) {
-    engine.argv[i] = args[i];
-  }
 
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
@@ -269,14 +264,21 @@ int main(int argc, char* args[])
 
     char pathBuf[PATH_MAX];
     char* fileName = NULL;
-    printf("%i\n", argc);
-    char* arg = optparse_arg(&options);
-    int domeArgs = arg == NULL ? 0 : 1;
+
+    // Get non-option args list
+    engine.argv = calloc(argc, sizeof(char*));
+    engine.argv[0] = args[0];
+    int domeArgCount = 1;
     char* otherArg = NULL;
     while ((otherArg = optparse_arg(&options))) {
-      domeArgs++;
+      engine.argv[domeArgCount] = otherArg;
+      domeArgCount++;
     }
-    bool autoResolve = (domeArgs == 0);
+
+    engine.argv = realloc(engine.argv, sizeof(char*) * domeArgCount);
+    engine.argc = domeArgCount;
+    char* arg = engine.argv[1];
+    bool autoResolve = (domeArgCount == 0);
 
     // Get establish the path components: filename(?) and basepath.
     if (arg != NULL) {
