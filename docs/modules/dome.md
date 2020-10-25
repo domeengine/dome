@@ -13,8 +13,10 @@ It contains the following classes:
 ## Process
 
 ### Static Fields
-#### `static arguments: String[]`
-Returns a string list of all command line arguments used to invoke DOME's execution, in the other they were provided.
+#### `static args: String[]`
+Returns a string list of all non-option command line arguments used to invoke DOME's execution. The first two elements of the returned list will be:
+1) the path and name of DOME's invokation.
+2) The entry path, combined with the evaluated basepath.
 
 ### Static Methods
 
