@@ -330,6 +330,7 @@ ENGINE_free(ENGINE* engine) {
   }
 
   if (engine->argv != NULL) {
+    free(engine->argv[1]);
     free(engine->argv);
   }
 

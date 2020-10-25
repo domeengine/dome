@@ -166,7 +166,6 @@ printUsage(ENGINE* engine) {
 #endif
   ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
   ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
-  ENGINE_printLog(engine, "  -p --path           The path to your application entry point.\n");
   ENGINE_printLog(engine, "  -r --record=<gif>   Record video to <gif>.\n");
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
 }
@@ -266,8 +265,9 @@ int main(int argc, char* args[])
     char* fileName = NULL;
 
     // Get non-option args list
-    engine.argv = calloc(argc, sizeof(char*));
+    engine.argv = calloc(max(2, argc), sizeof(char*));
     engine.argv[0] = args[0];
+    engine.argv[1] = NULL;
     int domeArgCount = 1;
     char* otherArg = NULL;
     while ((otherArg = optparse_arg(&options))) {
@@ -275,10 +275,16 @@ int main(int argc, char* args[])
       domeArgCount++;
     }
 
+    bool autoResolve = (domeArgCount == 1);
+
+    domeArgCount = max(2, domeArgCount);
     engine.argv = realloc(engine.argv, sizeof(char*) * domeArgCount);
     engine.argc = domeArgCount;
-    char* arg = engine.argv[1];
-    bool autoResolve = (domeArgCount == 0);
+
+    char* arg = NULL;
+    if (domeArgCount > 1) {
+      arg = engine.argv[1];
+    }
 
     // Get establish the path components: filename(?) and basepath.
     if (arg != NULL) {
@@ -310,6 +316,7 @@ int main(int argc, char* args[])
       int tarResult = mtar_open(engine.tar, pathBuf, "r");
       if (tarResult == MTAR_ESUCCESS) {
         ENGINE_printLog(&engine, "Loading bundle %s\n", pathBuf);
+        engine.argv[1] = strdup(pathBuf);
       } else {
         // Not a valid tar file.
         free(engine.tar);
@@ -322,6 +329,9 @@ int main(int argc, char* args[])
       strcpy(pathBuf, mainFileName);
     } else {
       // Not a tar file, use the given path or main.wren
+      strcpy(pathBuf, base);
+      strcat(pathBuf, !autoResolve ? fileName : mainFileName);
+      engine.argv[1] = strdup(pathBuf);
       strcpy(pathBuf, !autoResolve ? fileName : mainFileName);
     }
 
