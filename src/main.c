@@ -154,7 +154,9 @@ printVersion(ENGINE* engine) {
 internal void
 printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "\nUsage: \n");
-  ENGINE_printLog(engine, "  dome [-b<buf> | --buffer=<buf>] [-c] [-d | --debug] [-p<path> | --path=<entry path>] [-r<gif> | --record=<gif>] [entry path]\n");
+
+  ENGINE_printLog(engine, "  dome [options]\n");
+  ENGINE_printLog(engine, "  dome [options] [--] [entry path] [arguments]\n");
   ENGINE_printLog(engine, "  dome -h | --help\n");
   ENGINE_printLog(engine, "  dome -v | --version\n");
   ENGINE_printLog(engine, "\nOptions: \n");
@@ -193,16 +195,14 @@ int main(int argc, char* args[])
     {"console", 'c', OPTPARSE_NONE},
     #endif
     {"debug", 'd', OPTPARSE_NONE},
-    {"path", 'p', OPTPARSE_REQUIRED},
     {"help", 'h', OPTPARSE_NONE},
     {"version", 'v', OPTPARSE_NONE},
     {"record", 'r', OPTPARSE_OPTIONAL},
     {"scale", 's', OPTPARSE_REQUIRED},
     {0}
   };
-  // char *arg;
+
   int option;
-  char* arg = NULL;
   struct optparse options;
   optparse_init(&options, args);
   while ((option = optparse_long(&options, longopts, NULL)) != -1) {
@@ -254,9 +254,6 @@ int main(int argc, char* args[])
         printTitle(&engine);
         printVersion(&engine);
         goto cleanup;
-      case 'p':
-        arg = options.optarg;
-        break;
       case '?':
         fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
         result = EXIT_FAILURE;
@@ -269,18 +266,25 @@ int main(int argc, char* args[])
     char* mainFileName = "main.wren";
 
     char* base = BASEPATH_get();
-    arg = arg ? arg : optparse_arg(&options);
 
     char pathBuf[PATH_MAX];
-
     char* fileName = NULL;
+    printf("%i\n", argc);
+    char* arg = optparse_arg(&options);
+    int domeArgs = arg == NULL ? 0 : 1;
+    char* otherArg = NULL;
+    while ((otherArg = optparse_arg(&options))) {
+      domeArgs++;
+    }
+    bool autoResolve = (domeArgs == 0);
 
-    // Get base directory
+    // Get establish the path components: filename(?) and basepath.
     if (arg != NULL) {
       strcpy(pathBuf, base);
       strcat(pathBuf, arg);
       if (isDirectory(pathBuf)) {
         BASEPATH_set(pathBuf);
+        autoResolve = true;
       } else {
         char* dirc = strdup(pathBuf);
         char* basec = strdup(pathBuf);
@@ -296,7 +300,7 @@ int main(int argc, char* args[])
 
     // If a filename is given in the path, use it, or assume its 'game.egg'
     strcpy(pathBuf, base);
-    strcat(pathBuf, fileName ? fileName : defaultEggName);
+    strcat(pathBuf, !autoResolve ? fileName : defaultEggName);
 
     if (doesFileExist(pathBuf)) {
       // the current path exists, let's see if it's a TAR file.
@@ -316,7 +320,7 @@ int main(int argc, char* args[])
       strcpy(pathBuf, mainFileName);
     } else {
       // Not a tar file, use the given path or main.wren
-      strcpy(pathBuf, fileName ? fileName : mainFileName);
+      strcpy(pathBuf, !autoResolve ? fileName : mainFileName);
     }
 
     // The basepath is incorporated later, so we pass the basename version to this method.
