@@ -1,10 +1,5 @@
 // Import vector for convenience
-import "vector" for Vector
-var Point = Vector
-var Vec = Vector
-
 class Math {
-
   static assertNum(n) {
     if (!n is Num) {
       Fiber.abort("%(n) is not of type Num")
@@ -166,3 +161,7 @@ var HexToNum = Fn.new {|hex|
 
 // Expose a shorthand name for the class
 var M = Math
+
+import "vector" for Vector
+var Point = Vector
+var Vec = Vector
