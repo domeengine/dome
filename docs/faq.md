@@ -19,7 +19,7 @@ It aims to rely on as few dependencies as possible, easy to build on most platfo
 ## Have any games been made with DOME?
 
 Sort of! Take a look:
-* There's an [example game](https://github.com/domeengine/dome/tree/master/examples/spaceshooter) in the GitHub repository, which shows off a number of features. It's based on [this tutorial](https://ztiromoritz.github.io/pico-8-shooter/) for the PICO-8.
+* There's an [example game](https://github.com/domeengine/dome/tree/main/examples/spaceshooter) in the GitHub repository, which shows off a number of features. It's based on [this tutorial](https://ztiromoritz.github.io/pico-8-shooter/) for the PICO-8.
 * Check out [this repository](https://github.com/domeengine/dome-examples) for example games taken from "Code the Classics", but ported from Python and pygame to Wren and DOME.
 * A entry to "A Game By It's Cover 2018": [Grid](https://avivbeeri.itch.io/grid) - [Source](https://github.com/avivbeeri/grid)
 * [Station Salvage](https://avivbeeri.itch.io/station-salvage), a fine 7DRL 2020 entry.
