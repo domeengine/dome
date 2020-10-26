@@ -69,6 +69,15 @@ Returns a vector of _(Mouse.x, Mouse.y)_ for convenience.
 #### `static relative: Boolean`
 If set to true, the mouse is placed into relative mode. In this mode, the mouse will be fixed to the center of the screen. You can set and read from this field. This changes the behaviour of the `x` and `y` fields.
 
+#### `static scroll: Vector`
+Returns a vector of the _(scrollX, scrollY)_.
+
+#### `static scrollX: Number`
+The total distance the mouse wheel has scrolled horizontally in the past frame. Left is negative and right is positive.
+
+#### `static scrollY: Number`
+The total distance the mouse wheel has scrolled vertically in the past frame. Left is negative and down is positive.
+
 #### `static x: Number`
 The x position relative to the Canvas. This accounts for the window being resized and the viewport moving. If `Mouse.relative` is set, this will be the relative change of the mouse x position since the previous tick.
 
