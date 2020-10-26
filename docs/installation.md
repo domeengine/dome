@@ -24,7 +24,7 @@ You can also download the example `game.egg` from the GitHub repository to test 
 If you have [Homebrew](https://brew.sh/) installed (Mac OS X, [Linux and WSL](https://docs.brew.sh/Homebrew-on-Linux)), you can install DOME using the following commands:
 
 ```
-> brew tap avivbeeri/dome
+> brew tap domeengine/tap
 > brew install dome
 ```
 This will install `dome` as a global command for use anywhere.
