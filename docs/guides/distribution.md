@@ -12,7 +12,7 @@ The easiest way to share a game you've made is to place a DOME binary, your sour
 
 _(Please note: NEST is still in development, and has to be built from source)_
 
-For easy distribution, you can package all of your games resources into a single `.egg` file using a tool called [NEST](https://github.com/avivbeeri/nest). DOME automatically plays any file named `game.egg` in the current working directory.
+For easy distribution, you can package all of your games resources into a single `.egg` file using a tool called [NEST](https://github.com/domeengine/nest). DOME automatically plays any file named `game.egg` in the current working directory.
 
 If you use a `.egg` file, DOME expects your game to start from a `main.wren` in the base directory as it's entry point.
 

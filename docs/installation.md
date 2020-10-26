@@ -7,7 +7,7 @@ You can either download the compiled binaries from GitHub, or you can build the 
 
 ## Method 1: Download
 
-Get the latest release from the [Github releases page](https://github.com/avivbeeri/dome/releases/latest) and select a zip file from the "assets" matching your computer's operating system and architecture. This will download it to your computer.
+Get the latest release from the [Github releases page](https://github.com/domeengine/dome/releases/latest) and select a zip file from the "assets" matching your computer's operating system and architecture. This will download it to your computer.
 
 Once the download is complete, unzip the downloaded archive and place its contents in the directory you want to make your game in.
 
@@ -47,7 +47,7 @@ To compile on Linux, you need to either build SDL2 from source "the unix way", o
 Once the prerequisites are met, you can clone the DOME repository and build an executable binary by doing the following in your terminal:
 
 ```
-> git clone https://github.com/avivbeeri/dome.git
+> git clone https://github.com/domeengine/dome.git
 > cd dome
 > make
 ```

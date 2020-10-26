@@ -10,7 +10,7 @@ A comfortable framework for game development which melds SDL2 and the [Wren scri
 
 ### Download
 
-You can download production-ready binaries from our [Releases page](https://github.com/avivbeeri/dome/releases/latest)
+You can download production-ready binaries from our [Releases page](https://github.com/domeengine/dome/releases/latest)
 
 ### Build
 

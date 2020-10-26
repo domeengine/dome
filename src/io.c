@@ -129,7 +129,7 @@ readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr, char** data) {
 
   while ((err = mtar_read_header(tar, &h)) == MTAR_ESUCCESS) {
     // search for "<path>", "./<path>" and "/<path>"
-    // see https://github.com/avivbeeri/nest/pull/2
+    // see https://github.com/domeengine/nest/pull/2
     if (!strcmp(h.name, path) ||
         !strcmp(h.name, compatiblePath) ||
         !strcmp(h.name, compatiblePath + 1)) {
