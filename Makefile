@@ -97,15 +97,15 @@ $(LIBS)/wren/Makefile:
 $(LIBS)/wren: $(LIBS)/wren/Makefile
 
 $(LIBS)/libwren.a: $(LIBS)/wren
-	./setup_wren.sh $(ARCH) WREN_OPT_RANDOM=$(BUILTIN_RANDOM) WREN_OPT_META=$(BUILTIN_META)
+	./scripts/setup_wren.sh $(ARCH) WREN_OPT_RANDOM=$(BUILTIN_RANDOM) WREN_OPT_META=$(BUILTIN_META)
 	
 $(INCLUDES)/wren.h: $(LIBS)/libwren.a
 	cp src/lib/wren/src/include/wren.h src/include/wren.h
 
 $(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
-	cd $(UTILS) && ./generateEmbedModules.sh
+	./scripts/generateEmbedModules.sh
 
-$(EXENAME): $(SOURCE)/*.c $(MODULES)/*.c $(UTILS)/font.c $(INCLUDES) $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwren.a
+$(EXENAME): $(SOURCE)/*.c $(MODULES)/*.c $(INCLUDES) $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwren.a
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(EXENAME) $(LDFLAGS) $(IFLAGS)
 	$(warning $(MODE))
 ifneq (, $(findstring Darwin, $(SYS)))

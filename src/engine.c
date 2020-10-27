@@ -212,6 +212,9 @@ ENGINE_init(ENGINE* engine) {
   engine->width = GAME_WIDTH;
   engine->height = GAME_HEIGHT;
 
+  engine->argv = NULL;
+  engine->argc = 0;
+
   return engine;
 }
 
@@ -324,6 +327,11 @@ ENGINE_free(ENGINE* engine) {
 
   if (engine->window != NULL) {
     SDL_DestroyWindow(engine->window);
+  }
+
+  if (engine->argv != NULL) {
+    free(engine->argv[1]);
+    free(engine->argv);
   }
 
   // DEBUG features
@@ -877,13 +885,13 @@ ENGINE_getKeyState(ENGINE* engine, char* keyName) {
 
 internal void
 ENGINE_setMouseRelative(ENGINE* engine, bool relative) {
-  engine->mouseRelative = relative;
+  engine->mouse.relative = relative;
   if (relative) {
     SDL_SetRelativeMouseMode(SDL_TRUE);
-    SDL_GetRelativeMouseState(&(engine->mouseX), &(engine->mouseY));
+    SDL_GetRelativeMouseState(&(engine->mouse.x), &(engine->mouse.y));
   } else {
     SDL_SetRelativeMouseMode(SDL_FALSE);
-    SDL_GetMouseState(&(engine->mouseX), &(engine->mouseY));
+    SDL_GetMouseState(&(engine->mouse.x), &(engine->mouse.y));
   }
 }
 
@@ -891,11 +899,11 @@ internal float
 ENGINE_getMouseX(ENGINE* engine) {
   SDL_Rect viewport = engine->viewport;
 
-  int mouseX = engine->mouseX;
+  int mouseX = engine->mouse.x;
   int winX;
   int winY;
   SDL_GetWindowSize(engine->window, &winX, &winY);
-  if (engine->mouseRelative) {
+  if (engine->mouse.relative) {
     return mouseX;
   } else {
     return mouseX * fmax((engine->width / (float)winX), engine->height / (float)winY) - viewport.x;
@@ -906,11 +914,11 @@ internal float
 ENGINE_getMouseY(ENGINE* engine) {
   SDL_Rect viewport = engine->viewport;
 
-  int mouseY = engine->mouseY;
+  int mouseY = engine->mouse.y;
   int winX;
   int winY;
   SDL_GetWindowSize(engine->window, &winX, &winY);
-  if (engine->mouseRelative) {
+  if (engine->mouse.relative) {
     return mouseY;
   } else {
     return mouseY * fmax((engine->width / (float)winX), engine->height / (float)winY) - viewport.y;
