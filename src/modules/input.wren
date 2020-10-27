@@ -83,6 +83,11 @@ class Keyboard {
 class Mouse {
   foreign static x
   foreign static y
+  foreign static scrollX
+  foreign static scrollY
+  static position { Vector.new(this.x, this.y) }
+  static pos { position }
+  static scroll { Vector.new(this.scrollX, this.scrollY) }
 
   foreign static hidden
   foreign static hidden=(value)

@@ -409,6 +409,8 @@ int main(int argc, char* args[])
   while (engine.running) {
 
     // processInput()
+    engine.mouse.scrollX = 0;
+    engine.mouse.scrollY = 0;
     while(SDL_PollEvent(&event)) {
       switch (event.type)
       {
@@ -464,6 +466,13 @@ int main(int argc, char* args[])
               result = EXIT_FAILURE;
               goto vm_cleanup;
             }
+          } break;
+        case SDL_MOUSEWHEEL:
+          {
+            int dir = event.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? 1 : -1;
+            engine.mouse.scrollX += event.wheel.x * dir;
+            // Down should be positive to match the direction of rendering.
+            engine.mouse.scrollY += event.wheel.y * -dir;
           } break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:

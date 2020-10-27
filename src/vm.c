@@ -276,6 +276,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "input", "static Input.f_captureVariables()", INPUT_capture);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.x", MOUSE_getX);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.y", MOUSE_getY);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.scrollX", MOUSE_getScrollX);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.scrollY", MOUSE_getScrollY);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.hidden=(_)", MOUSE_setHidden);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.hidden", MOUSE_getHidden);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.relative=(_)", MOUSE_setRelative);
