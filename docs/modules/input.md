@@ -64,6 +64,7 @@ This returns a map containing the key names and corresponding `DigitalInput` obj
 Controls whether the mouse cursor is shown or hidden. You can set and read from this field.
 
 #### `static pos: Vector`
+#### `static position: Vector`
 Returns a vector of _(Mouse.x, Mouse.y)_ for convenience.
 
 #### `static relative: Boolean`
