@@ -70,7 +70,7 @@ Returns a vector of _(Mouse.x, Mouse.y)_ for convenience.
 If set to true, the mouse is placed into relative mode. In this mode, the mouse will be fixed to the center of the screen. You can set and read from this field. This changes the behaviour of the `x` and `y` fields.
 
 #### `static scroll: Vector`
-Returns a vector of the _(scrollX, scrollY)_.
+Returns a vector of _(scrollX, scrollY)_, for convenience.
 
 #### `static scrollX: Number`
 The total distance the mouse wheel has scrolled horizontally in the past frame. Left is negative and right is positive.
