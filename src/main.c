@@ -374,8 +374,8 @@ int main(int argc, char* args[])
   while (engine.running) {
 
     // processInput()
-    int totalScrollX = 0;
-    int totalScrollY = 0;
+    engine.mouse.scrollX = 0;
+    engine.mouse.scrollY = 0;
     while(SDL_PollEvent(&event)) {
       switch (event.type)
       {
@@ -435,9 +435,9 @@ int main(int argc, char* args[])
         case SDL_MOUSEWHEEL:
           {
             int dir = event.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? 1 : -1;
-            totalScrollX += event.wheel.x * dir;
+            engine.mouse.scrollX += event.wheel.x * dir;
             // Down should be positive to match the direction of rendering.
-            totalScrollY += event.wheel.y * -dir;
+            engine.mouse.scrollY += event.wheel.y * -dir;
           } break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
@@ -468,8 +468,6 @@ int main(int argc, char* args[])
       }
     }
     if (inputCaptured) {
-      engine.mouse.scrollX = totalScrollX;
-      engine.mouse.scrollY = totalScrollY;
       interpreterResult = INPUT_commit(vm);
       if (interpreterResult != WREN_RESULT_SUCCESS) {
         result = EXIT_FAILURE;
