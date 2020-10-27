@@ -154,7 +154,9 @@ printVersion(ENGINE* engine) {
 internal void
 printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "\nUsage: \n");
-  ENGINE_printLog(engine, "  dome [-c] [-d | --debug] [-r<gif> | --record=<gif>] [-b<buf> | --buffer=<buf>] [entry path]\n");
+
+  ENGINE_printLog(engine, "  dome [options]\n");
+  ENGINE_printLog(engine, "  dome [options] [--] entry_path [arguments]\n");
   ENGINE_printLog(engine, "  dome -h | --help\n");
   ENGINE_printLog(engine, "  dome -v | --version\n");
   ENGINE_printLog(engine, "\nOptions: \n");
@@ -164,8 +166,8 @@ printUsage(ENGINE* engine) {
 #endif
   ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
   ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
-  ENGINE_printLog(engine, "  -v --version        Show version.\n");
   ENGINE_printLog(engine, "  -r --record=<gif>   Record video to <gif>.\n");
+  ENGINE_printLog(engine, "  -v --version        Show version.\n");
 }
 
 int main(int argc, char* args[])
@@ -193,7 +195,7 @@ int main(int argc, char* args[])
     {"scale", 's', OPTPARSE_REQUIRED},
     {0}
   };
-  // char *arg;
+
   int option;
   struct optparse options;
   optparse_init(&options, args);
@@ -258,20 +260,43 @@ int main(int argc, char* args[])
     char* mainFileName = "main.wren";
 
     char* base = BASEPATH_get();
-    char* arg = optparse_arg(&options);
 
     char pathBuf[PATH_MAX];
-
     char* fileName = NULL;
 
+    // Get non-option args list
+    engine.argv = calloc(max(2, argc), sizeof(char*));
+    engine.argv[0] = args[0];
+    engine.argv[1] = NULL;
+    int domeArgCount = 1;
+    char* otherArg = NULL;
+    while ((otherArg = optparse_arg(&options))) {
+      engine.argv[domeArgCount] = otherArg;
+      domeArgCount++;
+    }
+
+    bool autoResolve = (domeArgCount == 1);
+
+    domeArgCount = max(2, domeArgCount);
+    engine.argv = realloc(engine.argv, sizeof(char*) * domeArgCount);
+    engine.argc = domeArgCount;
+
+    char* arg = NULL;
+    if (domeArgCount > 1) {
+      arg = engine.argv[1];
+    }
+
+    // Get establish the path components: filename(?) and basepath.
     if (arg != NULL) {
       strcpy(pathBuf, base);
       strcat(pathBuf, arg);
       if (isDirectory(pathBuf)) {
         BASEPATH_set(pathBuf);
+        autoResolve = true;
       } else {
         char* dirc = strdup(pathBuf);
         char* basec = strdup(pathBuf);
+        // This sets the filename used.
         fileName = basename(dirc);
         BASEPATH_set(dirname(basec));
         free(dirc);
@@ -281,26 +306,36 @@ int main(int argc, char* args[])
       base = BASEPATH_get();
     }
 
+    // If a filename is given in the path, use it, or assume its 'game.egg'
     strcpy(pathBuf, base);
-    strcat(pathBuf, fileName ? fileName : defaultEggName);
+    strcat(pathBuf, !autoResolve ? fileName : defaultEggName);
 
     if (doesFileExist(pathBuf)) {
+      // the current path exists, let's see if it's a TAR file.
       engine.tar = malloc(sizeof(mtar_t));
       int tarResult = mtar_open(engine.tar, pathBuf, "r");
       if (tarResult == MTAR_ESUCCESS) {
         ENGINE_printLog(&engine, "Loading bundle %s\n", pathBuf);
+        engine.argv[1] = strdup(pathBuf);
       } else {
+        // Not a valid tar file.
         free(engine.tar);
         engine.tar = NULL;
       }
     }
 
     if (engine.tar != NULL) {
+      // It is a tar file, we need to look for a "main.wren" entry point.
       strcpy(pathBuf, mainFileName);
     } else {
-      strcpy(pathBuf, fileName ? fileName : mainFileName);
+      // Not a tar file, use the given path or main.wren
+      strcpy(pathBuf, base);
+      strcat(pathBuf, !autoResolve ? fileName : mainFileName);
+      engine.argv[1] = strdup(pathBuf);
+      strcpy(pathBuf, !autoResolve ? fileName : mainFileName);
     }
 
+    // The basepath is incorporated later, so we pass the basename version to this method.
     gameFile = ENGINE_readFile(&engine, pathBuf, &gameFileLength);
     if (gameFile == NULL) {
       if (engine.tar != NULL) {

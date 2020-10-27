@@ -212,6 +212,9 @@ ENGINE_init(ENGINE* engine) {
   engine->width = GAME_WIDTH;
   engine->height = GAME_HEIGHT;
 
+  engine->argv = NULL;
+  engine->argc = 0;
+
   return engine;
 }
 
@@ -324,6 +327,11 @@ ENGINE_free(ENGINE* engine) {
 
   if (engine->window != NULL) {
     SDL_DestroyWindow(engine->window);
+  }
+
+  if (engine->argv != NULL) {
+    free(engine->argv[1]);
+    free(engine->argv);
   }
 
   // DEBUG features

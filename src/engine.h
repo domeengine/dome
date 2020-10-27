@@ -50,6 +50,8 @@ typedef struct {
   int32_t offsetY;
   mtar_t* tar;
   bool running;
+  char** argv;
+  size_t argc;
   bool lockstep;
   ENGINE_MOUSE_STATE mouse;
   int exit_status;
