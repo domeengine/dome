@@ -17,6 +17,7 @@ src/lib/libSDL2*
 *.o
 *.swp
 *.dSYM
+obj/
 
 node_modules
 docs/_site/**/*
