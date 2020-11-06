@@ -48,7 +48,7 @@ endef
 
 ifeq ($(config),release_static64)
 OBJDIR = obj/static64/Release
-DEFINES += -DDOME_VERSION=\"v1.3.1-35-g88c7c06\" -DHASH=\"88c7c06\"
+DEFINES += -DDOME_VERSION=\"v1.3.1-40-g0311415\" -DHASH=\"0311415\"
 INCLUDES += -isystem src/include -isystem src/include/SDL2
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2 -std=c99 -Wall -Wextra -Wno-unused-parameter -Wno-unused-value -Wno-unused-function -Wno-incompatible-pointer-types-discards-qualifiers -pedantic `$(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "src/lib/sdl2-config") --cflags` -mmacosx-version-min=10.14
 ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -O2 -Wall -Wextra -Wno-unused-parameter -Wno-unused-value -Wno-unused-function -Wno-incompatible-pointer-types-discards-qualifiers -pedantic `$(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "src/lib/sdl2-config") --cflags` -mmacosx-version-min=10.14
@@ -56,7 +56,7 @@ ALL_LDFLAGS += $(LDFLAGS) -L/Users/aviv.beeri/hobby/dome/src/lib  `$(shell which
 
 else ifeq ($(config),release_static32)
 OBJDIR = obj/static32/Release
-DEFINES += -DDOME_VERSION=\"v1.3.1-35-g88c7c06\" -DHASH=\"88c7c06\"
+DEFINES += -DDOME_VERSION=\"v1.3.1-40-g0311415\" -DHASH=\"0311415\"
 INCLUDES += -isystem src/include -isystem src/include/SDL2
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2 -std=c99 -Wall -Wextra -Wno-unused-parameter -Wno-unused-value -Wno-unused-function -Wno-incompatible-pointer-types-discards-qualifiers -pedantic `$(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "src/lib/sdl2-config") --cflags` -mmacosx-version-min=10.14
 ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -O2 -Wall -Wextra -Wno-unused-parameter -Wno-unused-value -Wno-unused-function -Wno-incompatible-pointer-types-discards-qualifiers -pedantic `$(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "src/lib/sdl2-config") --cflags` -mmacosx-version-min=10.14
@@ -64,7 +64,7 @@ ALL_LDFLAGS += $(LDFLAGS) -L/Users/aviv.beeri/hobby/dome/src/lib  `$(shell which
 
 else ifeq ($(config),release_shared64)
 OBJDIR = obj/shared64/Release
-DEFINES += -DDOME_VERSION=\"v1.3.1-35-g88c7c06\" -DHASH=\"88c7c06\"
+DEFINES += -DDOME_VERSION=\"v1.3.1-40-g0311415\" -DHASH=\"0311415\"
 INCLUDES += -isystem src/include
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2 -std=c99 -Wall -Wextra -Wno-unused-parameter -Wno-unused-value -Wno-unused-function -Wno-incompatible-pointer-types-discards-qualifiers -pedantic `$(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "src/lib/sdl2-config") --cflags` -mmacosx-version-min=10.14
 ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -O2 -Wall -Wextra -Wno-unused-parameter -Wno-unused-value -Wno-unused-function -Wno-incompatible-pointer-types-discards-qualifiers -pedantic `$(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "src/lib/sdl2-config") --cflags` -mmacosx-version-min=10.14
@@ -72,7 +72,7 @@ ALL_LDFLAGS += $(LDFLAGS) `$(shell which sdl2-config 1>/dev/null && echo "sdl2-c
 
 else ifeq ($(config),debug_static64)
 OBJDIR = obj/static64/Debug
-DEFINES += -DDOME_VERSION=\"v1.3.1-35-g88c7c06\" -DHASH=\"88c7c06\" -DDEBUG=1
+DEFINES += -DDOME_VERSION=\"v1.3.1-40-g0311415\" -DHASH=\"0311415\" -DDEBUG=1
 INCLUDES += -isystem src/include -isystem src/include/SDL2
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -g -std=c99 -Wall -Wextra -Wno-unused-parameter -Wno-unused-value -Wno-unused-function -Wno-incompatible-pointer-types-discards-qualifiers -pedantic `$(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "src/lib/sdl2-config") --cflags` -mmacosx-version-min=10.14
 ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -g -Wall -Wextra -Wno-unused-parameter -Wno-unused-value -Wno-unused-function -Wno-incompatible-pointer-types-discards-qualifiers -pedantic `$(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "src/lib/sdl2-config") --cflags` -mmacosx-version-min=10.14
@@ -80,7 +80,7 @@ ALL_LDFLAGS += $(LDFLAGS) -L/Users/aviv.beeri/hobby/dome/src/lib  `$(shell which
 
 else ifeq ($(config),debug_static32)
 OBJDIR = obj/static32/Debug
-DEFINES += -DDOME_VERSION=\"v1.3.1-35-g88c7c06\" -DHASH=\"88c7c06\" -DDEBUG=1
+DEFINES += -DDOME_VERSION=\"v1.3.1-40-g0311415\" -DHASH=\"0311415\" -DDEBUG=1
 INCLUDES += -isystem src/include -isystem src/include/SDL2
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -g -std=c99 -Wall -Wextra -Wno-unused-parameter -Wno-unused-value -Wno-unused-function -Wno-incompatible-pointer-types-discards-qualifiers -pedantic `$(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "src/lib/sdl2-config") --cflags` -mmacosx-version-min=10.14
 ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -g -Wall -Wextra -Wno-unused-parameter -Wno-unused-value -Wno-unused-function -Wno-incompatible-pointer-types-discards-qualifiers -pedantic `$(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "src/lib/sdl2-config") --cflags` -mmacosx-version-min=10.14
@@ -88,7 +88,7 @@ ALL_LDFLAGS += $(LDFLAGS) -L/Users/aviv.beeri/hobby/dome/src/lib  `$(shell which
 
 else ifeq ($(config),debug_shared64)
 OBJDIR = obj/shared64/Debug
-DEFINES += -DDOME_VERSION=\"v1.3.1-35-g88c7c06\" -DHASH=\"88c7c06\" -DDEBUG=1
+DEFINES += -DDOME_VERSION=\"v1.3.1-40-g0311415\" -DHASH=\"0311415\" -DDEBUG=1
 INCLUDES += -isystem src/include
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -g -std=c99 -Wall -Wextra -Wno-unused-parameter -Wno-unused-value -Wno-unused-function -Wno-incompatible-pointer-types-discards-qualifiers -pedantic `$(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "src/lib/sdl2-config") --cflags` -mmacosx-version-min=10.14
 ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -g -Wall -Wextra -Wno-unused-parameter -Wno-unused-value -Wno-unused-function -Wno-incompatible-pointer-types-discards-qualifiers -pedantic `$(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "src/lib/sdl2-config") --cflags` -mmacosx-version-min=10.14
