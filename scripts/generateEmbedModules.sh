@@ -1,4 +1,6 @@
 #!/bin/bash
+cd src/util
+
 gcc embed.c -o embed -std=c99
 
 declare -a arr=(
