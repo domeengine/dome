@@ -13,46 +13,22 @@ It contains the following classes:
 
 ## Json
 
-### Instance Properties
-
-#### `json: Map`
-This returns a _Map_ holding the information parsed from the initial json string.
-
-### `options: Num`
-The options used when creating this object.
-
-### `raw: String`
-This returns the initial _String_ provided before parsing.
-
-### `error: JsonError`
-If a parsing error is found this will contain the line, position and error message.
-
-### Instance Methods
-
-### `dumps(): String`
-### `dumps(options: Num): String`
-This will transform the _json_ property to _String_. With default or custom options. 
-
-### `save(path: String)`
-### `save(path: String, options:Num)`
-This will execute `dumps()` or `dumps(options)` and then save the result to a file specified in `path`.
-
-### Factory Methods
-#### `construct parse(value:String, options:Num): Json`
-#### `static parse(value:String): Json`
-Returns a new _Json_ object with default or custom options.
-
-#### `static fromFile(path:String): Json`
-#### `static fromFile(path:String, options:Num): Json`
-Reads the contents of a file in `path` and returns a new _Json_ object with default or custom options.
-
-#### `static dumps(object: Map): String`
-#### `static dumps(object: Map, options:Num): String`
+### Static Methods
+#### `static encode(object: Object): String`
+#### `static encode(object: Object, options:Num): String`
 Transform the object to a _Json_ encoded string. With default or custom options.
 
-### `static save(path: String, object: Map)`
-### `static save(path: String, object:Map, options:Num)`
-This will execute `static dumps(object)` or `static dumps(object, options)` and then save the result to a file specified in `path`.
+#### `static decode(value:String, options:Num): Object`
+#### `static decode(value:String): Object`
+Returns a new _Json_ object with default or custom options.
+
+#### `static load(path:String): Object`
+#### `static load(path:String, options:Num): Object`
+Reads the contents of a file in `path` and returns a new _Json_ object with default or custom options.
+
+### `static save(path: String, object: Object)`
+### `static save(path: String, object:Object, options:Num)`
+This will encode the object and then save the result to a file specified in `path`. With default or custom options.
 
 ## JsonOptions
 
@@ -72,7 +48,7 @@ By default _DOME_ does not _Abort_ when there is a _JSON parsing error_. Use thi
 Use [Bitwise OR](https://wren.io/method-calls.html#operators) operator to select multiple options.
 
 ```js
-Json.parse(myString, 
+Json.decode(myString, 
 	JsonOptions.ESCAPE_SLASHES |
 	JsonOptions.ABORT_ON_ERROR
 )

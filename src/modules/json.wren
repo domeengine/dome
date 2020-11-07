@@ -131,81 +131,63 @@ class JsonStream {
 
 class Json {
 
-    json { _json }
-    raw { _raw }
-    error { _error }
-    options { _options }
+    // Mark - File IO
+    // mirroring the FileSystem class
 
-    construct parse(string, options) {
-        _raw = string
-        _options = options
-
-        var stream = JsonStream.new(string, options)
-        stream.begin()
-        _json = stream.result
-        _error = stream.error
-        stream.end()
-    }
-
-    dumps() {
-        return Json.dumps(_json)
-    }
-
-    dumps(options) {
-        return Json.dumps(_json, options)
-    }
-
-    // convenience methods for dumps
-    // more similar with javascript
-    stringify() {
-        return Json.dumps(_json)
-    }
-
-    stringify(options) {
-        return Json.dumps(_json, options)
-    }
-
-    save(path) {
-        return Json.save(path, _json)
-    }
-
-    save(path, options) {
-        return Json.save(path, _json, options)
-    }
-
-    static parse(string) {
-        return Json.parse(string, JsonOptions.NIL)
-    }
-
-    static fromFile(path, options) {
+    /**
+    Loads a json file from filesystem.
+    - Signature: load(path: String, options:JsonOptions?) -> <Map|List|Num|String|Null|JsonError>
+    - Parameter path: The file path where the json file is located.
+    - Parameter options: An optional param with options for parsing and encoding json.
+    - Returns: A Wren object or JsonError instance.
+    - Throws: Fiber.abort() if JsonOption.ABORT_ON_ERROR option is passed.
+    */
+    static load(path, options) {
         var content = FileSystem.load(path)
-        return Json.parse(content, options)
+        return Json.decode(content, options)
     }
 
-    static fromFile(path) {
-        var content = FileSystem.load(path)
-        return Json.parse(content)
+    static load(path) {
+        return Json.load(path, JsonOptions.NIL)
     }
 
-    static save(path, obj) {
-        return Json.save(path, obj, JsonOptions.NIL)
+    /**
+    Saves a Wren object to a json file in filesystem.
+    - Signature: save(path: String, object:<String|Num|Bool|Map|List|Null>, options:JsonOptions?) -> String
+    - Parameter path: The file path where the json file is located.
+    - Parameter object: The Wren object to convert to a json string.
+    - Parameter options: An optional param with options for parsing and encoding json.
+    - Returns: A json string with the contents of object.
+    */
+    static save(path, object, options) {
+        var content = Json.encode(object, options)
+        FileSystem.save(path, content)
+        return content
     }
 
-    static save(path, obj, options) {
-        var content = Json.dumps(obj, options)
-        return FileSystem.save(path, content)
-    } 
+    static save(path, object) {
+        return Json.save(path, object, JsonOptions.NIL)
+    }
 
-    // Loosely based on https://github.com/brandly/wren-json/blob/master/json.wren
-    static dumps(obj, options) {
-        if (obj is Num || obj is Bool || obj is Null) {
-            return obj.toString
+    // Mark - General Manipulation
+    // borrowed from other languages/apis
+    /**
+    Encodes a Wren object to a String value.
+    - Signature: encode(value: <String|Num|Bool|Map|List|Null>, options:JsonOptions?) -> String
+    - Parameter value: The Wren object to transform to a json string value.
+    - Parameter options: An optional param with options for parsing and encoding json.
+    - Returns: String with the contents of the value formatted as a json string.
+    */
+    static encode(value, options) {
+        // Loosely based on https://github.com/brandly/wren-json/blob/master/json.wren
+        if (value is Num || value is Bool || value is Null) {
+            return value.toString
         }
         
-        if (obj is String) {
+        if (value is String) {
             // Escape special characters
             var substrings = []
-            for (char in obj) {
+            for (char in value) {
                 substrings.add(JsonStream.escapechar(char, options))
             }
 
@@ -214,39 +196,50 @@ class Json {
             return String.fromByte(0x22) + substrings.join("") + String.fromByte(0x22)
         }
         
-        if (obj is List) {
-            var substrings = obj.map { |item| Json.dumps(item) }
+        if (value is List) {
+            var substrings = value.map { |item| Json.dumps(item) }
             return "[" + substrings.join(",") + "]"
         }
         
-        if (obj is Map) {
-            var substrings = obj.keys.map { |key|
-                return Json.dumps(key) + ":" + Json.dumps(obj[key])
+        if (value is Map) {
+            var substrings = value.keys.map { |key|
+                return Json.encode(key, options) + ":" + Json.encode(value[key], options)
             }
             return "{" + substrings.join(",") + "}"
         }
     }
 
-    static dumps(obj) {
-        return Json.dumps(obj, JsonOptions.NIL)
+    static encode(value) {
+        return Json.encode(value, JsonOptions.NIL)
     }
 
-    // Convenience methods
-    // alternative for parse and dumps
-    // more similar with python and javascript
-    static load(string) {
-        return Json.parse(string)
+    /**
+    Decodes a Wren object from a json string.
+    - Signature: decode(value: String, options:JsonOptions?) -> <Map|List|Num|String|Null|JsonError>
+    - Parameter value: The json string to be decoded.
+    - Parameter options: An optional param with options for parsing and encoding json.
+    - Returns: A Wren object or JsonError instance.
+    - Throws: Fiber.abort() if JsonOption.ABORT_ON_ERROR option is passed.
+    */
+    static decode(value, options) {
+        var stream = JsonStream.new(value, options)
+        
+        stream.begin()
+        
+        var result = stream.result
+        
+        if (stream.error.found) {
+            result = stream.error
+        }
+        
+        stream.end()
+
+        return result
     }
 
-    static load(string, options) {
-        return Json.parse(string, options)
-    }
-
-    static stringify(obj) {
-        return Json.dumps(obj)
-    }
-
-    static stringify(obj, options) {
-        return Json.dumps(obj, options)
+    static decode(value) {
+        return Json.decode(value, JsonOptions.NIL)
     }
 }
+
+var JSON = Json
