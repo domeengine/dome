@@ -77,6 +77,26 @@ BASEPATH_free(void) {
   }
 }
 
+char* resolvePath(char* partialPath, bool* shouldFree) {
+    const char* fullPath;
+    if (partialPath[0] != '/') {
+      char* base = BASEPATH_get();
+      fullPath = malloc(strlen(base)+strlen(partialPath)+1);
+      strcpy((char*)fullPath, base);
+      strcat((char*)fullPath, partialPath);
+      if (shouldFree != NULL) {
+        *shouldFree = true;
+      }
+    } else {
+      fullPath = partialPath;
+      if (shouldFree != NULL) {
+        *shouldFree = false;
+      }
+    }
+
+    return fullPath;
+}
+
 internal inline bool
 isDirectory(const char *path) {
    struct stat statbuf;
@@ -109,7 +129,7 @@ readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr, char** data) {
 
   while ((err = mtar_read_header(tar, &h)) == MTAR_ESUCCESS) {
     // search for "<path>", "./<path>" and "/<path>"
-    // see https://github.com/avivbeeri/nest/pull/2
+    // see https://github.com/domeengine/nest/pull/2
     if (!strcmp(h.name, path) ||
         !strcmp(h.name, compatiblePath) ||
         !strcmp(h.name, compatiblePath + 1)) {
@@ -142,7 +162,7 @@ readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr, char** data) {
 }
 
 internal int
-writeEntireFile(char* path, char* data, size_t length) {
+writeEntireFile(const char* path, const char* data, size_t length) {
   FILE* file = fopen(path, "wb+");
   if (file == NULL) {
     return errno;

@@ -1,10 +1,10 @@
 DOME-out.log
 .mode
+.arch
 dome
 nest
 libwren.a
 libwrend.a
-libffi.a
 libadd.so
 **/.DS_Store
 src/util/convert
@@ -18,7 +18,9 @@ src/lib/libSDL2*
 *.swp
 *.dSYM
 
-ffi.h
-ffitarget.h
-
 node_modules
+docs/_site/**/*
+docs/.sass-cache/
+docs/.jekyll-cache/
+docs/.jekyll-metadata
+Gemfile.lock

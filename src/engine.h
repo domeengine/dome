@@ -5,6 +5,14 @@ internal struct AUDIO_ENGINE_t* AUDIO_ENGINE_init(void);
 internal void AUDIO_ENGINE_free(struct AUDIO_ENGINE_t*);
 
 typedef struct {
+  bool relative;
+  int x;
+  int y;
+  int scrollX;
+  int scrollY;
+} ENGINE_MOUSE_STATE;
+
+typedef struct {
   double avgFps;
   double alpha;
   int32_t elapsed;
@@ -42,7 +50,10 @@ typedef struct {
   int32_t offsetY;
   mtar_t* tar;
   bool running;
+  char** argv;
+  size_t argc;
   bool lockstep;
+  ENGINE_MOUSE_STATE mouse;
   int exit_status;
   struct AUDIO_ENGINE_t* audioEngine;
   PIXEL_BUFFER blitBuffer;

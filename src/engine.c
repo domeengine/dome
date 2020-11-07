@@ -86,13 +86,13 @@ ENGINE_printLog(ENGINE* engine, char* line, ...) {
 }
 
 internal ENGINE_WRITE_RESULT
-ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
-  char* fullPath;
+ENGINE_writeFile(ENGINE* engine, const char* path, const char* buffer, size_t length) {
+  const char* fullPath;
   if (path[0] != '/') {
-    char* base = BASEPATH_get();
+    const char* base = BASEPATH_get();
     fullPath = malloc(strlen(base)+strlen(path)+1);
-    strcpy(fullPath, base); /* copy name into the new var */
-    strcat(fullPath, path); /* add the extension */
+    strcpy((void*)fullPath, base); /* copy name into the new var */
+    strcat((void*)fullPath, path); /* add the extension */
   } else {
     fullPath = path;
   }
@@ -106,14 +106,14 @@ ENGINE_writeFile(ENGINE* engine, char* path, char* buffer, size_t length) {
   }
 
   if (path[0] != '/') {
-    free(fullPath);
+    free((void*)fullPath);
   }
 
   return result;
 }
 
 internal char*
-ENGINE_readFile(ENGINE* engine, char* path, size_t* lengthPtr) {
+ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr) {
   char pathBuf[PATH_MAX];
 
   if (strncmp(path, "./", 2) == 0) {
@@ -183,12 +183,12 @@ ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
   if (engine->texture == NULL) {
     return false;
   }
+  SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
   return true;
 }
 
-internal int
+internal ENGINE*
 ENGINE_init(ENGINE* engine) {
-  int result = EXIT_SUCCESS;
   engine->window = NULL;
   engine->renderer = NULL;
   engine->texture = NULL;
@@ -212,6 +212,26 @@ ENGINE_init(ENGINE* engine) {
   engine->width = GAME_WIDTH;
   engine->height = GAME_HEIGHT;
 
+  engine->argv = NULL;
+  engine->argc = 0;
+
+  return engine;
+}
+
+internal int
+ENGINE_start(ENGINE* engine) {
+  int result = EXIT_SUCCESS;
+#if defined _WIN32
+  SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
+#endif
+  SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1");
+
+  //Initialize SDL
+  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    ENGINE_printLog(engine, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+    result = EXIT_FAILURE;
+    goto engine_init_end;
+  }
 
   //Create window
   engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
@@ -255,6 +275,7 @@ ENGINE_init(ENGINE* engine) {
 
 engine_init_end:
   return result;
+
 }
 
 internal void
@@ -306,6 +327,11 @@ ENGINE_free(ENGINE* engine) {
 
   if (engine->window != NULL) {
     SDL_DestroyWindow(engine->window);
+  }
+
+  if (engine->argv != NULL) {
+    free(engine->argv[1]);
+    free(engine->argv);
   }
 
   // DEBUG features
@@ -492,6 +518,24 @@ ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) 
   memcpy(line, bufStart, lineWidth * 4);
 }
 
+internal uint32_t*
+ENGINE_createMask(ENGINE* engine, uint64_t originalSize, uint32_t color) {
+  uint64_t size = originalSize;
+  uint32_t* mask = ENGINE_resizeBlitBuffer(engine, size, size);
+  for (uint64_t y = 0; y < size; y++) {
+    for (uint64_t x = 0; x < size; x++) {
+      blitPixel(mask, size, x, y, color);
+    }
+  }
+  return mask;
+}
+
+internal void
+ENGINE_drawMask(ENGINE* engine, int64_t x, int64_t y) {
+  size_t offset = engine->blitBuffer.width / 2;
+  ENGINE_blitBuffer(engine, x - offset, y - offset);
+}
+
 internal void
 ENGINE_line_high(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c) {
   int64_t dx = x2 - x1;
@@ -506,7 +550,7 @@ ENGINE_line_high(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2,
   int64_t y = y1;
   int64_t x = x1;
   while(y <= y2) {
-    ENGINE_pset(engine, x, y, c);
+    ENGINE_drawMask(engine, x, y);
     if (p > 0) {
       x += xi;
       p = p - 2 * dy;
@@ -530,7 +574,7 @@ ENGINE_line_low(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, 
   int64_t y = y1;
   int64_t x = x1;
   while(x <= x2) {
-    ENGINE_pset(engine, x, y, c);
+    ENGINE_drawMask(engine, x, y);
     if (p > 0) {
       y += yi;
       p = p - 2 * dx;
@@ -541,7 +585,9 @@ ENGINE_line_low(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, 
 }
 
 internal void
-ENGINE_line(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c) {
+ENGINE_line(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c, uint64_t size) {
+  ENGINE_createMask(engine, size, c);
+
   if (llabs(y2 - y1) < llabs(x2 - x1)) {
     if (x1 > x2) {
       ENGINE_line_low(engine, x2, y2, x1, y1, c);
@@ -556,9 +602,7 @@ ENGINE_line(ENGINE* engine, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint
     }
 
   }
-
 }
-
 
 internal void
 ENGINE_circle_filled(ENGINE* engine, int64_t x0, int64_t y0, int64_t r, uint32_t c) {
@@ -794,10 +838,10 @@ ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, u
 
 internal void
 ENGINE_rect(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint32_t c) {
-  ENGINE_line(engine, x, y, x, y+h-1, c);
-  ENGINE_line(engine, x, y, x+w-1, y, c);
-  ENGINE_line(engine, x, y+h-1, x+w-1, y+h-1, c);
-  ENGINE_line(engine, x+w-1, y, x+w-1, y+h-1, c);
+  ENGINE_line(engine, x, y, x, y+h-1, c, 1);
+  ENGINE_line(engine, x, y, x+w-1, y, c, 1);
+  ENGINE_line(engine, x, y+h-1, x+w-1, y+h-1, c, 1);
+  ENGINE_line(engine, x+w-1, y, x+w-1, y+h-1, c, 1);
 }
 
 internal void
@@ -835,34 +879,50 @@ internal bool
 ENGINE_getKeyState(ENGINE* engine, char* keyName) {
   SDL_Keycode keycode =  SDL_GetKeyFromName(keyName);
   SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode);
-  uint8_t* state = SDL_GetKeyboardState(NULL);
+  const uint8_t* state = SDL_GetKeyboardState(NULL);
   return state[scancode];
+}
+
+internal void
+ENGINE_setMouseRelative(ENGINE* engine, bool relative) {
+  engine->mouse.relative = relative;
+  if (relative) {
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+    SDL_GetRelativeMouseState(&(engine->mouse.x), &(engine->mouse.y));
+  } else {
+    SDL_SetRelativeMouseMode(SDL_FALSE);
+    SDL_GetMouseState(&(engine->mouse.x), &(engine->mouse.y));
+  }
 }
 
 internal float
 ENGINE_getMouseX(ENGINE* engine) {
   SDL_Rect viewport = engine->viewport;
 
-  int mouseX;
-  int mouseY;
+  int mouseX = engine->mouse.x;
   int winX;
   int winY;
-  SDL_GetMouseState(&mouseX, &mouseY);
   SDL_GetWindowSize(engine->window, &winX, &winY);
-  return mouseX * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.x;
+  if (engine->mouse.relative) {
+    return mouseX;
+  } else {
+    return mouseX * fmax((engine->width / (float)winX), engine->height / (float)winY) - viewport.x;
+  }
 }
 
 internal float
 ENGINE_getMouseY(ENGINE* engine) {
   SDL_Rect viewport = engine->viewport;
 
-  int mouseX;
-  int mouseY;
+  int mouseY = engine->mouse.y;
   int winX;
   int winY;
-  SDL_GetMouseState(&mouseX, &mouseY);
   SDL_GetWindowSize(engine->window, &winX, &winY);
-  return mouseY * fmax(((float)engine->width / (float)winX), (float)engine->height / (float)winY) - viewport.y;
+  if (engine->mouse.relative) {
+    return mouseY;
+  } else {
+    return mouseY * fmax((engine->width / (float)winX), engine->height / (float)winY) - viewport.y;
+  }
 }
 
 internal bool

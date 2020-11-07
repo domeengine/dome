@@ -1,10 +1,5 @@
 // Import vector for convenience
-import "vector" for Vector
-var Point = Vector
-var Vec = Vector
-
 class Math {
-
   static assertNum(n) {
     if (!n is Num) {
       Fiber.abort("%(n) is not of type Num")
@@ -119,5 +114,54 @@ class Math {
   }
 }
 
+var ToHex = Fn.new {|dec|
+  if (dec < 10) {
+    return String.fromByte(dec + 48)
+  } else if (dec < 16) {
+    return String.fromByte((dec - 10) + 65)
+  }
+}
+var NumToHex = Fn.new {|num|
+  if (num == 0) {
+    return "0"
+  }
+  var value = num
+  var strings = []
+  while (value > 0) {
+    var remainder = value % 16
+    strings.insert(0, ToHex.call(remainder))
+    value = (value / 16).floor
+  }
+  return strings.join("")
+}
+
+var HexToNum = Fn.new {|hex|
+  var first = hex[0]
+  var second = hex[1]
+  if (48 <= first && first <= 57) {
+    first = first - 48
+  } else if (65 <= first && first <= 70) {
+    first = 10 + first - 65
+  } else if (97 <= first && first <= 102) {
+    first = 10 + first - 97
+  } else {
+    Fiber.abort("Invalid hex")
+  }
+  if (48 <= second && second <= 57) {
+    second = second - 48
+  } else if (65 <= second && second <= 70) {
+    second = 10 + second - 65
+  } else if (97 <= second && second <= 102) {
+    second = 10 + second - 97
+  } else {
+    Fiber.abort("Invalid hex")
+  }
+  return first << 4 | second
+}
+
 // Expose a shorthand name for the class
 var M = Math
+
+import "vector" for Vector
+var Point = Vector
+var Vec = Vector

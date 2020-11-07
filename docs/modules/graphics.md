@@ -46,7 +46,8 @@ Draw an ellipse between (_x0, y0_) and (_x1, y1_) in the color _c_.
 Draw a filled ellipse between (_x0, y0_) and (_x1, y1_) in the color _c_.
 
 #### `static line(x0: Number, y0: Number, x1: Number, y1: Number, c: Color) `
-Draw an 1px wide line between (_x0, y0_) and (_x1, y1_) in the color _c_.
+#### `static line(x0: Number, y0: Number, x1: Number, y1: Number, c: Color, size: Number) `
+Draw a line `size` pixels wide between (_x0, y0_) and (_x1, y1_) in the color _c_. By default, `size` is 1.
 
 #### `static offset()`
 #### `static offset(x: Number, y: Number) `
@@ -177,6 +178,13 @@ DOME supports the following formats:
  * BMP non-1bpp, non-RLE
 
 ### Static Methods
+
+#### `static [name]: ImageData`
+Fetch a cached image, if it's available. Returns `null` otherwise.
+
+#### `static create(name: String, width: Number, height: Number): ImageData`
+Creates a blank image of the size `width x height` and caches it as `name` for future use.
+
 #### `static loadFromFile(path: String): ImageData`
 Load an image at the given `path` and cache it for use.
 
@@ -190,6 +198,15 @@ Draw the image at the given `(x, y)` position on the screen.
 
 #### `drawArea(srcX: Number, srcY: Number, srcW: Number, srcH: Number, destX: Number, destY: Number): Void`
 Draw a subsection of the image, defined by the rectangle `(srcX, srcY)` to `(srcX + srcW, srcY + srcH)`. The resulting section is placed at `(destX, destY)`.
+
+#### `pset(x: Number, y: Number, color: Color): Void`
+Set a pixel at `(x, y)` in the ImageData to color `c`.
+
+#### `pget(x: Number, y: Number): Color`
+Fetch the current pixel at `(x, y)` in the ImageData.
+
+#### `saveToFile(path: String): Void`
+Saves the current image data at the given `path`.
 
 #### `transform(parameterMap): Drawable`
 This returns a `Drawable` which will perform the specified transforms, allowing for more fine-grained control over how images are drawn. You can store the returned drawable and reuse it across frames, while the image is loaded.
@@ -218,6 +235,4 @@ The code snippet above:
  * crops an 8x8 tile from a spritesheet, starting from (8, 8) in it's image data
  * It then rotates it 90 degrees clockwise
  * Finally, it scales the tile up by 2 in both the X and Y direction, but it flips the tile vertically.
-
-
 

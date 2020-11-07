@@ -34,21 +34,21 @@ class Game {
 
   static update() {
 
-    __x = Mouse.x
-    __y = Mouse.y
+    Mouse.hidden = Mouse.isButtonPressed("right")
+    Mouse.relative = Keyboard.isKeyDown("r")
 
     __state.update()
     if (__state.next) {
       __state = __state.next
       __state.init()
     }
-    Mouse.hidden = Mouse.isButtonPressed("right")
   }
 
   static draw(dt) {
     __state.draw(dt)
+    var pos = Mouse.pos
     if (Mouse.isButtonPressed("right")) {
-      Canvas.pset(__x, __y, Color.orange)
+      Canvas.pset(pos.x, pos.y, Color.orange)
     }
   }
 }

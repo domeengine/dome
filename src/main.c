@@ -2,7 +2,7 @@
 #define NOMINMAX
 
 #ifndef DOME_VERSION
-#define DOME_VERSION "1.0.0-alpha"
+#define DOME_VERSION "0.0.0 - CUSTOM"
 #endif
 
 // Standard libs
@@ -28,10 +28,6 @@
 #include <SDL.h>
 #include <jo_gif.h>
 
-#if DOME_OPT_FFI
-#include <ffi.h>
-#endif
-
 #define OPTPARSE_IMPLEMENTATION
 #include <optparse.h>
 
@@ -40,6 +36,8 @@
 
 #include <json/pdjson.h>
 #include <json/pdjson.c>
+#include <mkdirp/mkdirp.h>
+#include <mkdirp/mkdirp.c>
 
 // Set up STB_IMAGE
 #define STBI_FAILURE_USERMSG
@@ -97,6 +95,10 @@
 // Used in the io variable, but we need to catch it here
 global_variable WrenHandle* bufferClass = NULL;
 global_variable WrenHandle* audioEngineClass = NULL;
+global_variable WrenHandle* keyboardClass = NULL;
+global_variable WrenHandle* mouseClass = NULL;
+global_variable WrenHandle* gamepadClass = NULL;
+global_variable WrenHandle* updateInputMethod = NULL;
 
 // These are set by cmd arguments
 #ifdef DEBUG
@@ -121,9 +123,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "io.c"
 #include "engine.c"
 #include "modules/dome.c"
-#if DOME_OPT_FFI
-#include "modules/ffi.c"
-#endif
+
 #include "modules/font.c"
 #include "modules/io.c"
 #include "modules/audio.c"
@@ -135,7 +135,7 @@ global_variable size_t GIF_SCALE = 1;
 
 internal void
 printTitle(ENGINE* engine) {
-  ENGINE_printLog(engine, "DOME - Dynamic Opinionated Minimalist Engine\n");
+  ENGINE_printLog(engine, "DOME - Design-Oriented Minimalist Engine\n");
 }
 
 internal void
@@ -148,19 +148,18 @@ printVersion(ENGINE* engine) {
   SDL_GetVersion(&linked);
   ENGINE_printLog(engine, "SDL version: %d.%d.%d (Compiled)\n", compiled.major, compiled.minor, compiled.patch);
   ENGINE_printLog(engine, "SDL version %d.%d.%d (Linked)\n", linked.major, linked.minor, linked.patch);
+  ENGINE_printLog(engine, "Wren version: %d.%d.%d\n", WREN_VERSION_MAJOR, WREN_VERSION_MINOR, WREN_VERSION_PATCH);
 
-#if DOME_OPT_FFI
-  ENGINE_printLog(engine, "FFI module is available");
-#else
-  ENGINE_printLog(engine, "FFI module is unavailable");
-#endif
+  ENGINE_printLog(engine, "\n");
 }
 
 
 internal void
 printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "\nUsage: \n");
-  ENGINE_printLog(engine, "  dome [-c] [-d | --debug] [-r<gif> | --record=<gif>] [-b<buf> | --buffer=<buf>] [entry path]\n");
+
+  ENGINE_printLog(engine, "  dome [options]\n");
+  ENGINE_printLog(engine, "  dome [options] [--] entry_path [arguments]\n");
   ENGINE_printLog(engine, "  dome -h | --help\n");
   ENGINE_printLog(engine, "  dome -v | --version\n");
   ENGINE_printLog(engine, "\nOptions: \n");
@@ -170,17 +169,12 @@ printUsage(ENGINE* engine) {
 #endif
   ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
   ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
-  ENGINE_printLog(engine, "  -v --version        Show version.\n");
   ENGINE_printLog(engine, "  -r --record=<gif>   Record video to <gif>.\n");
+  ENGINE_printLog(engine, "  -v --version        Show version.\n");
 }
 
 int main(int argc, char* args[])
 {
-
-#if defined _WIN32
-  SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
-#endif
-
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   size_t gameFileLength;
@@ -189,18 +183,7 @@ int main(int argc, char* args[])
   engine.record.gifName = "test.gif";
   engine.record.makeGif = false;
 
-  //Initialize SDL
-  if (SDL_Init(SDL_INIT_VIDEO) < 0)
-  {
-    ENGINE_printLog(&engine, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-    result = EXIT_FAILURE;
-    goto cleanup;
-  }
-
-  result = ENGINE_init(&engine);
-  if (result == EXIT_FAILURE) {
-    goto cleanup;
-  };
+  ENGINE_init(&engine);
 
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
@@ -215,7 +198,7 @@ int main(int argc, char* args[])
     {"scale", 's', OPTPARSE_REQUIRED},
     {0}
   };
-  // char *arg;
+
   int option;
   struct optparse options;
   optparse_init(&options, args);
@@ -280,20 +263,43 @@ int main(int argc, char* args[])
     char* mainFileName = "main.wren";
 
     char* base = BASEPATH_get();
-    char* arg = optparse_arg(&options);
 
     char pathBuf[PATH_MAX];
-
     char* fileName = NULL;
 
+    // Get non-option args list
+    engine.argv = calloc(max(2, argc), sizeof(char*));
+    engine.argv[0] = args[0];
+    engine.argv[1] = NULL;
+    int domeArgCount = 1;
+    char* otherArg = NULL;
+    while ((otherArg = optparse_arg(&options))) {
+      engine.argv[domeArgCount] = otherArg;
+      domeArgCount++;
+    }
+
+    bool autoResolve = (domeArgCount == 1);
+
+    domeArgCount = max(2, domeArgCount);
+    engine.argv = realloc(engine.argv, sizeof(char*) * domeArgCount);
+    engine.argc = domeArgCount;
+
+    char* arg = NULL;
+    if (domeArgCount > 1) {
+      arg = engine.argv[1];
+    }
+
+    // Get establish the path components: filename(?) and basepath.
     if (arg != NULL) {
       strcpy(pathBuf, base);
       strcat(pathBuf, arg);
       if (isDirectory(pathBuf)) {
         BASEPATH_set(pathBuf);
+        autoResolve = true;
       } else {
         char* dirc = strdup(pathBuf);
         char* basec = strdup(pathBuf);
+        // This sets the filename used.
         fileName = basename(dirc);
         BASEPATH_set(dirname(basec));
         free(dirc);
@@ -303,26 +309,36 @@ int main(int argc, char* args[])
       base = BASEPATH_get();
     }
 
+    // If a filename is given in the path, use it, or assume its 'game.egg'
     strcpy(pathBuf, base);
-    strcat(pathBuf, fileName ? fileName : defaultEggName);
+    strcat(pathBuf, !autoResolve ? fileName : defaultEggName);
 
     if (doesFileExist(pathBuf)) {
+      // the current path exists, let's see if it's a TAR file.
       engine.tar = malloc(sizeof(mtar_t));
       int tarResult = mtar_open(engine.tar, pathBuf, "r");
       if (tarResult == MTAR_ESUCCESS) {
         ENGINE_printLog(&engine, "Loading bundle %s\n", pathBuf);
+        engine.argv[1] = strdup(pathBuf);
       } else {
+        // Not a valid tar file.
         free(engine.tar);
         engine.tar = NULL;
       }
     }
 
     if (engine.tar != NULL) {
+      // It is a tar file, we need to look for a "main.wren" entry point.
       strcpy(pathBuf, mainFileName);
     } else {
-      strcpy(pathBuf, fileName ? fileName : mainFileName);
+      // Not a tar file, use the given path or main.wren
+      strcpy(pathBuf, base);
+      strcat(pathBuf, !autoResolve ? fileName : mainFileName);
+      engine.argv[1] = strdup(pathBuf);
+      strcpy(pathBuf, !autoResolve ? fileName : mainFileName);
     }
 
+    // The basepath is incorporated later, so we pass the basename version to this method.
     gameFile = ENGINE_readFile(&engine, pathBuf, &gameFileLength);
     if (gameFile == NULL) {
       if (engine.tar != NULL) {
@@ -336,32 +352,41 @@ int main(int argc, char* args[])
     }
   }
 
+  result = ENGINE_start(&engine);
+  if (result == EXIT_FAILURE) {
+    goto cleanup;
+  }
 
   // Configure Wren VM
   vm = VM_create(&engine);
   WrenInterpretResult interpreterResult;
 
   // Load user game file
+  WrenHandle* initMethod = NULL;
+  WrenHandle* updateMethod = NULL;
+  WrenHandle* drawMethod = NULL;
+  WrenHandle* gameClass = NULL;
+  SDL_Thread* recordThread = NULL;
+
   interpreterResult = wrenInterpret(vm, "main", gameFile);
   free(gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
-    goto cleanup;
+    goto vm_cleanup;
   }
   // Load the class into slot 0.
 
 
   wrenEnsureSlots(vm, 3);
-  WrenHandle* initMethod = wrenMakeCallHandle(vm, "init()");
-  WrenHandle* updateMethod = wrenMakeCallHandle(vm, "update()");
-  WrenHandle* drawMethod = wrenMakeCallHandle(vm, "draw(_)");
+  initMethod = wrenMakeCallHandle(vm, "init()");
+  updateMethod = wrenMakeCallHandle(vm, "update()");
+  drawMethod = wrenMakeCallHandle(vm, "draw(_)");
   wrenGetVariable(vm, "main", "Game", 0);
-  WrenHandle* gameClass = wrenGetSlotHandle(vm, 0);
+  gameClass = wrenGetSlotHandle(vm, 0);
 
   // Initiate game loop
   uint8_t FPS = 60;
   double MS_PER_FRAME = ceil(1000.0 / FPS);
-  SDL_Thread* recordThread = NULL;
 
   wrenSetSlotHandle(vm, 0, gameClass);
   interpreterResult = wrenCall(vm, initMethod);
@@ -372,6 +397,7 @@ int main(int argc, char* args[])
   engine.initialized = true;
 
 
+  SDL_SetWindowPosition(engine.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_ShowWindow(engine.window);
   SDL_SetRenderDrawColor(engine.renderer, 0x00, 0x00, 0x00, 0xFF);
 
@@ -386,6 +412,8 @@ int main(int argc, char* args[])
   while (engine.running) {
 
     // processInput()
+    engine.mouse.scrollX = 0;
+    engine.mouse.scrollY = 0;
     while(SDL_PollEvent(&event)) {
       switch (event.type)
       {
@@ -394,7 +422,8 @@ int main(int argc, char* args[])
           break;
         case SDL_WINDOWEVENT:
           {
-            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+            if (event.window.event == SDL_WINDOWEVENT_RESIZED ||
+                event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
               SDL_RenderGetViewport(engine.renderer, &(engine.viewport));
             } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
               AUDIO_ENGINE_pause(engine.audioEngine);
@@ -412,6 +441,14 @@ int main(int argc, char* args[])
               engine.debugEnabled = !engine.debugEnabled;
             } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
               ENGINE_takeScreenshot(&engine);
+            } else if (event.key.repeat == 0) {
+              char* buttonName = strToLower((char*)SDL_GetKeyName(keyCode));
+              interpreterResult = INPUT_update(vm, DOME_INPUT_KEYBOARD, buttonName, event.key.state == SDL_PRESSED);
+              free(buttonName);
+              if (interpreterResult != WREN_RESULT_SUCCESS) {
+                result = EXIT_FAILURE;
+                goto vm_cleanup;
+              }
             }
           } break;
         case SDL_CONTROLLERDEVICEADDED:
@@ -422,6 +459,43 @@ int main(int argc, char* args[])
           {
             GAMEPAD_eventRemoved(vm, event.cdevice.which);
           } break;
+        case SDL_CONTROLLERBUTTONDOWN:
+        case SDL_CONTROLLERBUTTONUP:
+          {
+            SDL_ControllerButtonEvent cbutton = event.cbutton;
+            const char* buttonName = GAMEPAD_stringFromButton(cbutton.button);
+            interpreterResult = GAMEPAD_eventButtonPressed(vm, cbutton.which, buttonName, cbutton.state == SDL_PRESSED);
+            if (interpreterResult != WREN_RESULT_SUCCESS) {
+              result = EXIT_FAILURE;
+              goto vm_cleanup;
+            }
+          } break;
+        case SDL_MOUSEWHEEL:
+          {
+            int dir = event.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? 1 : -1;
+            engine.mouse.scrollX += event.wheel.x * dir;
+            // Down should be positive to match the direction of rendering.
+            engine.mouse.scrollY += event.wheel.y * -dir;
+          } break;
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+          {
+            char* buttonName;
+            switch (event.button.button) {
+              case SDL_BUTTON_LEFT: buttonName = "left"; break;
+              case SDL_BUTTON_MIDDLE: buttonName = "middle"; break;
+              case SDL_BUTTON_RIGHT: buttonName = "right"; break;
+              case SDL_BUTTON_X1: buttonName = "x1"; break;
+              default:
+              case SDL_BUTTON_X2: buttonName = "x2"; break;
+            }
+            bool state = event.button.state == SDL_PRESSED;
+            interpreterResult = INPUT_update(vm, DOME_INPUT_MOUSE, buttonName, state);
+            if (interpreterResult != WREN_RESULT_SUCCESS) {
+              result = EXIT_FAILURE;
+              goto vm_cleanup;
+            }
+          } break;
         case SDL_USEREVENT:
           {
             ENGINE_printLog(&engine, "Event code %i\n", event.user.code);
@@ -429,6 +503,13 @@ int main(int argc, char* args[])
               FILESYSTEM_loadEventComplete(&event);
             }
           }
+      }
+    }
+    if (inputCaptured) {
+      interpreterResult = INPUT_commit(vm);
+      if (interpreterResult != WREN_RESULT_SUCCESS) {
+        result = EXIT_FAILURE;
+        goto vm_cleanup;
       }
     }
 
@@ -495,8 +576,8 @@ int main(int argc, char* args[])
       goto vm_cleanup;
     }
 
+    engine.debug.elapsed = elapsed;
     if (engine.debugEnabled) {
-      engine.debug.elapsed = elapsed;
       ENGINE_drawDebug(&engine);
     }
 
@@ -534,10 +615,21 @@ vm_cleanup:
     }
   }
 
-  wrenReleaseHandle(vm, initMethod);
-  wrenReleaseHandle(vm, drawMethod);
-  wrenReleaseHandle(vm, updateMethod);
-  wrenReleaseHandle(vm, gameClass);
+  if (initMethod != NULL) {
+    wrenReleaseHandle(vm, initMethod);
+  }
+
+  if (drawMethod != NULL) {
+    wrenReleaseHandle(vm, drawMethod);
+  }
+
+  if (updateMethod != NULL) {
+    wrenReleaseHandle(vm, updateMethod);
+  }
+
+  if (gameClass != NULL) {
+    wrenReleaseHandle(vm, gameClass);
+  }
 
   if (bufferClass != NULL) {
     wrenReleaseHandle(vm, bufferClass);
@@ -546,6 +638,8 @@ vm_cleanup:
   if (audioEngineClass != NULL) {
     wrenReleaseHandle(vm, audioEngineClass);
   }
+
+  INPUT_release(vm);
 
 cleanup:
   // Free resources

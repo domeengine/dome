@@ -5,26 +5,7 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
   methods.allocate = NULL;
   methods.finalize = NULL;
 
-  #if DOME_OPT_FFI
 
-  if (STRINGS_EQUAL(module, "ffi")) {
-    if (STRINGS_EQUAL(className, "LibraryHandle")) {
-      methods.allocate = LIBRARY_HANDLE_allocate;
-      methods.finalize = LIBRARY_HANDLE_finalize;
-    } else if (STRINGS_EQUAL(className, "Function")) {
-      methods.allocate = FUNCTION_allocate;
-      methods.finalize = FUNCTION_finalize;
-    } else if (STRINGS_EQUAL(className, "StructTypeData")) {
-      methods.allocate = STRUCT_TYPE_allocate;
-      methods.finalize = STRUCT_TYPE_finalize;
-    } else if (STRINGS_EQUAL(className, "Struct")) {
-      methods.allocate = STRUCT_allocate;
-      methods.finalize = STRUCT_finalize;
-    } else if (STRINGS_EQUAL(className, "Pointer")) {
-      methods.allocate = POINTER_allocate;
-    }
-  }
-  #endif
   if (STRINGS_EQUAL(module, "image")) {
     if (STRINGS_EQUAL(className, "ImageData")) {
       methods.allocate = IMAGE_allocate;
@@ -50,7 +31,7 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.finalize = AUDIO_CHANNEL_finalize;
     }
   } else if (STRINGS_EQUAL(module, "input")) {
-    if (STRINGS_EQUAL(className, "GamePad")) {
+    if (STRINGS_EQUAL(className, "SystemGamePad")) {
       methods.allocate = GAMEPAD_allocate;
       methods.finalize = GAMEPAD_finalize;
     }
@@ -203,7 +184,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Set modules
 
   // DOME
+  MAP_addFunction(&engine->moduleMap, "dome", "static StringUtils.toLowercase(_)", STRING_UTILS_toLowercase);
   MAP_addFunction(&engine->moduleMap, "dome", "static Process.f_exit(_)", PROCESS_exit);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Process.args", PROCESS_getArguments);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.resize(_,_)", WINDOW_resize);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.title=(_)", WINDOW_setTitle);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.vsync=(_)", WINDOW_setVsync);
@@ -213,18 +196,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.fullscreen", WINDOW_getFullscreen);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.width", WINDOW_getWidth);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.height", WINDOW_getHeight);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.fps", WINDOW_getFps);
   MAP_addFunction(&engine->moduleMap, "dome", "static Version.toString", VERSION_getString);
-
-#if DOME_OPT_FFI
-  // FFI
-  MAP_addFunction(&engine->moduleMap, "ffi", "Function.f_call(_)", FUNCTION_call);
-  MAP_addFunction(&engine->moduleMap, "ffi", "StructTypeData.getMemberOffset(_)", STRUCT_TYPE_getOffset);
-  MAP_addFunction(&engine->moduleMap, "ffi", "Struct.getValue(_)", STRUCT_getValue);
-  MAP_addFunction(&engine->moduleMap, "ffi", "Pointer.asString()", POINTER_asString);
-  MAP_addFunction(&engine->moduleMap, "ffi", "Pointer.asBytes(_)", POINTER_asBytes);
-  MAP_addFunction(&engine->moduleMap, "ffi", "static Pointer.reserve(_)", POINTER_reserve);
-  MAP_addFunction(&engine->moduleMap, "ffi", "Pointer.free()", POINTER_free);
-#endif
 
   // Canvas
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_pset(_,_,_)", CANVAS_pset);
@@ -232,7 +205,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_rectfill(_,_,_,_,_)", CANVAS_rectfill);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_cls(_)", CANVAS_cls);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_rect(_,_,_,_,_)", CANVAS_rect);
-  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_line(_,_,_,_,_)", CANVAS_line);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_line(_,_,_,_,_,_)", CANVAS_line);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_circle(_,_,_,_)", CANVAS_circle);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_circlefill(_,_,_,_)", CANVAS_circle_filled);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_ellipse(_,_,_,_,_)", CANVAS_ellipse);
@@ -247,9 +220,13 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.f_print(_,_,_,_)", FONT_RASTER_print);
   MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.antialias=(_)", FONT_RASTER_setAntiAlias);
   // Image
+  MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_loadFromFile(_)", IMAGE_loadFromFile);
+  MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_getPNG()", IMAGE_getPNG);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.draw(_,_)", IMAGE_draw);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.width", IMAGE_getWidth);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.height", IMAGE_getHeight);
+  MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_pget(_,_)", IMAGE_pget);
+  MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_pset(_,_,_)", IMAGE_pset);
   MAP_addFunction(&engine->moduleMap, "image", "DrawCommand.draw(_,_)", DRAW_COMMAND_draw);
 
   // Audio
@@ -282,6 +259,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.listDirectories(_)", FILESYSTEM_listDirectories);
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.prefPath(_,_)", FILESYSTEM_getPrefPath);
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.basePath()", FILESYSTEM_getBasePath);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.createDirectory(_)", FILESYSTEM_createDirectory);
 
 
   // Buffer
@@ -295,20 +273,23 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "io", "AsyncOperation.complete", ASYNCOP_getComplete);
 
   // Input
-  MAP_addFunction(&engine->moduleMap, "input", "static Keyboard.isKeyDown(_)", KEYBOARD_isKeyDown);
+  MAP_addFunction(&engine->moduleMap, "input", "static Input.f_captureVariables()", INPUT_capture);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.x", MOUSE_getX);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.y", MOUSE_getY);
-  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.isButtonPressed(_)", MOUSE_isButtonPressed);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.scrollX", MOUSE_getScrollX);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.scrollY", MOUSE_getScrollY);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.hidden=(_)", MOUSE_setHidden);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.hidden", MOUSE_getHidden);
-  MAP_addFunction(&engine->moduleMap, "input", "static GamePad.f_getGamePadIds()", GAMEPAD_getGamePadIds);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.f_isButtonPressed(_)", GAMEPAD_isButtonPressed);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.getTrigger(_)", GAMEPAD_getTrigger);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.close()", GAMEPAD_close);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.f_getAnalogStick(_)", GAMEPAD_getAnalogStick);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.attached", GAMEPAD_isAttached);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.name", GAMEPAD_getName);
-  MAP_addFunction(&engine->moduleMap, "input", "GamePad.id", GAMEPAD_getId);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.relative=(_)", MOUSE_setRelative);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.relative", MOUSE_getRelative);
+  MAP_addFunction(&engine->moduleMap, "input", "static SystemGamePad.f_getGamePadIds()", GAMEPAD_getGamePadIds);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.getTrigger(_)", GAMEPAD_getTrigger);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.close()", GAMEPAD_close);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.f_getAnalogStick(_)", GAMEPAD_getAnalogStick);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.rumble(_,_)", GAMEPAD_rumble);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.attached", GAMEPAD_isAttached);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.name", GAMEPAD_getName);
+  MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.id", GAMEPAD_getId);
 
   // Json
   MAP_addFunction(&engine->moduleMap, "json", "JsonStream.stream_begin(_)", JSON_streamBegin);

@@ -44,6 +44,7 @@ class Version {
 
 
 class Process {
+  foreign static args
   foreign static f_exit(n)
   static exit(n) {
     f_exit(n)
@@ -64,7 +65,11 @@ class Window {
   foreign static fullscreen
   foreign static width
   foreign static height
+  foreign static fps
 
   foreign static resize(width, height)
 }
 
+class StringUtils {
+  foreign static toLowercase(string)
+}

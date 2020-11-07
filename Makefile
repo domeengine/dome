@@ -20,9 +20,9 @@ BUILTIN_RANDOM = 1
 BUILTIN_META = 1
 
 DOME_OPTS = -DHASH="\"$(BUILD_VALUE)\"" -DWREN_OPT_RANDOM=$(BUILTIN_RANDOM) -DWREN_OPT_META=$(BUILTIN_META)
-CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `which sdl2-config 1>/dev/null && sdl2-config --cflags`
-IFLAGS = -isystem $(INCLUDES)
 SDL_CONFIG ?= $(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "$(LIBS)/sdl2-config")
+CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `$(SDL_CONFIG) --cflags`
+IFLAGS = -isystem $(INCLUDES)
 
 ifdef STATIC
 	FRAMEWORK = unix
@@ -32,14 +32,6 @@ else
   SDLFLAGS = `$(SDL_CONFIG) --libs`
 endif
 LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm
-
-## Optional DOME Module Switches
-DOME_OPT_FFI=0
-ifeq ($(DOME_OPT_FFI),1)
-  DOME_OPTS += -D DOME_OPT_FFI=1
-  LDFLAGS  += -lffi
-  FFI_DEPS = $(LIBS)/libffi $(LIBS)/libffi.a $(INCLUDES)/ffi.h
-endif
 
 ifdef DOME_OPT_VERSION
   DOME_OPTS += -DDOME_VERSION=\"$(DOME_OPT_VERSION)\"
@@ -92,7 +84,7 @@ ifneq (, $(findstring MINGW, $(SYS)))
 endif
 
 ifneq (, $(findstring Linux, $(SYS)))
-  CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered --no-pie
+  CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered 
 endif
 
 
@@ -100,30 +92,20 @@ endif
 .PHONY: all clean reset cloc
 all: $(EXENAME)
 
-$(LIBS)/libffi/autogen.sh:
-	git submodule update --init -- $(LIBS)/libffi
-$(LIBS)/libffi: $(LIBS)/libffi/autogen.sh
-
 $(LIBS)/wren/Makefile: 
 	git submodule update --init -- $(LIBS)/wren
 $(LIBS)/wren: $(LIBS)/wren/Makefile
-	
-$(LIBS)/libffi.a: $(LIBS)/libffi
-	./setup_ffi.sh
 
 $(LIBS)/libwren.a: $(LIBS)/wren
-	./setup_wren.sh $(ARCH) WREN_OPT_RANDOM=$(BUILTIN_RANDOM) WREN_OPT_META=$(BUILTIN_META)
-
-$(INCLUDES)/ffi.h: $(LIBS)/libffi.a
-$(INCLUDES)/ffitarget.h: $(LIBS)/libffi.a
+	./scripts/setup_wren.sh $(ARCH) WREN_OPT_RANDOM=$(BUILTIN_RANDOM) WREN_OPT_META=$(BUILTIN_META)
 	
 $(INCLUDES)/wren.h: $(LIBS)/libwren.a
 	cp src/lib/wren/src/include/wren.h src/include/wren.h
 
 $(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
-	cd $(UTILS) && ./generateEmbedModules.sh
+	./scripts/generateEmbedModules.sh
 
-$(EXENAME): $(SOURCE)/*.c $(MODULES)/*.c $(UTILS)/font.c $(INCLUDES) $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwren.a $(FFI_DEPS)
+$(EXENAME): $(SOURCE)/*.c $(MODULES)/*.c $(INCLUDES) $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwren.a
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(EXENAME) $(LDFLAGS) $(IFLAGS)
 	$(warning $(MODE))
 ifneq (, $(findstring Darwin, $(SYS)))
@@ -135,15 +117,9 @@ else
 endif
 endif
 
-# Used for the example game FFI test
-libadd.so: $(EXAMPLES)/ffi/add.c
-	$(CC) -O -fno-common -c $(EXAMPLES)/ffi/add.c $(IFLAGS) -o $(EXAMPLES)/ffi/add.o -g
-	$(CC) -flat_namespace -bundle -undefined suppress -o $(EXAMPLES)/ffi/libadd.so $(EXAMPLES)/ffi/add.o
-	rm $(EXAMPLES)/ffi/add.o
-
 reset:
 	git submodule foreach --recursive git clean -xfd
-	rm -rf .mode $(EXENAME) $(LIBS)/libwren.a $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwrend.a $(LIBS)/libffi.a $(INCLUDES)/ffi.h $(INCLUDES)/ffitarget.h
+	rm -rf .mode $(EXENAME) $(LIBS)/libwren.a $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwrend.a
 
 clean:
 	rm -rf $(EXENAME) $(MODULES)/*.inc

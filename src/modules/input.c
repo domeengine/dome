@@ -1,9 +1,114 @@
-internal void KEYBOARD_isKeyDown(WrenVM* vm) {
+// Inspired by the SDL2 approach to button mapping
+
+global_variable const char* controllerButtonMap[] = {
+  "a",
+  "b",
+  "x",
+  "y",
+  "back",
+  "guide",
+  "start",
+  "leftstick",
+  "rightstick",
+  "leftshoulder",
+  "rightshoulder",
+  "up",
+  "down",
+  "left",
+  "right",
+  NULL
+};
+global_variable bool inputCaptured = false;
+global_variable WrenHandle* commitMethod = NULL;
+
+internal void
+INPUT_capture(WrenVM* vm) {
+  SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC);
+
+  if (!inputCaptured) {
+    wrenGetVariable(vm, "input", "Keyboard", 0);
+    keyboardClass = wrenGetSlotHandle(vm, 0);
+
+    wrenGetVariable(vm, "input", "Mouse", 0);
+    mouseClass = wrenGetSlotHandle(vm, 0);
+
+    wrenGetVariable(vm, "input", "GamePad", 0);
+    gamepadClass  = wrenGetSlotHandle(vm, 0);
+
+    updateInputMethod = wrenMakeCallHandle(vm, "update(_,_)");
+    commitMethod = wrenMakeCallHandle(vm, "commit()");
+    inputCaptured = true;
+  }
+}
+
+internal WrenInterpretResult
+INPUT_commit(WrenVM* vm) {
+  wrenEnsureSlots(vm, 1);
+  wrenSetSlotHandle(vm, 0, keyboardClass);
+  WrenInterpretResult interpreterResult = wrenCall(vm, commitMethod);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    return interpreterResult;
+  }
+
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  ASSERT_SLOT_TYPE(vm, 1, STRING, "key name");
-  const char* keyName = wrenGetSlotString(vm, 1);
-  bool result = ENGINE_getKeyState(engine, keyName);
-  wrenSetSlotBool(vm, 0, result);
+  if (engine->mouse.relative) {
+    SDL_GetRelativeMouseState(&(engine->mouse.x), &(engine->mouse.y));
+  } else {
+    SDL_GetMouseState(&(engine->mouse.x), &(engine->mouse.y));
+  }
+
+  wrenEnsureSlots(vm, 1);
+  wrenSetSlotHandle(vm, 0, mouseClass);
+  interpreterResult = wrenCall(vm, commitMethod);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    return interpreterResult;
+  }
+  wrenEnsureSlots(vm, 1);
+  wrenSetSlotHandle(vm, 0, gamepadClass);
+  interpreterResult = wrenCall(vm, commitMethod);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    return interpreterResult;
+  }
+
+  return WREN_RESULT_SUCCESS;
+}
+
+
+
+internal void
+INPUT_release(WrenVM* vm) {
+  if (inputCaptured) {
+    wrenReleaseHandle(vm, keyboardClass);
+    wrenReleaseHandle(vm, mouseClass);
+    wrenReleaseHandle(vm, gamepadClass);
+    wrenReleaseHandle(vm, updateInputMethod);
+    wrenReleaseHandle(vm, commitMethod);
+    inputCaptured = false;
+  }
+}
+
+typedef enum {
+  DOME_INPUT_KEYBOARD,
+  DOME_INPUT_MOUSE,
+  DOME_INPUT_CONTROLLER
+} DOME_INPUT_TYPE;
+
+internal WrenInterpretResult
+INPUT_update(WrenVM* vm, DOME_INPUT_TYPE type, const char* inputName, bool state) {
+  if (inputCaptured) {
+    wrenEnsureSlots(vm, 3);
+    switch (type) {
+      default:
+      case DOME_INPUT_KEYBOARD: wrenSetSlotHandle(vm, 0, keyboardClass); break;
+      case DOME_INPUT_MOUSE: wrenSetSlotHandle(vm, 0, mouseClass); break;
+      // It's assumed the controller object is preloaded.
+      case DOME_INPUT_CONTROLLER: break;
+    }
+    wrenSetSlotString(vm, 1, inputName);
+    wrenSetSlotBool(vm, 2, state);
+    return wrenCall(vm, updateInputMethod);
+  }
+  return WREN_RESULT_SUCCESS;
 }
 
 internal void MOUSE_getX(WrenVM* vm) {
@@ -16,6 +121,30 @@ internal void MOUSE_getY(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   int y = ENGINE_getMouseY(engine);
   wrenSetSlotDouble(vm, 0, y);
+}
+
+internal void MOUSE_getScrollX(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotDouble(vm, 0, engine->mouse.scrollX);
+}
+
+internal void MOUSE_getScrollY(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotDouble(vm, 0, engine->mouse.scrollY);
+}
+
+internal void
+MOUSE_setRelative(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, BOOL, "relative");
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  bool relative = wrenGetSlotBool(vm, 1);
+  ENGINE_setMouseRelative(engine, relative);
+}
+
+internal void
+MOUSE_getRelative(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotBool(vm, 0, engine->mouse.relative);
 }
 
 internal void
@@ -31,39 +160,10 @@ MOUSE_getHidden(WrenVM* vm) {
   wrenSetSlotBool(vm, 0, !shown);
 }
 
-internal void MOUSE_isButtonPressed(WrenVM* vm) {
-  WrenType type = wrenGetSlotType(vm, 1);
-  int buttonIndex = 0;
-  if (type == WREN_TYPE_STRING) {
-    char* buttonName = strToLower(wrenGetSlotString(vm, 1));
-    if (STRINGS_EQUAL(buttonName, "left")) {
-      buttonIndex = SDL_BUTTON_LEFT;
-    } else if (STRINGS_EQUAL(buttonName, "middle")) {
-      buttonIndex = SDL_BUTTON_MIDDLE;
-    } else if (STRINGS_EQUAL(buttonName, "right")) {
-      buttonIndex = SDL_BUTTON_RIGHT;
-    } else if (STRINGS_EQUAL(buttonName, "X1")) {
-      buttonIndex = SDL_BUTTON_X1;
-    } else if (STRINGS_EQUAL(buttonName, "X2")) {
-      buttonIndex = SDL_BUTTON_X2;
-    } else {
-      VM_ABORT(vm, "Unknown mouse button name");
-      return;
-    }
-    free(buttonName);
-  } else if (type == WREN_TYPE_NUM) {
-    buttonIndex = wrenGetSlotDouble(vm, 1);
-  } else {
-    VM_ABORT(vm, "Invalid button index given")
-    return;
-  }
-
-  wrenSetSlotBool(vm, 0, ENGINE_getMouseButton(buttonIndex));
-}
-
 typedef struct {
   int instanceId;
   SDL_GameController* controller;
+  SDL_Haptic* haptics;
 } GAMEPAD;
 
 internal void
@@ -74,6 +174,7 @@ GAMEPAD_allocate(WrenVM* vm) {
 
   if (joystickId == -1 || SDL_IsGameController(joystickId) == SDL_FALSE) {
     gamepad->controller = NULL;
+    gamepad->haptics = NULL;
     gamepad->instanceId = -1;
     return;
   }
@@ -82,12 +183,23 @@ GAMEPAD_allocate(WrenVM* vm) {
     VM_ABORT(vm, "Could not open gamepad");
     return;
   }
-  gamepad->instanceId = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller));
+  SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
+  gamepad->instanceId = SDL_JoystickInstanceID(joystick);
   gamepad->controller = controller;
+  gamepad->haptics = SDL_HapticOpenFromJoystick(joystick);
+  if (SDL_HapticRumbleSupported(gamepad->haptics) == SDL_FALSE
+      || SDL_HapticRumbleInit(gamepad->haptics) != 0) {
+    SDL_HapticClose(gamepad->haptics);
+    gamepad->haptics = NULL;
+  }
 }
 
 internal void
 closeController(GAMEPAD* gamepad) {
+  if (gamepad->haptics != NULL) {
+    SDL_HapticClose(gamepad->haptics);
+  }
+
   if (gamepad->controller != NULL) {
     SDL_GameControllerClose(gamepad->controller);
     gamepad->controller = NULL;
@@ -100,66 +212,20 @@ GAMEPAD_close(WrenVM* vm) {
   closeController(gamepad);
 }
 
-
 internal void
 GAMEPAD_finalize(void* data) {
   closeController((GAMEPAD*)data);
 }
 
 internal void
-GAMEPAD_isButtonPressed(WrenVM* vm) {
+GAMEPAD_rumble(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 0, FOREIGN, "GamePad");
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "strength");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "length");
   GAMEPAD* gamepad = wrenGetSlotForeign(vm, 0);
-  if (gamepad->controller == NULL) {
-    wrenSetSlotBool(vm, 0, false);
-    return;
-  }
-  int buttonIndex = 0;
-  WrenType type = wrenGetSlotType(vm, 1);
-  if (type == WREN_TYPE_STRING) {
-    char* buttonName = strToLower(wrenGetSlotString(vm, 1));
-    if (STRINGS_EQUAL(buttonName, "up")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_DPAD_UP;
-    } else if (STRINGS_EQUAL(buttonName, "left")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_DPAD_LEFT;
-    } else if (STRINGS_EQUAL(buttonName, "right")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_DPAD_RIGHT;
-    } else if (STRINGS_EQUAL(buttonName, "down")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_DPAD_DOWN;
-    } else if (STRINGS_EQUAL(buttonName, "start")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_START;
-    } else if (STRINGS_EQUAL(buttonName, "back")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_BACK;
-    } else if (STRINGS_EQUAL(buttonName, "guide")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_GUIDE;
-    } else if (STRINGS_EQUAL(buttonName, "leftstick")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_LEFTSTICK;
-    } else if (STRINGS_EQUAL(buttonName, "rightstick")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_RIGHTSTICK;
-    } else if (STRINGS_EQUAL(buttonName, "leftshoulder")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
-    } else if (STRINGS_EQUAL(buttonName, "rightshoulder")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
-    } else if (STRINGS_EQUAL(buttonName, "a")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_A;
-    } else if (STRINGS_EQUAL(buttonName, "b")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_B;
-    } else if (STRINGS_EQUAL(buttonName, "x")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_X;
-    } else if (STRINGS_EQUAL(buttonName, "y")) {
-      buttonIndex = SDL_CONTROLLER_BUTTON_Y;
-    } else {
-      VM_ABORT(vm, "Unknown controller button name");
-      return;
-    }
-    free(buttonName);
-  } else if (type == WREN_TYPE_NUM) {
-    buttonIndex = wrenGetSlotDouble(vm, 1);
-  } else {
-    VM_ABORT(vm, "Invalid controller button index")
-    return;
-  }
-  bool isPressed = SDL_GameControllerGetButton(gamepad->controller, buttonIndex);
-  wrenSetSlotBool(vm, 0, isPressed);
+  float strength = fmid(0, wrenGetSlotDouble(vm, 1), 1);
+  double length = fmax(0, wrenGetSlotDouble(vm, 2));
+  SDL_HapticRumblePlay(gamepad->haptics, strength, length);
 }
 
 internal void
@@ -169,7 +235,7 @@ GAMEPAD_getAnalogStick(WrenVM* vm) {
   int16_t y = 0;
   if (gamepad->controller != NULL) {
     ASSERT_SLOT_TYPE(vm, 1, STRING, "analog stick side");
-    char* side = strToLower(wrenGetSlotString(vm, 1));
+    const char* side = strToLower(wrenGetSlotString(vm, 1));
     if (STRINGS_EQUAL(side, "left")) {
       x = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_LEFTX);
       y = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_LEFTY);
@@ -177,7 +243,7 @@ GAMEPAD_getAnalogStick(WrenVM* vm) {
       x = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_RIGHTX);
       y = SDL_GameControllerGetAxis(gamepad->controller, SDL_CONTROLLER_AXIS_RIGHTY);
     }
-    free(side);
+    free((void*)side);
   }
 
   wrenSetSlotNewList(vm, 0);
@@ -240,7 +306,6 @@ GAMEPAD_getId(WrenVM* vm) {
 
 internal void
 GAMEPAD_getGamePadIds(WrenVM* vm) {
-  SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
   int maxJoysticks = SDL_NumJoysticks();
   int listCount = 0;
   wrenEnsureSlots(vm, 2);
@@ -257,19 +322,54 @@ GAMEPAD_getGamePadIds(WrenVM* vm) {
 
 internal void
 GAMEPAD_eventAdded(WrenVM* vm, int joystickId) {
-  WrenHandle* addedMethod = wrenMakeCallHandle(vm, "addGamePad(_)");
-  wrenSetSlotDouble(vm, 1, joystickId);
-  wrenGetVariable(vm, "input", "GamePad", 0);
-  wrenCall(vm, addedMethod);
-  wrenReleaseHandle(vm, addedMethod);
+  if (inputCaptured) {
+    WrenHandle* addedMethod = wrenMakeCallHandle(vm, "addGamePad(_)");
+    wrenEnsureSlots(vm, 2);
+    wrenSetSlotDouble(vm, 1, joystickId);
+    wrenSetSlotHandle(vm, 0, gamepadClass);
+    wrenCall(vm, addedMethod);
+    wrenReleaseHandle(vm, addedMethod);
+  }
 }
 
+internal WrenInterpretResult
+GAMEPAD_eventButtonPressed(WrenVM* vm, int joystickId, const char* buttonName, bool state) {
+  if (inputCaptured) {
+    WrenHandle* lookupMethod = wrenMakeCallHandle(vm, "[_]");
+    wrenEnsureSlots(vm, 3);
+    wrenSetSlotDouble(vm, 1, joystickId);
+    wrenSetSlotHandle(vm, 0, gamepadClass);
+    WrenInterpretResult result = wrenCall(vm, lookupMethod);
+    wrenReleaseHandle(vm, lookupMethod);
+    if (result != WREN_RESULT_SUCCESS) {
+      return result;
+    }
+    // A gamepad instance should be in the 0 slot now
+    result = INPUT_update(vm, DOME_INPUT_CONTROLLER, buttonName, state);
+    if (result != WREN_RESULT_SUCCESS) {
+      return result;
+    }
+  }
+
+  return WREN_RESULT_SUCCESS;
+}
 
 internal void
 GAMEPAD_eventRemoved(WrenVM* vm, int instanceId) {
-  WrenHandle* removeMethod = wrenMakeCallHandle(vm, "removeGamePad(_)");
-  wrenSetSlotDouble(vm, 1, instanceId);
-  wrenGetVariable(vm, "input", "GamePad", 0);
-  wrenCall(vm, removeMethod);
-  wrenReleaseHandle(vm, removeMethod);
+  if (inputCaptured) {
+    WrenHandle* removeMethod = wrenMakeCallHandle(vm, "removeGamePad(_)");
+    wrenEnsureSlots(vm, 2);
+    wrenSetSlotDouble(vm, 1, instanceId);
+    wrenSetSlotHandle(vm, 0, gamepadClass);
+    wrenCall(vm, removeMethod);
+    wrenReleaseHandle(vm, removeMethod);
+  }
+}
+
+internal const char*
+GAMEPAD_stringFromButton(SDL_GameControllerButton button) {
+  if (button > SDL_CONTROLLER_BUTTON_INVALID && button < SDL_CONTROLLER_BUTTON_MAX) {
+    return controllerButtonMap[button];
+  }
+  return NULL;
 }

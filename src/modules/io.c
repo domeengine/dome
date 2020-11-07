@@ -213,20 +213,13 @@ FILESYSTEM_loadEventComplete(SDL_Event* event) {
 
 internal void
 FILESYSTEM_listFiles(WrenVM* vm) {
-  char* path = wrenGetSlotString(vm, 1);
-  char* fullPath;
-  if (path[0] != '/') {
-    char* base = BASEPATH_get();
-    fullPath = malloc(strlen(base)+strlen(path)+1);
-    strcpy(fullPath, base); /* copy name into the new var */
-    strcat(fullPath, path); /* add the extension */
-  } else {
-    fullPath = path;
-  }
+  const char* path = wrenGetSlotString(vm, 1);
+  bool shouldFree;
+  const char* fullPath = resolvePath(path, &shouldFree);
   tinydir_dir dir;
   int result = tinydir_open(&dir, fullPath);
-  if (path[0] != '/') {
-    free(fullPath);
+  if (shouldFree) {
+    free((void*)fullPath);
   }
   if (result == -1) {
     VM_ABORT(vm, "Directory could not be opened");
@@ -252,20 +245,13 @@ FILESYSTEM_listFiles(WrenVM* vm) {
 
 internal void
 FILESYSTEM_listDirectories(WrenVM* vm) {
-  char* path = wrenGetSlotString(vm, 1);
-  char* fullPath;
-  if (path[0] != '/') {
-    char* base = BASEPATH_get();
-    fullPath = malloc(strlen(base)+strlen(path)+1);
-    strcpy(fullPath, base); /* copy name into the new var */
-    strcat(fullPath, path); /* add the extension */
-  } else {
-    fullPath = path;
-  }
+  const char* path = wrenGetSlotString(vm, 1);
+  bool shouldFree;
+  const char* fullPath = resolvePath(path, &shouldFree);
   tinydir_dir dir;
   int result = tinydir_open(&dir, fullPath);
-  if (path[0] != '/') {
-    free(fullPath);
+  if (shouldFree) {
+    free((void*)fullPath);
   }
   if (result == -1) {
     VM_ABORT(vm, "Directory could not be opened");
@@ -307,4 +293,20 @@ FILESYSTEM_getPrefPath(WrenVM* vm) {
 internal void
 FILESYSTEM_getBasePath(WrenVM* vm) {
   wrenSetSlotString(vm, 0, BASEPATH_get());
+}
+
+internal void
+FILESYSTEM_createDirectory(WrenVM *vm) {
+  const char* path = wrenGetSlotString(vm, 1);
+  mode_t mode = 0777;
+
+  bool shouldFree;
+  const char* fullPath = resolvePath(path, &shouldFree);
+  int result = mkdirp(fullPath, mode);
+  if (shouldFree) {
+    free((void*)fullPath);
+  }
+  if (result == -1) {
+    VM_ABORT(vm, "Directory could not be created");
+  }
 }

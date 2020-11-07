@@ -9,7 +9,6 @@ The modules you can import are here:
 
 * [audio](audio)
 * [dome](dome)
-* [ffi](ffi)
 * [graphics](graphics)
 * [input](input)
 * [io](io)

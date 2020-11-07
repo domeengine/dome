@@ -1,0 +1,184 @@
+name: Multi-platform Build Release
+on:
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
+  release:
+    types: [created]
+
+jobs:
+  build-linux:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        static: [1, 0]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+    - run: git fetch --prune --unshallow
+    - run: sudo apt-get update
+    - run: sudo apt-get install build-essential mercurial make cmake autoconf automake libtool libasound2-dev libpulse-dev libaudio-dev libx11-dev libxext-dev   libxrandr-dev libxcursor-dev libxi-dev libxinerama-dev libxxf86vm-dev  libxss-dev libgl1-mesa-dev libdbus-1-dev libudev-dev libgles2-mesa-dev  libegl1-mesa-dev libibus-1.0-dev fcitx-libs-dev libsamplerate0-dev  libsndio-dev libwayland-dev libxkbcommon-dev 
+    - run: sudo apt-get install libsdl2-dev
+      if: ${{matrix.static == 0}}
+    - run: ./scripts/setup_static_linux_sdl.sh
+      if: ${{matrix.static == 1}}
+    - run: make MODE=release ARCH=64bit STATIC=${{matrix.static}} 
+    - uses: actions/upload-artifact@v2
+      if: ${{matrix.static == 1}}
+      with:
+        name: dome-linux-x64
+        path: |
+          dome
+          main.wren
+
+    - uses: actions/upload-artifact@v2
+      if: ${{matrix.static == 0}}
+      with:
+        name: dome-linux-x64-shared
+        path: |
+          dome
+          main.wren
+
+  build-mac:
+    runs-on: macOS-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+    - run: sudo xcode-select -switch /Applications/Xcode_11.app/Contents/Developer
+    - run: ./scripts/setup_static_mac_sdl.sh
+    - run: make MIN_MAC_VERSION=10.12 STATIC=1 MODE=release ARCH=64bit
+    - uses: actions/upload-artifact@v2
+      with:
+        name: dome-macosx-x64
+        path: |
+          dome
+          main.wren
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        msystem: [MINGW32, MINGW64]
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.msystem }}
+        update: true
+        install: git make mercurial subversion
+
+    - run: pacman --noconfirm -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-SDL2
+      if: ${{ (matrix.msystem == 'MINGW64') }}
+    - run: pacman --noconfirm -S mingw-w64-i686-toolchain mingw-w64-i686-SDL2
+      if: ${{ (matrix.msystem == 'MINGW32') }}
+
+    - run: git fetch --prune --unshallow
+    - run: gcc -v
+    - run: "make STATIC=1 WINDOW_MODE=windows EXENAME=dome ICON_OBJECT_FILE=assets/icon64.res MODE=release ARCH=64bit CC=gcc"
+      if: ${{ (matrix.msystem == 'MINGW64') }}
+    - run: "make STATIC=1 WINDOW_MODE=windows EXENAME=dome ICON_OBJECT_FILE=assets/icon32.res MODE=release ARCH=32bit CC=gcc"
+      if: ${{ (matrix.msystem == 'MINGW32') }}
+    - uses: actions/upload-artifact@v2
+      if: ${{ (matrix.msystem == 'MINGW32') }}
+      with:
+        name: dome-windows-x32
+        path: |
+          dome.exe
+          main.wren
+    - uses: actions/upload-artifact@v2
+      if: ${{ (matrix.msystem == 'MINGW64') }}
+      with:
+        name: dome-windows-x64
+        path: |
+          dome.exe
+          main.wren
+
+  release-artifacts:
+    if: ${{ github.event.action == 'created' }}
+    needs: [ build-linux, build-mac, build-windows ]
+    runs-on: ubuntu-latest
+    name: Upload Release Artifacts
+    steps:
+      - uses: actions/download-artifact@v2
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-linux-x64.zip dome-linux-x64
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-linux-x64-shared.zip dome-linux-x64-shared
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-windows-x64.zip dome-windows-x64
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-windows-x32.zip dome-windows-x32
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-macosx-x64.zip dome-macosx-x64
+      - run: ls -la
+      - name: Upload Linux Shared
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-linux-x64-shared.zip
+          asset_name: dome-${{github.event.release.tag_name}}-linux-x64-shared.zip
+          asset_content_type: application/zip
+      - name: Upload Linux Static
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-linux-x64.zip
+          asset_name: dome-${{github.event.release.tag_name}}-linux-x64.zip
+          asset_content_type: application/zip
+      - name: Upload Windows x64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-windows-x64.zip
+          asset_name: dome-${{github.event.release.tag_name}}-windows-x64.zip
+          asset_content_type: application/zip
+      - name: Upload Windows x32
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-windows-x32.zip
+          asset_name: dome-${{github.event.release.tag_name}}-windows-x32.zip
+          asset_content_type: application/zip
+      - name: Upload Mac OS X
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-macosx-x64.zip
+          asset_name: dome-${{github.event.release.tag_name}}-macosx-x64.zip
+          asset_content_type: application/zip
+  notify-discord:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.action == 'created' }}
+    needs: [ release-artifacts ]
+    steps:
+    - name: Discord notification
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        DISCORD_EMBEDS: >
+          [{ 
+             "title": "New Release: '${{github.event.release.name}}' is now available for download!", 
+             "url": "${{github.event.release.html_url}}",
+             "author": {
+               "name": "${{github.event.release.author.login}}",
+               "url": "${{github.event.release.author.html_url}}",
+               "icon_url": "${{github.event.release.author.avatar_url}}"
+             }
+          }]
+      uses: Ilshidur/action-discord@0.3.0

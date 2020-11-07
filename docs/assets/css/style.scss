@@ -84,11 +84,16 @@ img[alt*="Logo"] {
   height: 200px;
 }
 
-code, pre {
+pre, code {
   border-radius: 3px;
   padding: 1px 5px;
   color: #e270ef;
   background-color: #383838;
+}
+
+pre code {
+  padding: 5px 5px;
+  display: inline-block;
 }
 
 .highlight,
@@ -97,6 +102,7 @@ code, pre {
   background-color: #383838;
   color: #e270ef;
   border-radius: 3px;
+  display: block;
 }
 
 .highlight .hll { background-color: #383838 }
