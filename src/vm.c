@@ -292,14 +292,14 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.id", GAMEPAD_getId);
 
   // Json
-  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.stream_begin(_)", JSON_streamBegin);
-  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.stream_end()", JSON_streamEnd);
-  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.next", JSON_next);
-  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.value", JSON_value);
-  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.error_message", JSON_error_message);
-  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.lineno", JSON_lineno);
-  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.pos", JSON_pos);
-  MAP_addFunction(&engine->moduleMap, "json", "static JsonStream.escapechar(_,_)", JSON_escapechar);
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.stream_begin(_)", JSON_STREAM_begin);
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.stream_end()", JSON_STREAM_end);
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.next", JSON_STREAM_next);
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.value", JSON_STREAM_value);
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.error_message", JSON_STREAM_error_message);
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.lineno", JSON_STREAM_lineno);
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.pos", JSON_STREAM_pos);
+  MAP_addFunction(&engine->moduleMap, "json", "static JsonStream.escapechar(_,_)", JSON_STREAM_escapechar);
 
   return vm;
 }

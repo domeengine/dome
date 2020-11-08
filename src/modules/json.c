@@ -16,7 +16,7 @@ const char json_typename[][64] = {
 json_stream jsonStream[1];
 
 internal void
-JSON_streamBegin(WrenVM * vm) {
+JSON_STREAM_begin(WrenVM * vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "value");
   char * value = wrenGetSlotString(vm, 1);
   json_open_string(jsonStream, value);
@@ -24,19 +24,19 @@ JSON_streamBegin(WrenVM * vm) {
 }
 
 internal void
-JSON_streamEnd(WrenVM * vm) {
+JSON_STREAM_end(WrenVM * vm) {
   json_reset(jsonStream);
   json_close(jsonStream);
 }
 
 internal void
-JSON_value(WrenVM * vm) {
+JSON_STREAM_value(WrenVM * vm) {
   const char * value = json_get_string(jsonStream, 0);
   wrenSetSlotString(vm, 0, value);
 }
 
 internal void
-JSON_error_message(WrenVM * vm) {
+JSON_STREAM_error_message(WrenVM * vm) {
   const char * error = json_get_error(jsonStream);
   if(error) {
     wrenSetSlotString(vm, 0, error);
@@ -46,17 +46,17 @@ JSON_error_message(WrenVM * vm) {
 }
 
 internal void
-JSON_lineno(WrenVM * vm) {
+JSON_STREAM_lineno(WrenVM * vm) {
   wrenSetSlotDouble(vm, 0, json_get_lineno(jsonStream));
 }
 
 internal void
-JSON_pos(WrenVM * vm) {
+JSON_STREAM_pos(WrenVM * vm) {
   wrenSetSlotDouble(vm, 0, json_get_position(jsonStream));
 }
 
 internal void
-JSON_next(WrenVM * vm) {
+JSON_STREAM_next(WrenVM * vm) {
   enum json_type type = json_next(jsonStream);
   if (json_typename[type]) {
     wrenSetSlotString(vm, 0, json_typename[type]);
@@ -74,12 +74,12 @@ enum JSON_DOME_OPTIONS {
 };
 
 internal void
-JSON_escapechar(WrenVM * vm) {
+JSON_STREAM_escapechar(WrenVM * vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "value");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "options");
   
   char * value = wrenGetSlotString(vm, 1);
-  double options = wrenGetSlotDouble(vm, 2);
+  int options = (int) wrenGetSlotDouble(vm, 2);
 
   char * result = value;
 
@@ -122,8 +122,7 @@ JSON_escapechar(WrenVM * vm) {
     // https://www.w3.org/TR/html4/appendix/notes.html#h-B.3.2
     // This is optional escaping. Disabled by default.
     // use JsonOptions.ESCAPE_SLASHES option to enable it
-    if(options == JSON_DOME_ESCAPE_SLASHES ||
-        options == (JSON_DOME_ESCAPE_SLASHES | JSON_DOME_ABORT_ON_ERROR)) {
+    if((options & JSON_DOME_ESCAPE_SLASHES) != JSON_DOME_NIL_OPTIONS) {
         result = "\\/";
     }
   }
