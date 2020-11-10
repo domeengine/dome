@@ -77,6 +77,18 @@ class JsonStream {
   process(event) {
     _lastEvent = event
 
+    if (event == isError) {
+      _error = JsonError.new(lineno, pos, error_message, true)
+      if (JsonOptions.shouldAbort(_options)) {
+        Fiber.abort("JSON error - line %(lineno) pos %(pos): %(error_message)")
+      }
+      return
+    }
+
+    if (event == isDone) {
+      return
+    }
+
     if (event == isBoolTrue || event == isBoolFalse) {
       return (event == isBoolTrue)
     }
@@ -98,7 +110,7 @@ class JsonStream {
       while (true) {
         event = next
         _lastEvent = event
-        if (event == isArrayEnd || event == isDone || event == isError) {
+        if (event == isArrayEnd) {
           break
         }
         elements.add(process(event))
@@ -111,19 +123,12 @@ class JsonStream {
       while (true) {
         event = next
         _lastEvent = event
-        if (event == isObjectEnd || event == isDone || event == isError) {
+        if (event == isObjectEnd) {
             break
         }
         elements[this.value] = process(next)
       }
       return elements
-    }
-
-    if (event == isError) {
-      _error = JsonError.new(lineno, pos, error_message, true)
-      if (JsonOptions.shouldAbort(_options)) {
-        Fiber.abort("JSON error - line %(lineno) pos %(pos): %(error_message)")
-      }
     }
   }
 }

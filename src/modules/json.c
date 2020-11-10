@@ -20,7 +20,7 @@ JSON_STREAM_begin(WrenVM * vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "value");
   char * value = wrenGetSlotString(vm, 1);
   json_open_string(jsonStream, value);
-  json_set_streaming(jsonStream, 1);
+  json_set_streaming(jsonStream, 0);
 }
 
 internal void
