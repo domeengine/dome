@@ -201,7 +201,7 @@ class Json {
     }
 
     if (value is List) {
-      var substrings = value.map { |item| Json.dumps(item) }
+      var substrings = value.map { |item| Json.encode(item) }
       return "[" + substrings.join(",") + "]"
     }
 
