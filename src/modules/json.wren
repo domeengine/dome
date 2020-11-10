@@ -136,17 +136,6 @@ class JsonStream {
 
 class Json {
 
-  // MARK: - File IO
-  // mirroring the FileSystem class
-
-  /**
-  Loads a json file from filesystem.
-  - Signature: load(path: String, options:JsonOptions?) -> <Map|List|Num|String|Null|JsonError>
-  - Parameter path: The file path where the json file is located.
-  - Parameter options: An optional param with options for parsing and encoding json.
-  - Returns: A Wren object or JsonError instance.
-  - Throws: Fiber.abort() if JsonOption.ABORT_ON_ERROR option is passed.
-  */
   static load(path, options) {
     var content = FileSystem.load(path)
     return Json.decode(content, options)
@@ -156,14 +145,6 @@ class Json {
     return Json.load(path, JsonOptions.ABORT_ON_ERROR)
   }
 
-  /**
-  Saves a Wren object to a json file in filesystem.
-  - Signature: save(path: String, object:<String|Num|Bool|Map|List|Null>, options:JsonOptions?) -> String
-  - Parameter path: The file path where the json file is located.
-  - Parameter object: The Wren object to convert to a json string.
-  - Parameter options: An optional param with options for parsing and encoding json.
-  - Returns: A json string with the contents of object.
-  */
   static save(path, object, options) {
     var content = Json.encode(object, options)
     FileSystem.save(path, content)
@@ -174,15 +155,6 @@ class Json {
     return Json.save(path, object, JsonOptions.ABORT_ON_ERROR)
   }
 
-  // MARK: - General Manipulation
-  // borrowed from other languages/apis
-  /**
-  Encodes a Wren object to a String value.
-  - Signature: encode(value: <String|Num|Bool|Map|List|Null>, options:JsonOptions?) -> String
-  - Parameter value: The Wren object to transform to a json string value.
-  - Parameter options: An optional param with options for parsing and encoding json.
-  - Returns: String with the contents of the value formatted as a json string.
-  */
   static encode(value, options) {
     // Loosely based on https://github.com/brandly/wren-json/blob/master/json.wren
     if (value is Num || value is Bool || value is Null) {
@@ -218,14 +190,6 @@ class Json {
     return Json.encode(value, JsonOptions.ABORT_ON_ERROR)
   }
 
-  /**
-  Decodes a Wren object from a json string.
-  - Signature: decode(value: String, options:JsonOptions?) -> <Map|List|Num|String|Null|JsonError>
-  - Parameter value: The json string to be decoded.
-  - Parameter options: An optional param with options for parsing and encoding json.
-  - Returns: A Wren object or JsonError instance.
-  - Throws: Fiber.abort() if JsonOption.ABORT_ON_ERROR option is passed.
-  */
   static decode(value, options) {
     var stream = JsonStream.new(value, options)
     stream.begin()
