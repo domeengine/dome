@@ -4,6 +4,10 @@ on:
     types: [assigned, opened, synchronize, reopened]
   release:
     types: [created]
+  push:
+    branches:
+      - actions
+
 
 jobs:
   build-linux:
@@ -44,7 +48,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2.0.0
-    - run: sudo xcode-select -switch /Applications/Xcode_11.app/Contents/Developer
+    - run: sudo xcode-select -switch /Applications/Xcode_12.app/Contents/Developer
     - run: ./scripts/setup_static_mac_sdl.sh
     - run: make MIN_MAC_VERSION=10.12 STATIC=1 MODE=release ARCH=64bit
     - uses: actions/upload-artifact@v2
