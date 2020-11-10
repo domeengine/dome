@@ -55,6 +55,7 @@ Json.decode(myString,
 ```
 
 ## JsonError
+This object is returned on calls to _Json.decode_ only if the  `JsonOptions.ABORT_ON_ERROR` default behaviour is disabled and a parse error was found.
 
 ### Instance Properties
 
