@@ -80,6 +80,7 @@ class JsonStream {
     if (event == isError) {
       _error = JsonError.new(lineno, pos, error_message, true)
       if (JsonOptions.shouldAbort(_options)) {
+        end()
         Fiber.abort("JSON error - line %(lineno) pos %(pos): %(error_message)")
       }
       return
@@ -244,3 +245,5 @@ class Json {
 }
 
 var JSON = Json
+var JSONOptions = JsonOptions
+var JSONError = JsonError

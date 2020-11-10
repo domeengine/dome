@@ -95,13 +95,13 @@ JSON_STREAM_escapechar(WrenVM * vm) {
   "\t" // Tab.
   "\v" // Vertical tab.
   */
-  if(utf8cmp(value, "\0") == 0) {
+  if (utf8cmp(value, "\0") == 0) {
     result = "\\0";
   } else if (utf8cmp(value, "\"") == 0) {
     result = "\\\"";
   } else if (utf8cmp(value, "\\") == 0) {
     result = "\\\\";
-  } else if(utf8cmp(value, "\\") == 0) {
+  } else if (utf8cmp(value, "\\") == 0) {
     result = "\\a";
   } else if (utf8cmp(value, "\b") == 0) {
     result = "\\b";
@@ -122,7 +122,7 @@ JSON_STREAM_escapechar(WrenVM * vm) {
     // https://www.w3.org/TR/html4/appendix/notes.html#h-B.3.2
     // This is optional escaping. Disabled by default.
     // use JsonOptions.ESCAPE_SLASHES option to enable it
-    if((options & JSON_DOME_ESCAPE_SLASHES) != JSON_DOME_NIL_OPTIONS) {
+    if ((options & JSON_DOME_ESCAPE_SLASHES) != JSON_DOME_NIL_OPTIONS) {
         result = "\\/";
     }
   }

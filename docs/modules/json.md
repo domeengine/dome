@@ -35,13 +35,13 @@ This will encode the object and then save the result to a file specified in `pat
 ### Constants
 
 #### `static NIL: Num`
-_Default_ value. No options selected.
+No options selected.
 
 #### `static ESCAPE_SLASHES: Num`
 This will encode solidus character (`/`). When converting a `Map` object to a `String`. This encoding is optional and is useful when you need to embed `JSON` inside `HTML <script>` tags. By default _DOME_ does not escape slashes.
 
 #### `static ABORT_ON_ERROR: Num`
-By default _DOME_ does not _Abort_ when there is a _JSON parsing error_. Use this option when you need to trigger a `Fiber.abort()` on parse error.
+By default _DOME_  aborts when there is a _JSON parsing error_ (triggers a `Fiber.abort()` on parse error). Turn off this option if you want to capture the _JsonError_ object.
 
 ### Example
 
