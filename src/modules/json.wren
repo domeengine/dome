@@ -1,12 +1,12 @@
 import "io" for FileSystem
 
 class JsonOptions {
-  static NIL { 0 }
-  static ESCAPE_SLASHES { 1 }
-  static ABORT_ON_ERROR { 2 }
+  static nil { 0 }
+  static escapeSlashes { 1 }
+  static abortOnError { 2 }
 
   static shouldAbort(options) {
-    return ((options & JsonOptions.ABORT_ON_ERROR) != JsonOptions.NIL)
+    return ((options & JsonOptions.abortOnError) != JsonOptions.nil)
   }
 }
 
@@ -142,7 +142,7 @@ class Json {
   }
 
   static load(path) {
-    return Json.load(path, JsonOptions.ABORT_ON_ERROR)
+    return Json.load(path, JsonOptions.abortOnError)
   }
 
   static save(path, object, options) {
@@ -152,7 +152,7 @@ class Json {
   }
 
   static save(path, object) {
-    return Json.save(path, object, JsonOptions.ABORT_ON_ERROR)
+    return Json.save(path, object, JsonOptions.abortOnError)
   }
 
   static encode(value, options) {
@@ -187,7 +187,7 @@ class Json {
   }
 
   static encode(value) {
-    return Json.encode(value, JsonOptions.ABORT_ON_ERROR)
+    return Json.encode(value, JsonOptions.abortOnError)
   }
 
   static decode(value, options) {
@@ -204,7 +204,7 @@ class Json {
   }
 
   static decode(value) {
-    return Json.decode(value, JsonOptions.ABORT_ON_ERROR)
+    return Json.decode(value, JsonOptions.abortOnError)
   }
 }
 
