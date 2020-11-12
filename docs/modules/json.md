@@ -1,6 +1,7 @@
 [< Back](.)
 
-# json
+json
+================
 
 The `json` module provides a simple interface to read and write [json files and strings](https://www.json.org/json-en.html).
 

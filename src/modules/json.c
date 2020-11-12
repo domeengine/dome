@@ -69,7 +69,7 @@ JSON_STREAM_next(WrenVM * vm) {
 // because a bug in compiler throws error when using \ in strings
 enum JSON_DOME_OPTIONS {
     JSON_DOME_NIL_OPTIONS = 0,
-    JSON_DOME_ESCAPE_SLASHES= 1,
+    JSON_DOME_ESCAPE_SLASHES = 1,
     JSON_DOME_ABORT_ON_ERROR = 2
 };
 
@@ -121,7 +121,7 @@ JSON_STREAM_escapechar(WrenVM * vm) {
     // The feature of the slash escape allows JSON to be embedded in HTML (as SGML) and XML.
     // https://www.w3.org/TR/html4/appendix/notes.html#h-B.3.2
     // This is optional escaping. Disabled by default.
-    // use JsonOptions.escapeSlashesoption to enable it
+    // use JsonOptions.escapeSlashes option to enable it
     if ((options & JSON_DOME_ESCAPE_SLASHES) != JSON_DOME_NIL_OPTIONS) {
         result = "\\/";
     }
