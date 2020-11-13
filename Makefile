@@ -51,8 +51,10 @@ $(warning $(TAGS))
 
 ifneq ($(and $(filter windows,$(TAGS)),$(filter 64bit,$(TAGS))),)
 TARGET_NAME ?= dome-x64
+ICON_OBJECT_FILE ?= assets/icon64.res
 else ifneq ($(and $(filter windows,$(TAGS)),$(filter 32bit,$(TAGS))),)
 TARGET_NAME ?= dome-x32
+ICON_OBJECT_FILE ?= assets/icon32.res
 else
 TARGET_NAME ?= dome
 endif
