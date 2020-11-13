@@ -135,7 +135,7 @@ PROJECTS := dome.bin wren modules
 all: $(PROJECTS)
 
 WREN_LIB ?= $(LIBS)/libwren.a
-WREN_PARAMS ?= 64bit WREN_OPT_RANDOM=1 WREN_OPT_META=1   
+WREN_PARAMS ?= $(ARCH) WREN_OPT_RANDOM=1 WREN_OPT_META=1   
 $(LIBS)/wren/lib/libwren.a:
 	@echo "==== Cloning Wren ===="
 	git submodule update --init -- $(LIBS)/wren
