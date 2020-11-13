@@ -75,7 +75,7 @@ WARNING_FLAGS = -Wall -Wno-unused-parameter -Wno-unused-function -Wno-unused-val
 
 ifneq ($(filter macosx,$(TAGS)),)
 WARNING_FLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
-else ifneq ($(filter windows,$(TAGS)),)
+else
 WARNING_FLAGS += -Wno-discarded-qualifiers -Wno-clobbered
 endif
 
