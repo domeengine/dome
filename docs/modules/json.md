@@ -20,7 +20,7 @@ It contains the following classes:
 #### `static encode(object: Object, options:Num): String`
 
 Transform the object to a _Json_ encoded string. With default or custom options.
-Encoding only works for primitive data types (_String_, _List_, _Map_, _Num_, _Null_). If a non primitive object is passed, the encoder will call it's _toString_ method.
+Encoding only works for primitive data types (_Bool_, _Map_, _Num_, _Null_, _List_, _String_). If a non primitive object is passed, the encoder will call it's _toString_ method.
 
 #### `static decode(value:String, options:Num): Object`
 
