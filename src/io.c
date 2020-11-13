@@ -77,7 +77,8 @@ BASEPATH_free(void) {
   }
 }
 
-char* resolvePath(char* partialPath, bool* shouldFree) {
+internal const char*
+resolvePath(char* partialPath, bool* shouldFree) {
     const char* fullPath;
     if (partialPath[0] != '/') {
       char* base = BASEPATH_get();
