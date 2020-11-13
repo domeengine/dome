@@ -81,9 +81,6 @@ jobs:
     - run: git fetch --prune --unshallow
     - run: gcc -v
     - run: "make STATIC=1 TARGET_NAME=dome CC=gcc"
-      if: ${{ (matrix.msystem == 'MINGW64') }}
-    - run: "make STATIC=1 TARGET_NAME=dome CC=gcc"
-      if: ${{ (matrix.msystem == 'MINGW32') }}
     - uses: actions/upload-artifact@v2
       if: ${{ (matrix.msystem == 'MINGW32') }}
       with:
