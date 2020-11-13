@@ -20,6 +20,7 @@ It contains the following classes:
 #### `static encode(object: Object, options:Num): String`
 
 Transform the object to a _Json_ encoded string. With default or custom options.
+Encoding only works for primitive data types (_String_, _List_, _Map_, _Num_, _Null_). If a non primitive object is passed, the encoder will call it's _toString_ method.
 
 #### `static decode(value:String, options:Num): Object`
 
@@ -38,6 +39,47 @@ Reads the contents of a file in `path` and returns a new _Json_ object with defa
 ### `static save(path: String, object:Object, options:Num)`
 
 This will encode the object and then save the result to a file specified in `path`. With default or custom options.
+
+### Examples
+
+#### Encoding a Simple Object
+
+A simple object made with only primitive data structures.
+
+```js
+Json.encode({
+ "is": true
+})
+```
+
+#### Encoding a Complex Object
+
+An object made with custom data structures.
+
+```js
+import "json" for Json
+
+class MyClass {
+  // override toString to provide a serializable representation
+  // of the object. This serialization will be called by the
+  // Json.encode() method.
+  toString {Json.encode(toMap)}
+  toMap {{
+    "is": isTrue
+  }}
+
+  isTrue {_isTrue}
+
+  construct new(isTrue) {
+  _isTrue = isTrue
+ }
+}
+
+var obj = MyClass.new(true)
+
+// prints: {"is":true}
+System.print(Json.encode(obj))
+```
 
 ## JsonOptions
 
