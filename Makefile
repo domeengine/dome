@@ -29,6 +29,7 @@ endif
 # 0 or 1
 STATIC ?= 0
 TAGS = $(ARCH) $(SYSTEM) $(MODE)
+
 ifeq ($(STATIC), 1)
 TAGS += static
 else 
@@ -39,6 +40,7 @@ ifndef verbose
   SILENT = @
 endif
 
+$(warning $(TAGS))
 # Compute Variables based on build flags
 
 ifneq ($(and $(filter windows,$(TAGS)),$(filter 64bit,$(TAGS))),)
