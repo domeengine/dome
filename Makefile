@@ -22,8 +22,14 @@ SYSTEM ?= macosx
 ARCH ?= 64bit
 else ifeq ($(UNAME_S), Linux)
 SYSTEM ?= linux
+ARCH ?= 64bit
 else
 SYSTEM ?= windows
+ifneq (,$(findstring 32,$(UNAME_S)))
+	ARCH ?= 32bit
+else
+	ARCH ?= 64bit
+endif
 endif
 
 # 0 or 1
