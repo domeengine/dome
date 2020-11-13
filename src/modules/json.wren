@@ -184,6 +184,9 @@ class Json {
       }
       return "{" + substrings.join(",") + "}"
     }
+
+    // Default behaviour is to invoke the toString method
+    return value.toString
   }
 
   static encode(value) {
