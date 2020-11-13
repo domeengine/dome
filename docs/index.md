@@ -16,8 +16,11 @@ Check out the documentation:
   * [graphics](modules/graphics)
   * [input](modules/input)
   * [io](modules/io)
+  * [json](modules/json)
   * [math](modules/math)
 * Guides
   * [Import Resolution](guides/module-imports)
   * [Game Loop Behaviour](guides/game-loop)
   * [Distributing your game](guides/distribution)
+* Examples
+  * [DOMEjam](https://itch.io/jam/domejam)

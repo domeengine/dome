@@ -34,6 +34,8 @@
 #include <microtar/microtar.h>
 #include <microtar/microtar.c>
 
+#include <json/pdjson.h>
+#include <json/pdjson.c>
 #include <mkdirp/mkdirp.h>
 #include <mkdirp/mkdirp.c>
 
@@ -128,6 +130,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/graphics.c"
 #include "modules/image.c"
 #include "modules/input.c"
+#include "modules/json.c"
 #include "vm.c"
 
 internal void
