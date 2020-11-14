@@ -140,8 +140,6 @@ LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG) $(DEPS)
 
 
 # Build Rules
-
-
 PROJECTS := dome.bin wren modules static
 .PHONY: all clean reset cloc $(PROJECTS)
 
@@ -163,15 +161,19 @@ $(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
 	./scripts/generateEmbedModules.sh
 modules: $(MODULES)/*.inc
 
+define set_executable_path 
+ifneq ($(and $(filter macosx,$(TAGS)),$(filter framework, $(TAGS))),)
+install_name_tool -add_rpath \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
+else ifneq ($(filter macosx,$(TAGS)),)
+install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
+install_name_tool -change /usr/local/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
+endif
+endef
+
 $(TARGET_NAME): wren modules $(SOURCE)/*.c $(MODULES)/*.c $(INCLUDES)
 	@echo "==== Building DOME ($(TAGS)) ===="
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(TARGET_NAME) $(LDFLAGS) $(IFLAGS)
-ifneq ($(and $(filter macosx,$(TAGS)),$(filter framework,$(TAGS))),)
-	install_name_tool -add_rpath \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
-else ifneq ($(filter macosx,$(TAGS))),)
-	install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
-	install_name_tool -change /usr/local/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
-endif
+	./scripts/set-executable-path.sh $(TARGET_NAME)
 	@echo "Build DOME as $(TARGET_NAME)"
 
 
