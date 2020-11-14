@@ -26,7 +26,7 @@ if [ -f "$DIRECTORY/$FOLDER/build/.libs/libSDL2main.a" ]; then
   cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2main.a $LIB_DIR
 fi
 
-cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2.a $LIB_DIR/lib
+cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2.a $LIB_DIR
 cp $DIRECTORY/${FOLDER}/sdl2-config $LIB_DIR/sdl2-config
 chmod +x $LIB_DIR/sdl2-config
 
