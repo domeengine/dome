@@ -168,7 +168,7 @@ $(TARGET_NAME): wren modules $(SOURCE)/*.c $(MODULES)/*.c $(INCLUDES)
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(TARGET_NAME) $(LDFLAGS) $(IFLAGS)
 ifneq ($(and $(filter macosx,$(TAGS)),$(filter framework,$(TAGS))),)
 	install_name_tool -add_rpath \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
-else
+else ifneq ($(filter macosx,$(TAGS))),)
 	install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
 	install_name_tool -change /usr/local/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
 endif
