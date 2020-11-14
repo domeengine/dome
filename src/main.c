@@ -140,7 +140,7 @@ printTitle(ENGINE* engine) {
 
 internal void
 printVersion(ENGINE* engine) {
-  ENGINE_printLog(engine, "Version: " DOME_VERSION " - " HASH"\n");
+  ENGINE_printLog(engine, "Version: " DOME_VERSION " - " DOME_HASH "\n");
   SDL_version compiled;
   SDL_version linked;
 
@@ -232,7 +232,7 @@ int main(int argc, char* args[])
 #endif
       case 'd':
         DEBUG_MODE = true;
-        ("Debug Mode enabled\n");
+        ENGINE_printLog(&engine, "Debug Mode enabled\n");
         break;
       case 'h':
         printTitle(&engine);
