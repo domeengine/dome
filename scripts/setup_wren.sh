@@ -1,6 +1,6 @@
 #!/bin/bash
 DOME_DIR=$PWD
-INCLUDE_DIR=$DOME_DIR/src/include
+INCLUDE_DIR=$DOME_DIR/include
 LIB_DIR=$DOME_DIR/lib
 WREN_DIR=$LIB_DIR/wren
 

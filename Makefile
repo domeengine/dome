@@ -1,8 +1,8 @@
 # Paths
 SOURCE=src
 LIBS=lib
+INCLUDES=include
 UTILS = $(SOURCE)/util
-INCLUDES=$(SOURCE)/include
 MODULES=$(SOURCE)/modules
 SCRIPTS=scripts
 
