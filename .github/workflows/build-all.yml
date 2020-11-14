@@ -6,7 +6,6 @@ on:
     types: [created]
   push:
     branches:
-      - premake
       - actions
 
 jobs:
