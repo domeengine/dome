@@ -1,6 +1,7 @@
+
 # Paths
 SOURCE=src
-LIBS=$(SOURCE)/lib
+LIBS=lib
 UTILS = $(SOURCE)/util
 INCLUDES=$(SOURCE)/include
 MODULES=$(SOURCE)/modules
@@ -20,6 +21,7 @@ UNAME_P = $(shell uname -p)
 ifeq ($(UNAME_S), Darwin)
 SYSTEM ?= macosx
 ARCH ?= 64bit
+FRAMEWORK ?= $(shell which sdl2-config 1>/dev/null && echo "" || echo "framework")
 else ifeq ($(UNAME_S), Linux)
 SYSTEM ?= linux
 ARCH ?= 64bit
@@ -34,7 +36,7 @@ endif
 
 # 0 or 1
 STATIC ?= 0
-TAGS = $(ARCH) $(SYSTEM) $(MODE)
+TAGS = $(ARCH) $(SYSTEM) $(MODE) $(FRAMEWORK)
 
 ifeq ($(STATIC), 1)
 TAGS += static
@@ -46,7 +48,6 @@ ifndef verbose
   SILENT = @
 endif
 
-$(warning $(TAGS))
 # Compute Variables based on build flags
 
 ifneq ($(and $(filter windows,$(TAGS)),$(filter 64bit,$(TAGS))),)
@@ -60,7 +61,7 @@ TARGET_NAME ?= dome
 endif
 
 BUILD_VALUE=$(shell git rev-parse --short HEAD)
-DOME_OPTS = -DHASH="\"$(BUILD_VALUE)\""
+DOME_OPTS = -DDOME_HASH=\"$(BUILD_VALUE)\"
 ifdef DOME_OPT_VERSION
   DOME_OPTS += -DDOME_VERSION=\"$(DOME_OPT_VERSION)\"
 else
@@ -83,14 +84,21 @@ endif
 
 
 CFLAGS = $(DOME_OPTS) -std=c99 -pedantic $(WARNING_FLAGS)
-CFLAGS := $(CFLAGS) `$(SDL_CONFIG) --cflags`
-ifneq ($(and $(filter macosx,$(TAGS)),$(filter static,$(TAGS))),)
+ifneq ($(filter macosx,$(TAGS)),)
 CFLAGS += -mmacosx-version-min=10.12
+
+ifneq ($(and $(filter framework,$(TAGS)), $(filter shared, $(TAGS))),)
+CFLAGS := -framework SDL2 $(CFLAGS) -F/Library/Frameworks -framework SDL2
+endif
+
 else ifneq ($(filter windows,$(TAGS)),)
+
 ifdef ICON_OBJECT_FILE
 	CFLAGS += $(ICON_OBJECT_FILE)
 endif
+
 endif
+
 ifneq ($(filter release,$(TAGS)),)
 CFLAGS += -O3
 else ifneq ($(filter debug,$(TAGS)),)
@@ -99,8 +107,11 @@ endif
 
 # Include Configuration
 IFLAGS = -isystem $(INCLUDES)
+IFLAGS += $(shell $(SDL_CONFIG) --cflags)
 ifneq ($(filter static,$(TAGS)),)
 IFLAGS := -I$(INCLUDES)/SDL2 $(IFLAGS)
+else ifneq ($(filter framework,$(TAGS)),)
+IFLAGS += -I /Library/Frameworks/SDL2.framework/Headers
 endif
 
 
@@ -108,9 +119,9 @@ endif
 DEPS = -lm
 
 ifneq ($(filter static,$(TAGS)),)
-SDLFLAGS=`$(SDL_CONFIG) --static-libs`
+SDLFLAGS=$(shell $(SDL_CONFIG) --static-libs)
 else
-SDLFLAGS=`$(SDL_CONFIG) --libs`
+SDLFLAGS=$(shell $(SDL_CONFIG) --libs)
 endif
 
 ifneq ($(filter release,$(TAGS)),)
@@ -131,7 +142,8 @@ LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG) $(DEPS)
 
 # Build Rules
 
-PROJECTS := dome.bin wren modules
+
+PROJECTS := dome.bin wren modules static
 .PHONY: all clean reset cloc $(PROJECTS)
 
 all: $(PROJECTS)
@@ -143,22 +155,31 @@ $(LIBS)/wren/lib/libwren.a:
 	git submodule update --init -- $(LIBS)/wren
 $(LIBS)/wren: $(LIBS)/wren/lib/libwren.a
 $(WREN_LIB): $(LIBS)/wren
-	@echo "==== Building wren ===="
+	@echo "==== Building Wren ===="
 	./scripts/setup_wren.sh $(WREN_PARAMS)
 	cp $(LIBS)/wren/src/include/wren.h $(INCLUDES)/wren.h
 wren: $(WREN_LIB)
 
 $(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
+	@echo "==== Building DOME modules  ===="
 	./scripts/generateEmbedModules.sh
 modules: $(MODULES)/*.inc
 
 $(TARGET_NAME): wren modules $(SOURCE)/*.c $(MODULES)/*.c $(INCLUDES)
-	@echo "==== Building dome ===="
+	@echo "==== Building DOME ($(TAGS)) ===="
 	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(TARGET_NAME) $(LDFLAGS) $(IFLAGS)
-
-
+ifneq ($(and $(filter macosx,$(TAGS)),$(filter framework,$(TAGS))),)
+	install_name_tool -add_rpath \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
+else
+	install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
+	install_name_tool -change /usr/local/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
+endif
 	@echo "Build DOME as $(TARGET_NAME)"
+
+
+
 dome.bin: $(TARGET_NAME)
+
 
 clean: 
 	rm -rf $(TARGET_NAME) $(MODULES)/*.inc
