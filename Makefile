@@ -1,4 +1,3 @@
-
 # Paths
 SOURCE=src
 LIBS=lib
@@ -157,7 +156,6 @@ $(LIBS)/wren: $(LIBS)/wren/lib/libwren.a
 $(WREN_LIB): $(LIBS)/wren
 	@echo "==== Building Wren ===="
 	./scripts/setup_wren.sh $(WREN_PARAMS)
-	cp $(LIBS)/wren/src/include/wren.h $(INCLUDES)/wren.h
 wren: $(WREN_LIB)
 
 $(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren

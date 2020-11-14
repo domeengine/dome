@@ -14,6 +14,9 @@ src/include/wren.h
 src/include/SDL2/*
 src/lib/SDL2*
 src/lib/libSDL2*
+lib/SDL2*
+lib/libSDL2*
+
 *.o
 *.swp
 *.dSYM
