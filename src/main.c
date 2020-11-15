@@ -11,6 +11,7 @@
 #include <windows.h>
 #endif
 #include <stdio.h>
+#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -19,13 +20,14 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <string.h>
-#include <math.h>
 #include <libgen.h>
+#include <math.h>
+#ifndef M_PI
+  #define M_PI 3.14159265358979323846
+#endif
 
 #include <wren.h>
 #include <SDL.h>
-#include <assert.h>
-
 #include <vendor.h>
 
 #define internal static
@@ -82,14 +84,11 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/map.c"
 #include "engine.h"
 #include "debug.c"
-/*
-#include "util/font.c"
-*/
 #include "util/font8x8.h"
 #include "io.c"
 #include "engine.c"
-#include "modules/dome.c"
 
+#include "modules/dome.c"
 #include "modules/font.c"
 #include "modules/io.c"
 #include "modules/audio.c"
@@ -97,6 +96,8 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/image.c"
 #include "modules/input.c"
 #include "modules/json.c"
+
+// Comes last to register modules
 #include "vm.c"
 
 internal void
