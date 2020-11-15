@@ -165,7 +165,7 @@ $(OBJS)/vendor.o: $(INCLUDES)/vendor.c
 	@echo "==== Building vendor module ===="
 	$(CC) $(CFLAGS) -c $(INCLUDES)/vendor.c -o $(OBJS)/vendor.o $(IFLAGS)
 
-$(OBJS)/main.o: $(SOURCE)/*.c $(MODULES)/*.inc $(INCLUDES)
+$(OBJS)/main.o: $(SOURCE)/*.c $(MODULES)/*.inc $(INCLUDES) $(WREN_LIB)
 	@mkdir -p obj
 	@echo "==== Building core ($(TAGS)) module ===="
 	$(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(OBJS)/main.o $(IFLAGS) 
