@@ -1,7 +1,6 @@
 #define _DEFAULT_SOURCE
 #define NOMINMAX
 
-
 #ifndef DOME_VERSION
 #define DOME_VERSION "0.0.0 - CUSTOM"
 #endif
