@@ -37,6 +37,7 @@ endif
 # 0 or 1
 STATIC ?= 0
 TAGS = $(ARCH) $(SYSTEM) $(MODE) $(FRAMEWORK)
+OBJS := $(OBJS)/$(ARCH)
 
 ifeq ($(STATIC), 1)
 TAGS += static
@@ -155,12 +156,12 @@ $(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
 	./scripts/generateEmbedModules.sh
 
 $(OBJS)/vendor.o: $(INCLUDES)/vendor.c
-	@mkdir -p obj
+	@mkdir -p $(OBJS)
 	@echo "==== Building vendor module ===="
 	$(CC) $(CFLAGS) -c $(INCLUDES)/vendor.c -o $(OBJS)/vendor.o $(IFLAGS)
 
 $(OBJS)/main.o: $(SOURCE)/*.c $(MODULES)/*.inc $(INCLUDES) $(WREN_LIB)
-	@mkdir -p obj
+	@mkdir -p $(OBJS)
 	@echo "==== Building core ($(TAGS)) module ===="
 	$(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(OBJS)/main.o $(IFLAGS) 
 
