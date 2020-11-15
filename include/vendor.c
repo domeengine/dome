@@ -1,3 +1,10 @@
+#define _DEFAULT_SOURCE
+#define NOMINMAX
+
+#ifdef __MINGW32__
+#include <windows.h>
+#endif
+
 #include <stdbool.h>
 #include <jo_gif.h>
 
