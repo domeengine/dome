@@ -1,6 +1,7 @@
 # Paths
 SOURCE=src
 LIBS=lib
+OBJS=obj
 INCLUDES=include
 UTILS = $(SOURCE)/util
 MODULES=$(SOURCE)/modules
@@ -140,7 +141,7 @@ LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG) $(DEPS)
 
 
 # Build Rules
-PROJECTS := dome.bin wren modules static
+PROJECTS := dome.bin
 .PHONY: all clean reset cloc $(PROJECTS)
 
 all: $(PROJECTS)
@@ -154,35 +155,32 @@ $(LIBS)/wren: $(LIBS)/wren/lib/libwren.a
 $(WREN_LIB): $(LIBS)/wren
 	@echo "==== Building Wren ===="
 	./scripts/setup_wren.sh $(WREN_PARAMS)
-wren: $(WREN_LIB)
 
 $(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
 	@echo "==== Building DOME modules  ===="
 	./scripts/generateEmbedModules.sh
-modules: $(MODULES)/*.inc
 
-define set_executable_path 
-ifneq ($(and $(filter macosx,$(TAGS)),$(filter framework, $(TAGS))),)
-install_name_tool -add_rpath \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
-else ifneq ($(filter macosx,$(TAGS)),)
-install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
-install_name_tool -change /usr/local/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(TARGET_NAME)
-endif
-endef
+$(OBJS)/vendor.o: $(INCLUDES)/vendor.c
+	@mkdir -p obj
+	@echo "==== Building vendor module ===="
+	$(CC) $(CFLAGS) -c $(INCLUDES)/vendor.c -o $(OBJS)/vendor.o $(IFLAGS)
 
-$(TARGET_NAME): wren modules $(SOURCE)/*.c $(MODULES)/*.c $(INCLUDES)
-	@echo "==== Building DOME ($(TAGS)) ===="
-	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(TARGET_NAME) $(LDFLAGS) $(IFLAGS)
+$(OBJS)/main.o: $(SOURCE)/*.c $(MODULES)/*.inc $(INCLUDES)
+	@mkdir -p obj
+	@echo "==== Building core ($(TAGS)) module ===="
+	$(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(OBJS)/main.o $(IFLAGS) 
+
+$(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(WREN_LIB)
+	@echo "==== Linking DOME ($(TAGS)) ===="
+	$(CC) -o $(TARGET_NAME) $(OBJS)/*.o $(LDFLAGS) 
 	./scripts/set-executable-path.sh $(TARGET_NAME)
-	@echo "Build DOME as $(TARGET_NAME)"
-
-
+	@echo "DOME built as $(TARGET_NAME)"
 
 dome.bin: $(TARGET_NAME)
 
-
 clean: 
 	rm -rf $(TARGET_NAME) $(MODULES)/*.inc
+	rm -rf $(OBJS)/*.o
 reset:
 	git submodule foreach --recursive git clean -xfd
 	rm -rf $(LIBS)/libwren.a 

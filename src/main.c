@@ -1,6 +1,7 @@
 #define _DEFAULT_SOURCE
 #define NOMINMAX
 
+
 #ifndef DOME_VERSION
 #define DOME_VERSION "0.0.0 - CUSTOM"
 #endif
@@ -14,8 +15,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <ctype.h>
-#include <tinydir.h>
-#include <utf8.h>
 
 #include <unistd.h>
 #include <sys/stat.h>
@@ -23,44 +22,11 @@
 #include <math.h>
 #include <libgen.h>
 
-
 #include <wren.h>
 #include <SDL.h>
-#include <jo_gif.h>
+#include <assert.h>
 
-#define OPTPARSE_IMPLEMENTATION
-#include <optparse.h>
-
-#include <microtar/microtar.h>
-#include <microtar/microtar.c>
-
-#include <json/pdjson.h>
-#include <json/pdjson.c>
-#include <mkdirp/mkdirp.h>
-#include <mkdirp/mkdirp.c>
-
-// Set up STB_IMAGE
-#define STBI_FAILURE_USERMSG
-#define STBI_NO_STDIO
-#define STBI_ONLY_JPEG
-#define STBI_ONLY_BMP
-#define STBI_ONLY_PNG
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image_write.h>
-
-#define STB_TRUETYPE_IMPLEMENTATION
-#include <stb_truetype.h>
-
-// Setup STB_VORBIS
-#define STB_VORBIS_NO_PUSHDATA_API
-#include <stb_vorbis.c>
-
-// Setup ABC_FIFO
-#define ABC_FIFO_IMPL
-#include <ABC_fifo.h>
+#include <vendor.h>
 
 #define internal static
 #define global_variable static

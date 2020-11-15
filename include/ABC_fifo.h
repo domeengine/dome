@@ -43,13 +43,6 @@
   For more information, please refer to <http://unlicense.org/>
 */
 
-#ifndef SDL_INIT_EVERYTHING
-#error "ABC_FIFO depends on SDL, which could not be detected."
-#define SDL_sem void
-#define SDL_atomic_t int
-#define SDL_Thread int
-#endif
-
 
 #ifndef ABC_FIFO_H
 #define ABC_FIFO_H
@@ -102,6 +95,15 @@ void ABC_FIFO_close(ABC_FIFO* queue);
 
 #ifdef ABC_FIFO_IMPL
 #define ABC_FIFO_IMPL
+
+
+#ifndef SDL_INIT_EVERYTHING
+#error "ABC_FIFO depends on SDL, which could not be detected."
+#define SDL_sem void
+#define SDL_atomic_t int
+#define SDL_Thread int
+#endif
+
 
 
 
