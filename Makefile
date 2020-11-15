@@ -185,4 +185,7 @@ reset:
 	git submodule foreach --recursive git clean -xfd
 	rm -rf $(LIBS)/libwren.a 
 	rm -rf $(LIBS)/libwrend.a
-	rm -rf $(INCLUDES)/wren.h 
+	rm -rf $(INCLUDES)/wren.h
+
+cloc:
+	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util" -not-match-f ".inc" src
