@@ -91,12 +91,6 @@ ifneq ($(and $(filter framework,$(TAGS)), $(filter shared, $(TAGS))),)
 CFLAGS := -framework SDL2 $(CFLAGS) -F/Library/Frameworks -framework SDL2
 endif
 
-else ifneq ($(filter windows,$(TAGS)),)
-
-ifdef ICON_OBJECT_FILE
-	CFLAGS += $(ICON_OBJECT_FILE)
-endif
-
 endif
 
 ifneq ($(filter release,$(TAGS)),)
@@ -172,7 +166,7 @@ $(OBJS)/main.o: $(SOURCE)/*.c $(MODULES)/*.inc $(INCLUDES) $(WREN_LIB)
 
 $(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(WREN_LIB)
 	@echo "==== Linking DOME ($(TAGS)) ===="
-	$(CC) -o $(TARGET_NAME) $(OBJS)/*.o $(LDFLAGS) 
+	$(CC) -o $(TARGET_NAME) $(OBJS)/*.o $(ICON_OBJECT_FILE) $(LDFLAGS) 
 	./scripts/set-executable-path.sh $(TARGET_NAME)
 	@echo "DOME built as $(TARGET_NAME)"
 
