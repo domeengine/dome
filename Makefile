@@ -69,7 +69,7 @@ else
   DOME_OPTS += -DDOME_VERSION=\"$(shell git describe --tags)\"
 endif
 
-SDL_CONFIG ?= $(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "$(LIBS)/sdl2-config")
+SDL_CONFIG ?= $(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || (which "$(LIBS)/sdl2-config" 1>/dev/null && echo "$(LIBS)/sdl2-config" || echo ""))
 
 # Compiler configurations
 
@@ -87,11 +87,6 @@ endif
 CFLAGS = $(DOME_OPTS) -std=c99 -pedantic $(WARNING_FLAGS)
 ifneq ($(filter macosx,$(TAGS)),)
 CFLAGS += -mmacosx-version-min=10.12
-
-ifneq ($(and $(filter framework,$(TAGS)), $(filter shared, $(TAGS))),)
-CFLAGS := -framework SDL2 $(CFLAGS) -F/Library/Frameworks -framework SDL2
-endif
-
 endif
 
 ifneq ($(filter release,$(TAGS)),)
@@ -102,21 +97,25 @@ endif
 
 # Include Configuration
 IFLAGS = -isystem $(INCLUDES)
+ifneq (,$(findstring sdl2-config, $(SDL_CONFIG)))
 IFLAGS += $(shell $(SDL_CONFIG) --cflags)
+endif
 ifneq ($(filter static,$(TAGS)),)
 IFLAGS := -I$(INCLUDES)/SDL2 $(IFLAGS)
 else ifneq ($(filter framework,$(TAGS)),)
-IFLAGS += -I /Library/Frameworks/SDL2.framework/Headers
+IFLAGS += -I/Library/Frameworks/SDL2.framework/Headers
 endif
 
 
 # Compute Link Settings
 DEPS = -lm
 
+ifneq (,$(findstring sdl2-config, $(SDL_CONFIG)))
 ifneq ($(filter static,$(TAGS)),)
 SDLFLAGS=$(shell $(SDL_CONFIG) --static-libs)
 else
 SDLFLAGS=$(shell $(SDL_CONFIG) --libs)
+endif
 endif
 
 ifneq ($(filter release,$(TAGS)),)
@@ -128,6 +127,9 @@ ifneq ($(and $(filter windows,$(TAGS)),$(filter static,$(TAGS))),)
 WINDOW_MODE ?= windows
 WINDOW_MODE_FLAG = -m$(WINDOW_MODE)
 STATIC_FLAG += -static
+
+else ifneq ($(and $(filter macosx,$(TAGS)), $(filter framework,$(TAGS)), $(filter shared,$(TAGS))),)
+FFLAGS += -F/Library/Frameworks -framework SDL2
 endif
 
 LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG) $(DEPS)
@@ -167,7 +169,7 @@ $(OBJS)/main.o: $(SOURCE)/*.c $(MODULES)/*.inc $(INCLUDES) $(WREN_LIB)
 
 $(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(WREN_LIB)
 	@echo "==== Linking DOME ($(TAGS)) ===="
-	$(CC) -o $(TARGET_NAME) $(OBJS)/*.o $(ICON_OBJECT_FILE) $(LDFLAGS) 
+	$(CC) $(FFLAGS) -o $(TARGET_NAME) $(OBJS)/*.o $(ICON_OBJECT_FILE) $(LDFLAGS) 
 	./scripts/set-executable-path.sh $(TARGET_NAME)
 	@echo "DOME built as $(TARGET_NAME)"
 
