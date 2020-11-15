@@ -25,9 +25,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/lib
-        key: ${{ runner.os }}-build
-        restore-keys: |
-          ${{ runner.os }}-build
+        key: ${{ runner.os }}-${{ hashFiles('./scripts/vars.sh') }}
     - run: sudo apt-get install libsdl2-dev
       if: ${{matrix.static == 0}}
     - run: ./scripts/setup_static_linux_sdl.sh
