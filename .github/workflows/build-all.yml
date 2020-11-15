@@ -25,8 +25,11 @@ jobs:
       if: ${{matrix.static == 1}}
       uses: actions/cache@v2
       with:
-        path: ~/lib/SDL*
-        key: ${{ runner.os }}-${{ hashFiles('./scripts/vars.sh') }}
+        path:|
+         ./lib/SDL*
+         ./lib/sdl*
+         ./lib/libSDL2*
+        key: ${{ runner.os }}-${{ hashFiles('./scripts/vars.sh')-sdl }}
     - run: sudo apt-get install libsdl2-dev
       if: ${{matrix.static == 0}}
     - run: ./scripts/setup_static_linux_sdl.sh
@@ -57,8 +60,11 @@ jobs:
     - name: Cache dependancies
       uses: actions/cache@v2
       with:
-        path: ~/lib/SDL*
-        key: ${{ runner.os }}-${{ hashFiles('./scripts/vars.sh') }}
+        path:|
+         ./lib/SDL*
+         ./lib/sdl*
+         ./lib/libSDL2*
+        key: ${{ runner.os }}-${{ hashFiles('./scripts/vars.sh')-sdl }}
     - run: ./scripts/setup_static_mac_sdl.sh
     - run: make MIN_MAC_VERSION=10.12 STATIC=1
     - uses: actions/upload-artifact@v2
