@@ -87,7 +87,7 @@ DOME comes built-in with the PICO-8 palette, but you can also define and use you
 ### Constructors
 
 #### `construct hex(hexcode: String)`
-Create a new color with the given hexcode as a string of six alpha-numeric values. Hex values can be upper or lowercase, with or without a `#`. 
+Create a new color with the given hexcode as a string of six or three alpha-numeric values. Hex values can be upper or lowercase, with or without a `#`. If three digits are provided, the number is interpreted as if each digit was written twice (similar to CSS): for example, `#123` is the same as `#112233`.
 #### `construct hsv(h: Number, s: Number, v: Number)`
 Create a new color using the given HSV number and an alpha value of `255`. 
 The `s` and `v` parameters must be between `0.0` and `1.0`. 
