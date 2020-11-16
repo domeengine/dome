@@ -135,27 +135,21 @@ var NumToHex = Fn.new {|num|
   return strings.join("")
 }
 
+var ToNum = Fn.new {|digit|
+  if (48 <= digit && digit <= 57) {
+    digit = digit - 48
+  } else if (65 <= digit && digit <= 70) {
+    digit = 10 + digit - 65
+  } else if (97 <= digit && digit <= 102) {
+    digit = 10 + digit - 97
+  } else {
+    Fiber.abort("Invalid hex")
+  }
+  return digit
+}
 var HexToNum = Fn.new {|hex|
-  var first = hex[0]
-  var second = hex[1]
-  if (48 <= first && first <= 57) {
-    first = first - 48
-  } else if (65 <= first && first <= 70) {
-    first = 10 + first - 65
-  } else if (97 <= first && first <= 102) {
-    first = 10 + first - 97
-  } else {
-    Fiber.abort("Invalid hex")
-  }
-  if (48 <= second && second <= 57) {
-    second = second - 48
-  } else if (65 <= second && second <= 70) {
-    second = 10 + second - 65
-  } else if (97 <= second && second <= 102) {
-    second = 10 + second - 97
-  } else {
-    Fiber.abort("Invalid hex")
-  }
+  var first = ToNum.call(hex[0])
+  var second = ToNum.call(hex[1])
   return first << 4 | second
 }
 
