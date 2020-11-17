@@ -8,7 +8,6 @@ on:
     branches:
       - actions
 
-
 jobs:
   build-linux:
 
@@ -22,11 +21,20 @@ jobs:
     - run: git fetch --prune --unshallow
     - run: sudo apt-get update
     - run: sudo apt-get install build-essential mercurial make cmake autoconf automake libtool libasound2-dev libpulse-dev libaudio-dev libx11-dev libxext-dev   libxrandr-dev libxcursor-dev libxi-dev libxinerama-dev libxxf86vm-dev  libxss-dev libgl1-mesa-dev libdbus-1-dev libudev-dev libgles2-mesa-dev  libegl1-mesa-dev libibus-1.0-dev fcitx-libs-dev libsamplerate0-dev  libsndio-dev libwayland-dev libxkbcommon-dev 
+    - name: Cache dependancies
+      if: ${{matrix.static == 1}}
+      uses: actions/cache@v2
+      with:
+        path: |
+         ./lib/SDL*
+         ./lib/sdl*
+         ./lib/libSDL2*
+        key: ${{ runner.os }}-${{ hashFiles('./scripts/vars.sh') }}-sdl
     - run: sudo apt-get install libsdl2-dev
       if: ${{matrix.static == 0}}
     - run: ./scripts/setup_static_linux_sdl.sh
       if: ${{matrix.static == 1}}
-    - run: make MODE=release ARCH=64bit STATIC=${{matrix.static}} 
+    - run: make MODE=release STATIC=${{matrix.static}} 
     - uses: actions/upload-artifact@v2
       if: ${{matrix.static == 1}}
       with:
@@ -49,8 +57,16 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2.0.0
     - run: sudo xcode-select -switch /Applications/Xcode_12.app/Contents/Developer
+    - name: Cache dependancies
+      uses: actions/cache@v2
+      with:
+        path: |
+         ./lib/SDL*
+         ./lib/sdl*
+         ./lib/libSDL2*
+        key: ${{ runner.os }}-${{ hashFiles('./scripts/vars.sh') }}-sdl
     - run: ./scripts/setup_static_mac_sdl.sh
-    - run: make MIN_MAC_VERSION=10.12 STATIC=1 MODE=release ARCH=64bit
+    - run: make MIN_MAC_VERSION=10.12 STATIC=1
     - uses: actions/upload-artifact@v2
       with:
         name: dome-macosx-x64
@@ -80,10 +96,7 @@ jobs:
 
     - run: git fetch --prune --unshallow
     - run: gcc -v
-    - run: "make STATIC=1 WINDOW_MODE=windows EXENAME=dome ICON_OBJECT_FILE=assets/icon64.res MODE=release ARCH=64bit CC=gcc"
-      if: ${{ (matrix.msystem == 'MINGW64') }}
-    - run: "make STATIC=1 WINDOW_MODE=windows EXENAME=dome ICON_OBJECT_FILE=assets/icon32.res MODE=release ARCH=32bit CC=gcc"
-      if: ${{ (matrix.msystem == 'MINGW32') }}
+    - run: "make STATIC=1 TARGET_NAME=dome CC=gcc"
     - uses: actions/upload-artifact@v2
       if: ${{ (matrix.msystem == 'MINGW32') }}
       with:

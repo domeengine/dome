@@ -1,11 +1,8 @@
 #!/bin/bash
-VERSION=2.0.12
-FOLDER=special
-DOME_DIR=$PWD/src
-DIRECTORY=$PWD/src/lib/SDL2-${VERSION}
+source ./scripts/vars.sh
 
 if ! [ -d "$DIRECTORY" ]; then
-  cd $DOME_DIR/lib
+  cd $LIB_DIR
   curl -L https://libsdl.org/release/SDL2-${VERSION}.tar.gz | tar -xvz
 fi
 
@@ -18,14 +15,16 @@ else
 fi
 
 make
-make install
+# make install
 
 if [ -f "$DIRECTORY/$FOLDER/build/.libs/libSDL2main.a" ]; then
-  cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2main.a $DOME_DIR/lib
+  cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2main.a $LIB_DIR
 fi
 
-cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2.a $DOME_DIR/lib
-cp $DIRECTORY/${FOLDER}/sdl2-config $DOME_DIR/lib/sdl2-config
+cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2.a $LIB_DIR
+cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2-2.0.0.dylib $LIB_DIR
+cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2.dylib $LIB_DIR
+cp $DIRECTORY/${FOLDER}/sdl2-config $LIB_DIR/sdl2-config
 
-cp -r $DIRECTORY/include $DOME_DIR/include/SDL2
-cp -r $DIRECTORY/${FOLDER}/include/SDL_config.h  $DOME_DIR/include/SDL2/SDL_config.h
+cp -r $DIRECTORY/include $INCLUDE_DIR/SDL2
+cp -r $DIRECTORY/${FOLDER}/include/SDL_config.h  $INCLUDE_DIR/SDL2/SDL_config.h

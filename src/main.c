@@ -10,57 +10,24 @@
 #include <windows.h>
 #endif
 #include <stdio.h>
+#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <ctype.h>
-#include <tinydir.h>
-#include <utf8.h>
 
 #include <unistd.h>
 #include <sys/stat.h>
 #include <string.h>
-#include <math.h>
 #include <libgen.h>
-
+#include <math.h>
+#ifndef M_PI
+  #define M_PI 3.14159265358979323846
+#endif
 
 #include <wren.h>
 #include <SDL.h>
-#include <jo_gif.h>
-
-#define OPTPARSE_IMPLEMENTATION
-#include <optparse.h>
-
-#include <microtar/microtar.h>
-#include <microtar/microtar.c>
-
-#include <json/pdjson.h>
-#include <json/pdjson.c>
-#include <mkdirp/mkdirp.h>
-#include <mkdirp/mkdirp.c>
-
-// Set up STB_IMAGE
-#define STBI_FAILURE_USERMSG
-#define STBI_NO_STDIO
-#define STBI_ONLY_JPEG
-#define STBI_ONLY_BMP
-#define STBI_ONLY_PNG
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image_write.h>
-
-#define STB_TRUETYPE_IMPLEMENTATION
-#include <stb_truetype.h>
-
-// Setup STB_VORBIS
-#define STB_VORBIS_NO_PUSHDATA_API
-#include <stb_vorbis.c>
-
-// Setup ABC_FIFO
-#define ABC_FIFO_IMPL
-#include <ABC_fifo.h>
+#include <vendor.h>
 
 #define internal static
 #define global_variable static
@@ -116,14 +83,11 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/map.c"
 #include "engine.h"
 #include "debug.c"
-/*
-#include "util/font.c"
-*/
 #include "util/font8x8.h"
 #include "io.c"
 #include "engine.c"
-#include "modules/dome.c"
 
+#include "modules/dome.c"
 #include "modules/font.c"
 #include "modules/io.c"
 #include "modules/audio.c"
@@ -131,6 +95,8 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/image.c"
 #include "modules/input.c"
 #include "modules/json.c"
+
+// Comes last to register modules
 #include "vm.c"
 
 internal void
@@ -140,7 +106,7 @@ printTitle(ENGINE* engine) {
 
 internal void
 printVersion(ENGINE* engine) {
-  ENGINE_printLog(engine, "Version: " DOME_VERSION " - " HASH"\n");
+  ENGINE_printLog(engine, "Version: " DOME_VERSION " - " DOME_HASH "\n");
   SDL_version compiled;
   SDL_version linked;
 
@@ -232,7 +198,7 @@ int main(int argc, char* args[])
 #endif
       case 'd':
         DEBUG_MODE = true;
-        ("Debug Mode enabled\n");
+        ENGINE_printLog(&engine, "Debug Mode enabled\n");
         break;
       case 'h':
         printTitle(&engine);

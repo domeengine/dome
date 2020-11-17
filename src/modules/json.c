@@ -18,7 +18,7 @@ json_stream jsonStream[1];
 internal void
 JSON_STREAM_begin(WrenVM * vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "value");
-  char * value = wrenGetSlotString(vm, 1);
+  const char * value = wrenGetSlotString(vm, 1);
   json_open_string(jsonStream, value);
   json_set_streaming(jsonStream, 0);
 }
@@ -77,11 +77,11 @@ internal void
 JSON_STREAM_escapechar(WrenVM * vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "value");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "options");
-  
-  char * value = wrenGetSlotString(vm, 1);
+
+  const char * value = wrenGetSlotString(vm, 1);
   int options = (int) wrenGetSlotDouble(vm, 2);
 
-  char * result = value;
+  const char * result = value;
 
   /*
   "\0" // The NUL byte: 0.

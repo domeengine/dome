@@ -10,11 +10,20 @@ A comfortable framework for game development which melds SDL2 and the [Wren scri
 
 ### Download
 
-You can download production-ready binaries from our [Releases page](https://github.com/domeengine/dome/releases/latest)
+You can download production-ready binaries from our [Releases page](https://github.com/domeengine/dome/releases/latest). This is the recommended method for distribution and easy development.
+
+### Install via Brew
+
+Alternatively, if you have Homebrew installed (Mac OS X, Linux and WSL), you can install DOME using the following commands:
+
+```bash
+> brew tap domeengine/tap
+> brew install dome
+```
 
 ### Build
 
-If you want to build DOME yourself, to make modifications or other reasons, follow these instruction instead.
+Finally, if you want to build DOME yourself, to make modifications or other reasons, follow these instruction instead.
 
 Ensure you have the shared SDL2 libraries installed on your system first, then to build, run:
 
@@ -22,9 +31,11 @@ Ensure you have the shared SDL2 libraries installed on your system first, then t
 > make
 ```
 
+This will create an executable named `./dome` (on Mac OS X and Linux), and `./dome-x32.exe` or `./dome-x64.exe`. 
+
 ### Run
 
-Run `./dome [gamefile.wren]` to run your game. If your initial file is called `main.wren`, just running `./dome` will execute it.
+Run `./dome [gamefile.wren]` to run your game. If your initial file is called `main.wren`, just running `./dome` will execute it. Replace `dome` with your built binary name as necessary.
 
 ## Basics
 
@@ -106,7 +117,7 @@ You can follow my progress on implementing DOME on [my twitter](https://twitter.
 DOME currently depends on a few libraries to achieve it's functions.
 
 - Wren (This is built by `make` automatically)
-- SDL2 (version 2.0.2 or newer, this is a shared library and you must install it seperately)
+- SDL2 (version 2.0.12 or newer, please install separately when building DOME from source)
 - utf8.h
 - stb_image
 - stb_image_write
@@ -131,9 +142,11 @@ Apart from SDL2, all other dependancies are baked in or linked statically. DOME 
 - Sean Barrett for [multiple libraries](https://github.com/nothings/stb)
 - rxi for [microtar](https://github.com/rxi/microtar)
 - Neil Henning for [utf8.h](https://github.com/sheredom/utf8.h)
-- Chris Wellons for [optparse](https://github.com/skeeto/optparse)
+- Chris Wellons for [optparse](https://github.com/skeeto/optparse) and [pdjson](https://github.com/skeeto/pdjson)
 - cxong for [tinydir](https://github.com/cxong/tinydir)
 - Jon Olick for [jo_gif](https://www.jonolick.com/home/gif-writer)
+- Stephen Mathieson for [mkdirp](https://github.com/stephenmathieson/mkdirp.c)
+
 
 ### Example Game Resources
 
