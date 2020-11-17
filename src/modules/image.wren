@@ -16,7 +16,8 @@ foreign class DrawCommand is Drawable {
       map["srcH"] || image.height,
       map["mode"] || "RGBA",
       (map["foreground"] || Color.white).toNum,
-      (map["background"] || Color.black).toNum
+      (map["background"] || Color.black).toNum,
+      map["opacity"] || 1
     ]
     return DrawCommand.new(image, list)
   }
