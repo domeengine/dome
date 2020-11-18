@@ -114,13 +114,14 @@ class Math {
   }
 }
 
-var ToHex = Fn.new {|dec|
+var NumToHexDigit = Fn.new {|dec|
   if (dec < 10) {
     return String.fromByte(dec + 48)
   } else if (dec < 16) {
     return String.fromByte((dec - 10) + 65)
   }
 }
+
 var NumToHex = Fn.new {|num|
   if (num == 0) {
     return "0"
@@ -129,7 +130,7 @@ var NumToHex = Fn.new {|num|
   var strings = []
   while (value > 0) {
     var remainder = value % 16
-    strings.insert(0, ToHex.call(remainder))
+    strings.insert(0, NumToHexDigit.call(remainder))
     value = (value / 16).floor
   }
   return strings.join("")
