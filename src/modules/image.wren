@@ -17,7 +17,8 @@ foreign class DrawCommand is Drawable {
       map["mode"] || "RGBA",
       (map["foreground"] || Color.white).toNum,
       (map["background"] || Color.black).toNum,
-      map["opacity"] || 1
+      map["opacity"] || 1,
+      (map["tint"] || Color.none).toNum
     ]
     return DrawCommand.new(image, list)
   }
