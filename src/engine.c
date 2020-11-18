@@ -212,6 +212,13 @@ ENGINE_init(ENGINE* engine) {
   engine->canvas.offsetY = 0;
   engine->canvas.width = GAME_WIDTH;
   engine->canvas.height = GAME_HEIGHT;
+  RECT clip = {
+    .x = 0,
+    .y = 0,
+    .w = GAME_WIDTH,
+    .h = GAME_HEIGHT
+  };
+  engine->canvas.clip = clip;
 
   engine->argv = NULL;
   engine->argc = 0;
@@ -363,10 +370,12 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 
   // Draw pixel at (x,y)
   int32_t width = engine->canvas.width;
-  int32_t height = engine->canvas.height;
+  // int32_t height = engine->canvas.height;
+  RECT zone = engine->canvas.clip;
+
   if ((c & (0xFF << 24)) == 0) {
     return;
-  } else if (0 <= x && x < width && 0 <= y && y < height) {
+  } else if (zone.x <= x && x < zone.x + zone.w && zone.y <= y && y < zone.y + zone.h) {
     if (((c & (0xFF << 24)) >> 24) < 0xFF) {
       uint32_t current = ((uint32_t*)(engine->canvas.pixels))[width * y + x];
 
@@ -498,23 +507,27 @@ blitLine(void* dest, size_t destPitch, int64_t x, int64_t y, int64_t w, uint32_t
 
 internal void
 ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) {
-  y += engine->canvas.offsetY;
-  if (y < 0 || y >= engine->canvas.height) {
+  CANVAS canvas = engine->canvas;
+  RECT zone = canvas.clip;
+  y += canvas.offsetY;
+  if (y < max(0, zone.y) || y >= min(canvas.height, zone.y + zone.h)) {
     return;
   }
 
-  int64_t offsetX = engine->canvas.offsetX;
+  int64_t offsetX = canvas.offsetX;
+  size_t pitch = canvas.width;
 
-  size_t pitch = engine->canvas.width;
-
-  char* pixels = engine->canvas.pixels;
+  int64_t screenStart = max(0, zone.x);
+  int64_t lineEnd = mid(0, zone.x + zone.w, pitch);
   int64_t screenX = x + offsetX;
 
-  int64_t startX = mid(0, screenX, pitch);
-  int64_t endX = mid(0, screenX + w, pitch);
-  size_t lineWidth = min(endX, pitch) - startX;
-  uint32_t* bufStart = buf;
+  int64_t startX = mid(screenStart, screenX, lineEnd);
+  int64_t endX = mid(screenStart, screenX + w, lineEnd);
+  int64_t lineWidth = max(0, min(endX, pitch) - startX);
+  printf("%lli, %lli\n", startX, lineWidth);
 
+  uint32_t* bufStart = buf;
+  char* pixels = canvas.pixels;
   char* line = pixels + ((y * pitch + startX) * 4);
   memcpy(line, bufStart, lineWidth * 4);
 }

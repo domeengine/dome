@@ -3,6 +3,9 @@ class Canvas {
     __defaultFont = null
   }
 
+  static clip() { clip(0, 0, Canvas.width, Canvas.height) }
+  foreign static clip(x0, y0, x1, y1)
+
   static font=(v) {
     if (v is String || v == Font.default) {
       __defaultFont = v
@@ -34,6 +37,7 @@ class Canvas {
     } else {
       f_resize(width, height, c)
     }
+    clip()
   }
   foreign static f_pset(x, y, c)
   static pget(x, y) {

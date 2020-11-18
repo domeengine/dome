@@ -5,6 +5,13 @@ internal struct AUDIO_ENGINE_t* AUDIO_ENGINE_init(void);
 internal void AUDIO_ENGINE_free(struct AUDIO_ENGINE_t*);
 
 typedef struct {
+  int64_t x;
+  int64_t y;
+  int64_t w;
+  int64_t h;
+} RECT;
+
+typedef struct {
   bool relative;
   int x;
   int y;
@@ -41,6 +48,7 @@ typedef struct {
   uint32_t height;
   int32_t offsetX;
   int32_t offsetY;
+  RECT clip;
 } CANVAS;
 
 typedef struct {
