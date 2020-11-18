@@ -549,11 +549,11 @@ int main(int argc, char* args[])
 
 
     // Flip Buffer to Screen
-    SDL_UpdateTexture(engine.texture, 0, engine.pixels, engine.width * 4);
+    SDL_UpdateTexture(engine.texture, 0, engine.canvas.pixels, engine.canvas.width * 4);
     // Flip buffer for recording
     if (engine.record.makeGif) {
-      size_t imageSize = engine.width * engine.height * 4;
-      memcpy(engine.record.gifPixels, engine.pixels, imageSize);
+      size_t imageSize = engine.canvas.width * engine.canvas.height * 4;
+      memcpy(engine.record.gifPixels, engine.canvas.pixels, imageSize);
     }
 
     // clear screen

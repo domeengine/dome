@@ -36,18 +36,23 @@ typedef struct {
 } PIXEL_BUFFER;
 
 typedef struct {
+  void* pixels;
+  uint32_t width;
+  uint32_t height;
+  int32_t offsetX;
+  int32_t offsetY;
+} CANVAS;
+
+typedef struct {
   ENGINE_RECORDER record;
   SDL_Window* window;
   SDL_Renderer *renderer;
   SDL_Texture *texture;
   SDL_Rect viewport;
-  void* pixels;
+  CANVAS canvas;
+  PIXEL_BUFFER blitBuffer;
   ABC_FIFO fifo;
   MAP moduleMap;
-  uint32_t width;
-  uint32_t height;
-  int32_t offsetX;
-  int32_t offsetY;
   mtar_t* tar;
   bool running;
   char** argv;
@@ -56,7 +61,6 @@ typedef struct {
   ENGINE_MOUSE_STATE mouse;
   int exit_status;
   struct AUDIO_ENGINE_t* audioEngine;
-  PIXEL_BUFFER blitBuffer;
   bool initialized;
   bool debugEnabled;
   bool vsyncEnabled;
