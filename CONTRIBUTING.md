@@ -89,3 +89,4 @@ People who have contributed code or documentation to the project:
 * Francisco Requena, aka frarees [https://github.com/frarees]
 * Camilo Castro, aka clsource [https://github.com/clsource]
 * Siddhant Rao [https://siddhantrao23.github.io]
+* Chayim Refael Friedman [https://github.com/ChayimFriedman2]

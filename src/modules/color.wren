@@ -1,7 +1,11 @@
-import "math" for HexToNum, NumToHex
+import "math" for HexToNum, NumToHex, HexDigitToNum
+import "dome" for StringUtils
 
-var SubStr = Fn.new {|str, start, len|
-  return str.bytes.skip(start).take(len).toList
+
+var ShortColorDigit = Fn.new {|digit|
+  digit = HexDigitToNum.call(digit)
+  return digit << 4 | digit
+  // Digit is interpreted as written twice, e.g. #abc is equal to #aabbcc
 }
 
 class Color {
@@ -11,10 +15,19 @@ class Color {
       if (hex[0] == "#") {
         offset = 1
       }
-      _r = HexToNum.call(SubStr.call(hex, offset + 0, 2))
-      _g = HexToNum.call(SubStr.call(hex, offset + 2, 2))
-      _b = HexToNum.call(SubStr.call(hex, offset + 4, 2))
-      _a = 255
+
+      if ((hex.bytes.count - offset) == 3 || (hex.bytes.count - offset) == 4) {
+        // Short color, e.g. #fff intepreted as #ffffff
+        _r = ShortColorDigit.call(hex.bytes[offset])
+        _g = ShortColorDigit.call(hex.bytes[offset + 1])
+        _b = ShortColorDigit.call(hex.bytes[offset + 2])
+        _a = (hex.bytes.count - offset) == 4 ? ShortColorDigit.call(hex.bytes[offset + 3]) : 255
+      } else {
+        _r = HexToNum.call(StringUtils.subString(hex, offset + 0, 2))
+        _g = HexToNum.call(StringUtils.subString(hex, offset + 2, 2))
+        _b = HexToNum.call(StringUtils.subString(hex, offset + 4, 2))
+        _a = (hex.bytes.count - offset) == 8 ? HexToNum.call(StringUtils.subString(hex, offset + 6, 2)) : 255
+      }
     } else {
       Fiber.abort("Color only supports hexcodes as strings or numbers")
     }
