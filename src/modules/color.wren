@@ -16,17 +16,18 @@ class Color {
         offset = 1
       }
 
-      if ((hex.bytes.count - offset) == 3) {
+      if ((hex.bytes.count - offset) == 3 || (hex.bytes.count - offset) == 4) {
         // Short color, e.g. #fff intepreted as #ffffff
         _r = ShortColorDigit.call(hex.bytes[offset])
         _g = ShortColorDigit.call(hex.bytes[offset + 1])
         _b = ShortColorDigit.call(hex.bytes[offset + 2])
+        _a = (hex.bytes.count - offset) == 4 ? ShortColorDigit.call(hex.bytes[offset + 3]) : 255
       } else {
         _r = HexToNum.call(StringUtils.subString(hex, offset + 0, 2))
         _g = HexToNum.call(StringUtils.subString(hex, offset + 2, 2))
         _b = HexToNum.call(StringUtils.subString(hex, offset + 4, 2))
+        _a = (hex.bytes.count - offset) == 8 ? HexToNum.call(StringUtils.subString(hex, offset + 6, 2)) : 255
       }
-      _a = 255
     } else {
       Fiber.abort("Color only supports hexcodes as strings or numbers")
     }
