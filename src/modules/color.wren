@@ -1,8 +1,6 @@
 import "math" for HexToNum, NumToHex, HexDigitToNum
+import "dome" for StringUtils
 
-var SubStr = Fn.new {|str, start, len|
-  return str.bytes.skip(start).take(len).toList
-}
 
 var ShortColorDigit = Fn.new {|digit|
   digit = HexDigitToNum.call(digit)
@@ -24,9 +22,9 @@ class Color {
         _g = ShortColorDigit.call(hex.bytes[offset + 1])
         _b = ShortColorDigit.call(hex.bytes[offset + 2])
       } else {
-        _r = HexToNum.call(SubStr.call(hex, offset + 0, 2))
-        _g = HexToNum.call(SubStr.call(hex, offset + 2, 2))
-        _b = HexToNum.call(SubStr.call(hex, offset + 4, 2))
+        _r = HexToNum.call(StringUtils.subString(hex, offset + 0, 2))
+        _g = HexToNum.call(StringUtils.subString(hex, offset + 2, 2))
+        _b = HexToNum.call(StringUtils.subString(hex, offset + 4, 2))
       }
       _a = 255
     } else {
