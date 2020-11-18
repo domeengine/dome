@@ -1,11 +1,11 @@
-import "math" for HexToNum, NumToHex, ToNum
+import "math" for HexToNum, NumToHex, HexDigitToNum
 
 var SubStr = Fn.new {|str, start, len|
   return str.bytes.skip(start).take(len).toList
 }
 
 var ShortColorDigit = Fn.new {|digit|
-  digit = ToNum.call(digit)
+  digit = HexDigitToNum.call(digit)
   return digit << 4 | digit
   // Digit is interpreted as written twice, e.g. #abc is equal to #aabbcc
 }

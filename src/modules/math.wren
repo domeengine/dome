@@ -135,7 +135,7 @@ var NumToHex = Fn.new {|num|
   return strings.join("")
 }
 
-var ToNum = Fn.new {|digit|
+var HexDigitToNum = Fn.new {|digit|
   if (48 <= digit && digit <= 57) {
     digit = digit - 48
   } else if (65 <= digit && digit <= 70) {
@@ -148,8 +148,8 @@ var ToNum = Fn.new {|digit|
   return digit
 }
 var HexToNum = Fn.new {|hex|
-  var first = ToNum.call(hex[0])
-  var second = ToNum.call(hex[1])
+  var first = HexDigitToNum.call(hex[0])
+  var second = HexDigitToNum.call(hex[1])
   return first << 4 | second
 }
 
