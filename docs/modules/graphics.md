@@ -217,6 +217,8 @@ Options available are:
  * `srcW`, `srcH` - This is the width and height of the source image region you want to draw.
  * `scaleX`, `scaleY` - You can scale your image in the x and y axis, independant of each other. If either of these are negative, they result in a "flip" operation.
  * `angle` - Rotates the image. This is in degrees, and rounded to the nearest 90 degrees.
+ * `opacity` - A number between 0.0 and 1.0, this sets the global opacity of this image. Any alpha values in the image will be multipled by this value,
+ * `tint` - A color value which is to be applied on top of the image. Use the tint color's alpha to control how strong the tint is.
  * `mode`, `foreground` and `background` - By default, mode is `"RGBA"`, so your images will draw in their true colors. If you set it to `"MONO"`, any pixels which are black or have transparency will be drawn in the `background` color and all other pixels of the image will be drawn in the `foreground` color. Both colors must be `Color` objects, and default to `Color.black` and `Color.white`, respectively.
 
 Transforms are applied as follows: Crop to the region, then rotate, then scale/flip.
