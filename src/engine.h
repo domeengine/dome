@@ -9,7 +9,7 @@ typedef struct {
   int64_t y;
   int64_t w;
   int64_t h;
-} RECT;
+} DOME_RECT;
 
 typedef struct {
   bool relative;
@@ -48,7 +48,7 @@ typedef struct {
   uint32_t height;
   int32_t offsetX;
   int32_t offsetY;
-  RECT clip;
+  DOME_RECT clip;
 } CANVAS;
 
 typedef struct {

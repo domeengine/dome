@@ -188,8 +188,8 @@ CANVAS_cls(WrenVM* vm)
   int64_t offsetY = engine->canvas.offsetY;
   // Backgrounds are opaque
   c = c | (0xFF << 24);
-  RECT clip = engine->canvas.clip;
-  RECT rect = {
+  DOME_RECT clip = engine->canvas.clip;
+  DOME_RECT rect = {
     .x = 0,
     .y = 0,
     .w = engine->canvas.width,
@@ -240,7 +240,7 @@ CANVAS_clip(WrenVM* vm) {
   int64_t y = round(wrenGetSlotDouble(vm, 2));
   int64_t w = round(wrenGetSlotDouble(vm, 3));
   int64_t h = round(wrenGetSlotDouble(vm, 4));
-  RECT rect = {
+  DOME_RECT rect = {
     .x = x,
     .y = y,
     .w = min(width, w),

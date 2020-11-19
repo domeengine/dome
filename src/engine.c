@@ -212,7 +212,7 @@ ENGINE_init(ENGINE* engine) {
   engine->canvas.offsetY = 0;
   engine->canvas.width = GAME_WIDTH;
   engine->canvas.height = GAME_HEIGHT;
-  RECT clip = {
+  DOME_RECT clip = {
     .x = 0,
     .y = 0,
     .w = GAME_WIDTH,
@@ -371,7 +371,7 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
   // Draw pixel at (x,y)
   int32_t width = engine->canvas.width;
   // int32_t height = engine->canvas.height;
-  RECT zone = engine->canvas.clip;
+  DOME_RECT zone = engine->canvas.clip;
 
   if ((c & (0xFF << 24)) == 0) {
     return;
@@ -508,7 +508,7 @@ blitLine(void* dest, size_t destPitch, int64_t x, int64_t y, int64_t w, uint32_t
 internal void
 ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) {
   CANVAS canvas = engine->canvas;
-  RECT zone = canvas.clip;
+  DOME_RECT zone = canvas.clip;
   y += canvas.offsetY;
   if (y < max(0, zone.y) || y >= min(canvas.height, zone.y + zone.h)) {
     return;
