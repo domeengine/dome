@@ -30,11 +30,16 @@ Draw a circle, centered at co-ordinates (_x_, _y_), with a radius _r_, in the co
 #### `static circlefill(x: Number, y: Number, r: Number, c: Color) `
 Draw a filled circle, centered at co-ordinates (_x_, _y_), with a radius _r_, in the color _c_.
 
+
+#### `static clip()`
+#### `static clip(x: Number, y: Number, w: Number, h: Number) `
+This sets a "clipping region" for the canvas. No pixels will be drawn outside of the defined region. If this method is called without arguments it resets the clipping area to the whole display.
+
 #### `static cls() `
-This clears the canvas fully, to black. This ignores the `Canvas.offset` command.
+This clears the canvas fully, to black. This ignores the `Canvas.clip` and `Canvas.offset` commands.
 
 #### `static cls(c: Color) `
-This clears the canvas fully, to the color _c_. This ignores the `Canvas.offset` command.
+This clears the canvas fully, to the color _c_. This ignores the `Canvas.clip` and `Canvas.offset` commands.
 
 #### `static draw(object: Drawable, x: Number, y: Number) `
 This method is syntactic sugar, to draw objects with a "draw(x: Number, y: Number)" method.
@@ -74,6 +79,7 @@ Draw a filled rectangle with the top-left corner at (_x, y_), with a width of _w
 #### `static resize(width: Number, height: Number, c: Color)`
 Resize the canvas to the given `width` and `height`, and reset the color of the canvas to `c`.
 If `c` isn't provided, we default to black.
+Resizing the canvas resets the "clipping region" to encompass the whole canvas, as if `Canvas.clip()` was called.
 
 ### Instance Field
 #### `font: String`
