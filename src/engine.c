@@ -370,7 +370,6 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 
   // Draw pixel at (x,y)
   int32_t width = engine->canvas.width;
-  // int32_t height = engine->canvas.height;
   DOME_RECT zone = engine->canvas.clip;
 
   if ((c & (0xFF << 24)) == 0) {
@@ -379,7 +378,6 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
     if (((c & (0xFF << 24)) >> 24) < 0xFF) {
       uint32_t current = ((uint32_t*)(engine->canvas.pixels))[width * y + x];
 
-      // uint16_t oldA = (0xFF000000 & current) >> 24;
       uint16_t newA = (0xFF000000 & c) >> 24;
 
       uint16_t oldR = (255-newA) * ((0x000000FF & current));
@@ -524,7 +522,6 @@ ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) 
   int64_t startX = mid(screenStart, screenX, lineEnd);
   int64_t endX = mid(screenStart, screenX + w, lineEnd);
   int64_t lineWidth = max(0, min(endX, pitch) - startX);
-  printf("%lli, %lli\n", startX, lineWidth);
 
   uint32_t* bufStart = buf;
   char* pixels = canvas.pixels;

@@ -4,7 +4,7 @@ class Canvas {
   }
 
   static clip() { clip(0, 0, Canvas.width, Canvas.height) }
-  foreign static clip(x0, y0, x1, y1)
+  foreign static clip(x, y, width, height)
 
   static font=(v) {
     if (v is String || v == Font.default) {
