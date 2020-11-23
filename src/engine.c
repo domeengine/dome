@@ -16,7 +16,7 @@ ENGINE_record(void* ptr) {
   do {
     SDL_Delay(1);
     uint64_t currentTime = SDL_GetPerformanceCounter();
-    double elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
+    double elapsed = 1000 * (currentTime - previousTime) / (double)SDL_GetPerformanceFrequency();
     previousTime = currentTime;
     if(fabs(elapsed - 1.0/120.0) < .0002){
       elapsed = 1.0/120.0;

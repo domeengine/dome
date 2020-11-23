@@ -99,6 +99,179 @@ global_variable size_t GIF_SCALE = 1;
 // Comes last to register modules
 #include "vm.c"
 
+typedef struct {
+  ENGINE* engine;
+  WrenVM* vm;
+  WrenHandle* gameClass;
+  WrenHandle* updateMethod;
+  WrenHandle* drawMethod;
+  double MS_PER_FRAME;
+  double FPS;
+  double lag;
+  double elapsed;
+  bool windowBlurred;
+} LOOP_STATE;
+
+internal int
+LOOP_processInput(LOOP_STATE* state) {
+  WrenInterpretResult interpreterResult;
+  ENGINE* engine = state->engine;
+  WrenVM* vm = state->vm;
+  engine->mouse.scrollX = 0;
+  engine->mouse.scrollY = 0;
+  SDL_Event event;
+  while(SDL_PollEvent(&event)) {
+    switch (event.type)
+    {
+      case SDL_QUIT:
+        engine->running = false;
+        break;
+      case SDL_WINDOWEVENT:
+        {
+          if (event.window.event == SDL_WINDOWEVENT_RESIZED ||
+              event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+            SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
+          } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+            AUDIO_ENGINE_pause(engine->audioEngine);
+            state->windowBlurred = true;
+          } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+            AUDIO_ENGINE_resume(engine->audioEngine);
+            state->windowBlurred = false;
+          }
+        } break;
+      case SDL_KEYDOWN:
+      case SDL_KEYUP:
+        {
+          SDL_Keycode keyCode = event.key.keysym.sym;
+          if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+            engine->debugEnabled = !engine->debugEnabled;
+          } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+            ENGINE_takeScreenshot(engine);
+          } else if (event.key.repeat == 0) {
+            char* buttonName = strToLower((char*)SDL_GetKeyName(keyCode));
+            interpreterResult = INPUT_update(vm, DOME_INPUT_KEYBOARD, buttonName, event.key.state == SDL_PRESSED);
+            free(buttonName);
+            if (interpreterResult != WREN_RESULT_SUCCESS) {
+              return EXIT_FAILURE;
+            }
+          }
+        } break;
+      case SDL_CONTROLLERDEVICEADDED:
+        {
+          GAMEPAD_eventAdded(vm, event.cdevice.which);
+        } break;
+      case SDL_CONTROLLERDEVICEREMOVED:
+        {
+          GAMEPAD_eventRemoved(vm, event.cdevice.which);
+        } break;
+      case SDL_CONTROLLERBUTTONDOWN:
+      case SDL_CONTROLLERBUTTONUP:
+        {
+          SDL_ControllerButtonEvent cbutton = event.cbutton;
+          const char* buttonName = GAMEPAD_stringFromButton(cbutton.button);
+          interpreterResult = GAMEPAD_eventButtonPressed(vm, cbutton.which, buttonName, cbutton.state == SDL_PRESSED);
+          if (interpreterResult != WREN_RESULT_SUCCESS) {
+            return EXIT_FAILURE;
+          }
+        } break;
+      case SDL_MOUSEWHEEL:
+        {
+          int dir = event.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? 1 : -1;
+          engine->mouse.scrollX += event.wheel.x * dir;
+          // Down should be positive to match the direction of rendering.
+          engine->mouse.scrollY += event.wheel.y * -dir;
+        } break;
+      case SDL_MOUSEBUTTONDOWN:
+      case SDL_MOUSEBUTTONUP:
+        {
+          char* buttonName;
+          switch (event.button.button) {
+            case SDL_BUTTON_LEFT: buttonName = "left"; break;
+            case SDL_BUTTON_MIDDLE: buttonName = "middle"; break;
+            case SDL_BUTTON_RIGHT: buttonName = "right"; break;
+            case SDL_BUTTON_X1: buttonName = "x1"; break;
+            default:
+            case SDL_BUTTON_X2: buttonName = "x2"; break;
+          }
+          bool state = event.button.state == SDL_PRESSED;
+          interpreterResult = INPUT_update(vm, DOME_INPUT_MOUSE, buttonName, state);
+          if (interpreterResult != WREN_RESULT_SUCCESS) {
+            return EXIT_FAILURE;
+          }
+        } break;
+      case SDL_USEREVENT:
+        {
+          ENGINE_printLog(engine, "Event code %i\n", event.user.code);
+          if (event.user.code == EVENT_LOAD_FILE) {
+            FILESYSTEM_loadEventComplete(&event);
+          }
+        }
+    }
+  }
+  if (inputCaptured) {
+    interpreterResult = INPUT_commit(vm);
+    if (interpreterResult != WREN_RESULT_SUCCESS) {
+      return EXIT_FAILURE;
+    }
+  }
+  return EXIT_SUCCESS;
+}
+
+internal int
+LOOP_render(LOOP_STATE* state) {
+  WrenInterpretResult interpreterResult;
+  wrenEnsureSlots(state->vm, 8);
+  wrenSetSlotHandle(state->vm, 0, state->gameClass);
+  wrenSetSlotDouble(state->vm, 1, ((double)state->lag / state->MS_PER_FRAME));
+  interpreterResult = wrenCall(state->vm, state->drawMethod);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    return EXIT_FAILURE;
+  }
+
+  state->engine->debug.elapsed = state->elapsed;
+  if (state->engine->debugEnabled) {
+    ENGINE_drawDebug(state->engine);
+  }
+
+
+  // Flip Buffer to Screen
+  SDL_UpdateTexture(state->engine->texture, 0, state->engine->canvas.pixels, state->engine->canvas.width * 4);
+  // Flip buffer for recording
+  if (state->engine->record.makeGif) {
+    size_t imageSize = state->engine->canvas.width * state->engine->canvas.height * 4;
+    memcpy(state->engine->record.gifPixels, state->engine->canvas.pixels, imageSize);
+  }
+
+  // clear screen
+  SDL_RenderClear(state->engine->renderer);
+  SDL_RenderCopy(state->engine->renderer, state->engine->texture, NULL, NULL);
+  SDL_RenderPresent(state->engine->renderer);
+  return EXIT_SUCCESS;
+}
+internal int
+LOOP_update(LOOP_STATE* state) {
+  WrenInterpretResult interpreterResult;
+
+  wrenEnsureSlots(state->vm, 8);
+  wrenSetSlotHandle(state->vm, 0, state->gameClass);
+  interpreterResult = wrenCall(state->vm, state->updateMethod);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    return EXIT_FAILURE;
+  }
+  // updateAudio()
+  if (audioEngineClass != NULL) {
+    wrenEnsureSlots(state->vm, 3);
+    wrenSetSlotHandle(state->vm, 0, audioEngineClass);
+    AUDIO_ENGINE_lock(state->engine->audioEngine);
+    interpreterResult = wrenCall(state->vm, state->updateMethod);
+    AUDIO_ENGINE_unlock(state->engine->audioEngine);
+    if (interpreterResult != WREN_RESULT_SUCCESS) {
+      return EXIT_FAILURE;
+    }
+  }
+  return EXIT_SUCCESS;
+}
+
 internal void
 printTitle(ENGINE* engine) {
   ENGINE_printLog(engine, "DOME - Design-Oriented Minimalist Engine\n");
@@ -148,8 +321,12 @@ int main(int argc, char* args[])
   INIT_TO_ZERO(ENGINE, engine);
   engine.record.gifName = "test.gif";
   engine.record.makeGif = false;
+  LOOP_STATE loop;
+  loop.FPS = 60;
+  loop.MS_PER_FRAME = ceil(1000.0 / loop.FPS);
 
   ENGINE_init(&engine);
+  loop.engine = &engine;
 
   // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
@@ -326,6 +503,7 @@ int main(int argc, char* args[])
   // Configure Wren VM
   vm = VM_create(&engine);
   WrenInterpretResult interpreterResult;
+  loop.vm = vm;
 
   // Load user game file
   WrenHandle* initMethod = NULL;
@@ -345,14 +523,14 @@ int main(int argc, char* args[])
 
   wrenEnsureSlots(vm, 3);
   initMethod = wrenMakeCallHandle(vm, "init()");
-  updateMethod = wrenMakeCallHandle(vm, "update()");
+  loop.updateMethod = wrenMakeCallHandle(vm, "update()");
   drawMethod = wrenMakeCallHandle(vm, "draw(_)");
+  loop.drawMethod = drawMethod;
   wrenGetVariable(vm, "main", "Game", 0);
   gameClass = wrenGetSlotHandle(vm, 0);
+  loop.gameClass = gameClass;
 
   // Initiate game loop
-  uint8_t FPS = 60;
-  double MS_PER_FRAME = ceil(1000.0 / FPS);
 
   wrenSetSlotHandle(vm, 0, gameClass);
   interpreterResult = wrenCall(vm, initMethod);
@@ -362,7 +540,6 @@ int main(int argc, char* args[])
   }
   engine.initialized = true;
 
-
   SDL_SetWindowPosition(engine.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_ShowWindow(engine.window);
   SDL_SetRenderDrawColor(engine.renderer, 0x00, 0x00, 0x00, 0xFF);
@@ -371,195 +548,81 @@ int main(int argc, char* args[])
   if (engine.record.makeGif) {
     recordThread = SDL_CreateThread(ENGINE_record, "DOMErecorder", &engine);
   }
+  loop.lag = 0;
+  result = LOOP_processInput(&loop);
+  if (result != EXIT_SUCCESS) {
+    goto vm_cleanup;
+  }
+  loop.windowBlurred = false;
   uint64_t previousTime = SDL_GetPerformanceCounter();
-  int32_t lag = 0;
-  bool windowHasFocus = false;
-  SDL_Event event;
   while (engine.running) {
 
     // processInput()
-    engine.mouse.scrollX = 0;
-    engine.mouse.scrollY = 0;
-    while(SDL_PollEvent(&event)) {
-      switch (event.type)
-      {
-        case SDL_QUIT:
-          engine.running = false;
-          break;
-        case SDL_WINDOWEVENT:
-          {
-            if (event.window.event == SDL_WINDOWEVENT_RESIZED ||
-                event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-              SDL_RenderGetViewport(engine.renderer, &(engine.viewport));
-            } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
-              AUDIO_ENGINE_pause(engine.audioEngine);
-              windowHasFocus = true;
-            } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-              AUDIO_ENGINE_resume(engine.audioEngine);
-              windowHasFocus = false;
-            }
-          } break;
-        case SDL_KEYDOWN:
-        case SDL_KEYUP:
-          {
-            SDL_Keycode keyCode = event.key.keysym.sym;
-            if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-              engine.debugEnabled = !engine.debugEnabled;
-            } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-              ENGINE_takeScreenshot(&engine);
-            } else if (event.key.repeat == 0) {
-              char* buttonName = strToLower((char*)SDL_GetKeyName(keyCode));
-              interpreterResult = INPUT_update(vm, DOME_INPUT_KEYBOARD, buttonName, event.key.state == SDL_PRESSED);
-              free(buttonName);
-              if (interpreterResult != WREN_RESULT_SUCCESS) {
-                result = EXIT_FAILURE;
-                goto vm_cleanup;
-              }
-            }
-          } break;
-        case SDL_CONTROLLERDEVICEADDED:
-          {
-            GAMEPAD_eventAdded(vm, event.cdevice.which);
-          } break;
-        case SDL_CONTROLLERDEVICEREMOVED:
-          {
-            GAMEPAD_eventRemoved(vm, event.cdevice.which);
-          } break;
-        case SDL_CONTROLLERBUTTONDOWN:
-        case SDL_CONTROLLERBUTTONUP:
-          {
-            SDL_ControllerButtonEvent cbutton = event.cbutton;
-            const char* buttonName = GAMEPAD_stringFromButton(cbutton.button);
-            interpreterResult = GAMEPAD_eventButtonPressed(vm, cbutton.which, buttonName, cbutton.state == SDL_PRESSED);
-            if (interpreterResult != WREN_RESULT_SUCCESS) {
-              result = EXIT_FAILURE;
-              goto vm_cleanup;
-            }
-          } break;
-        case SDL_MOUSEWHEEL:
-          {
-            int dir = event.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? 1 : -1;
-            engine.mouse.scrollX += event.wheel.x * dir;
-            // Down should be positive to match the direction of rendering.
-            engine.mouse.scrollY += event.wheel.y * -dir;
-          } break;
-        case SDL_MOUSEBUTTONDOWN:
-        case SDL_MOUSEBUTTONUP:
-          {
-            char* buttonName;
-            switch (event.button.button) {
-              case SDL_BUTTON_LEFT: buttonName = "left"; break;
-              case SDL_BUTTON_MIDDLE: buttonName = "middle"; break;
-              case SDL_BUTTON_RIGHT: buttonName = "right"; break;
-              case SDL_BUTTON_X1: buttonName = "x1"; break;
-              default:
-              case SDL_BUTTON_X2: buttonName = "x2"; break;
-            }
-            bool state = event.button.state == SDL_PRESSED;
-            interpreterResult = INPUT_update(vm, DOME_INPUT_MOUSE, buttonName, state);
-            if (interpreterResult != WREN_RESULT_SUCCESS) {
-              result = EXIT_FAILURE;
-              goto vm_cleanup;
-            }
-          } break;
-        case SDL_USEREVENT:
-          {
-            ENGINE_printLog(&engine, "Event code %i\n", event.user.code);
-            if (event.user.code == EVENT_LOAD_FILE) {
-              FILESYSTEM_loadEventComplete(&event);
-            }
-          }
-      }
-    }
-    if (inputCaptured) {
-      interpreterResult = INPUT_commit(vm);
-      if (interpreterResult != WREN_RESULT_SUCCESS) {
-        result = EXIT_FAILURE;
+    if (loop.windowBlurred) {
+      result = LOOP_processInput(&loop);
+      if (result != EXIT_SUCCESS) {
         goto vm_cleanup;
       }
     }
 
     uint64_t currentTime = SDL_GetPerformanceCounter();
-    int32_t elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
+    loop.elapsed = 1000 * (currentTime - previousTime) / (double) SDL_GetPerformanceFrequency();
     previousTime = currentTime;
+
 
     // If we aren't focused, we skip the update loop and let the CPU sleep
     // to be good citizens
-    if (windowHasFocus) {
+    if (loop.windowBlurred) {
       SDL_Delay(50);
       continue;
     }
 
-    if(fabs(elapsed - 1.0/120.0) < .0002){
-      elapsed = 1.0/120.0;
+    if(fabs(loop.elapsed - 1.0/120.0) < .0002){
+      loop.elapsed = 1.0/120.0;
     }
-    if(fabs(elapsed - 1.0/60.0) < .0002){
-      elapsed = 1.0/60.0;
+    if(fabs(loop.elapsed - 1.0/60.0) < .0002){
+      loop.elapsed = 1.0/60.0;
     }
-    if(fabs(elapsed - 1.0/30.0) < .0002){
-      elapsed = 1.0/30.0;
+    if(fabs(loop.elapsed - 1.0/30.0) < .0002){
+      loop.elapsed = 1.0/30.0;
     }
-    lag += elapsed;
+    loop.lag += loop.elapsed;
 
-    // update()
-
-    while (lag > MS_PER_FRAME) {
-      wrenEnsureSlots(vm, 8);
-      wrenSetSlotHandle(vm, 0, gameClass);
-      interpreterResult = wrenCall(vm, updateMethod);
-      if (interpreterResult != WREN_RESULT_SUCCESS) {
-        result = EXIT_FAILURE;
-        goto vm_cleanup;
-      }
-      // updateAudio()
-      if (audioEngineClass != NULL) {
-        wrenEnsureSlots(vm, 3);
-        wrenSetSlotHandle(vm, 0, audioEngineClass);
-        AUDIO_ENGINE_lock(engine.audioEngine);
-        interpreterResult = wrenCall(vm, updateMethod);
-        AUDIO_ENGINE_unlock(engine.audioEngine);
-        if (interpreterResult != WREN_RESULT_SUCCESS) {
-          result = EXIT_FAILURE;
+    if (engine.lockstep) {
+      if (loop.lag >= loop.MS_PER_FRAME) {
+        result = LOOP_processInput(&loop);
+        if (result != EXIT_SUCCESS) {
           goto vm_cleanup;
         }
+        result = LOOP_update(&loop);
+        if (result != EXIT_SUCCESS) {
+          goto vm_cleanup;
+        }
+        result = LOOP_render(&loop);
+        if (result != EXIT_SUCCESS) {
+          goto vm_cleanup;
+        }
+        loop.lag = mid(0, loop.lag - loop.MS_PER_FRAME, loop.MS_PER_FRAME);
       }
-      lag -= MS_PER_FRAME;
-
-      if (engine.lockstep) {
-        lag = mid(0, lag, MS_PER_FRAME);
-        break;
+    } else {
+      while (loop.lag >= loop.MS_PER_FRAME) {
+        result = LOOP_processInput(&loop);
+        if (result != EXIT_SUCCESS) {
+          goto vm_cleanup;
+        }
+        // update()
+        result = LOOP_update(&loop);
+        if (result != EXIT_SUCCESS) {
+          goto vm_cleanup;
+        }
+        loop.lag -= loop.MS_PER_FRAME;
+      }
+      // render();
+      result = LOOP_render(&loop);
+      if (result != EXIT_SUCCESS) {
+        goto vm_cleanup;
       }
     }
-
-
-    // render();
-    wrenEnsureSlots(vm, 8);
-    wrenSetSlotHandle(vm, 0, gameClass);
-    wrenSetSlotDouble(vm, 1, ((double)lag / MS_PER_FRAME));
-    interpreterResult = wrenCall(vm, drawMethod);
-    if (interpreterResult != WREN_RESULT_SUCCESS) {
-      result = EXIT_FAILURE;
-      goto vm_cleanup;
-    }
-
-    engine.debug.elapsed = elapsed;
-    if (engine.debugEnabled) {
-      ENGINE_drawDebug(&engine);
-    }
-
-
-    // Flip Buffer to Screen
-    SDL_UpdateTexture(engine.texture, 0, engine.canvas.pixels, engine.canvas.width * 4);
-    // Flip buffer for recording
-    if (engine.record.makeGif) {
-      size_t imageSize = engine.canvas.width * engine.canvas.height * 4;
-      memcpy(engine.record.gifPixels, engine.canvas.pixels, imageSize);
-    }
-
-    // clear screen
-    SDL_RenderClear(engine.renderer);
-    SDL_RenderCopy(engine.renderer, engine.texture, NULL, NULL);
-    SDL_RenderPresent(engine.renderer);
 
     if (!engine.vsyncEnabled) {
       SDL_Delay(1);
@@ -573,6 +636,7 @@ vm_cleanup:
   }
   // Finish processing async threads so we can release resources
   ENGINE_finishAsync(&engine);
+  SDL_Event event;
   while(SDL_PollEvent(&event)) {
     if (event.type == SDL_USEREVENT) {
       if (event.user.code == EVENT_LOAD_FILE) {
