@@ -144,6 +144,7 @@ LOOP_processInput(LOOP_STATE* state) {
         {
           SDL_Keycode keyCode = event.key.keysym.sym;
           if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
+            printf("TEST\n");
             engine->debugEnabled = !engine->debugEnabled;
           } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
             ENGINE_takeScreenshot(engine);
@@ -228,12 +229,17 @@ LOOP_render(LOOP_STATE* state) {
     return EXIT_FAILURE;
   }
 
+
+  return EXIT_SUCCESS;
+}
+
+internal void
+LOOP_flip(LOOP_STATE* state) {
+
   state->engine->debug.elapsed = state->elapsed;
   if (state->engine->debugEnabled) {
     ENGINE_drawDebug(state->engine);
   }
-
-
   // Flip Buffer to Screen
   SDL_UpdateTexture(state->engine->texture, 0, state->engine->canvas.pixels, state->engine->canvas.width * 4);
   // Flip buffer for recording
@@ -241,13 +247,12 @@ LOOP_render(LOOP_STATE* state) {
     size_t imageSize = state->engine->canvas.width * state->engine->canvas.height * 4;
     memcpy(state->engine->record.gifPixels, state->engine->canvas.pixels, imageSize);
   }
-
   // clear screen
   SDL_RenderClear(state->engine->renderer);
   SDL_RenderCopy(state->engine->renderer, state->engine->texture, NULL, NULL);
   SDL_RenderPresent(state->engine->renderer);
-  return EXIT_SUCCESS;
 }
+
 internal int
 LOOP_update(LOOP_STATE* state) {
   WrenInterpretResult interpreterResult;
@@ -548,7 +553,7 @@ int main(int argc, char* args[])
   if (engine.record.makeGif) {
     recordThread = SDL_CreateThread(ENGINE_record, "DOMErecorder", &engine);
   }
-  loop.lag = 0;
+  loop.lag = loop.MS_PER_FRAME;
   result = LOOP_processInput(&loop);
   if (result != EXIT_SUCCESS) {
     goto vm_cleanup;
@@ -603,6 +608,7 @@ int main(int argc, char* args[])
           goto vm_cleanup;
         }
         loop.lag = mid(0, loop.lag - loop.MS_PER_FRAME, loop.MS_PER_FRAME);
+        LOOP_flip(&loop);
       }
     } else {
       while (loop.lag >= loop.MS_PER_FRAME) {
@@ -622,7 +628,9 @@ int main(int argc, char* args[])
       if (result != EXIT_SUCCESS) {
         goto vm_cleanup;
       }
+      LOOP_flip(&loop);
     }
+
 
     if (!engine.vsyncEnabled) {
       SDL_Delay(1);
