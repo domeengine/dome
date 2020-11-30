@@ -1,7 +1,7 @@
 // Import vector for convenience
 class Math {
   static assertNum(n) {
-    if (!n is Num) {
+    if (!(n is Num)) {
       Fiber.abort("%(n) is not of type Num")
     }
   }
