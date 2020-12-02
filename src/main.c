@@ -144,7 +144,6 @@ LOOP_processInput(LOOP_STATE* state) {
         {
           SDL_Keycode keyCode = event.key.keysym.sym;
           if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-            printf("TEST\n");
             engine->debugEnabled = !engine->debugEnabled;
           } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
             ENGINE_takeScreenshot(engine);
