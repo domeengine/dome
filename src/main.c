@@ -342,7 +342,7 @@ int main(int argc, char* args[])
   INIT_TO_ZERO(ENGINE, engine);
   engine.record.gifName = "test.gif";
   engine.record.makeGif = false;
-  LOOP_STATE loop;
+  INIT_TO_ZERO(LOOP_STATE, loop);
   loop.FPS = 60;
   loop.MS_PER_FRAME = ceil(1000.0 / loop.FPS);
 
