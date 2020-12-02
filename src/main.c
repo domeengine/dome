@@ -332,7 +332,6 @@ int main(int argc, char* args[])
   ENGINE_init(&engine);
   loop.engine = &engine;
 
-  // TODO: Use getopt to parse the arguments better
   struct optparse_long longopts[] = {
     {"buffer", 'b', OPTPARSE_REQUIRED},
     #ifdef __MINGW32__
@@ -680,7 +679,6 @@ vm_cleanup:
 
 cleanup:
   // Free resources
-  // TODO: Lock the Audio Engine here.
   ENGINE_reportError(&engine);
   BASEPATH_free();
   AUDIO_ENGINE_halt(engine.audioEngine);
