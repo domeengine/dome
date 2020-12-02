@@ -112,6 +112,23 @@ typedef struct {
   bool windowBlurred;
 } LOOP_STATE;
 
+internal void
+LOOP_release(LOOP_STATE* state) {
+  WrenVM* vm = state->vm;
+
+  if (state->drawMethod != NULL) {
+    wrenReleaseHandle(vm, state->drawMethod);
+  }
+
+  if (state->updateMethod != NULL) {
+    wrenReleaseHandle(vm, state->updateMethod);
+  }
+
+  if (state->gameClass != NULL) {
+    wrenReleaseHandle(vm, state->gameClass);
+  }
+}
+
 internal int
 LOOP_processInput(LOOP_STATE* state) {
   WrenInterpretResult interpreterResult;
@@ -510,9 +527,6 @@ int main(int argc, char* args[])
 
   // Load user game file
   WrenHandle* initMethod = NULL;
-  WrenHandle* updateMethod = NULL;
-  WrenHandle* drawMethod = NULL;
-  WrenHandle* gameClass = NULL;
   SDL_Thread* recordThread = NULL;
 
   interpreterResult = wrenInterpret(vm, "main", gameFile);
@@ -527,15 +541,13 @@ int main(int argc, char* args[])
   wrenEnsureSlots(vm, 3);
   initMethod = wrenMakeCallHandle(vm, "init()");
   loop.updateMethod = wrenMakeCallHandle(vm, "update()");
-  drawMethod = wrenMakeCallHandle(vm, "draw(_)");
-  loop.drawMethod = drawMethod;
+  loop.drawMethod = wrenMakeCallHandle(vm, "draw(_)");
   wrenGetVariable(vm, "main", "Game", 0);
-  gameClass = wrenGetSlotHandle(vm, 0);
-  loop.gameClass = gameClass;
+  loop.gameClass = wrenGetSlotHandle(vm, 0);
 
   // Initiate game loop
 
-  wrenSetSlotHandle(vm, 0, gameClass);
+  wrenSetSlotHandle(vm, 0, loop.gameClass);
   interpreterResult = wrenCall(vm, initMethod);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
@@ -655,17 +667,7 @@ vm_cleanup:
     wrenReleaseHandle(vm, initMethod);
   }
 
-  if (drawMethod != NULL) {
-    wrenReleaseHandle(vm, drawMethod);
-  }
-
-  if (updateMethod != NULL) {
-    wrenReleaseHandle(vm, updateMethod);
-  }
-
-  if (gameClass != NULL) {
-    wrenReleaseHandle(vm, gameClass);
-  }
+  LOOP_release(&loop);
 
   if (bufferClass != NULL) {
     wrenReleaseHandle(vm, bufferClass);
