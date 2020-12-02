@@ -951,13 +951,13 @@ ENGINE_drawDebug(ENGINE* engine) {
   double framesThisSecond = 1000.0 / (debug->elapsed+1);
   double alpha = debug->alpha;
   debug->avgFps = alpha * debug->avgFps + (1.0 - alpha) * framesThisSecond;
-  snprintf(buffer, sizeof(buffer), "%.01f fps", debug->avgFps);   // here 2 means binary
+  snprintf(buffer, sizeof(buffer), "%.01f FPS", debug->avgFps);   // here 2 means binary
   int32_t width = engine->canvas.width;
   int32_t height = engine->canvas.height;
-  int64_t startX = width - 4*8-2;
+  int64_t startX = width - 8*8-2;
   int64_t startY = height - 8-2;
 
-  ENGINE_rectfill(engine, startX, startY, 4*8+2, 10, 0x7F000000);
+  ENGINE_rectfill(engine, startX, startY, 8*8+2, 10, 0x7F000000);
   ENGINE_print(engine, buffer, startX+1,startY+1, 0xFFFFFFFF);
 
   startX = width - 9*8 - 2;
