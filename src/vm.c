@@ -66,7 +66,10 @@ internal WrenForeignMethodFn VM_bind_foreign_method(
   return MAP_getFunction(&moduleMap, module, fullName);
 }
 
-internal char* VM_load_module(WrenVM* vm, const char* name) {
+internal WrenLoadModuleResult
+VM_load_module(WrenVM* vm, const char* name) {
+  WrenLoadModuleResult result = { 0 };
+
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   MAP moduleMap = engine->moduleMap;
 
@@ -80,7 +83,7 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
     if (DEBUG_MODE) {
       ENGINE_printLog(engine, "wren\n", name);
     }
-    return NULL;
+    return result;
   }
 #endif
 #if WREN_OPT_RANDOM
@@ -88,7 +91,7 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
     if (DEBUG_MODE) {
       ENGINE_printLog(engine, "wren\n", name);
     }
-    return NULL;
+    return result;
   }
 #endif
 
@@ -99,7 +102,8 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
     if (DEBUG_MODE) {
       ENGINE_printLog(engine, "dome\n", name);
     }
-    return module;
+    result.source = module;
+    return result;
   }
 
   // Otherwise, search on filesystem
@@ -117,7 +121,8 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
   char* file = ENGINE_readFile(engine, path, NULL);
 
   free(path);
-  return file;
+  result.source = file;
+  return result;
 }
 
 // Debug output for VM
