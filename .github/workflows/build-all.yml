@@ -4,9 +4,6 @@ on:
     types: [assigned, opened, synchronize, reopened]
   release:
     types: [created]
-  push:
-    branches:
-      - actions
 
 jobs:
   build-linux:
