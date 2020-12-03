@@ -1,130 +1,192 @@
-CC = cc
-EXENAME = dome
-MODE_FILE=.mode
-ARCH_FILE=.arch
-
-SOURCE  = src
+# Paths
+SOURCE=src
+LIBS=lib
+OBJS=obj
+INCLUDES=include
 UTILS = $(SOURCE)/util
-LIBS = $(SOURCE)/lib
-INCLUDES = $(SOURCE)/include
-MODULES = $(SOURCE)/modules
-EXAMPLES = examples
+MODULES=$(SOURCE)/modules
+SCRIPTS=scripts
 
-MODE ?= $(shell cat $(MODE_FILE) 2>/dev/null || echo release)
-ARCH ?= $(shell cat $(ARCH_FILE) 2>/dev/null || echo 64bit)
-$(shell echo $(ARCH) > $(ARCH_FILE))
-BUILD_VALUE=$(shell git rev-parse --short HEAD)
-SYS=$(shell uname -s)
 
-BUILTIN_RANDOM = 1
-BUILTIN_META = 1
+# Build flags
+# Each must have distinct values for dimension
 
-DOME_OPTS = -DHASH="\"$(BUILD_VALUE)\"" -DWREN_OPT_RANDOM=$(BUILTIN_RANDOM) -DWREN_OPT_META=$(BUILTIN_META)
-SDL_CONFIG ?= $(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || echo "$(LIBS)/sdl2-config")
-CFLAGS = $(DOME_OPTS) -std=c99 -pedantic -Wall  -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-value `$(SDL_CONFIG) --cflags`
-IFLAGS = -isystem $(INCLUDES)
+# MODE: release or debug
+MODE ?= release
 
-ifdef STATIC
-	FRAMEWORK = unix
-  SDLFLAGS = `$(SDL_CONFIG) --static-libs`
-  IFLAGS := -I$(INCLUDES)/SDL2 $(IFLAGS)
+# Determine the system
+# ARCH = 64bit or 32bit
+UNAME_S = $(shell uname -s)
+UNAME_P = $(shell uname -p)
+ifeq ($(UNAME_S), Darwin)
+SYSTEM ?= macosx
+ARCH ?= 64bit
+FRAMEWORK ?= $(shell which sdl2-config 1>/dev/null && echo "" || echo "framework")
+else ifeq ($(UNAME_S), Linux)
+SYSTEM ?= linux
+ARCH ?= 64bit
 else
-  SDLFLAGS = `$(SDL_CONFIG) --libs`
+SYSTEM ?= windows
+ifneq (,$(findstring 32,$(UNAME_S)))
+	ARCH ?= 32bit
+else
+	ARCH ?= 64bit
 endif
-LDFLAGS = -L$(LIBS) $(SDLFLAGS) -lm
+endif
 
+# 0 or 1
+STATIC ?= 0
+TAGS = $(ARCH) $(SYSTEM) $(MODE) $(FRAMEWORK)
+OBJS := $(OBJS)/$(ARCH)
+
+ifeq ($(STATIC), 1)
+TAGS += static
+else 
+TAGS += shared
+endif
+
+ifndef verbose
+  SILENT = @
+endif
+
+# Compute Variables based on build flags
+
+ifneq ($(and $(filter windows,$(TAGS)),$(filter 64bit,$(TAGS))),)
+TARGET_NAME ?= dome-x64
+ICON_OBJECT_FILE ?= assets/icon64.res
+else ifneq ($(and $(filter windows,$(TAGS)),$(filter 32bit,$(TAGS))),)
+TARGET_NAME ?= dome-x32
+ICON_OBJECT_FILE ?= assets/icon32.res
+else
+TARGET_NAME ?= dome
+endif
+
+BUILD_VALUE=$(shell git rev-parse --short HEAD)
+DOME_OPTS = -DDOME_HASH=\"$(BUILD_VALUE)\"
 ifdef DOME_OPT_VERSION
   DOME_OPTS += -DDOME_VERSION=\"$(DOME_OPT_VERSION)\"
 else
   DOME_OPTS += -DDOME_VERSION=\"$(shell git describe --tags)\"
 endif
 
+SDL_CONFIG ?= $(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || (which "$(LIBS)/sdl2-config" 1>/dev/null && echo "$(LIBS)/sdl2-config" || echo ""))
 
-## Handle Release/Debug build things
-ifeq ($(MODE), debug)
-	LDFLAGS += -lwrend
-	CFLAGS += -g -O0
-ifneq ($(EXTRA), valgrind)
-	CFLAGS += -fsanitize=address
+# Compiler configurations
+
+WARNING_FLAGS = -Wall -Wno-unused-parameter -Wno-unused-function -Wno-unused-value
+
+ifneq ($(filter macosx,$(TAGS)),)
+WARNING_FLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
+else ifneq ($(filter windows,$(TAGS)),)
+WARNING_FLAGS += -Wno-discarded-qualifiers -Wno-clobbered
+else ifneq ($(filter linux,$(TAGS)),)
+	WARNING_FLAGS += -Wno-clobbered
 endif
 
-  DOME_OPTS += -DDEBUG=1
-$(shell echo $(MODE) > $(MODE_FILE))
+
+CFLAGS = $(DOME_OPTS) -std=c99 -pedantic $(WARNING_FLAGS)
+ifneq ($(filter macosx,$(TAGS)),)
+CFLAGS += -mmacosx-version-min=10.12
+endif
+
+ifneq ($(filter release,$(TAGS)),)
+CFLAGS += -O3
+else ifneq ($(filter debug,$(TAGS)),)
+CFLAGS += -g -O0 
+ifneq ($(filter macosx,$(TAGS)),)
+CFLAGS += -fsanitize=address
+FFLAGS += -fsanitize=address
+endif
+endif
+
+# Include Configuration
+IFLAGS = -isystem $(INCLUDES)
+ifneq (,$(findstring sdl2-config, $(SDL_CONFIG)))
+IFLAGS += $(shell $(SDL_CONFIG) --cflags)
+endif
+ifneq ($(filter static,$(TAGS)),)
+IFLAGS := -I$(INCLUDES)/SDL2 $(IFLAGS)
+else ifneq ($(filter framework,$(TAGS)),)
+IFLAGS += -I/Library/Frameworks/SDL2.framework/Headers
+endif
+
+
+# Compute Link Settings
+DEPS = -lm
+
+ifneq (,$(findstring sdl2-config, $(SDL_CONFIG)))
+ifneq ($(filter static,$(TAGS)),)
+SDLFLAGS=$(shell $(SDL_CONFIG) --static-libs)
 else
-	LDFLAGS += -lwren
-	CFLAGS += -O3
-$(shell echo $(MODE) > $(MODE_FILE))
+SDLFLAGS=$(shell $(SDL_CONFIG) --libs)
+endif
 endif
 
+ifneq ($(filter release,$(TAGS)),)
+DEPS += -lwren
+else ifneq ($(filter debug,$(TAGS)),)
+DEPS += -lwrend
+endif
+ifneq ($(and $(filter windows,$(TAGS)),$(filter static,$(TAGS))),)
+WINDOW_MODE ?= windows
+WINDOW_MODE_FLAG = -m$(WINDOW_MODE)
+STATIC_FLAG += -static
 
-## Handle OS Specific commands
-ifneq (, $(findstring Darwin, $(SYS)))
-  CFLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
-
-  ifdef MIN_MAC_VERSION
-    CFLAGS += -mmacosx-version-min=$(MIN_MAC_VERSION)
-  endif
-
-  FRAMEWORK ?= $(shell which sdl2-config && echo unix || echo framework)
-  ifeq ($(FRAMEWORK), framework)
-    CFLAGS +=  -I /Library/Frameworks/SDL2.framework/Headers -framework SDL2
-  endif
+else ifneq ($(and $(filter macosx,$(TAGS)), $(filter framework,$(TAGS)), $(filter shared,$(TAGS))),)
+FFLAGS += -F/Library/Frameworks -framework SDL2
 endif
 
-ifneq (, $(findstring MINGW, $(SYS)))
-  WINDOW_MODE ?= windows
-  SDLFLAGS := -m$(WINDOW_MODE) $(SDLFLAGS)
-  CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered
-  ifdef ICON_OBJECT_FILE
-    CFLAGS += $(ICON_OBJECT_FILE)
-  endif
-  ifdef STATIC
-    SDLFLAGS += -static
-  endif
-endif
-
-ifneq (, $(findstring Linux, $(SYS)))
-  CFLAGS += -Wno-discarded-qualifiers -Wno-clobbered 
-endif
+LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG) $(DEPS)
 
 
 
-.PHONY: all clean reset cloc
-all: $(EXENAME)
 
-$(LIBS)/wren/Makefile: 
+# Build Rules
+PROJECTS := dome.bin
+.PHONY: all clean reset cloc $(PROJECTS)
+
+all: $(PROJECTS)
+
+WREN_LIB ?= $(LIBS)/libwren.a
+WREN_PARAMS ?= $(ARCH) WREN_OPT_RANDOM=1 WREN_OPT_META=1   
+$(LIBS)/wren/lib/libwren.a:
+	@echo "==== Cloning Wren ===="
 	git submodule update --init -- $(LIBS)/wren
-$(LIBS)/wren: $(LIBS)/wren/Makefile
-
-$(LIBS)/libwren.a: $(LIBS)/wren
-	./scripts/setup_wren.sh $(ARCH) WREN_OPT_RANDOM=$(BUILTIN_RANDOM) WREN_OPT_META=$(BUILTIN_META)
-	
-$(INCLUDES)/wren.h: $(LIBS)/libwren.a
-	cp src/lib/wren/src/include/wren.h src/include/wren.h
+$(LIBS)/wren: $(LIBS)/wren/lib/libwren.a
+$(WREN_LIB): $(LIBS)/wren
+	@echo "==== Building Wren ===="
+	./scripts/setup_wren.sh $(WREN_PARAMS)
 
 $(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
+	@echo "==== Building DOME modules  ===="
 	./scripts/generateEmbedModules.sh
 
-$(EXENAME): $(SOURCE)/*.c $(MODULES)/*.c $(INCLUDES) $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwren.a
-	$(CC) $(CFLAGS) $(SOURCE)/main.c -o $(EXENAME) $(LDFLAGS) $(IFLAGS)
-	$(warning $(MODE))
-ifneq (, $(findstring Darwin, $(SYS)))
-ifneq ($(FRAMEWORK), framework)
-	install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(EXENAME)
-	install_name_tool -change /usr/local/lib/libSDL2-2.0.0.dylib \@executable_path/libSDL2-2.0.0.dylib $(EXENAME)
-else
-	install_name_tool -add_rpath \@executable_path/libSDL2-2.0.0.dylib $(EXENAME)
-endif
-endif
+$(OBJS)/vendor.o: $(INCLUDES)/vendor.c
+	@mkdir -p $(OBJS)
+	@echo "==== Building vendor module ===="
+	$(CC) $(CFLAGS) -c $(INCLUDES)/vendor.c -o $(OBJS)/vendor.o $(IFLAGS)
 
+$(OBJS)/main.o: $(SOURCE)/*.h $(SOURCE)/*.c $(MODULES)/*.c $(MODULES)/*.inc $(INCLUDES) $(WREN_LIB)
+	@mkdir -p $(OBJS)
+	@echo "==== Building core ($(TAGS)) module ===="
+	$(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(OBJS)/main.o $(IFLAGS) 
+
+$(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(WREN_LIB)
+	@echo "==== Linking DOME ($(TAGS)) ===="
+	$(CC) $(FFLAGS) -o $(TARGET_NAME) $(OBJS)/*.o $(ICON_OBJECT_FILE) $(LDFLAGS) 
+	./scripts/set-executable-path.sh $(TARGET_NAME)
+	@echo "DOME built as $(TARGET_NAME)"
+
+dome.bin: $(TARGET_NAME)
+
+clean: 
+	rm -rf $(TARGET_NAME) $(MODULES)/*.inc
+	rm -rf $(OBJS)/*.o
 reset:
 	git submodule foreach --recursive git clean -xfd
-	rm -rf .mode $(EXENAME) $(LIBS)/libwren.a $(MODULES)/*.inc $(INCLUDES)/wren.h $(LIBS)/libwrend.a
+	rm -rf $(LIBS)/libwren.a 
+	rm -rf $(LIBS)/libwrend.a
+	rm -rf $(INCLUDES)/wren.h
 
-clean:
-	rm -rf $(EXENAME) $(MODULES)/*.inc
-
-# Counts the number of lines used, for vanity
 cloc:
-	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util|include|lib" -not-match-f ".inc" src
-
+	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util" -not-match-f ".inc" src

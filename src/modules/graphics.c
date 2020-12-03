@@ -184,22 +184,31 @@ CANVAS_cls(WrenVM* vm)
   ASSERT_SLOT_TYPE(vm, 1, NUM, "color");
   uint32_t c = round(wrenGetSlotDouble(vm, 1));
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  int64_t offsetX = engine->offsetX;
-  int64_t offsetY = engine->offsetY;
+  int64_t offsetX = engine->canvas.offsetX;
+  int64_t offsetY = engine->canvas.offsetY;
   // Backgrounds are opaque
   c = c | (0xFF << 24);
-  ENGINE_rectfill(engine, -offsetX, -offsetY, engine->width, engine->height, c);
+  DOME_RECT clip = engine->canvas.clip;
+  DOME_RECT rect = {
+    .x = 0,
+    .y = 0,
+    .w = engine->canvas.width,
+    .h = engine->canvas.height
+  };
+  engine->canvas.clip = rect;
+  ENGINE_rectfill(engine, -offsetX, -offsetY, engine->canvas.width, engine->canvas.height, c);
+  engine->canvas.clip = clip;
 }
 
 internal void
 CANVAS_getWidth(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  wrenSetSlotDouble(vm, 0, engine->width);
+  wrenSetSlotDouble(vm, 0, engine->canvas.width);
 }
 internal void
 CANVAS_getHeight(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  wrenSetSlotDouble(vm, 0, engine->height);
+  wrenSetSlotDouble(vm, 0, engine->canvas.height);
 }
 
 internal void
@@ -219,10 +228,32 @@ CANVAS_resize(WrenVM* vm) {
 }
 
 internal void
+CANVAS_clip(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x1");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y1");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "width");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "height");
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  int32_t width = engine->canvas.width;
+  int32_t height = engine->canvas.height;
+  int64_t x = round(wrenGetSlotDouble(vm, 1));
+  int64_t y = round(wrenGetSlotDouble(vm, 2));
+  int64_t w = round(wrenGetSlotDouble(vm, 3));
+  int64_t h = round(wrenGetSlotDouble(vm, 4));
+  DOME_RECT rect = {
+    .x = x,
+    .y = y,
+    .w = min(width, w),
+    .h = min(height, h)
+  };
+  engine->canvas.clip = rect;
+}
+
+internal void
 CANVAS_offset(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x offset");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y offset");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  engine->offsetX = wrenGetSlotDouble(vm, 1);
-  engine->offsetY = wrenGetSlotDouble(vm, 2);
+  engine->canvas.offsetX = wrenGetSlotDouble(vm, 1);
+  engine->canvas.offsetY = wrenGetSlotDouble(vm, 2);
 }

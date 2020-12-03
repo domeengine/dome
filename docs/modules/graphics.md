@@ -30,11 +30,16 @@ Draw a circle, centered at co-ordinates (_x_, _y_), with a radius _r_, in the co
 #### `static circlefill(x: Number, y: Number, r: Number, c: Color) `
 Draw a filled circle, centered at co-ordinates (_x_, _y_), with a radius _r_, in the color _c_.
 
+
+#### `static clip()`
+#### `static clip(x: Number, y: Number, w: Number, h: Number) `
+This sets a "clipping region" for the canvas. No pixels will be drawn outside of the defined region. If this method is called without arguments it resets the clipping area to the whole display.
+
 #### `static cls() `
-This clears the canvas fully, to black. This ignores the `Canvas.offset` command.
+This clears the canvas fully, to black. This ignores the `Canvas.clip` and `Canvas.offset` commands.
 
 #### `static cls(c: Color) `
-This clears the canvas fully, to the color _c_. This ignores the `Canvas.offset` command.
+This clears the canvas fully, to the color _c_. This ignores the `Canvas.clip` and `Canvas.offset` commands.
 
 #### `static draw(object: Drawable, x: Number, y: Number) `
 This method is syntactic sugar, to draw objects with a "draw(x: Number, y: Number)" method.
@@ -74,6 +79,7 @@ Draw a filled rectangle with the top-left corner at (_x, y_), with a width of _w
 #### `static resize(width: Number, height: Number, c: Color)`
 Resize the canvas to the given `width` and `height`, and reset the color of the canvas to `c`.
 If `c` isn't provided, we default to black.
+Resizing the canvas resets the "clipping region" to encompass the whole canvas, as if `Canvas.clip()` was called.
 
 ### Instance Field
 #### `font: String`
@@ -87,7 +93,7 @@ DOME comes built-in with the PICO-8 palette, but you can also define and use you
 ### Constructors
 
 #### `construct hex(hexcode: String)`
-Create a new color with the given hexcode as a string of six alpha-numeric values. Hex values can be upper or lowercase, with or without a `#`. 
+Create a new color with the given hexcode as a string of three to eight alpha-numeric values. Hex values can be upper or lowercase, with or without a `#`. If three or four digits are provided, the number is interpreted as if each digit was written twice (similar to CSS): for example, `#123` is the same as `#112233`. If four or eight digits found, the last digit(s) form the value of the alpha channel. Otherwise, it is defaulted to 255 (fully opaque).
 #### `construct hsv(h: Number, s: Number, v: Number)`
 Create a new color using the given HSV number and an alpha value of `255`. 
 The `s` and `v` parameters must be between `0.0` and `1.0`. 
@@ -217,6 +223,8 @@ Options available are:
  * `srcW`, `srcH` - This is the width and height of the source image region you want to draw.
  * `scaleX`, `scaleY` - You can scale your image in the x and y axis, independant of each other. If either of these are negative, they result in a "flip" operation.
  * `angle` - Rotates the image. This is in degrees, and rounded to the nearest 90 degrees.
+ * `opacity` - A number between 0.0 and 1.0, this sets the global opacity of this image. Any alpha values in the image will be multipled by this value,
+ * `tint` - A color value which is to be applied on top of the image. Use the tint color's alpha to control how strong the tint is.
  * `mode`, `foreground` and `background` - By default, mode is `"RGBA"`, so your images will draw in their true colors. If you set it to `"MONO"`, any pixels which are black or have transparency will be drawn in the `background` color and all other pixels of the image will be drawn in the `foreground` color. Both colors must be `Color` objects, and default to `Color.black` and `Color.white`, respectively.
 
 Transforms are applied as follows: Crop to the region, then rotate, then scale/flip.

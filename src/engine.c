@@ -2,12 +2,13 @@ internal int
 ENGINE_record(void* ptr) {
   // Thread: Seperate gif record
   ENGINE* engine = ptr;
-  size_t imageSize = engine->width * engine->height;
+  size_t imageSize = engine->canvas.width * engine->canvas.height;
   engine->record.gifPixels = (uint32_t*)malloc(imageSize*4*sizeof(uint8_t));
   size_t scale = GIF_SCALE;
   uint32_t* scaledPixels = (uint32_t*)malloc(imageSize*4*sizeof(uint8_t)* scale * scale);
+  CANVAS canvas = engine->canvas;
 
-  jo_gif_t gif = jo_gif_start(engine->record.gifName, engine->width * scale, engine->height * scale, 0, 31);
+  jo_gif_t gif = jo_gif_start(engine->record.gifName, canvas.width * scale, canvas.height * scale, 0, 31);
   uint8_t FPS = 30;
   double MS_PER_FRAME = ceil(1000.0 / FPS);
   double lag = 0;
@@ -15,7 +16,7 @@ ENGINE_record(void* ptr) {
   do {
     SDL_Delay(1);
     uint64_t currentTime = SDL_GetPerformanceCounter();
-    double elapsed = 1000 * (currentTime - previousTime) / SDL_GetPerformanceFrequency();
+    double elapsed = 1000 * (currentTime - previousTime) / (double)SDL_GetPerformanceFrequency();
     previousTime = currentTime;
     if(fabs(elapsed - 1.0/120.0) < .0002){
       elapsed = 1.0/120.0;
@@ -29,12 +30,12 @@ ENGINE_record(void* ptr) {
     lag += elapsed;
     if (lag >= MS_PER_FRAME) {
       if (scale > 1) {
-        for (size_t j = 0; j < engine->height * scale; j++) {
-          for (size_t i = 0; i < engine->width * scale; i++) {
+        for (size_t j = 0; j < canvas.height * scale; j++) {
+          for (size_t i = 0; i < canvas.width * scale; i++) {
             size_t u = i / scale;
             size_t v = j / scale;
-            int32_t c = ((uint32_t*)engine->record.gifPixels)[v * engine->width + u];
-            scaledPixels[j * engine->width * scale + i] = c;
+            int32_t c = ((uint32_t*)engine->record.gifPixels)[v * canvas.width + u];
+            scaledPixels[j * canvas.width * scale + i] = c;
           }
         }
         jo_gif_frame(&gif, (uint8_t*)scaledPixels, 4, true);
@@ -177,9 +178,9 @@ ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
   if (engine->renderer == NULL) {
     return false;
   }
-  SDL_RenderSetLogicalSize(engine->renderer, engine->width, engine->height);
+  SDL_RenderSetLogicalSize(engine->renderer, engine->canvas.width, engine->canvas.height);
 
-  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, engine->width, engine->height);
+  engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, engine->canvas.width, engine->canvas.height);
   if (engine->texture == NULL) {
     return false;
   }
@@ -192,7 +193,7 @@ ENGINE_init(ENGINE* engine) {
   engine->window = NULL;
   engine->renderer = NULL;
   engine->texture = NULL;
-  engine->pixels = NULL;
+
   engine->blitBuffer.pixels = calloc(0, 0);
   engine->blitBuffer.width = 0;
   engine->blitBuffer.height = 0;
@@ -207,10 +208,18 @@ ENGINE_init(ENGINE* engine) {
   engine->debug.errorBufLen = 0;
 
   // Initialise the canvas offset.
-  engine->offsetX = 0;
-  engine->offsetY = 0;
-  engine->width = GAME_WIDTH;
-  engine->height = GAME_HEIGHT;
+  engine->canvas.pixels = NULL;
+  engine->canvas.offsetX = 0;
+  engine->canvas.offsetY = 0;
+  engine->canvas.width = GAME_WIDTH;
+  engine->canvas.height = GAME_HEIGHT;
+  DOME_RECT clip = {
+    .x = 0,
+    .y = 0,
+    .w = GAME_WIDTH,
+    .h = GAME_HEIGHT
+  };
+  engine->canvas.clip = clip;
 
   engine->argv = NULL;
   engine->argc = 0;
@@ -252,8 +261,8 @@ ENGINE_start(ENGINE* engine) {
     goto engine_init_end;
   }
 
-  engine->pixels = calloc(engine->width * engine->height, sizeof(char) * 4);
-  if (engine->pixels == NULL) {
+  engine->canvas.pixels = calloc(engine->canvas.width * engine->canvas.height, sizeof(char) * 4);
+  if (engine->canvas.pixels == NULL) {
     result = EXIT_FAILURE;
     goto engine_init_end;
   }
@@ -313,8 +322,8 @@ ENGINE_free(ENGINE* engine) {
     free(engine->blitBuffer.pixels);
   }
 
-  if (engine->pixels != NULL) {
-    free(engine->pixels);
+  if (engine->canvas.pixels != NULL) {
+    free(engine->canvas.pixels);
   }
 
   if (engine->texture != NULL) {
@@ -346,10 +355,10 @@ ENGINE_free(ENGINE* engine) {
 
 internal uint32_t
 ENGINE_pget(ENGINE* engine, int64_t x, int64_t y) {
-  int32_t width = engine->width;
-  int32_t height = engine->height;
+  int32_t width = engine->canvas.width;
+  int32_t height = engine->canvas.height;
   if (0 <= x && x < width && 0 <= y && y < height) {
-    return ((uint32_t*)(engine->pixels))[width * y + x];
+    return ((uint32_t*)(engine->canvas.pixels))[width * y + x];
   }
   return 0xFF000000;
 }
@@ -357,19 +366,19 @@ inline internal void
 ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 
   // Account for canvas offset
-  x += engine->offsetX;
-  y += engine->offsetY;
+  x += engine->canvas.offsetX;
+  y += engine->canvas.offsetY;
 
   // Draw pixel at (x,y)
-  int32_t width = engine->width;
-  int32_t height = engine->height;
+  int32_t width = engine->canvas.width;
+  DOME_RECT zone = engine->canvas.clip;
+
   if ((c & (0xFF << 24)) == 0) {
     return;
-  } else if (0 <= x && x < width && 0 <= y && y < height) {
+  } else if (zone.x <= x && x < zone.x + zone.w && zone.y <= y && y < zone.y + zone.h) {
     if (((c & (0xFF << 24)) >> 24) < 0xFF) {
-      uint32_t current = ((uint32_t*)(engine->pixels))[width * y + x];
+      uint32_t current = ((uint32_t*)(engine->canvas.pixels))[width * y + x];
 
-      // uint16_t oldA = (0xFF000000 & current) >> 24;
       uint16_t newA = (0xFF000000 & c) >> 24;
 
       uint16_t oldR = (255-newA) * ((0x000000FF & current));
@@ -389,7 +398,7 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 
     // This is a very hot line, so we use pointer arithmetic for
     // speed!
-    *(((uint32_t*)engine->pixels) + (width * y + x)) = c;
+    *(((uint32_t*)engine->canvas.pixels) + (width * y + x)) = c;
   }
 }
 
@@ -497,23 +506,26 @@ blitLine(void* dest, size_t destPitch, int64_t x, int64_t y, int64_t w, uint32_t
 
 internal void
 ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) {
-  y += engine->offsetY;
-  if (y < 0 || y >= engine->height) {
+  CANVAS canvas = engine->canvas;
+  DOME_RECT zone = canvas.clip;
+  y += canvas.offsetY;
+  if (y < max(0, zone.y) || y >= min(canvas.height, zone.y + zone.h)) {
     return;
   }
 
-  int64_t offsetX = engine->offsetX;
+  int64_t offsetX = canvas.offsetX;
+  size_t pitch = canvas.width;
 
-  size_t pitch = engine->width;
-
-  char* pixels = engine->pixels;
+  int64_t screenStart = max(0, zone.x);
+  int64_t lineEnd = mid(0, zone.x + zone.w, pitch);
   int64_t screenX = x + offsetX;
 
-  int64_t startX = mid(0, screenX, pitch);
-  int64_t endX = mid(0, screenX + w, pitch);
-  size_t lineWidth = min(endX, pitch) - startX;
-  uint32_t* bufStart = buf;
+  int64_t startX = mid(screenStart, screenX, lineEnd);
+  int64_t endX = mid(screenStart, screenX + w, lineEnd);
+  int64_t lineWidth = max(0, min(endX, pitch) - startX);
 
+  uint32_t* bufStart = buf;
+  char* pixels = canvas.pixels;
   char* line = pixels + ((y * pitch + startX) * 4);
   memcpy(line, bufStart, lineWidth * 4);
 }
@@ -906,7 +918,7 @@ ENGINE_getMouseX(ENGINE* engine) {
   if (engine->mouse.relative) {
     return mouseX;
   } else {
-    return mouseX * fmax((engine->width / (float)winX), engine->height / (float)winY) - viewport.x;
+    return mouseX * fmax((engine->canvas.width / (float)winX), engine->canvas.height / (float)winY) - viewport.x;
   }
 }
 
@@ -921,7 +933,7 @@ ENGINE_getMouseY(ENGINE* engine) {
   if (engine->mouse.relative) {
     return mouseY;
   } else {
-    return mouseY * fmax((engine->width / (float)winX), engine->height / (float)winY) - viewport.y;
+    return mouseY * fmax((engine->canvas.width / (float)winX), engine->canvas.height / (float)winY) - viewport.y;
   }
 }
 
@@ -939,13 +951,13 @@ ENGINE_drawDebug(ENGINE* engine) {
   double framesThisSecond = 1000.0 / (debug->elapsed+1);
   double alpha = debug->alpha;
   debug->avgFps = alpha * debug->avgFps + (1.0 - alpha) * framesThisSecond;
-  snprintf(buffer, sizeof(buffer), "%.01f fps", debug->avgFps);   // here 2 means binary
-  int32_t width = engine->width;
-  int32_t height = engine->height;
-  int64_t startX = width - 4*8-2;
+  snprintf(buffer, sizeof(buffer), "%.01f FPS", debug->avgFps);   // here 2 means binary
+  int32_t width = engine->canvas.width;
+  int32_t height = engine->canvas.height;
+  int64_t startX = width - 8*8-2;
   int64_t startY = height - 8-2;
 
-  ENGINE_rectfill(engine, startX, startY, 4*8+2, 10, 0x7F000000);
+  ENGINE_rectfill(engine, startX, startY, 8*8+2, 10, 0x7F000000);
   ENGINE_print(engine, buffer, startX+1,startY+1, 0xFFFFFFFF);
 
   startX = width - 9*8 - 2;
@@ -967,12 +979,12 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
   if (engine->initialized && engine->record.makeGif) {
     return true;
   }
-  if (engine->width == newWidth && engine->height == newHeight) {
+  if (engine->canvas.width == newWidth && engine->canvas.height == newHeight) {
     return true;
   }
 
-  engine->width = newWidth;
-  engine->height = newHeight;
+  engine->canvas.width = newWidth;
+  engine->canvas.height = newHeight;
   SDL_DestroyTexture(engine->texture);
   SDL_RenderSetLogicalSize(engine->renderer, newWidth, newHeight);
 
@@ -981,11 +993,11 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
     return false;
   }
 
-  engine->pixels = realloc(engine->pixels, engine->width * engine->height * 4);
-  if (engine->pixels == NULL) {
+  engine->canvas.pixels = realloc(engine->canvas.pixels, engine->canvas.width * engine->canvas.height * 4);
+  if (engine->canvas.pixels == NULL) {
     return false;
   }
-  ENGINE_rectfill(engine, 0, 0, engine->width, engine->height, color);
+  ENGINE_rectfill(engine, 0, 0, engine->canvas.width, engine->canvas.height, color);
   SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
 
   return true;
@@ -993,7 +1005,8 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
 
 internal void
 ENGINE_takeScreenshot(ENGINE* engine) {
-  stbi_write_png("screenshot.png", engine->width, engine->height, 4, engine->pixels, engine->width * 4);
+  CANVAS canvas = engine->canvas;
+  stbi_write_png("screenshot.png", canvas.width, canvas.height, 4, canvas.pixels, canvas.width * 4);
 }
 
 

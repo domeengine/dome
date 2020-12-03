@@ -13,17 +13,20 @@ class Vector {
   }
 
   init_(x, y, z, w) {
-    _values = [x, y, z, w]
+    _x = x
+    _y = y
+    _z = z
+    _w = w
   }
 
-  x { _values[0] }
-  y { _values[1] }
-  z { _values[2] }
-  w { _values[3] }
-  x=(v) { _values[0] = v }
-  y=(v) { _values[1] = v }
-  z=(v) { _values[2] = v }
-  w=(v) { _values[3] = v }
+  x { _x }
+  y { _y }
+  z { _z }
+  w { _w }
+  x=(v) { _x = v }
+  y=(v) { _y = v }
+  z=(v) { _z = v }
+  w=(v) { _w = v }
 
   manhattan {
     return x.abs + y.abs + z.abs + w.abs

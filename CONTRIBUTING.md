@@ -68,13 +68,13 @@ while (condition) {
 Wren code should conform to the following:
 
 * Classes are named with TitleCase, each word being capitalised, including the first.
-* Variables, methods and properties all require camelCase, unless they are intended to be constants, in which case they should be fully uppercase with underscore seperation between words.
+* Variables, methods and properties all require camelCase, even when they are intended to be constants (follows Wren convention e.g. Num.pi).
 ```
-var DEGREE_OF_SEPERATION = 6
+var degreeOfSeparation = 6
 
 class GraphVisitor {
   static newProperty { _property }
-  static MAX_TRIES { 4 }
+  static maxTries { 4 }
   static someMethod(withInput) { ... }
 }
 ```
@@ -89,3 +89,4 @@ People who have contributed code or documentation to the project:
 * Francisco Requena, aka frarees [https://github.com/frarees]
 * Camilo Castro, aka clsource [https://github.com/clsource]
 * Siddhant Rao [https://siddhantrao23.github.io]
+* Chayim Refael Friedman [https://github.com/ChayimFriedman2]

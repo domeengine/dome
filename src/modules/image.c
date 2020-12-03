@@ -11,6 +11,7 @@ typedef struct {
   IMAGE* image;
   VEC scale;
   double angle;
+  double opacity;
 
   int32_t srcW;
   int32_t srcH;
@@ -19,9 +20,11 @@ typedef struct {
   VEC dest;
 
   COLOR_MODE mode;
-  // MONO colour palette
+  // MONO color palette
   uint32_t backgroundColor;
   uint32_t foregroundColor;
+  // Tint color value
+  uint32_t tintColor;
 } DRAW_COMMAND;
 
 DRAW_COMMAND DRAW_COMMAND_init(IMAGE* image) {
@@ -36,9 +39,12 @@ DRAW_COMMAND DRAW_COMMAND_init(IMAGE* image) {
   command.angle = 0;
   command.scale = (VEC) { 1, 1 };
 
+  command.opacity = 1;
+
   command.mode = COLOR_MODE_RGBA;
   command.backgroundColor = 0xFF000000;
   command.foregroundColor = 0xFFFFFFFF;
+  command.tintColor = 0x00000000;
 
   return command;
 }
@@ -109,16 +115,23 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
           v = swap;
         }
 
-        uint32_t color = *(pixel + (v * image->width + u));
+        uint32_t preColor = *(pixel + (v * image->width + u));
+        uint32_t color = preColor;
+        uint8_t alpha = (0xFF000000 & color) >> 24;
         if (command.mode == COLOR_MODE_MONO) {
-          uint8_t alpha = (0xFF000000 & color) >> 24;
           if (alpha < 0xFF || (color & 0x00FFFFFF) == 0) {
             color = command.backgroundColor;
           } else {
             color = command.foregroundColor;
           }
+        } else {
+          color = ((uint8_t)(alpha * command.opacity) << 24) | (preColor & 0x00FFFFFF);
         }
         ENGINE_pset(engine, x, y, color);
+        // Only apply the tint on visible pixels
+        if (command.tintColor != 0 && color != 0 && (alpha * command.opacity) != 0) {
+          ENGINE_pset(engine, x, y, command.tintColor);
+        }
       }
     }
   }
@@ -181,6 +194,14 @@ DRAW_COMMAND_allocate(WrenVM* vm) {
     wrenGetListElement(vm, 2, 9, 1);
     ASSERT_SLOT_TYPE(vm, 1, NUM, "background color");
     command->backgroundColor = wrenGetSlotDouble(vm, 1);
+
+    wrenGetListElement(vm, 2, 10, 1);
+    ASSERT_SLOT_TYPE(vm, 1, NUM, "opacity");
+    command->opacity = wrenGetSlotDouble(vm, 1);
+
+    wrenGetListElement(vm, 2, 11, 1);
+    ASSERT_SLOT_TYPE(vm, 1, NUM, "tint color");
+    command->tintColor = wrenGetSlotDouble(vm, 1);
   }
 }
 

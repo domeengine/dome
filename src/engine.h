@@ -5,6 +5,13 @@ internal struct AUDIO_ENGINE_t* AUDIO_ENGINE_init(void);
 internal void AUDIO_ENGINE_free(struct AUDIO_ENGINE_t*);
 
 typedef struct {
+  int64_t x;
+  int64_t y;
+  int64_t w;
+  int64_t h;
+} DOME_RECT;
+
+typedef struct {
   bool relative;
   int x;
   int y;
@@ -36,18 +43,24 @@ typedef struct {
 } PIXEL_BUFFER;
 
 typedef struct {
+  void* pixels;
+  uint32_t width;
+  uint32_t height;
+  int32_t offsetX;
+  int32_t offsetY;
+  DOME_RECT clip;
+} CANVAS;
+
+typedef struct {
   ENGINE_RECORDER record;
   SDL_Window* window;
   SDL_Renderer *renderer;
   SDL_Texture *texture;
   SDL_Rect viewport;
-  void* pixels;
+  CANVAS canvas;
+  PIXEL_BUFFER blitBuffer;
   ABC_FIFO fifo;
   MAP moduleMap;
-  uint32_t width;
-  uint32_t height;
-  int32_t offsetX;
-  int32_t offsetY;
   mtar_t* tar;
   bool running;
   char** argv;
@@ -56,7 +69,6 @@ typedef struct {
   ENGINE_MOUSE_STATE mouse;
   int exit_status;
   struct AUDIO_ENGINE_t* audioEngine;
-  PIXEL_BUFFER blitBuffer;
   bool initialized;
   bool debugEnabled;
   bool vsyncEnabled;

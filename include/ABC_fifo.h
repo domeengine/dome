@@ -1,5 +1,5 @@
 /*
-  ABC_fifo.h - v0.0.11 - Public Domain
+  ABC_fifo.h - v0.0.12 - Public Domain
   Author: Aviv Beeri, 2018
 
   How To Use:
@@ -10,6 +10,7 @@
 
   Version History:
 
+  v0.0.12 - Moved the SDL warning so ABC_fifo can be compiled in a seperate translation unit.
   v0.0.11 - When closing, we actually make sure all the threads can wake up
             waiting for them all.
   v0.0.10 - We block when closing the FIFO til all threads finish
@@ -42,13 +43,6 @@
 
   For more information, please refer to <http://unlicense.org/>
 */
-
-#ifndef SDL_INIT_EVERYTHING
-#error "ABC_FIFO depends on SDL, which could not be detected."
-#define SDL_sem void
-#define SDL_atomic_t int
-#define SDL_Thread int
-#endif
 
 
 #ifndef ABC_FIFO_H
@@ -102,6 +96,15 @@ void ABC_FIFO_close(ABC_FIFO* queue);
 
 #ifdef ABC_FIFO_IMPL
 #define ABC_FIFO_IMPL
+
+
+#ifndef SDL_INIT_EVERYTHING
+#error "ABC_FIFO depends on SDL, which could not be detected."
+#define SDL_sem void
+#define SDL_atomic_t int
+#define SDL_Thread int
+#endif
+
 
 
 

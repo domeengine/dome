@@ -66,7 +66,10 @@ internal WrenForeignMethodFn VM_bind_foreign_method(
   return MAP_getFunction(&moduleMap, module, fullName);
 }
 
-internal char* VM_load_module(WrenVM* vm, const char* name) {
+internal WrenLoadModuleResult
+VM_load_module(WrenVM* vm, const char* name) {
+  WrenLoadModuleResult result = { 0 };
+
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   MAP moduleMap = engine->moduleMap;
 
@@ -80,7 +83,7 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
     if (DEBUG_MODE) {
       ENGINE_printLog(engine, "wren\n", name);
     }
-    return NULL;
+    return result;
   }
 #endif
 #if WREN_OPT_RANDOM
@@ -88,7 +91,7 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
     if (DEBUG_MODE) {
       ENGINE_printLog(engine, "wren\n", name);
     }
-    return NULL;
+    return result;
   }
 #endif
 
@@ -99,7 +102,8 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
     if (DEBUG_MODE) {
       ENGINE_printLog(engine, "dome\n", name);
     }
-    return module;
+    result.source = module;
+    return result;
   }
 
   // Otherwise, search on filesystem
@@ -117,7 +121,8 @@ internal char* VM_load_module(WrenVM* vm, const char* name) {
   char* file = ENGINE_readFile(engine, path, NULL);
 
   free(path);
-  return file;
+  result.source = file;
+  return result;
 }
 
 // Debug output for VM
@@ -212,6 +217,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_ellipsefill(_,_,_,_,_)", CANVAS_ellipsefill);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_print(_,_,_,_)", CANVAS_print);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.offset(_,_)", CANVAS_offset);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.clip(_,_,_,_)", CANVAS_clip);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_resize(_,_,_)", CANVAS_resize);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.width", CANVAS_getWidth);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.height", CANVAS_getHeight);
@@ -290,6 +296,16 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.attached", GAMEPAD_isAttached);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.name", GAMEPAD_getName);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.id", GAMEPAD_getId);
+
+  // Json
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.stream_begin(_)", JSON_STREAM_begin);
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.stream_end()", JSON_STREAM_end);
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.next", JSON_STREAM_next);
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.value", JSON_STREAM_value);
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.error_message", JSON_STREAM_error_message);
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.lineno", JSON_STREAM_lineno);
+  MAP_addFunction(&engine->moduleMap, "json", "JsonStream.pos", JSON_STREAM_pos);
+  MAP_addFunction(&engine->moduleMap, "json", "static JsonStream.escapechar(_,_)", JSON_STREAM_escapechar);
 
   return vm;
 }
