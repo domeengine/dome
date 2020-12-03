@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [assigned, opened, synchronize, reopened]
   release:
-    types: [created]
+    types: [published]
 
 jobs:
   build-linux:
