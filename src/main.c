@@ -110,6 +110,7 @@ typedef struct {
   double lag;
   double elapsed;
   bool windowBlurred;
+  uint8_t attempts;
 } LOOP_STATE;
 
 internal void
@@ -526,7 +527,6 @@ int main(int argc, char* args[])
   loop.vm = vm;
 
   // Load user game file
-  WrenHandle* initMethod = NULL;
   SDL_Thread* recordThread = NULL;
 
   interpreterResult = wrenInterpret(vm, "main", gameFile);
@@ -539,16 +539,19 @@ int main(int argc, char* args[])
 
 
   wrenEnsureSlots(vm, 3);
+  WrenHandle* initMethod = NULL;
   initMethod = wrenMakeCallHandle(vm, "init()");
-  loop.updateMethod = wrenMakeCallHandle(vm, "update()");
-  loop.drawMethod = wrenMakeCallHandle(vm, "draw(_)");
   wrenGetVariable(vm, "main", "Game", 0);
   loop.gameClass = wrenGetSlotHandle(vm, 0);
+  loop.updateMethod = wrenMakeCallHandle(vm, "update()");
+  loop.drawMethod = wrenMakeCallHandle(vm, "draw(_)");
 
   // Initiate game loop
 
   wrenSetSlotHandle(vm, 0, loop.gameClass);
   interpreterResult = wrenCall(vm, initMethod);
+  wrenReleaseHandle(vm, initMethod);
+  initMethod = NULL;
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
     goto vm_cleanup;
@@ -621,7 +624,10 @@ int main(int argc, char* args[])
         LOOP_flip(&loop);
       }
     } else {
-      while (loop.lag >= loop.MS_PER_FRAME) {
+      loop.attempts = 5;
+      while (loop.attempts > 0 && loop.lag >= loop.MS_PER_FRAME) {
+        loop.attempts--;
+
         result = LOOP_processInput(&loop);
         if (result != EXIT_SUCCESS) {
           goto vm_cleanup;
@@ -637,6 +643,9 @@ int main(int argc, char* args[])
       result = LOOP_render(&loop);
       if (result != EXIT_SUCCESS) {
         goto vm_cleanup;
+      }
+      if (loop.attempts == 0) {
+        loop.lag = 0;
       }
       LOOP_flip(&loop);
     }
