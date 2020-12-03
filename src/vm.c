@@ -68,10 +68,7 @@ internal WrenForeignMethodFn VM_bind_foreign_method(
 
 internal WrenLoadModuleResult
 VM_load_module(WrenVM* vm, const char* name) {
-  WrenLoadModuleResult result;
-  result.source = NULL;
-  result.onComplete = NULL;
-  result.userData = NULL;
+  WrenLoadModuleResult result = { 0 };
 
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   MAP moduleMap = engine->moduleMap;
