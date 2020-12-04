@@ -17,26 +17,26 @@ It contains the following classes:
 
 #### `static encode(object: Object): String`
 
-#### `static encode(object: Object, options:Num): String`
+#### `static encode(object: Object, options: Num): String`
 
 Transform the object to a _Json_ encoded string. With default or custom options.
 Encoding only works for primitive data types (_Bool_, _Map_, _Num_, _Null_, _List_, _String_). If a non primitive object is passed, the encoder will call it's _toString_ method.
 
-#### `static decode(value:String, options:Num): Object`
+#### `static decode(value: String, options: Num): Object`
 
-#### `static decode(value:String): Object`
+#### `static decode(value: String): Object`
 
 Returns a new _Json_ object with default or custom options.
 
-#### `static load(path:String): Object`
+#### `static load(path: String): Object`
 
-#### `static load(path:String, options:Num): Object`
+#### `static load(path: String, options: Num): Object`
 
 Reads the contents of a file in `path` and returns a new _Json_ object with default or custom options.
 
-### `static save(path: String, object: Object)`
+#### `static save(path: String, object: Object)`
 
-### `static save(path: String, object:Object, options:Num)`
+#### `static save(path: String, object: Object, options: Num)`
 
 This will encode the object and then save the result to a file specified in `path`. With default or custom options.
 
