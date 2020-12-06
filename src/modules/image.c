@@ -88,8 +88,8 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
       w = h;
       h = swap;
     }
-    for (int32_t j = 0; j < ceil(h); j++) {
-      for (int32_t i = 0; i < ceil(w); i++) {
+    for (int32_t j = 0; j < floor(h); j++) {
+      for (int32_t i = 0; i < floor(w); i++) {
 
         int32_t x = dest.x + i;
         int32_t y = dest.y + j;
@@ -113,6 +113,9 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
           swap = u;
           u = v;
           v = swap;
+        }
+        if ((src.x + u) < 0 || (src.x + u) >= image->width || (src.y + v) < 0 || (src.y + v) >= image->height) {
+          continue;
         }
 
         uint32_t preColor = *(pixel + (v * image->width + u));
