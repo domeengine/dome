@@ -34,5 +34,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 int mkdirp(const char *, mode_t );
+const char* path_normalize(const char* path);
 
 #endif
