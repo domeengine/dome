@@ -12,7 +12,7 @@ A comfortable framework for game development which melds SDL2 and the [Wren scri
 
 You can download production-ready binaries from our [Releases page](https://github.com/domeengine/dome/releases/latest). This is the recommended method for distribution and easy development.
 
-### Install via Brew
+### Install via Brew
 
 Alternatively, if you have Homebrew installed (Mac OS X, Linux and WSL), you can install DOME using the following commands:
 
