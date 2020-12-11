@@ -15,6 +15,7 @@ declare -a arr=(
 "image"
 "math"
 "json"
+"random"
 )
  
 declare -a opts=(

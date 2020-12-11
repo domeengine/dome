@@ -25,6 +25,7 @@ fi
 unset config
 MAKEFLAGS="--no-print-directory"
 echo $config
+echo ${@:2}
 # build the debug version of wren
 make clean
 make ${@:2} verbose=1 config=debug_$1 wren && cp $WREN_DIR/lib/libwren_d.a $LIB_DIR/libwrend.a

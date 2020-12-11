@@ -73,18 +73,4 @@ class Squirrel3 {
   }
 }
 
-
-var seed = 9
-var rng = Squirrel3.new(seed)
-var buckets = List.filled(10, 0)
-for (i in 0...1000000) {
-  var val = (rng.int(1000) / 100).floor
-  buckets[val] = buckets[val] + 1
-}
-for (i in 0...10) {
-  System.print("Bucket %(i): %(buckets[i])")
-}
-
-
-var list = ["A", "B", "C", "D", "E", "F", "G"]
-System.print(rng.sample(list, 3))
+var Random = Squirrel3
