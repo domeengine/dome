@@ -1,3 +1,5 @@
+import "platform" for Platform
+
 class Version {
   foreign static toString
 

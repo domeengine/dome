@@ -1,3 +1,4 @@
+import "platform" for Platform
 var BIT_NOISE1 = 0xB5297A4D
 var BIT_NOISE2 = 0x68E31DA4
 var BIT_NOISE3 = 0x1B56C4E9
@@ -29,8 +30,7 @@ class Squirrel3 {
 
   construct new() {
     _state = 0
-    // TODO: Use the actual system's clock, not the VM clock
-    _seed = System.clock
+    _seed = Platform.time
   }
 
   construct new(seed) {

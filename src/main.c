@@ -95,6 +95,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/image.c"
 #include "modules/input.c"
 #include "modules/json.c"
+#include "modules/platform.c"
 
 // Comes last to register modules
 #include "vm.c"
