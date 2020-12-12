@@ -18,15 +18,19 @@ class Color {
 
       if ((hex.bytes.count - offset) == 3 || (hex.bytes.count - offset) == 4) {
         // Short color, e.g. #fff intepreted as #ffffff
-        _r = ShortColorDigit.call(hex.bytes[offset])
-        _g = ShortColorDigit.call(hex.bytes[offset + 1])
-        _b = ShortColorDigit.call(hex.bytes[offset + 2])
-        _a = (hex.bytes.count - offset) == 4 ? ShortColorDigit.call(hex.bytes[offset + 3]) : 255
+        setrgb(
+          ShortColorDigit.call(hex.bytes[offset]),
+          ShortColorDigit.call(hex.bytes[offset + 1]),
+          ShortColorDigit.call(hex.bytes[offset + 2]),
+          (hex.bytes.count - offset) == 4 ? ShortColorDigit.call(hex.bytes[offset + 3]) : 255
+        )
       } else {
-        _r = HexToNum.call(StringUtils.subString(hex, offset + 0, 2))
-        _g = HexToNum.call(StringUtils.subString(hex, offset + 2, 2))
-        _b = HexToNum.call(StringUtils.subString(hex, offset + 4, 2))
-        _a = (hex.bytes.count - offset) == 8 ? HexToNum.call(StringUtils.subString(hex, offset + 6, 2)) : 255
+        setrgb(
+          HexToNum.call(StringUtils.subString(hex, offset + 0, 2)),
+          HexToNum.call(StringUtils.subString(hex, offset + 2, 2)),
+          HexToNum.call(StringUtils.subString(hex, offset + 4, 2)),
+          (hex.bytes.count - offset) == 8 ? HexToNum.call(StringUtils.subString(hex, offset + 6, 2)) : 255
+        )
       }
     } else {
       Fiber.abort("Color only supports hexcodes as strings or numbers")
@@ -58,6 +62,10 @@ class Color {
   }
 
   setrgb(r, g, b, a) {
+    if (r < 0 || 255 < r) Fiber.abort("Red channel out of range")
+    if (g < 0 || 255 < g) Fiber.abort("Green channel out of range")
+    if (b < 0 || 255 < b) Fiber.abort("Blue channel out of range")
+    if (a < 0 || 255 < a) Fiber.abort("Alpha channel out of range")
     _r = r
     _g = g
     _b = b
