@@ -132,43 +132,41 @@ class Color {
   g { _g }
   b { _b }
 
-  static none { AllColors["none"] }
-  static black { AllColors["black"] }
-  static darkblue { AllColors["darkblue"] }
-  static purple { AllColors["purple"] }
-  static darkpurple { AllColors["darkpurple"] }
-  static darkgreen { AllColors["darkgreen"] }
-  static brown { AllColors["brown"] }
-  static darkgray { AllColors["darkgray"] }
-  static lightgray { AllColors["lightgray"] }
-  static white { AllColors["white"] }
-  static red { AllColors["red"] }
-  static orange { AllColors["orange"] }
-  static yellow { AllColors["yellow"] }
-  static green { AllColors["green"] }
-  static blue { AllColors["blue"] }
-  static indigo { AllColors["indigo"] }
-  static pink { AllColors["pink"] }
-  static peach { AllColors["peach"] }
+  static none { AllColors_None }
+  static black { AllColors_Black }
+  static darkblue { AllColors_DarkBlue }
+  static purple { AllColors_Purple }
+  static darkpurple { AllColors_DarkPurple }
+  static darkgreen { AllColors_DarkGreen }
+  static brown { AllColors_Brown }
+  static darkgray { AllColors_DarkGray }
+  static lightgray { AllColors_LightGray }
+  static white { AllColors_White }
+  static red { AllColors_Red }
+  static orange { AllColors_Orange }
+  static yellow { AllColors_Yellow }
+  static green { AllColors_Green }
+  static blue { AllColors_Blue }
+  static indigo { AllColors_Indigo }
+  static pink { AllColors_Pink }
+  static peach { AllColors_Peach }
 }
 
-var AllColors = {
-  "black": Color.rgb(0, 0, 0),
-  "darkblue": Color.rgb(29, 43, 83),
-  "purple": Color.rgb(141, 60, 255),
-  "darkpurple": Color.rgb(126, 37, 83),
-  "darkgreen": Color.rgb(0, 135, 81),
-  "brown": Color.rgb(171, 82, 54),
-  "darkgray": Color.rgb(95, 87, 79),
-  "lightgray": Color.rgb(194, 195, 199),
-  "white": Color.rgb(255, 255, 255),
-  "red": Color.rgb(255, 0, 77),
-  "orange": Color.rgb(255, 163, 0),
-  "yellow": Color.rgb(255, 236, 39),
-  "green": Color.rgb(0, 228, 54),
-  "blue": Color.rgb(41, 173, 255),
-  "indigo": Color.rgb(131, 118, 156),
-  "pink": Color.rgb(255, 119, 168),
-  "peach": Color.rgb(255, 204, 170),
-  "none": Color.rgb(0, 0, 0, 0)
-}
+var AllColors_Black = Color.rgb(0, 0, 0)
+var AllColors_DarkBlue = Color.rgb(29, 43, 83)
+var AllColors_Purple = Color.rgb(141, 60, 255)
+var AllColors_DarkPurple = Color.rgb(126, 37, 83)
+var AllColors_DarkGreen = Color.rgb(0, 135, 81)
+var AllColors_Brown = Color.rgb(171, 82, 54)
+var AllColors_DarkGray = Color.rgb(95, 87, 79)
+var AllColors_LightGray = Color.rgb(194, 195, 199)
+var AllColors_White = Color.rgb(255, 255, 255)
+var AllColors_Red = Color.rgb(255, 0, 77)
+var AllColors_Orange = Color.rgb(255, 163, 0)
+var AllColors_Yellow = Color.rgb(255, 236, 39)
+var AllColors_Green = Color.rgb(0, 228, 54)
+var AllColors_Blue = Color.rgb(41, 173, 255)
+var AllColors_Indigo = Color.rgb(131, 118, 156)
+var AllColors_Pink = Color.rgb(255, 119, 168)
+var AllColors_Peach = Color.rgb(255, 204, 170)
+var AllColors_None = Color.rgb(0, 0, 0, 0)
