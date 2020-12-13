@@ -119,8 +119,8 @@ VM_load_module(WrenVM* vm, const char* name) {
 
   // This pointer becomes owned by the WrenVM and freed later.
   char* file = ENGINE_readFile(engine, path, NULL);
-
   free(path);
+
   result.source = file;
   return result;
 }
@@ -174,6 +174,17 @@ internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
   engine->debug.errorBufLen += len;
 }
 
+internal const char*
+VM_resolve_module_name(WrenVM* vm, const char* importer, const char* name) {
+  char* localName = name;
+  if (strlen(name) > 1) {
+    while (localName[0] == '.' && localName[1] == '/') {
+      localName = localName + 2;
+    }
+  }
+  return path_normalize(localName);
+}
+
 internal WrenVM* VM_create(ENGINE* engine) {
   WrenConfiguration config;
   wrenInitConfiguration(&config);
@@ -181,6 +192,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   config.errorFn = VM_error;
   config.bindForeignMethodFn = VM_bind_foreign_method;
   config.bindForeignClassFn = VM_bind_foreign_class;
+  config.resolveModuleFn = VM_resolve_module_name;
   config.loadModuleFn = VM_load_module;
 
   WrenVM* vm = wrenNewVM(&config);
