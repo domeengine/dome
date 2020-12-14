@@ -321,6 +321,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // Platform
   MAP_addFunction(&engine->moduleMap, "platform", "static Platform.time", PLATFORM_getTime);
+  MAP_addFunction(&engine->moduleMap, "platform", "static Platform.name", PLATFORM_getName);
 
 
 
