@@ -5,19 +5,19 @@ var BIT_NOISE3 = 0x1B56C4E9
 var CAP = 0xFFFFFFFF
 
 class Squirrel3 {
-  static hash(position) {
-    var mangled = position
+  static noise(x) {
+    var mangled = x
     mangled = mangled * BIT_NOISE1
     mangled = mangled ^ (mangled >> 8)
     mangled = mangled + BIT_NOISE2
     mangled = mangled ^ (mangled << 8)
     mangled = mangled * BIT_NOISE3
     mangled = mangled ^ (mangled >> 8)
-    return mangled % CAP
+    return mangled & CAP
   }
 
-  static hash(position, seed) {
-    var mangled = position
+  static noise(x, seed) {
+    var mangled = x
     mangled = mangled * BIT_NOISE1
     mangled = mangled + seed
     mangled = mangled ^ (mangled >> 8)
@@ -25,7 +25,7 @@ class Squirrel3 {
     mangled = mangled ^ (mangled << 8)
     mangled = mangled * BIT_NOISE3
     mangled = mangled ^ (mangled >> 8)
-    return mangled % CAP
+    return mangled & CAP
   }
 
   construct new() {
@@ -39,7 +39,7 @@ class Squirrel3 {
   }
 
   float() {
-    var result = Squirrel3.hash(_state, _seed)
+    var result = Squirrel3.noise(_state, _seed)
     _state = _state + 1
     return result / CAP
   }
