@@ -130,43 +130,41 @@ class Color is Vector {
   g=(v) { y = v }
   b=(v) { z = v }
 
-  static none { AllColors["none"] }
-  static black { AllColors["black"] }
-  static darkblue { AllColors["darkblue"] }
-  static purple { AllColors["purple"] }
-  static darkpurple { AllColors["darkpurple"] }
-  static darkgreen { AllColors["darkgreen"] }
-  static brown { AllColors["brown"] }
-  static darkgray { AllColors["darkgray"] }
-  static lightgray { AllColors["lightgray"] }
-  static white { AllColors["white"] }
-  static red { AllColors["red"] }
-  static orange { AllColors["orange"] }
-  static yellow { AllColors["yellow"] }
-  static green { AllColors["green"] }
-  static blue { AllColors["blue"] }
-  static indigo { AllColors["indigo"] }
-  static pink { AllColors["pink"] }
-  static peach { AllColors["peach"] }
+  static none { None }
+  static black { Black }
+  static darkblue { DarkBlue }
+  static purple { Purple }
+  static darkpurple { DarkPurple }
+  static darkgreen { DarkGreen }
+  static brown { Brown }
+  static darkgray { DarkGray }
+  static lightgray { LightGray }
+  static white { White }
+  static red { Red }
+  static orange { Orange }
+  static yellow { Yellow }
+  static green { Green }
+  static blue { Blue }
+  static indigo { Indigo }
+  static pink { Pink }
+  static peach { Peach }
 }
 
-var AllColors = {
-  "black": Color.rgb(0, 0, 0, 255),
-  "darkblue": Color.rgb(29, 43, 83),
-  "purple": Color.rgb(141, 60, 255),
-  "darkpurple": Color.rgb(126, 37, 83),
-  "darkgreen": Color.rgb(0, 135, 81),
-  "brown": Color.rgb(171, 82, 54),
-  "darkgray": Color.rgb(95, 87, 79),
-  "lightgray": Color.rgb(194, 195, 199),
-  "white": Color.rgb(255, 255, 255),
-  "red": Color.rgb(255, 0, 77),
-  "orange": Color.rgb(255, 163, 0),
-  "yellow": Color.rgb(255, 236, 39),
-  "green": Color.rgb(0, 228, 54),
-  "blue": Color.rgb(41, 173, 255),
-  "indigo": Color.rgb(131, 118, 156),
-  "pink": Color.rgb(255, 119, 168),
-  "peach": Color.rgb(255, 204, 170),
-  "none": Color.rgb(0, 0, 0, 0)
-}
+var Black = Color.rgb(0, 0, 0)
+var DarkBlue = Color.rgb(29, 43, 83)
+var Purple = Color.rgb(141, 60, 255)
+var DarkPurple = Color.rgb(126, 37, 83)
+var DarkGreen = Color.rgb(0, 135, 81)
+var Brown = Color.rgb(171, 82, 54)
+var DarkGray = Color.rgb(95, 87, 79)
+var LightGray = Color.rgb(194, 195, 199)
+var White = Color.rgb(255, 255, 255)
+var Red = Color.rgb(255, 0, 77)
+var Orange = Color.rgb(255, 163, 0)
+var Yellow = Color.rgb(255, 236, 39)
+var Green = Color.rgb(0, 228, 54)
+var Blue = Color.rgb(41, 173, 255)
+var Indigo = Color.rgb(131, 118, 156)
+var Pink = Color.rgb(255, 119, 168)
+var Peach = Color.rgb(255, 204, 170)
+var None = Color.rgb(0, 0, 0, 0)
