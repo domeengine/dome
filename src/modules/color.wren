@@ -9,10 +9,19 @@ var ShortColorDigit = Fn.new {|digit|
 }
 
 class Color is Vector {
+
+  static rgb(r, g, b) {
+    return Color.new(r, g, b, 255)
+  }
+  static rgb(r, g, b, a) {
+    return Color.new(r, g, b, a)
+  }
+ 
   static hsv(h, s, v) {
     return hsv(h, s, v, 255)
   }
   static hsv(h, s, v, a) {
+
     h = h % 360
     if (0 < s && s > 1) {
       Fiber.abort("Color component S is out of bounds")
@@ -62,12 +71,6 @@ class Color is Vector {
     return Color.new(r, g, b, a)
   }
 
-  static rgb(r, g, b) {
-    return Color.new(r, g, b, 255)
-  }
-  static rgb(r, g, b, a) {
-    return Color.new(r, g, b, a)
-  }
   static hex(hex) {
     if (hex is String) {
       var offset = 0
@@ -103,9 +106,18 @@ class Color is Vector {
   }
   construct new(r, g, b) {
     super(r, g, b, 255)
+    checkRange()
   }
   construct new(r, g, b, a) {
     super(r, g, b, a)
+    checkRange()
+  }
+  
+  checkRange() {
+    if (r < 0 || 255 < r) Fiber.abort("Red channel out of range")
+    if (g < 0 || 255 < g) Fiber.abort("Green channel out of range")
+    if (b < 0 || 255 < b) Fiber.abort("Blue channel out of range")
+    if (a < 0 || 255 < a) Fiber.abort("Alpha channel out of range")
   }
 
   toNum {
