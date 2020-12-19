@@ -10,16 +10,10 @@ var ShortColorDigit = Fn.new {|digit|
 
 class Color is Vector {
 
-  static rgb(r, g, b) {
-    return Color.new(r, g, b, 255)
-  }
-  static rgb(r, g, b, a) {
-    return Color.new(r, g, b, a)
-  }
+  static rgb(r, g, b) { Color.new(r, g, b, 255) }
+  static rgb(r, g, b, a) { Color.new(r, g, b, a) }
  
-  static hsv(h, s, v) {
-    return hsv(h, s, v, 255)
-  }
+  static hsv(h, s, v) { hsv(h, s, v, 255) }
   static hsv(h, s, v, a) {
 
     h = h % 360
@@ -120,9 +114,7 @@ class Color is Vector {
     if (a < 0 || 255 < a) Fiber.abort("Alpha channel out of range")
   }
 
-  toNum {
-    return a << 24 | b << 16 | g << 8 | r
-  }
+  toNum { a << 24 | b << 16 | g << 8 | r }
 
   toString {
     var nums = r << 24 | g << 16 | b << 8 | a
