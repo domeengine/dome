@@ -43,6 +43,11 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.allocate = FONT_RASTER_allocate;
       methods.finalize = FONT_RASTER_finalize;
     }
+  } else if (STRINGS_EQUAL(module, "random")) {
+    if (STRINGS_EQUAL(className, "Squirrel3")) {
+      methods.allocate = RANDOM_allocate;
+      methods.finalize = RANDOM_finalize;
+    }
   } else {
     // TODO: Check if it's a module we lazy-loaded
 
@@ -322,6 +327,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Platform
   MAP_addFunction(&engine->moduleMap, "platform", "static Platform.time", PLATFORM_getTime);
   MAP_addFunction(&engine->moduleMap, "platform", "static Platform.name", PLATFORM_getName);
+  // Random
+  MAP_addFunction(&engine->moduleMap, "random", "static Squirrel3.noise(_,_)", RANDOM_noise);
+  MAP_addFunction(&engine->moduleMap, "random", "Squirrel3.float()", RANDOM_float);
 
 
 
