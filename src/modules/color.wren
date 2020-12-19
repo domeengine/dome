@@ -1,4 +1,4 @@
-import "math" for HexToNum, NumToHex, HexDigitToNum
+import "math" for HexToNum, NumToHex, HexDigitToNum, Vector
 import "dome" for StringUtils
 
 
@@ -8,63 +8,20 @@ var ShortColorDigit = Fn.new {|digit|
   // Digit is interpreted as written twice, e.g. #abc is equal to #aabbcc
 }
 
-class Color {
-  construct hex(hex) {
-    if (hex is String) {
-      var offset = 0
-      if (hex[0] == "#") {
-        offset = 1
-      }
+class Color is Vector {
 
-      if ((hex.bytes.count - offset) == 3 || (hex.bytes.count - offset) == 4) {
-        // Short color, e.g. #fff intepreted as #ffffff
-        _r = ShortColorDigit.call(hex.bytes[offset])
-        _g = ShortColorDigit.call(hex.bytes[offset + 1])
-        _b = ShortColorDigit.call(hex.bytes[offset + 2])
-        _a = (hex.bytes.count - offset) == 4 ? ShortColorDigit.call(hex.bytes[offset + 3]) : 255
-      } else {
-        _r = HexToNum.call(StringUtils.subString(hex, offset + 0, 2))
-        _g = HexToNum.call(StringUtils.subString(hex, offset + 2, 2))
-        _b = HexToNum.call(StringUtils.subString(hex, offset + 4, 2))
-        _a = (hex.bytes.count - offset) == 8 ? HexToNum.call(StringUtils.subString(hex, offset + 6, 2)) : 255
-      }
-    } else {
-      Fiber.abort("Color only supports hexcodes as strings or numbers")
-    }
+  static rgb(r, g, b) {
+    return Color.new(r, g, b, 255)
   }
+  static rgb(r, g, b, a) {
+    return Color.new(r, g, b, a)
+  }
+ 
+  static hsv(h, s, v) {
+    return hsv(h, s, v, 255)
+  }
+  static hsv(h, s, v, a) {
 
-  construct new(r, g, b) {
-    System.print("Color.new(_,_,_) is deprecated. Please use Color.rgb(_,_,_) instead.")
-    setrgb(r, g, b, 255)
-  }
-  construct new(r, g, b, a) {
-    System.print("Color.new(_,_,_,_) is deprecated. Please use Color.rgb(_,_,_,_) instead.")
-    setrgb(r, g, b, a)
-  }
-
-  construct rgb(r, g, b) {
-    setrgb(r, g, b, 255)
-  }
-  construct rgb(r, g, b, a) {
-    setrgb(r, g, b, a)
-  }
-  construct hsv(h, s, v, a) {
-    setHSV(h, s, v)
-    _a = a
-  }
-  construct hsv(h, s, v) {
-    setHSV(h, s, v)
-    _a = 255
-  }
-
-  setrgb(r, g, b, a) {
-    _r = r
-    _g = g
-    _b = b
-    _a = a
-  }
-
-  setHSV(h, s, v) {
     h = h % 360
     if (0 < s && s > 1) {
       Fiber.abort("Color component S is out of bounds")
@@ -108,10 +65,59 @@ class Color {
       Fiber.abort("Invalid H value")
     }
 
-    _r = (rP + m) * 255
-    _g = (gP + m) * 255
-    _b = (bP + m) * 255
-    _a = 255
+    var r = (rP + m) * 255
+    var g = (gP + m) * 255
+    var b = (bP + m) * 255
+    return Color.new(r, g, b, a)
+  }
+
+  static hex(hex) {
+    if (hex is String) {
+      var offset = 0
+      if (hex[0] == "#") {
+        offset = 1
+      }
+
+      var r
+      var g
+      var b
+      var a
+
+      if ((hex.bytes.count - offset) == 3 || (hex.bytes.count - offset) == 4) {
+        // Short color, e.g. #fff intepreted as #ffffff
+        r = ShortColorDigit.call(hex.bytes[offset])
+        g = ShortColorDigit.call(hex.bytes[offset + 1])
+        b = ShortColorDigit.call(hex.bytes[offset + 2])
+        a = (hex.bytes.count - offset) == 4 ? ShortColorDigit.call(hex.bytes[offset + 3]) : 255
+      } else {
+        r = HexToNum.call(StringUtils.subString(hex, offset + 0, 2))
+        g = HexToNum.call(StringUtils.subString(hex, offset + 2, 2))
+        b = HexToNum.call(StringUtils.subString(hex, offset + 4, 2))
+        a = (hex.bytes.count - offset) == 8 ? HexToNum.call(StringUtils.subString(hex, offset + 6, 2)) : 255
+      }
+      return Color.new(r, g, b, a)
+    } else {
+      Fiber.abort("Color only supports hexcodes as strings or numbers")
+    }
+  }
+
+  construct new() {
+    super()
+  }
+  construct new(r, g, b) {
+    super(r, g, b, 255)
+    checkRange()
+  }
+  construct new(r, g, b, a) {
+    super(r, g, b, a)
+    checkRange()
+  }
+  
+  checkRange() {
+    if (r < 0 || 255 < r) Fiber.abort("Red channel out of range")
+    if (g < 0 || 255 < g) Fiber.abort("Green channel out of range")
+    if (b < 0 || 255 < b) Fiber.abort("Blue channel out of range")
+    if (a < 0 || 255 < a) Fiber.abort("Alpha channel out of range")
   }
 
   toNum {
@@ -119,7 +125,7 @@ class Color {
   }
 
   toString {
-    var nums = _r << 24 | _g << 16 | _b << 8 | _a
+    var nums = r << 24 | g << 16 | b << 8 | a
     var hexString = NumToHex.call(nums)
     while (hexString.count < 8) {
       hexString = "0%(hexString)"
@@ -127,48 +133,50 @@ class Color {
     return "Color (#%(hexString))"
   }
 
-  a { _a }
-  r { _r }
-  g { _g }
-  b { _b }
+  a { w }
+  r { x }
+  g { y }
+  b { z }
+  a=(v) { w = v }
+  r=(v) { x = v }
+  g=(v) { y = v }
+  b=(v) { z = v }
 
-  static none { AllColors["none"] }
-  static black { AllColors["black"] }
-  static darkblue { AllColors["darkblue"] }
-  static purple { AllColors["purple"] }
-  static darkpurple { AllColors["darkpurple"] }
-  static darkgreen { AllColors["darkgreen"] }
-  static brown { AllColors["brown"] }
-  static darkgray { AllColors["darkgray"] }
-  static lightgray { AllColors["lightgray"] }
-  static white { AllColors["white"] }
-  static red { AllColors["red"] }
-  static orange { AllColors["orange"] }
-  static yellow { AllColors["yellow"] }
-  static green { AllColors["green"] }
-  static blue { AllColors["blue"] }
-  static indigo { AllColors["indigo"] }
-  static pink { AllColors["pink"] }
-  static peach { AllColors["peach"] }
+  static none { None }
+  static black { Black }
+  static darkblue { DarkBlue }
+  static purple { Purple }
+  static darkpurple { DarkPurple }
+  static darkgreen { DarkGreen }
+  static brown { Brown }
+  static darkgray { DarkGray }
+  static lightgray { LightGray }
+  static white { White }
+  static red { Red }
+  static orange { Orange }
+  static yellow { Yellow }
+  static green { Green }
+  static blue { Blue }
+  static indigo { Indigo }
+  static pink { Pink }
+  static peach { Peach }
 }
 
-var AllColors = {
-  "black": Color.rgb(0, 0, 0),
-  "darkblue": Color.rgb(29, 43, 83),
-  "purple": Color.rgb(141, 60, 255),
-  "darkpurple": Color.rgb(126, 37, 83),
-  "darkgreen": Color.rgb(0, 135, 81),
-  "brown": Color.rgb(171, 82, 54),
-  "darkgray": Color.rgb(95, 87, 79),
-  "lightgray": Color.rgb(194, 195, 199),
-  "white": Color.rgb(255, 255, 255),
-  "red": Color.rgb(255, 0, 77),
-  "orange": Color.rgb(255, 163, 0),
-  "yellow": Color.rgb(255, 236, 39),
-  "green": Color.rgb(0, 228, 54),
-  "blue": Color.rgb(41, 173, 255),
-  "indigo": Color.rgb(131, 118, 156),
-  "pink": Color.rgb(255, 119, 168),
-  "peach": Color.rgb(255, 204, 170),
-  "none": Color.rgb(0, 0, 0, 0)
-}
+var Black = Color.rgb(0, 0, 0)
+var DarkBlue = Color.rgb(29, 43, 83)
+var Purple = Color.rgb(141, 60, 255)
+var DarkPurple = Color.rgb(126, 37, 83)
+var DarkGreen = Color.rgb(0, 135, 81)
+var Brown = Color.rgb(171, 82, 54)
+var DarkGray = Color.rgb(95, 87, 79)
+var LightGray = Color.rgb(194, 195, 199)
+var White = Color.rgb(255, 255, 255)
+var Red = Color.rgb(255, 0, 77)
+var Orange = Color.rgb(255, 163, 0)
+var Yellow = Color.rgb(255, 236, 39)
+var Green = Color.rgb(0, 228, 54)
+var Blue = Color.rgb(41, 173, 255)
+var Indigo = Color.rgb(131, 118, 156)
+var Pink = Color.rgb(255, 119, 168)
+var Peach = Color.rgb(255, 204, 170)
+var None = Color.rgb(0, 0, 0, 0)

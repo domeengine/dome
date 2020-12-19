@@ -156,9 +156,7 @@ class Canvas {
   foreign static height
 
   static draw(object, x, y) {
-    if (object is Drawable) {
-      object.draw(x, y)
-    }
+    object.draw(x, y)
   }
 }
 
