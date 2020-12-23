@@ -1,3 +1,5 @@
+import "platform" for Platform
+
 class Version {
   foreign static toString
 
@@ -39,9 +41,6 @@ class Version {
     return true
   }
 }
-
-
-
 
 class Process {
   foreign static args
