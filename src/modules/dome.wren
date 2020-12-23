@@ -41,8 +41,6 @@ class Version {
 }
 
 
-
-
 class Process {
   foreign static args
   foreign static f_exit(n)
@@ -55,6 +53,7 @@ class Process {
     exit(0)
   }
 }
+
 
 class Window {
   foreign static title=(value)

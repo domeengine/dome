@@ -319,6 +319,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "json", "JsonStream.pos", JSON_STREAM_pos);
   MAP_addFunction(&engine->moduleMap, "json", "static JsonStream.escapechar(_,_)", JSON_STREAM_escapechar);
 
+  MAP_addFunction(&engine->moduleMap, "plugin", "static Plugin.f_load(_)", PLUGIN_load);
+
   return vm;
 }
 

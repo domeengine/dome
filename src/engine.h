@@ -61,6 +61,7 @@ typedef struct {
   PIXEL_BUFFER blitBuffer;
   ABC_FIFO fifo;
   MAP moduleMap;
+  PLUGIN_MAP pluginMap;
   mtar_t* tar;
   bool running;
   char** argv;

@@ -81,11 +81,16 @@ global_variable size_t GIF_SCALE = 1;
 #include "strings.c"
 #include "audio_types.c"
 #include "modules/map.c"
+// Import plugin definitions
+#include "dome.h"
+
+#include "plugin.h"
 #include "engine.h"
 #include "debug.c"
 #include "util/font8x8.h"
 #include "io.c"
 #include "engine.c"
+#include "plugin.c"
 
 #include "modules/dome.c"
 #include "modules/font.c"
@@ -95,6 +100,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/image.c"
 #include "modules/input.c"
 #include "modules/json.c"
+#include "modules/plugin.c"
 
 // Comes last to register modules
 #include "vm.c"
