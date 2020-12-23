@@ -4,8 +4,9 @@ cd src/util
 gcc embed.c -o embed -std=c99
 
 declare -a arr=(
-"dome" 
-"input" 
+"stringUtils"
+"dome"
+"input"
 "graphics"
 "color"
 "font"

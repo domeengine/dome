@@ -1,5 +1,5 @@
 import "math" for HexToNum, NumToHex, HexDigitToNum, Vector
-import "dome" for StringUtils
+import "stringUtils" for StringUtils
 
 
 var ShortColorDigit = Fn.new {|digit|

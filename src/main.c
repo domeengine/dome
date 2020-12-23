@@ -545,6 +545,8 @@ int main(int argc, char* args[])
   loop.gameClass = wrenGetSlotHandle(vm, 0);
   loop.updateMethod = wrenMakeCallHandle(vm, "update()");
   loop.drawMethod = wrenMakeCallHandle(vm, "draw(_)");
+  
+  SDL_SetRenderDrawColor(engine.renderer, 0x00, 0x00, 0x00, 0xFF);
 
   // Initiate game loop
 
@@ -560,7 +562,6 @@ int main(int argc, char* args[])
 
   SDL_SetWindowPosition(engine.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_ShowWindow(engine.window);
-  SDL_SetRenderDrawColor(engine.renderer, 0x00, 0x00, 0x00, 0xFF);
 
   // Resizing from init must happen before we begin recording
   if (engine.record.makeGif) {

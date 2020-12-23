@@ -1,3 +1,5 @@
+import "color" for Color
+
 class Version {
   foreign static toString
 
@@ -67,15 +69,22 @@ class Window {
   foreign static height
   foreign static fps
 
-  foreign static resize(width, height)
-}
-
-// Private string handling methods
-// Do not use for game code.
-class StringUtils {
-  foreign static toLowercase(string)
-
-  static subString(str, start, len) {
-    return str.bytes.skip(start).take(len).toList
+  foreign static f_color=(value)
+  foreign static f_color
+  static color=(value) {
+    var c = Color.black
+    if (value is Color) {
+      c = value
+    }
+    f_color = c.toNum
   }
+  static color {
+    var c = f_color
+    var r = c & 255
+    var g = (c & 255 << 8) >> 8
+    var b = (c & 255 << 16) >> 16
+    return Color.rgb(r, g, b)
+  }
+
+  foreign static resize(width, height)
 }
