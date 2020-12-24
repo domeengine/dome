@@ -16,6 +16,7 @@ declare -a arr=(
 "math"
 "plugin"
 "json"
+"platform"
 )
  
 declare -a opts=(

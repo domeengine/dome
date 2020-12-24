@@ -1,3 +1,5 @@
+import "dome" for Platform
+
 class Plugin {
   static load(path) {
     System.print(Platform.name)
