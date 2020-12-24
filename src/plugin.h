@@ -9,6 +9,8 @@ typedef struct PLUGIN_MAP_NODE_t {
 
 
 typedef DOME_Result (*DOME_Plugin_Hook) (DOME_Context context);
+typedef DOME_Result (*DOME_foreignFn) (DOME_Context context, WrenVM* vm);
+
 typedef struct {
   // Total allocated size
   size_t max;

@@ -40,6 +40,18 @@ typedef enum {
   DOME_RESULT_UNKNOWN
 } DOME_Result;
 
+#define DOME_registerFn(ctx, module, signature, method) \
+  DOME_registerFnImpl(ctx, module, signature, DOME_PLUGIN_method_wrap_##_name)
+
+
+#define DOME_PLUGIN_method(name, context, vm) \
+  static void DOME_PLUGIN_method_##_name(DOME_Context ctx, void* vm); \
+  DOME_EXPORTED void DOME_PLUGIN_method_wrap_##_name(void* vm) { \
+    DOME_Context ctx = (DOME_Context) DOME_getContext(vm); \
+    DOME_PLUGIN_method_##_name(ctx, vm);\
+  } \
+  static void DOME_PLUGIN_method_##_name(DOME_Context ctx, void* vm)
+
 #define DOME_PLUGIN_init(ctx) \
   DOME_EXPORTED DOME_Result DOME_hookOnInit(DOME_Context ctx)
 
@@ -50,6 +62,11 @@ typedef enum {
   DOME_EXPORTED DOME_Result DOME_hookOnPreUpdate(DOME_Context ctx)
 
 
+typedef void (*DOME_ForeignFn)(void* vm);
 DOME_EXPORTED DOME_Result DOME_registerModule(DOME_Context ctx, const char* name, const char* source);
+
+DOME_EXPORTED DOME_Result DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signature, DOME_ForeignFn method);
+
+DOME_EXPORTED DOME_Context DOME_getContext(void* vm);
 
 #endif

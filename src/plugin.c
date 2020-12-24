@@ -146,3 +146,18 @@ DOME_registerModule(DOME_Context ctx, const char* name, const char* source) {
 
   return DOME_RESULT_SUCCESS;
 }
+
+DOME_EXPORTED DOME_Result
+DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signature, DOME_ForeignFn method) {
+
+  ENGINE* engine = (ENGINE*)ctx;
+  MAP* moduleMap = &(engine->moduleMap);
+  MAP_addFunction(moduleMap, moduleName, signature, (WrenForeignMethodFn)method);
+
+  return DOME_RESULT_SUCCESS;
+}
+
+DOME_EXPORTED DOME_Context
+DOME_getContext(void* vm) {
+  return wrenGetUserData(vm);
+}
