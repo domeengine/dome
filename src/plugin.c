@@ -1,5 +1,5 @@
 internal DOME_Result
-PLUGIN_nullHook(DOME_Context* ctx) {
+PLUGIN_nullHook(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
 
@@ -37,7 +37,7 @@ PLUGIN_COLLECTION_free(ENGINE* engine) {
     shutdownHook = (DOME_Plugin_Hook)SDL_LoadFunction(plugins.objectHandle[i], "DOME_hookOnShutdown");
     if (shutdownHook != NULL) {
       // TODO: provide context object
-      shutdownHook(NULL);
+      shutdownHook(engine);
       // TODO: Log failure
     }
     plugins.active[i] = false;
@@ -76,7 +76,7 @@ PLUGIN_COLLECTION_runHook(ENGINE* engine, DOME_PLUGIN_HOOK hook) {
     DOME_Result result = DOME_RESULT_SUCCESS;
     switch (hook) {
       case DOME_PLUGIN_HOOK_PRE_UPDATE:
-        { result = plugins.preUpdateHook[i](NULL); } break;
+        { result = plugins.preUpdateHook[i](engine); } break;
       default: break;
     }
     if (result != DOME_RESULT_SUCCESS) {
@@ -131,53 +131,18 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
   initHook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "DOME_hookOnInit");
   if (initHook != NULL) {
     // TODO: provide context object
-    return initHook(NULL);
+    return initHook(engine);
   }
-
 
   return DOME_RESULT_SUCCESS;
 }
 
-internal DOME_Result
-ENGINE_registerPlugin(ENGINE* engine, const char* name) {
-  void* handle = SDL_LoadObject(name);
-  if (handle == NULL) {
-    ENGINE_printLog(engine, "%s\n", SDL_GetError());
-    return DOME_RESULT_FAILURE;
-  }
+DOME_EXPORTED DOME_Result
+DOME_registerModule(DOME_Context ctx, const char* name, const char* source) {
 
-  /*
-  PLUGIN_MAP_NODE* head = engine->pluginMap;
-  PLUGIN_MAP_NODE* newNode = malloc(sizeof(PLUGIN_MAP_NODE));
-  newNode->name = strdup(name);
-  newNode->objectHandle = handle;
-
-  newNode->next = head;
-  engine->pluginMap = newNode;
-  */
+  ENGINE* engine = (ENGINE*)ctx;
+  MAP* moduleMap = &(engine->moduleMap);
+  MAP_addModule(moduleMap, name, source);
 
   return DOME_RESULT_SUCCESS;
 }
-
-/*
-internal void
-ENGINE_unloadPlugin(ENGINE* engine, const char* name) {
-  PLUGIN_MAP_NODE* prev;
-  PLUGIN_MAP_NODE* current = engine->pluginMap;
-  while (current != NULL) {
-    if (STRINGS_EQUAL(current->name, name)) {
-      if (prev != NULL) {
-        prev->next = current->next;
-      } else {
-        engine->pluginMap = current->next;
-      }
-      SDL_UnloadObject(current->objectHandle);
-      free(current->name);
-      free(current);
-      break;
-    }
-    prev = current;
-    current = current->next;
-  }
-}
-*/

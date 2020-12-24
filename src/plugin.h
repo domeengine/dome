@@ -7,7 +7,8 @@ typedef struct PLUGIN_MAP_NODE_t {
   void* objectHandle;
 } PLUGIN_MAP_NODE;
 
-typedef DOME_Result (*DOME_Plugin_Hook) (DOME_Context* context);
+
+typedef DOME_Result (*DOME_Plugin_Hook) (DOME_Context context);
 typedef struct {
   // Total allocated size
   size_t max;

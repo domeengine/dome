@@ -31,7 +31,9 @@
   #endif
 #endif
 
-typedef struct DOME_Context DOME_Context;
+// Opaque context pointer
+typedef void* DOME_Context;
+
 typedef enum {
   DOME_RESULT_SUCCESS,
   DOME_RESULT_FAILURE,
@@ -39,14 +41,15 @@ typedef enum {
 } DOME_Result;
 
 #define DOME_PLUGIN_init(ctx) \
-  DOME_EXPORTED DOME_Result DOME_hookOnInit(DOME_Context* ctx)
+  DOME_EXPORTED DOME_Result DOME_hookOnInit(DOME_Context ctx)
 
 #define DOME_PLUGIN_shutdown(ctx) \
-  DOME_EXPORTED DOME_Result DOME_hookOnShutdown(DOME_Context* ctx)
+  DOME_EXPORTED DOME_Result DOME_hookOnShutdown(DOME_Context ctx)
 
 #define DOME_PLUGIN_preupdate(ctx) \
-  DOME_EXPORTED DOME_Result DOME_hookOnPreUpdate(DOME_Context* ctx)
+  DOME_EXPORTED DOME_Result DOME_hookOnPreUpdate(DOME_Context ctx)
 
-DOME_EXPORTED void DOME_test();
+
+DOME_EXPORTED DOME_Result DOME_registerModule(DOME_Context ctx, const char* name, const char* source);
 
 #endif

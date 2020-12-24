@@ -714,7 +714,3 @@ cleanup:
 
   return result;
 }
-
-void DOME_test() {
-  printf("Host test\n");
-}
