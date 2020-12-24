@@ -38,12 +38,14 @@ typedef enum {
   DOME_RESULT_UNKNOWN
 } DOME_Result;
 
-typedef DOME_Result (*DOME_VM_Handler) (DOME_Context* context);
-
-#define internal static
 #define DOME_PLUGIN_init(ctx) \
-  DOME_EXPORTED internal DOME_Result DOME_hookOnInit(DOME_Context* ctx)
+  DOME_EXPORTED DOME_Result DOME_hookOnInit(DOME_Context* ctx)
 
+#define DOME_PLUGIN_shutdown(ctx) \
+  DOME_EXPORTED DOME_Result DOME_hookOnShutdown(DOME_Context* ctx)
+
+#define DOME_PLUGIN_preupdate(ctx) \
+  DOME_EXPORTED DOME_Result DOME_hookOnPreUpdate(DOME_Context* ctx)
 
 DOME_EXPORTED void DOME_test();
 

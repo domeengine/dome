@@ -224,6 +224,9 @@ ENGINE_init(ENGINE* engine) {
   engine->argv = NULL;
   engine->argc = 0;
 
+  // TODO: handle if we can't allocate memory.
+  PLUGIN_COLLECTION_init(engine);
+
   return engine;
 }
 
@@ -303,6 +306,8 @@ ENGINE_free(ENGINE* engine) {
 
 
   ENGINE_finishAsync(engine);
+
+  PLUGIN_COLLECTION_free(engine);
 
   if (engine->audioEngine) {
     AUDIO_ENGINE_free(engine->audioEngine);

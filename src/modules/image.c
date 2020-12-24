@@ -27,7 +27,8 @@ typedef struct {
   uint32_t tintColor;
 } DRAW_COMMAND;
 
-DRAW_COMMAND DRAW_COMMAND_init(IMAGE* image) {
+internal DRAW_COMMAND
+DRAW_COMMAND_init(IMAGE* image) {
   DRAW_COMMAND command;
   command.image = image;
 
@@ -309,17 +310,20 @@ IMAGE_draw(WrenVM* vm) {
   }
 }
 
-void IMAGE_getWidth(WrenVM* vm) {
+internal void
+IMAGE_getWidth(WrenVM* vm) {
   IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
   wrenSetSlotDouble(vm, 0, image->width);
 }
 
-void IMAGE_getHeight(WrenVM* vm) {
+internal void
+IMAGE_getHeight(WrenVM* vm) {
   IMAGE* image = (IMAGE*)wrenGetSlotForeign(vm, 0);
   wrenSetSlotDouble(vm, 0, image->height);
 }
 
-void IMAGE_pset(WrenVM* vm) {
+internal void
+IMAGE_pset(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 0, FOREIGN, "image");
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
@@ -338,7 +342,9 @@ void IMAGE_pset(WrenVM* vm) {
     VM_ABORT(vm, "pset co-ordinates out of bounds")
   }
 }
-void IMAGE_pget(WrenVM* vm) {
+
+internal void
+IMAGE_pget(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 0, FOREIGN, "image");
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y");

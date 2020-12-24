@@ -89,8 +89,8 @@ global_variable size_t GIF_SCALE = 1;
 #include "debug.c"
 #include "util/font8x8.h"
 #include "io.c"
-#include "engine.c"
 #include "plugin.c"
+#include "engine.c"
 
 #include "modules/dome.c"
 #include "modules/font.c"
@@ -280,6 +280,10 @@ LOOP_flip(LOOP_STATE* state) {
 internal int
 LOOP_update(LOOP_STATE* state) {
   WrenInterpretResult interpreterResult;
+
+  if (PLUGIN_COLLECTION_runHook(state->engine, DOME_PLUGIN_HOOK_PRE_UPDATE) != DOME_RESULT_SUCCESS) {
+    return EXIT_FAILURE;
+  };
 
   wrenEnsureSlots(state->vm, 8);
   wrenSetSlotHandle(state->vm, 0, state->gameClass);
@@ -711,6 +715,6 @@ cleanup:
   return result;
 }
 
-EXPORTED void DOME_test() {
+void DOME_test() {
   printf("Host test\n");
 }
