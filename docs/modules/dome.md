@@ -13,6 +13,8 @@ It contains the following classes:
 
 ## Platform
 
+Contains platform-specific utilities which may not always be supported.
+
 ### Static Fields
 
 #### `name: String`
