@@ -40,15 +40,7 @@ class Canvas {
     clip()
   }
   foreign static f_pset(x, y, c)
-  static pget(x, y) {
-    var c = f_pget(x, y)
-    // return a << 24 | b << 16 | g << 8 | r
-    var r = c & 255
-    var g = (c & 255 << 8) >> 8
-    var b = (c & 255 << 16) >> 16
-    var a = (c & 255 << 24) >> 24
-    return Color.rgb(r, g, b, a)
-  }
+  static pget(x, y) { Color.fromNum(f_pget(x, y)) }
 
   foreign static f_pget(x, y)
   foreign static f_line(x1, y1, x2, y2, c, size)

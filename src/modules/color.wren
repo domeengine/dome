@@ -115,6 +115,13 @@ class Color is Vector {
   }
 
   toNum { a << 24 | b << 16 | g << 8 | r }
+  fromNum(v) {
+    var r = v & 0xFF
+    var g = (v >> 8) & 0xFF
+    var b = (v >> 16) & 0xFF
+    var a = (v >> 24) & 0xFF
+    return Color.rgb(r, g, b, a)
+  }
 
   toString {
     var nums = r << 24 | g << 16 | b << 8 | a

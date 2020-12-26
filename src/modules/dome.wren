@@ -78,13 +78,7 @@ class Window {
     }
     f_color = c.toNum
   }
-  static color {
-    var c = f_color
-    var r = c & 255
-    var g = (c & 255 << 8) >> 8
-    var b = (c & 255 << 16) >> 16
-    return Color.rgb(r, g, b)
-  }
+  static color { Color.fromNum(f_color) }
 
   foreign static resize(width, height)
 }
