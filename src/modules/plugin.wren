@@ -12,6 +12,7 @@ class Plugin {
     }
     return f_load(path)
   }
+
   foreign static f_load(path)
 //  foreign static unload(path)
 }

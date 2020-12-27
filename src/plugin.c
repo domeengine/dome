@@ -161,3 +161,22 @@ DOME_EXPORTED DOME_Context
 DOME_getContext(void* vm) {
   return wrenGetUserData(vm);
 }
+
+DOME_EXPORTED void
+DOME_setSlot(void* vm, size_t slot, DOME_SLOT_TYPE type, ...) {
+  va_list argp;
+  va_start(argp, type);
+
+  double number;
+  switch (type) {
+    case DOME_SLOT_TYPE_NULL:
+      wrenSetSlotNull(vm, slot); break;
+    case DOME_SLOT_TYPE_NUMBER:
+      number = va_arg(argp, double);
+      wrenSetSlotDouble(vm, slot, number);
+      break;
+    default:
+      VM_ABORT(vm, "Unhandled plugin return type"); break;
+  }
+  va_end(argp);
+}

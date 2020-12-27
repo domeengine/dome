@@ -41,16 +41,16 @@ typedef enum {
 } DOME_Result;
 
 #define DOME_registerFn(ctx, module, signature, method) \
-  DOME_registerFnImpl(ctx, module, signature, DOME_PLUGIN_method_wrap_##_name)
+  DOME_registerFnImpl(ctx, module, signature, DOME_PLUGIN_method_wrap_##method)
 
 
-#define DOME_PLUGIN_method(name, context, vm) \
-  static void DOME_PLUGIN_method_##_name(DOME_Context ctx, void* vm); \
-  DOME_EXPORTED void DOME_PLUGIN_method_wrap_##_name(void* vm) { \
+#define DOME_PLUGIN_method(name, context) \
+  static void DOME_PLUGIN_method_##name(DOME_Context ctx, void* vm); \
+  DOME_EXPORTED void DOME_PLUGIN_method_wrap_##name(void* vm) { \
     DOME_Context ctx = (DOME_Context) DOME_getContext(vm); \
-    DOME_PLUGIN_method_##_name(ctx, vm);\
+    DOME_PLUGIN_method_##name(ctx, vm);\
   } \
-  static void DOME_PLUGIN_method_##_name(DOME_Context ctx, void* vm)
+  static void DOME_PLUGIN_method_##name(DOME_Context ctx, void* vm)
 
 #define DOME_PLUGIN_init(ctx) \
   DOME_EXPORTED DOME_Result DOME_hookOnInit(DOME_Context ctx)
@@ -68,5 +68,19 @@ DOME_EXPORTED DOME_Result DOME_registerModule(DOME_Context ctx, const char* name
 DOME_EXPORTED DOME_Result DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signature, DOME_ForeignFn method);
 
 DOME_EXPORTED DOME_Context DOME_getContext(void* vm);
+
+typedef enum {
+  DOME_SLOT_TYPE_NULL,
+  DOME_SLOT_TYPE_NUMBER,
+  DOME_SLOT_TYPE_STRING,
+  DOME_SLOT_TYPE_BYTES,
+  DOME_SLOT_TYPE_LIST,
+  DOME_SLOT_TYPE_MAP,
+  DOME_SLOT_TYPE_HANDLE,
+  DOME_SLOT_TYPE_FOREIGN
+} DOME_SLOT_TYPE;
+DOME_EXPORTED void DOME_setSlot(void* vm, size_t slot, DOME_SLOT_TYPE type, ...);
+
+#define RETURN_NUMBER(value) DOME_setSlot(vm, 0, DOME_SLOT_TYPE_NUMBER, (double)value)
 
 #endif
