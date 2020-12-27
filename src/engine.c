@@ -1,4 +1,4 @@
-int
+internal void
 getColorComponents(uint32_t color, int *r, int *g, int *b) {
   *r = color & 0xFF;
   *g = (color & (0xFF << 8)) >> 8;
