@@ -97,6 +97,10 @@ This will encode solidus character (`/`). When converting a `Map` object to a `S
 
 By default _DOME_ aborts when there is a _JSON parsing error_ (triggers a `Fiber.abort()` on parse error). Turn off this option if you want to capture the _JsonError_ object.
 
+#### `static checkCircular: Num`
+
+By default _DOME_ checks, when encoding, if your JSON contains circles, and aborts if it does. Turn off this option to not perform this check. This can speed up serializing, but will trigger an infinite recursion if the JSON indeed contains circles.
+
 ### Example
 
 Use [Bitwise OR](https://wren.io/method-calls.html#operators) operator to select multiple options.
