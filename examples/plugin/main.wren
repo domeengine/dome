@@ -14,6 +14,6 @@ class Game {
     }
     static draw(dt) {
       Canvas.cls()
-      Canvas.print(Test.value, 10, 10, Color.white)
+      Canvas.print((Test.value / 60).floor, 10, 10, Color.white)
     }
 }

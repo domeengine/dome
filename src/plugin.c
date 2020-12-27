@@ -36,7 +36,6 @@ PLUGIN_COLLECTION_free(ENGINE* engine) {
     DOME_Plugin_Hook shutdownHook;
     shutdownHook = (DOME_Plugin_Hook)SDL_LoadFunction(plugins.objectHandle[i], "DOME_hookOnShutdown");
     if (shutdownHook != NULL) {
-      // TODO: provide context object
       shutdownHook(engine);
       // TODO: Log failure
     }
@@ -130,14 +129,13 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
   DOME_Plugin_Hook initHook;
   initHook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "DOME_hookOnInit");
   if (initHook != NULL) {
-    // TODO: provide context object
     return initHook(engine);
   }
 
   return DOME_RESULT_SUCCESS;
 }
 
-DOME_EXPORTED DOME_Result
+external DOME_Result
 DOME_registerModule(DOME_Context ctx, const char* name, const char* source) {
 
   ENGINE* engine = (ENGINE*)ctx;
@@ -147,7 +145,7 @@ DOME_registerModule(DOME_Context ctx, const char* name, const char* source) {
   return DOME_RESULT_SUCCESS;
 }
 
-DOME_EXPORTED DOME_Result
+external DOME_Result
 DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signature, DOME_ForeignFn method) {
 
   ENGINE* engine = (ENGINE*)ctx;
@@ -157,17 +155,18 @@ DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signat
   return DOME_RESULT_SUCCESS;
 }
 
-DOME_EXPORTED DOME_Context
+external DOME_Context
 DOME_getContext(void* vm) {
   return wrenGetUserData(vm);
 }
 
-DOME_EXPORTED void
+external bool
 DOME_setSlot(void* vm, size_t slot, DOME_SLOT_TYPE type, ...) {
   va_list argp;
   va_start(argp, type);
 
   double number;
+  char* text;
   switch (type) {
     case DOME_SLOT_TYPE_NULL:
       wrenSetSlotNull(vm, slot); break;
@@ -175,8 +174,13 @@ DOME_setSlot(void* vm, size_t slot, DOME_SLOT_TYPE type, ...) {
       number = va_arg(argp, double);
       wrenSetSlotDouble(vm, slot, number);
       break;
+    case DOME_SLOT_TYPE_STRING:
+      text = va_arg(argp, char*);
+      wrenSetSlotString(vm, slot, text);
+      break;
     default:
       VM_ABORT(vm, "Unhandled plugin return type"); break;
   }
   va_end(argp);
+  return true;
 }

@@ -3,8 +3,16 @@
 #ifndef DOME_PLUGIN_H
 #define DOME_PLUGIN_H
 
+// Make sure we have access to a bool type for C89
+// which handles mode of the bool semantics.
+#if __bool_true_false_are_defined == 0
+typedef enum {
+  false,
+  true
+} bool;
+#endif
 
-// Define DOME_EXPORTED for any platform
+// Define external for any platform
 #if defined _WIN32 || defined __CYGWIN__
   #ifdef WIN_EXPORT
     // Exporting...
@@ -30,6 +38,7 @@
     #define DOME_NOT_EXPORTED
   #endif
 #endif
+
 
 // Opaque context pointer
 typedef void* DOME_Context;
@@ -79,8 +88,11 @@ typedef enum {
   DOME_SLOT_TYPE_HANDLE,
   DOME_SLOT_TYPE_FOREIGN
 } DOME_SLOT_TYPE;
-DOME_EXPORTED void DOME_setSlot(void* vm, size_t slot, DOME_SLOT_TYPE type, ...);
+
+
+DOME_EXPORTED bool DOME_setSlot(void* vm, size_t slot, DOME_SLOT_TYPE type, ...);
 
 #define RETURN_NUMBER(value) DOME_setSlot(vm, 0, DOME_SLOT_TYPE_NUMBER, (double)value)
+#define RETURN_STRING(value) DOME_setSlot(vm, 0, DOME_SLOT_TYPE_STRING, (char*)value)
 
 #endif

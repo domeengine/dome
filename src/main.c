@@ -29,9 +29,14 @@
 #include <SDL.h>
 #include <vendor.h>
 
-#define internal static
+// Import plugin-specific definitions
+#include "dome.h"
+// project-specific definitions
+#define external DOME_EXPORTED
+#define internal DOME_NOT_EXPORTED static
 #define global_variable static
 #define local_persist static
+
 
 #define INIT_TO_ZERO(Type, name)\
   Type name;\
@@ -76,13 +81,13 @@ global_variable bool DEBUG_MODE = false;
 global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 global_variable size_t GIF_SCALE = 1;
 
+
+
 // Game code
 #include "math.c"
 #include "strings.c"
 #include "audio_types.c"
 #include "modules/map.c"
-// Import plugin definitions
-#include "dome.h"
 
 #include "plugin.h"
 #include "engine.h"

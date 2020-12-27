@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include "dome.h"
 
+size_t i;
 const char* source = "class Test {\n"
                   "static begin() { System.print(\"Begun!\") }\n"
                   "foreign static end()\n"
@@ -10,8 +12,6 @@ const char* source = "class Test {\n"
 DOME_PLUGIN_method(end, context) {
   printf("foreign method\n");
 }
-
-size_t i;
 
 DOME_PLUGIN_method(value, context) {
   RETURN_NUMBER(i);
