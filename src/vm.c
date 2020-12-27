@@ -327,11 +327,10 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Platform
   MAP_addFunction(&engine->moduleMap, "platform", "static Platform.time", PLATFORM_getTime);
   MAP_addFunction(&engine->moduleMap, "platform", "static Platform.name", PLATFORM_getName);
+
   // Random
   MAP_addFunction(&engine->moduleMap, "random", "static Squirrel3.noise(_,_)", RANDOM_noise);
   MAP_addFunction(&engine->moduleMap, "random", "Squirrel3.float()", RANDOM_float);
-
-
 
   return vm;
 }

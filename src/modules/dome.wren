@@ -42,9 +42,6 @@ class Version {
   }
 }
 
-
-
-
 class Process {
   foreign static args
   foreign static f_exit(n)
