@@ -1,16 +1,9 @@
 /* DOME Plugin Header v0.0.1 */
 
+#include <inttypes.h>
+#include <stdbool.h>
 #ifndef DOME_PLUGIN_H
 #define DOME_PLUGIN_H
-
-// Make sure we have access to a bool type for C89
-// which handles mode of the bool semantics.
-#if __bool_true_false_are_defined == 0
-typedef enum {
-  false,
-  true
-} bool;
-#endif
 
 // Define external for any platform
 #if defined _WIN32 || defined __CYGWIN__
@@ -40,8 +33,25 @@ typedef enum {
 #endif
 
 
+typedef enum {
+  API_DOME,
+  API_WREN
+} API_TYPE;
+
+#define DOME_API_VERSION 0
+#define WREN_API_VERSION 0
+
 // Opaque context pointer
 typedef void* DOME_Context;
+
+#ifndef wren_h
+// If the wren header is not in use, we forward declare some types we need.
+typedef struct WrenVM WrenVM;
+typedef struct WrenForeignClassMethods WrenForeignClassMethods;
+#endif
+
+typedef WrenForeignClassMethods (*DOME_BindClassFn) (const char* className);
+typedef void (*DOME_ForeignFn)(void* vm);
 
 typedef enum {
   DOME_RESULT_SUCCESS,
@@ -49,20 +59,49 @@ typedef enum {
   DOME_RESULT_UNKNOWN
 } DOME_Result;
 
-#define DOME_registerFn(ctx, module, signature, method) \
-  DOME_registerFnImpl(ctx, module, signature, DOME_PLUGIN_method_wrap_##method)
 
+// DO NOT CHANGE ORDER OF THESE, to preserve ABI.
+typedef struct {
+  void (*setSlotNull)(WrenVM* vm, int slot);
+  void (*setSlotBool)(WrenVM* vm, int slot, bool value);
+  void (*setSlotDouble)(WrenVM* vm, int slot, double value);
+  void (*setSlotString)(WrenVM* vm, int slot, const char* text);
+  void (*setSlotBytes)(WrenVM* vm, int slot, const char* data, size_t length);
+
+  DOME_Context (*getUserData)(WrenVM* vm);
+  bool (*getSlotBool)(WrenVM* vm, int slot);
+  double (*getSlotDouble)(WrenVM* vm, int slot);
+  const char* (*getSlotString)(WrenVM* vm, int slot);
+  const char* (*getSlotBytes)(WrenVM* vm, int slot, int* length);
+
+  void (*abortFiber)(WrenVM* vm, int slot);
+} WREN_API_v0;
+
+typedef struct {
+  DOME_Result (*registerModule)(DOME_Context ctx, const char* name, const char* source);
+  DOME_Result (*registerFnImpl)(DOME_Context ctx, const char* name, const char* signature, DOME_ForeignFn method);
+  DOME_Result (*registerBindFn)(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn);
+} DOME_API_v0;
+
+typedef void* (*DOME_getAPI)(API_TYPE api, int version);
+DOME_EXPORTED void* DOME_getApiImpl(API_TYPE api, int version);
+
+#define DOME_registerModule(ctx, name, src) api->registerModule(ctx, name, src)
+#define DOME_registerBindFn(ctx, module, fn) api->registerBindFn(ctx, module, fn)
+#define DOME_registerFn(ctx, module, signature, method) \
+  api->registerFnImpl(ctx, module, signature, DOME_PLUGIN_method_wrap_##method)
+#define DOME_getContext(vm) wren->getUserData(vm)
 
 #define DOME_PLUGIN_method(name, context) \
   static void DOME_PLUGIN_method_##name(DOME_Context ctx, void* vm); \
   DOME_EXPORTED void DOME_PLUGIN_method_wrap_##name(void* vm) { \
-    DOME_Context ctx = (DOME_Context) DOME_getContext(vm); \
+    DOME_Context ctx = (DOME_Context) wren->getUserData(vm); \
     DOME_PLUGIN_method_##name(ctx, vm);\
   } \
   static void DOME_PLUGIN_method_##name(DOME_Context ctx, void* vm)
 
-#define DOME_PLUGIN_init(ctx) \
-  DOME_EXPORTED DOME_Result DOME_hookOnInit(DOME_Context ctx)
+#define DOME_PLUGIN_init(get_api, ctx) \
+  DOME_EXPORTED DOME_Result DOME_hookOnInit(DOME_getAPI get_api, DOME_Context ctx)
 
 #define DOME_PLUGIN_shutdown(ctx) \
   DOME_EXPORTED DOME_Result DOME_hookOnShutdown(DOME_Context ctx)
@@ -70,53 +109,19 @@ typedef enum {
 #define DOME_PLUGIN_preupdate(ctx) \
   DOME_EXPORTED DOME_Result DOME_hookOnPreUpdate(DOME_Context ctx)
 
+#define GET_BOOL(slot) wren->getSlotBool(vm, slot)
+#define RETURN_NULL() wren->setSlotNull(vm, 0);
+#define RETURN_NUMBER(value) wren->setSlotDouble(vm, 0, value);
+#define RETURN_BOOL(value) wren->setSlotBool(vm, 0, value);
+#define RETURN_STRING(value) wren->setSlotString(vm, 0, value);
+#define RETURN_BYTES(value, length) wren->setSlotBytes(vm, 0, value, length);
 
-typedef void (*DOME_ForeignFn)(void* vm);
-typedef WrenForeignClassMethods (*DOME_BindClassFn) (const char* className);
-
-DOME_EXPORTED DOME_Result DOME_registerModule(DOME_Context ctx, const char* name, const char* source);
-
-DOME_EXPORTED DOME_Result DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signature, DOME_ForeignFn method);
-
-DOME_EXPORTED DOME_Context DOME_getContext(void* vm);
-
-typedef enum {
-  DOME_SLOT_TYPE_NULL,
-  DOME_SLOT_TYPE_BOOL,
-  DOME_SLOT_TYPE_NUMBER,
-  DOME_SLOT_TYPE_STRING,
-  DOME_SLOT_TYPE_BYTES,
-  DOME_SLOT_TYPE_LIST,
-  DOME_SLOT_TYPE_MAP,
-  DOME_SLOT_TYPE_HANDLE,
-  DOME_SLOT_TYPE_FOREIGN
-} DOME_SLOT_TYPE;
-
-typedef struct {
-  union {
-    double number;
-    char* text;
-    bool boolean;
-    struct {
-      char* data;
-      size_t len;
-    } bytes;
-  } as;
-} DOME_SLOT_VALUE;
+#define THROW_ERROR(message) \
+  do { \
+    wren->setSlotString(vm, 0, message); \
+    wren->abortFiber(vm, 0); \
+  } while (false)
 
 
-DOME_EXPORTED bool DOME_setSlot(void* vm, size_t slot, DOME_SLOT_TYPE type, ...);
-DOME_EXPORTED DOME_SLOT_VALUE DOME_getSlot(void* vm, size_t slot, DOME_SLOT_TYPE type);
-
-#define RETURN_NULL() DOME_setSlot(vm, 0, DOME_SLOT_TYPE_NULL)
-#define RETURN_BOOL(value) DOME_setSlot(vm, 0, DOME_SLOT_TYPE_BOOL, (bool)value)
-#define RETURN_NUMBER(value) DOME_setSlot(vm, 0, DOME_SLOT_TYPE_NUMBER, (double)value)
-#define RETURN_STRING(value) DOME_setSlot(vm, 0, DOME_SLOT_TYPE_STRING, (char*)value)
-#define RETURN_BYTES(value, length) DOME_setSlot(vm, 0, DOME_SLOT_TYPE_BYTES, (char*)value, (size_t)length)
-
-#define GET_BOOL(slot) DOME_getSlot(vm, slot, DOME_SLOT_TYPE_BOOL).as.boolean
-#define GET_NUMBER(slot) DOME_getSlot(vm, slot, DOME_SLOT_TYPE_NUMBER).as.number
-#define GET_STRING(slot) DOME_getSlot(vm, slot, DOME_SLOT_TYPE_STRING).as.text
-#define GET_BYTES(slot) DOME_getSlot(vm, slot, DOME_SLOT_TYPE_BYTES).as.bytes
 
 #endif

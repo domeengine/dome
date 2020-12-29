@@ -87,6 +87,7 @@ PLUGIN_COLLECTION_runHook(ENGINE* engine, DOME_PLUGIN_HOOK hook) {
   return DOME_RESULT_SUCCESS;
 }
 
+
 internal DOME_Result
 PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
   void* handle = SDL_LoadObject(name);
@@ -126,17 +127,17 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
 
   engine->plugins = plugins;
 
-  DOME_Plugin_Hook initHook;
-  initHook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "DOME_hookOnInit");
+  DOME_Plugin_Init_Hook initHook;
+  initHook = (DOME_Plugin_Init_Hook)SDL_LoadFunction(handle, "DOME_hookOnInit");
   if (initHook != NULL) {
-    return initHook(engine);
+    return initHook(DOME_getApiImpl, engine);
   }
 
   return DOME_RESULT_SUCCESS;
 }
 
 external DOME_Result
-DOME_registerModule(DOME_Context ctx, const char* name, const char* source) {
+DOME_registerModuleImpl(DOME_Context ctx, const char* name, const char* source) {
 
   ENGINE* engine = (ENGINE*)ctx;
   MAP* moduleMap = &(engine->moduleMap);
@@ -146,7 +147,7 @@ DOME_registerModule(DOME_Context ctx, const char* name, const char* source) {
 }
 
 external DOME_Result
-DOME_registerBindFn(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn) {
+DOME_registerBindFnImpl(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn) {
   ENGINE* engine = (ENGINE*)ctx;
   MAP* moduleMap = &(engine->moduleMap);
   return MAP_bindForeignClass(moduleMap, moduleName, fn);
@@ -163,78 +164,43 @@ DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signat
 }
 
 external DOME_Context
-DOME_getContext(void* vm) {
+DOME_getContextImpl(void* vm) {
   return wrenGetUserData(vm);
 }
 
-external bool
-DOME_setSlot(void* vm, size_t slot, DOME_SLOT_TYPE type, ...) {
-  va_list argp;
-  va_start(argp, type);
+DOME_API_v0 dome_v0 = {
+  .registerModule = DOME_registerModuleImpl,
+  .registerFnImpl = DOME_registerFnImpl,
+  .registerBindFn = DOME_registerBindFnImpl,
+};
+WREN_API_v0 wren_v0 = {
+  .getUserData = wrenGetUserData,
 
-  DOME_SLOT_VALUE value;
-  switch (type) {
-    case DOME_SLOT_TYPE_NULL:
-      wrenSetSlotNull(vm, slot); break;
-    case DOME_SLOT_TYPE_BOOL:
-      value.as.boolean = va_arg(argp, int);
-      wrenSetSlotBool(vm, slot, value.as.boolean); break;
-    case DOME_SLOT_TYPE_NUMBER:
-      value.as.number = va_arg(argp, double);
-      wrenSetSlotDouble(vm, slot, value.as.number);
-      break;
-    case DOME_SLOT_TYPE_STRING:
-      value.as.text = va_arg(argp, char*);
-      wrenSetSlotString(vm, slot, value.as.text);
-      break;
-    case DOME_SLOT_TYPE_BYTES:
-      value.as.bytes.data = va_arg(argp, char*);
-      value.as.bytes.len = va_arg(argp, size_t);
-      wrenSetSlotBytes(vm, slot, value.as.bytes.data, value.as.bytes.len);
-      break;
-    default:
-      VM_ABORT(vm, "Unhandled plugin return type"); break;
-      va_end(argp);
-      return false;
-  }
-  va_end(argp);
-  return true;
-}
+  .setSlotNull = wrenSetSlotNull,
+  .setSlotDouble = wrenSetSlotDouble,
+  .setSlotString = wrenSetSlotString,
+  .setSlotBytes = wrenSetSlotBytes,
+  .setSlotBool = wrenSetSlotBool,
 
-DOME_EXPORTED DOME_SLOT_VALUE DOME_getSlot(void* vm, size_t slot, DOME_SLOT_TYPE type) {
-  DOME_SLOT_VALUE result;
-  result.as.boolean = false;
-  switch (type) {
-    case DOME_SLOT_TYPE_BOOL:
-      if (wrenGetSlotType(vm, slot) != WREN_TYPE_BOOL) {
-        VM_ABORT(vm, "Incorrect plugin argument type");
-        break;
-      }
-      result.as.boolean = wrenGetSlotBool(vm, slot);
-      break;
-    case DOME_SLOT_TYPE_NUMBER:
-      if (wrenGetSlotType(vm, slot) != WREN_TYPE_NUM) {
-        VM_ABORT(vm, "Incorrect plugin argument type");
-        break;
-      }
-      result.as.number = wrenGetSlotDouble(vm, slot);
-      break;
-    case DOME_SLOT_TYPE_STRING:
-      if (wrenGetSlotType(vm, slot) != WREN_TYPE_STRING) {
-        VM_ABORT(vm, "Incorrect plugin argument type");
-        break;
-      }
-      result.as.text = wrenGetSlotString(vm, slot);
-      break;
-    case DOME_SLOT_TYPE_BYTES:
-      if (wrenGetSlotType(vm, slot) != WREN_TYPE_STRING) {
-        VM_ABORT(vm, "Incorrect plugin argument type");
-        break;
-      }
-      result.as.bytes.data = wrenGetSlotBytes(vm, slot, (int*)&result.as.bytes.len);
-      break;
-    default:
-      VM_ABORT(vm, "Unhandled plugin argument type"); break;
+  .getSlotBool = wrenGetSlotBool,
+  .getSlotDouble = wrenGetSlotDouble,
+  .getSlotString = wrenGetSlotString,
+  .getSlotBytes = wrenGetSlotBytes,
+
+  .abortFiber = wrenAbortFiber
+};
+
+external void*
+DOME_getApiImpl(API_TYPE api, int version) {
+  if (api == API_DOME) {
+    if (version == 0) {
+      return &dome_v0;
+    }
+  } else if (api == API_WREN) {
+    if (version == 0) {
+      return &wren_v0;
+    }
   }
-  return result;
+
+  return NULL;
 }
