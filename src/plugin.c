@@ -163,11 +163,6 @@ DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signat
   return DOME_RESULT_SUCCESS;
 }
 
-DOME_API_v0 dome_v0 = {
-  .registerModule = DOME_registerModuleImpl,
-  .registerFnImpl = DOME_registerFnImpl,
-  .registerBindFn = DOME_registerBindFnImpl,
-};
 WREN_API_v0 wren_v0 = {
   .getUserData = wrenGetUserData,
 
@@ -185,6 +180,12 @@ WREN_API_v0 wren_v0 = {
   .getSlotForeign = wrenGetSlotForeign,
 
   .abortFiber = wrenAbortFiber
+};
+DOME_API_v0 dome_v0 = {
+  .wren = &wren_v0,
+  .registerModule = DOME_registerModuleImpl,
+  .registerFnImpl = DOME_registerFnImpl,
+  .registerBindFn = DOME_registerBindFnImpl,
 };
 
 external void*

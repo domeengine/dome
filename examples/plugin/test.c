@@ -68,7 +68,7 @@ WrenForeignClassMethods DOME_PLUGIN_bind(const char* className) {
 DOME_PLUGIN_init(DOME_getApi, ctx) {
 
   api = DOME_getApi(API_DOME, DOME_API_VERSION);
-  wren = DOME_getApi(API_WREN, WREN_API_VERSION);
+  wren = api->wren;
 
   printf("init hook triggered\n");
   i = 0;
