@@ -2,9 +2,6 @@
 #include <stdbool.h>
 #include "dome.h"
 
-DOME_API_v0* api;
-WREN_API_v0* wren;
-
 size_t i;
 bool flag = false;
 const char* source = "class Test {\n"
@@ -16,8 +13,6 @@ const char* source = "class Test {\n"
                   "foreign static string\n"
                   "foreign static bytes\n"
                   "}";
-
-// DOME_PLUGIN_construct();
 
 DOME_PLUGIN_method(end, context) {
   flag = GET_BOOL(1);
@@ -41,11 +36,8 @@ DOME_PLUGIN_method(bytes, context) {
   RETURN_BYTES(bytes, (i / 60) < 5 ? (i / 60) : 5);
 }
 
-
 DOME_PLUGIN_init(context) {
-  api = apiFn(API_DOME, DOME_API_VERSION);
-  wren = apiFn(API_WREN, WREN_API_VERSION);
-
+  DOME_PLUGIN_prepare();
   printf("init hook triggered\n");
   i = 0;
   DOME_registerModule(context, "external", source);

@@ -127,16 +127,16 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
 
   engine->plugins = plugins;
 
-  DOME_Plugin_Init_Hook initHook;
-  initHook = (DOME_Plugin_Init_Hook)SDL_LoadFunction(handle, "DOME_hookOnInit");
+  DOME_Plugin_Hook initHook;
+  initHook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "DOME_hookOnInit");
   if (initHook != NULL) {
-    return initHook(DOME_getApiImpl, engine);
+    return initHook(engine);
   }
 
   return DOME_RESULT_SUCCESS;
 }
 
-external DOME_Result
+internal DOME_Result
 DOME_registerModuleImpl(DOME_Context ctx, const char* name, const char* source) {
 
   ENGINE* engine = (ENGINE*)ctx;
@@ -146,14 +146,14 @@ DOME_registerModuleImpl(DOME_Context ctx, const char* name, const char* source) 
   return DOME_RESULT_SUCCESS;
 }
 
-external DOME_Result
+internal DOME_Result
 DOME_registerBindFnImpl(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn) {
   ENGINE* engine = (ENGINE*)ctx;
   MAP* moduleMap = &(engine->moduleMap);
   return MAP_bindForeignClass(moduleMap, moduleName, fn);
 }
 
-external DOME_Result
+internal DOME_Result
 DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signature, DOME_ForeignFn method) {
 
   ENGINE* engine = (ENGINE*)ctx;
@@ -161,11 +161,6 @@ DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signat
   MAP_addFunction(moduleMap, moduleName, signature, (WrenForeignMethodFn)method);
 
   return DOME_RESULT_SUCCESS;
-}
-
-external DOME_Context
-DOME_getContextImpl(void* vm) {
-  return wrenGetUserData(vm);
 }
 
 DOME_API_v0 dome_v0 = {
