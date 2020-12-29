@@ -146,6 +146,13 @@ DOME_registerModule(DOME_Context ctx, const char* name, const char* source) {
 }
 
 external DOME_Result
+DOME_registerBindFn(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn) {
+  ENGINE* engine = (ENGINE*)ctx;
+  MAP* moduleMap = &(engine->moduleMap);
+  return MAP_bindForeignClass(moduleMap, moduleName, fn);
+}
+
+external DOME_Result
 DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signature, DOME_ForeignFn method) {
 
   ENGINE* engine = (ENGINE*)ctx;
@@ -165,22 +172,69 @@ DOME_setSlot(void* vm, size_t slot, DOME_SLOT_TYPE type, ...) {
   va_list argp;
   va_start(argp, type);
 
-  double number;
-  char* text;
+  DOME_SLOT_VALUE value;
   switch (type) {
     case DOME_SLOT_TYPE_NULL:
       wrenSetSlotNull(vm, slot); break;
+    case DOME_SLOT_TYPE_BOOL:
+      value.as.boolean = va_arg(argp, int);
+      wrenSetSlotBool(vm, slot, value.as.boolean); break;
     case DOME_SLOT_TYPE_NUMBER:
-      number = va_arg(argp, double);
-      wrenSetSlotDouble(vm, slot, number);
+      value.as.number = va_arg(argp, double);
+      wrenSetSlotDouble(vm, slot, value.as.number);
       break;
     case DOME_SLOT_TYPE_STRING:
-      text = va_arg(argp, char*);
-      wrenSetSlotString(vm, slot, text);
+      value.as.text = va_arg(argp, char*);
+      wrenSetSlotString(vm, slot, value.as.text);
+      break;
+    case DOME_SLOT_TYPE_BYTES:
+      value.as.bytes.data = va_arg(argp, char*);
+      value.as.bytes.len = va_arg(argp, size_t);
+      wrenSetSlotBytes(vm, slot, value.as.bytes.data, value.as.bytes.len);
       break;
     default:
       VM_ABORT(vm, "Unhandled plugin return type"); break;
+      va_end(argp);
+      return false;
   }
   va_end(argp);
   return true;
+}
+
+DOME_EXPORTED DOME_SLOT_VALUE DOME_getSlot(void* vm, size_t slot, DOME_SLOT_TYPE type) {
+  DOME_SLOT_VALUE result;
+  result.as.boolean = false;
+  switch (type) {
+    case DOME_SLOT_TYPE_BOOL:
+      if (wrenGetSlotType(vm, slot) != WREN_TYPE_BOOL) {
+        VM_ABORT(vm, "Incorrect plugin argument type");
+        break;
+      }
+      result.as.boolean = wrenGetSlotBool(vm, slot);
+      break;
+    case DOME_SLOT_TYPE_NUMBER:
+      if (wrenGetSlotType(vm, slot) != WREN_TYPE_NUM) {
+        VM_ABORT(vm, "Incorrect plugin argument type");
+        break;
+      }
+      result.as.number = wrenGetSlotDouble(vm, slot);
+      break;
+    case DOME_SLOT_TYPE_STRING:
+      if (wrenGetSlotType(vm, slot) != WREN_TYPE_STRING) {
+        VM_ABORT(vm, "Incorrect plugin argument type");
+        break;
+      }
+      result.as.text = wrenGetSlotString(vm, slot);
+      break;
+    case DOME_SLOT_TYPE_BYTES:
+      if (wrenGetSlotType(vm, slot) != WREN_TYPE_STRING) {
+        VM_ABORT(vm, "Incorrect plugin argument type");
+        break;
+      }
+      result.as.bytes.data = wrenGetSlotBytes(vm, slot, (int*)&result.as.bytes.len);
+      break;
+    default:
+      VM_ABORT(vm, "Unhandled plugin argument type"); break;
+  }
+  return result;
 }
