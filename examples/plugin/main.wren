@@ -8,6 +8,7 @@ import "external" for Test
 class Game {
     static init() {
       Test.begin()
+      Test.new()
     }
     static update() {
       if (Test.number / 60 > 5) {

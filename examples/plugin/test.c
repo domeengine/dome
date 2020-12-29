@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdbool.h>
 #include "dome.h"
 
@@ -7,7 +8,8 @@ static WREN_API_v0* wren;
 
 static size_t i;
 static bool flag = false;
-static const char* source = "class Test {\n"
+static const char* source = "foreign class Test {\n"
+"construct new() { System.print(\"New Class!\") }\n"
                   "static begin() { System.print(\"Begun!\") }\n"
                   "foreign static end(value)\n"
                   "foreign static empty\n"
@@ -39,13 +41,28 @@ DOME_PLUGIN_method(bytes, ctx) {
   RETURN_BYTES(bytes, (i / 60) < 5 ? (i / 60) : 5);
 }
 
+void TEST_allocate(WrenVM* vm) {
+  char* data = (char*)wren->setSlotNewForeign(vm, 0, 0, sizeof(char) * 2);
+  if (data != NULL) {
+    printf("size allocated\n");
+    data[0] = 'Z';
+    data[1] = '\0';
+  }
+}
+
+void TEST_finalizer(void* data) {
+  printf("size deallocated: %s\n", (char*)data);
+}
+
 WrenForeignClassMethods DOME_PLUGIN_bind(const char* className) {
   WrenForeignClassMethods methods;
+  methods.allocate = NULL;
+  methods.finalize = NULL;
   if (strcmp(className, "Test") == 0) {
-    methods.allocate = NULL;
-    methods.finalize = NULL;
+    methods.allocate = TEST_allocate;
+    methods.finalize = TEST_finalizer;
   }
-  return NULL;
+  return methods;
 }
 
 DOME_PLUGIN_init(DOME_getApi, ctx) {

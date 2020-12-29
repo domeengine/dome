@@ -44,14 +44,21 @@ typedef enum {
 // Opaque context pointer
 typedef void* DOME_Context;
 
+typedef void (*DOME_ForeignFn)(void* vm);
+
 #ifndef wren_h
 // If the wren header is not in use, we forward declare some types we need.
 typedef struct WrenVM WrenVM;
-typedef struct WrenForeignClassMethods WrenForeignClassMethods;
+typedef void (*WrenForeignMethodFn)(WrenVM* vm);
+typedef DOME_ForeignFn WrenFinalizerFn;
+typedef struct {
+  WrenForeignMethodFn allocate;
+  WrenFinalizerFn finalize;
+} WrenForeignClassMethods;
 #endif
 
 typedef WrenForeignClassMethods (*DOME_BindClassFn) (const char* className);
-typedef void (*DOME_ForeignFn)(void* vm);
+
 
 typedef enum {
   DOME_RESULT_SUCCESS,
@@ -67,12 +74,14 @@ typedef struct {
   void (*setSlotDouble)(WrenVM* vm, int slot, double value);
   void (*setSlotString)(WrenVM* vm, int slot, const char* text);
   void (*setSlotBytes)(WrenVM* vm, int slot, const char* data, size_t length);
+  void* (*setSlotNewForeign)(WrenVM* vm, int slot, int classSlot, size_t length);
 
   DOME_Context (*getUserData)(WrenVM* vm);
   bool (*getSlotBool)(WrenVM* vm, int slot);
   double (*getSlotDouble)(WrenVM* vm, int slot);
   const char* (*getSlotString)(WrenVM* vm, int slot);
   const char* (*getSlotBytes)(WrenVM* vm, int slot, int* length);
+  void* (*getSlotForeign)(WrenVM* vm, int slot);
 
   void (*abortFiber)(WrenVM* vm, int slot);
 } WREN_API_v0;
@@ -110,6 +119,9 @@ DOME_EXPORTED void* DOME_getApiImpl(API_TYPE api, int version);
   DOME_EXPORTED DOME_Result DOME_hookOnPreUpdate(DOME_Context ctx)
 
 #define GET_BOOL(slot) wren->getSlotBool(vm, slot)
+#define GET_NUMBER(slot) wren->getSlotDouble(vm, slot)
+#define GET_STRING(slot) wren->getSlotString(vm, slot)
+#define GET_BYTES(slot, length) wren->getSlotBytes(vm, slot, length)
 #define RETURN_NULL() wren->setSlotNull(vm, 0);
 #define RETURN_NUMBER(value) wren->setSlotDouble(vm, 0, value);
 #define RETURN_BOOL(value) wren->setSlotBool(vm, 0, value);

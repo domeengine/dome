@@ -176,11 +176,13 @@ WREN_API_v0 wren_v0 = {
   .setSlotString = wrenSetSlotString,
   .setSlotBytes = wrenSetSlotBytes,
   .setSlotBool = wrenSetSlotBool,
+  .setSlotNewForeign = wrenSetSlotNewForeign,
 
   .getSlotBool = wrenGetSlotBool,
   .getSlotDouble = wrenGetSlotDouble,
   .getSlotString = wrenGetSlotString,
   .getSlotBytes = wrenGetSlotBytes,
+  .getSlotForeign = wrenGetSlotForeign,
 
   .abortFiber = wrenAbortFiber
 };
