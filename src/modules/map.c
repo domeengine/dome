@@ -1,5 +1,6 @@
 #include "modules.inc"
 
+
 typedef struct FUNCTION_NODE {
   char* signature;
   WrenForeignMethodFn fn;
@@ -9,6 +10,7 @@ typedef struct FUNCTION_NODE {
 typedef struct MODULE_NODE {
   const char* name;
   const char* source;
+  DOME_BindClassFn foreignClassFn;
   struct FUNCTION_NODE* functions;
   struct MODULE_NODE* next;
 } MODULE_NODE;
@@ -25,6 +27,7 @@ MAP_addModule(MAP* map, char* name, const char* source) {
   newNode->source = source;
   newNode->name = name;
   newNode->functions = NULL;
+  newNode->foreignClassFn = NULL;
 
   newNode->next = map->head;
   map->head = newNode;
@@ -56,6 +59,17 @@ MAP_getSource(MAP* map, const char* moduleName) {
   strcpy(file, module->source);
   file[sourceLen] = '\0';
   return file;
+}
+
+internal DOME_Result
+MAP_bindForeignClass(MAP* map, char* moduleName, DOME_BindClassFn fn) {
+  MODULE_NODE* module = MAP_getModule(map, moduleName);
+  if (module != NULL) {
+    module->foreignClassFn = fn;
+    return DOME_RESULT_SUCCESS;
+  } else {
+    return DOME_RESULT_FAILURE;
+  }
 }
 
 internal void

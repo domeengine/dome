@@ -1,12 +1,12 @@
 internal WrenForeignClassMethods
-VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
+VM_bind_foreign_class(WrenVM* vm, const char* moduleName, const char* className) {
   WrenForeignClassMethods methods;
   // Assume an unknown class.
   methods.allocate = NULL;
   methods.finalize = NULL;
 
 
-  if (STRINGS_EQUAL(module, "image")) {
+  if (STRINGS_EQUAL(moduleName, "image")) {
     if (STRINGS_EQUAL(className, "ImageData")) {
       methods.allocate = IMAGE_allocate;
       methods.finalize = IMAGE_finalize;
@@ -14,7 +14,7 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.allocate = DRAW_COMMAND_allocate;
       methods.finalize = DRAW_COMMAND_finalize;
     }
-  } else if (STRINGS_EQUAL(module, "io")) {
+  } else if (STRINGS_EQUAL(moduleName, "io")) {
     if (STRINGS_EQUAL(className, "DataBuffer")) {
       methods.allocate = DBUFFER_allocate;
       methods.finalize = DBUFFER_finalize;
@@ -22,7 +22,7 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.allocate = ASYNCOP_allocate;
       methods.finalize = ASYNCOP_finalize;
     }
-  } else if (STRINGS_EQUAL(module, "audio")) {
+  } else if (STRINGS_EQUAL(moduleName, "audio")) {
     if (STRINGS_EQUAL(className, "AudioData")) {
       methods.allocate = AUDIO_allocate;
       methods.finalize = AUDIO_finalize;
@@ -30,12 +30,12 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.allocate = AUDIO_CHANNEL_allocate;
       methods.finalize = AUDIO_CHANNEL_finalize;
     }
-  } else if (STRINGS_EQUAL(module, "input")) {
+  } else if (STRINGS_EQUAL(moduleName, "input")) {
     if (STRINGS_EQUAL(className, "SystemGamePad")) {
       methods.allocate = GAMEPAD_allocate;
       methods.finalize = GAMEPAD_finalize;
     }
-  } else if (STRINGS_EQUAL(module, "font")) {
+  } else if (STRINGS_EQUAL(moduleName, "font")) {
     if (STRINGS_EQUAL(className, "FontFile")) {
       methods.allocate = FONT_allocate;
       methods.finalize = FONT_finalize;
@@ -44,8 +44,12 @@ VM_bind_foreign_class(WrenVM* vm, const char* module, const char* className) {
       methods.finalize = FONT_RASTER_finalize;
     }
   } else {
-    // TODO: Check if it's a module we lazy-loaded
-
+    ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+    MAP moduleMap = engine->moduleMap;
+    MODULE_NODE* module  = MAP_getModule(&moduleMap, moduleName);
+    if (module != NULL && module->foreignClassFn != NULL) {
+      methods = module->foreignClassFn(className);
+    }
   }
 
   return methods;
