@@ -100,8 +100,8 @@ DOME_EXPORTED void* DOME_getApiImpl(API_TYPE api, int version);
   } \
   static void DOME_PLUGIN_method_##name(DOME_Context ctx, void* vm)
 
-#define DOME_PLUGIN_init(ctx) \
-  DOME_EXPORTED DOME_Result DOME_hookOnInit(DOME_Context ctx)
+#define DOME_PLUGIN_init(apiFn, ctx) \
+  DOME_EXPORTED DOME_Result DOME_hookOnInit(DOME_getAPI apiFn, DOME_Context ctx)
 
 #define DOME_PLUGIN_shutdown(ctx) \
   DOME_EXPORTED DOME_Result DOME_hookOnShutdown(DOME_Context ctx)
@@ -121,13 +121,5 @@ DOME_EXPORTED void* DOME_getApiImpl(API_TYPE api, int version);
     wren->setSlotString(vm, 0, message); \
     wren->abortFiber(vm, 0); \
   } while (false)
-
-static DOME_API_v0* api;
-static WREN_API_v0* wren;
-
-static void DOME_PLUGIN_prepare() {
-  api = DOME_getApiImpl(API_DOME, DOME_API_VERSION);
-  wren = DOME_getApiImpl(API_WREN, WREN_API_VERSION);
-}
 
 #endif

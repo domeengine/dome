@@ -127,10 +127,10 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
 
   engine->plugins = plugins;
 
-  DOME_Plugin_Hook initHook;
-  initHook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "DOME_hookOnInit");
+  DOME_Plugin_Init_Hook initHook;
+  initHook = (DOME_Plugin_Init_Hook)SDL_LoadFunction(handle, "DOME_hookOnInit");
   if (initHook != NULL) {
-    return initHook(engine);
+    return initHook(DOME_getApiImpl, engine);
   }
 
   return DOME_RESULT_SUCCESS;
