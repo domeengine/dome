@@ -379,19 +379,20 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
     if (((c & (0xFF << 24)) >> 24) < 0xFF) {
       uint32_t current = ((uint32_t*)(engine->canvas.pixels))[width * y + x];
 
-      uint16_t newA = (0xFF000000 & c) >> 24;
+      double newA = ((0xFF000000 & c) >> 24) / 255.0;
+      double diffA = 1 - newA;
 
-      uint16_t oldR = (255-newA) * ((0x000000FF & current));
-      uint16_t oldG = (255-newA) * ((0x0000FF00 & current) >> 8);
-      uint16_t oldB = (255-newA) * ((0x00FF0000 & current) >> 16);
-      uint16_t newR = newA * ((0x000000FF & c));
-      uint16_t newG = newA * ((0x0000FF00 & c) >> 8);
-      uint16_t newB = newA * ((0x00FF0000 & c) >> 16);
+      uint16_t oldR = ((0x000000FF & current));
+      uint16_t oldG = ((0x0000FF00 & current) >> 8);
+      uint16_t oldB = ((0x00FF0000 & current) >> 16);
+      uint16_t newR = ((0x000000FF & c));
+      uint16_t newG = ((0x0000FF00 & c) >> 8);
+      uint16_t newB = ((0x00FF0000 & c) >> 16);
 
       uint8_t a = 0xFF;
-      uint8_t r = (oldR + newR) / 255;
-      uint8_t g = (oldG + newG) / 255;
-      uint8_t b = (oldB + newB) / 255;
+      uint8_t r = (diffA * oldR + newA * newR);
+      uint8_t g = (diffA * oldG + newA * newG);
+      uint8_t b = (diffA * oldB + newA * newB);
 
       c = (a << 24) | (b << 16) | (g << 8) | r;
     }
