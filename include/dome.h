@@ -95,11 +95,13 @@ typedef struct {
 typedef void* (*DOME_getAPI)(API_TYPE api, int version);
 DOME_EXPORTED void* DOME_getApiImpl(API_TYPE api, int version);
 
+
+// Helper macros to abstract the api->method
+
 #define DOME_registerModule(ctx, name, src) api->registerModule(ctx, name, src)
 #define DOME_registerBindFn(ctx, module, fn) api->registerBindFn(ctx, module, fn)
 #define DOME_registerFn(ctx, module, signature, method) \
   api->registerFnImpl(ctx, module, signature, DOME_PLUGIN_method_wrap_##method)
-#define DOME_getContext(vm) wren->getUserData(vm)
 
 #define DOME_PLUGIN_method(name, context) \
   static void DOME_PLUGIN_method_##name(DOME_Context ctx, void* vm); \
@@ -122,6 +124,7 @@ DOME_EXPORTED void* DOME_getApiImpl(API_TYPE api, int version);
 #define GET_NUMBER(slot) wren->getSlotDouble(vm, slot)
 #define GET_STRING(slot) wren->getSlotString(vm, slot)
 #define GET_BYTES(slot, length) wren->getSlotBytes(vm, slot, length)
+#define GET_FOREIGN(slot) wren->getSlotForeign(vm, slot)
 #define RETURN_NULL() wren->setSlotNull(vm, 0);
 #define RETURN_NUMBER(value) wren->setSlotDouble(vm, 0, value);
 #define RETURN_BOOL(value) wren->setSlotBool(vm, 0, value);
