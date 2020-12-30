@@ -212,7 +212,6 @@ WREN_API_v0 wren_v0 = {
   .abortFiber = wrenAbortFiber
 };
 DOME_API_v0 dome_v0 = {
-  .wren = &wren_v0,
   .registerModule = DOME_registerModuleImpl,
   .registerFn = DOME_registerFnImpl,
   .registerBindFn = DOME_registerBindFnImpl,

@@ -97,7 +97,6 @@ typedef struct {
 } WREN_API_v0;
 
 typedef struct {
-  WREN_API_v0* wren;
   DOME_Result (*registerModule)(DOME_Context ctx, const char* name, const char* source);
   DOME_Result (*registerFn)(DOME_Context ctx, const char* name, const char* signature, DOME_ForeignFn method);
   DOME_Result (*registerBindFn)(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn);
@@ -117,26 +116,26 @@ DOME_EXPORTED void* DOME_getAPI(API_TYPE api, int version);
 #define PLUGIN_method(name, ctx, vm) \
   static void PLUGIN_method_##name(DOME_Context ctx, WrenVM* vm); \
   DOME_EXPORTED void PLUGIN_method_wrap_##name(WrenVM* vm) { \
-    DOME_Context ctx = (DOME_Context) api->wren->getUserData(vm); \
+    DOME_Context ctx = (DOME_Context) wren->getUserData(vm); \
     PLUGIN_method_##name(ctx, vm);\
   } \
   static void PLUGIN_method_##name(DOME_Context ctx, WrenVM* vm)
 
-#define GET_BOOL(slot) api->wren->getSlotBool(vm, slot)
-#define GET_NUMBER(slot) api->wren->getSlotDouble(vm, slot)
-#define GET_STRING(slot) api->wren->getSlotString(vm, slot)
-#define GET_BYTES(slot, length) api->wren->getSlotBytes(vm, slot, length)
-#define GET_FOREIGN(slot) api->wren->getSlotForeign(vm, slot)
-#define RETURN_NULL() api->wren->setSlotNull(vm, 0);
-#define RETURN_NUMBER(value) api->wren->setSlotDouble(vm, 0, value);
-#define RETURN_BOOL(value) api->wren->setSlotBool(vm, 0, value);
-#define RETURN_STRING(value) api->wren->setSlotString(vm, 0, value);
-#define RETURN_BYTES(value, length) api->wren->setSlotBytes(vm, 0, value, length);
+#define GET_BOOL(slot) wren->getSlotBool(vm, slot)
+#define GET_NUMBER(slot) wren->getSlotDouble(vm, slot)
+#define GET_STRING(slot) wren->getSlotString(vm, slot)
+#define GET_BYTES(slot, length) wren->getSlotBytes(vm, slot, length)
+#define GET_FOREIGN(slot) wren->getSlotForeign(vm, slot)
+#define RETURN_NULL() wren->setSlotNull(vm, 0);
+#define RETURN_NUMBER(value) wren->setSlotDouble(vm, 0, value);
+#define RETURN_BOOL(value) wren->setSlotBool(vm, 0, value);
+#define RETURN_STRING(value) wren->setSlotString(vm, 0, value);
+#define RETURN_BYTES(value, length) wren->setSlotBytes(vm, 0, value, length);
 
 #define THROW_ERROR(message) \
   do { \
-    api->wren->setSlotString(vm, 0, message); \
-    api->wren->abortFiber(vm, 0); \
+    wren->setSlotString(vm, 0, message); \
+    wren->abortFiber(vm, 0); \
   } while (false)
 
 #endif
