@@ -387,7 +387,7 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
   } else if (zone.x <= x && x < zone.x + zone.w && zone.y <= y && y < zone.y + zone.h) {
     if (newA < 0xFF) {
       uint32_t current = ((uint32_t*)(engine->canvas.pixels))[width * y + x];
-      double normA = newA / 255.0;
+      double normA = newA / (double)UINT8_MAX;
       double diffA = 1 - normA;
 
       uint8_t oldR, oldG, oldB, newR, newG, newB;
