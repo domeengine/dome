@@ -44,6 +44,11 @@ typedef enum {
 // Opaque context pointer
 typedef void* DOME_Context;
 
+typedef enum {
+  DOME_RESULT_SUCCESS,
+  DOME_RESULT_FAILURE,
+  DOME_RESULT_UNKNOWN
+} DOME_Result;
 
 #ifndef wren_h
 // If the wren header is not in use, we forward declare some types we need.
@@ -55,18 +60,24 @@ typedef struct {
   WrenFinalizerFn finalize;
 } WrenForeignClassMethods;
 #endif
+
+typedef DOME_Result (*DOME_Plugin_Hook) (DOME_Context context);
 typedef void (*DOME_ForeignFn)(WrenVM* vm);
 typedef WrenForeignClassMethods (*DOME_BindClassFn) (const char* className);
 
 
-typedef enum {
-  DOME_RESULT_SUCCESS,
-  DOME_RESULT_FAILURE,
-  DOME_RESULT_UNKNOWN
-} DOME_Result;
 
 
-// DO NOT CHANGE ORDER OF THESE, to preserve ABI.
+// DO NOT CHANGE ORDER OF THESE STRUCTS, to preserve ABI.
+typedef struct {
+  const char* name;
+  DOME_Plugin_Hook preUpdate;
+  DOME_Plugin_Hook postUpdate;
+  DOME_Plugin_Hook preDraw;
+  DOME_Plugin_Hook postDraw;
+  DOME_Plugin_Hook onShutdown;
+} PLUGIN;
+
 typedef struct {
   void (*setSlotNull)(WrenVM* vm, int slot);
   void (*setSlotBool)(WrenVM* vm, int slot, bool value);
@@ -88,12 +99,12 @@ typedef struct {
 typedef struct {
   WREN_API_v0* wren;
   DOME_Result (*registerModule)(DOME_Context ctx, const char* name, const char* source);
-  DOME_Result (*registerFnImpl)(DOME_Context ctx, const char* name, const char* signature, DOME_ForeignFn method);
+  DOME_Result (*registerFn)(DOME_Context ctx, const char* name, const char* signature, DOME_ForeignFn method);
   DOME_Result (*registerBindFn)(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn);
 } DOME_API_v0;
 
-typedef void* (*DOME_getAPI)(API_TYPE api, int version);
-DOME_EXPORTED void* DOME_getApiImpl(API_TYPE api, int version);
+typedef void* (*DOME_getAPIFunction)(API_TYPE api, int version);
+DOME_EXPORTED void* DOME_getAPI(API_TYPE api, int version);
 
 
 // Helper macros to abstract the api->method
@@ -101,33 +112,15 @@ DOME_EXPORTED void* DOME_getApiImpl(API_TYPE api, int version);
 #define DOME_registerModule(ctx, name, src) api->registerModule(ctx, name, src)
 #define DOME_registerBindFn(ctx, module, fn) api->registerBindFn(ctx, module, fn)
 #define DOME_registerFn(ctx, module, signature, method) \
-  api->registerFnImpl(ctx, module, signature, DOME_PLUGIN_method_wrap_##method)
+  api->registerFn(ctx, module, signature, PLUGIN_method_wrap_##method)
 
-#define DOME_PLUGIN_method(name, ctx, vm) \
-  static void DOME_PLUGIN_method_##name(DOME_Context ctx, WrenVM* vm); \
-  DOME_EXPORTED void DOME_PLUGIN_method_wrap_##name(WrenVM* vm) { \
+#define PLUGIN_method(name, ctx, vm) \
+  static void PLUGIN_method_##name(DOME_Context ctx, WrenVM* vm); \
+  DOME_EXPORTED void PLUGIN_method_wrap_##name(WrenVM* vm) { \
     DOME_Context ctx = (DOME_Context) api->wren->getUserData(vm); \
-    DOME_PLUGIN_method_##name(ctx, vm);\
+    PLUGIN_method_##name(ctx, vm);\
   } \
-  static void DOME_PLUGIN_method_##name(DOME_Context ctx, WrenVM* vm)
-
-#define DOME_PLUGIN_init(apiFn, ctx) \
-  DOME_EXPORTED DOME_Result DOME_hookOnInit(DOME_getAPI apiFn, DOME_Context ctx)
-
-#define DOME_PLUGIN_shutdown(ctx) \
-  DOME_EXPORTED DOME_Result DOME_hookOnShutdown(DOME_Context ctx)
-
-#define DOME_PLUGIN_preupdate(ctx) \
-  DOME_EXPORTED DOME_Result DOME_hookOnPreUpdate(DOME_Context ctx)
-
-#define DOME_PLUGIN_postupdate(ctx) \
-  DOME_EXPORTED DOME_Result DOME_hookOnPostUpdate(DOME_Context ctx)
-
-#define DOME_PLUGIN_predraw(ctx) \
-  DOME_EXPORTED DOME_Result DOME_hookOnPreDraw(DOME_Context ctx)
-
-#define DOME_PLUGIN_postdraw(ctx) \
-  DOME_EXPORTED DOME_Result DOME_hookOnPostDraw(DOME_Context ctx)
+  static void PLUGIN_method_##name(DOME_Context ctx, WrenVM* vm)
 
 #define GET_BOOL(slot) api->wren->getSlotBool(vm, slot)
 #define GET_NUMBER(slot) api->wren->getSlotDouble(vm, slot)

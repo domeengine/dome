@@ -1,8 +1,7 @@
 #ifndef PLUGIN_H
 #define PLUGIN_H
 
-typedef DOME_Result (*DOME_Plugin_Init_Hook) (DOME_getAPI apiFn, DOME_Context context);
-typedef DOME_Result (*DOME_Plugin_Hook) (DOME_Context context);
+typedef DOME_Result (*DOME_Plugin_Init_Hook) (DOME_getAPIFunction apiFn, DOME_Context context);
 typedef DOME_Result (*DOME_foreignFn) (DOME_Context context, WrenVM* vm);
 
 typedef struct {

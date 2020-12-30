@@ -40,7 +40,7 @@ PLUGIN_COLLECTION_free(ENGINE* engine) {
   for (size_t i = 0; i < plugins.count; i++) {
     // TODO Call the unload here
     DOME_Plugin_Hook shutdownHook;
-    shutdownHook = (DOME_Plugin_Hook)SDL_LoadFunction(plugins.objectHandle[i], "DOME_hookOnShutdown");
+    shutdownHook = (DOME_Plugin_Hook)SDL_LoadFunction(plugins.objectHandle[i], "PLUGIN_onShutdown");
     if (shutdownHook != NULL) {
       shutdownHook(engine);
       // TODO: Log failure
@@ -138,19 +138,19 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
 
   // Acquire hook function pointers
   DOME_Plugin_Hook hook;
-  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "DOME_hookOnPreUpdate");
+  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "PLUGIN_preUpdate");
   if (hook != NULL) {
     plugins.preUpdateHook[next] = hook;
   }
-  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "DOME_hookOnPostUpdate");
+  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "PLUGIN_postUpdate");
   if (hook != NULL) {
     plugins.postUpdateHook[next] = hook;
   }
-  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "DOME_hookOnPreDraw");
+  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "PLUGIN_preDraw");
   if (hook != NULL) {
     plugins.preDrawHook[next] = hook;
   }
-  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "DOME_hookOnPostDraw");
+  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "PLUGIN_postDraw");
   if (hook != NULL) {
     plugins.postDrawHook[next] = hook;
   }
@@ -158,9 +158,9 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
   engine->plugins = plugins;
 
   DOME_Plugin_Init_Hook initHook;
-  initHook = (DOME_Plugin_Init_Hook)SDL_LoadFunction(handle, "DOME_hookOnInit");
+  initHook = (DOME_Plugin_Init_Hook)SDL_LoadFunction(handle, "PLUGIN_onInit");
   if (initHook != NULL) {
-    return initHook(DOME_getApiImpl, engine);
+    return initHook(DOME_getAPI, engine);
   }
 
   return DOME_RESULT_SUCCESS;
@@ -214,12 +214,12 @@ WREN_API_v0 wren_v0 = {
 DOME_API_v0 dome_v0 = {
   .wren = &wren_v0,
   .registerModule = DOME_registerModuleImpl,
-  .registerFnImpl = DOME_registerFnImpl,
+  .registerFn = DOME_registerFnImpl,
   .registerBindFn = DOME_registerBindFnImpl,
 };
 
 external void*
-DOME_getApiImpl(API_TYPE api, int version) {
+DOME_getAPI(API_TYPE api, int version) {
   if (api == API_DOME) {
     if (version == 0) {
       return &dome_v0;

@@ -9,9 +9,7 @@ static WREN_API_v0* wren;
 static size_t i;
 static bool flag = false;
 static const char* source = "foreign class Test {\n"
-                  "construct new() { \n "
-                  "  System.print(\"New Class!\") \n"
-                  "}\n"
+                  "construct new() { System.print(\"New Class!\") }\n"
                   "static begin() { System.print(\"Begun!\") }\n"
                   "foreign static end(value)\n"
                   "foreign static empty\n"
@@ -21,24 +19,24 @@ static const char* source = "foreign class Test {\n"
                   "foreign static bytes\n"
                   "}";
 
-DOME_PLUGIN_method(end, ctx, vm) {
+PLUGIN_method(end, ctx, vm) {
   flag = GET_BOOL(1);
   RETURN_BOOL(flag);
 };
 
-DOME_PLUGIN_method(value, context, vm) {
+PLUGIN_method(value, context, vm) {
   RETURN_NUMBER(i);
 }
-DOME_PLUGIN_method(text, ctx, vm) {
+PLUGIN_method(text, ctx, vm) {
   RETURN_STRING("WORDS");
 }
-DOME_PLUGIN_method(empty, ctx, vm) {
+PLUGIN_method(empty, ctx, vm) {
   RETURN_NULL();
 }
-DOME_PLUGIN_method(boolean, ctx, vm) {
+PLUGIN_method(boolean, ctx, vm) {
   RETURN_BOOL(flag);
 }
-DOME_PLUGIN_method(bytes, ctx, vm) {
+PLUGIN_method(bytes, ctx, vm) {
   char bytes[6] = { 65, 66, 67, 68, 69, 70 };
   RETURN_BYTES(bytes, (i / 60) < 5 ? (i / 60) : 5);
 }
@@ -56,7 +54,7 @@ void TEST_finalizer(void* data) {
   printf("size deallocated: %s\n", (char*)data);
 }
 
-WrenForeignClassMethods DOME_PLUGIN_bind(const char* className) {
+WrenForeignClassMethods PLUGIN_bind(const char* className) {
   WrenForeignClassMethods methods;
   methods.allocate = NULL;
   methods.finalize = NULL;
@@ -67,7 +65,7 @@ WrenForeignClassMethods DOME_PLUGIN_bind(const char* className) {
   return methods;
 }
 
-DOME_PLUGIN_init(DOME_getApi, ctx) {
+DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getApi, DOME_Context ctx) {
 
   api = DOME_getApi(API_DOME, DOME_API_VERSION);
   wren = api->wren;
@@ -75,7 +73,7 @@ DOME_PLUGIN_init(DOME_getApi, ctx) {
   printf("init hook triggered\n");
   i = 0;
   DOME_registerModule(ctx, "external", source);
-  DOME_registerBindFn(ctx, "external", DOME_PLUGIN_bind);
+  DOME_registerBindFn(ctx, "external", PLUGIN_bind);
   DOME_registerFn(ctx, "external", "static Test.end(_)", end);
   DOME_registerFn(ctx, "external", "static Test.number", value);
   DOME_registerFn(ctx, "external", "static Test.string", text);
@@ -84,22 +82,23 @@ DOME_PLUGIN_init(DOME_getApi, ctx) {
   DOME_registerFn(ctx, "external", "static Test.bytes", bytes);
   return DOME_RESULT_SUCCESS;
 }
-DOME_PLUGIN_shutdown(ctx) {
+
+DOME_Result PLUGIN_onShutdown(DOME_Context ctx) {
   printf("shutdown hook triggered\n");
   return DOME_RESULT_SUCCESS;
 }
 
-DOME_PLUGIN_preupdate(ctx) {
+DOME_Result PLUGIN_preUpdate(DOME_Context ctx) {
   i++;
   return DOME_RESULT_SUCCESS;
 }
 
-DOME_PLUGIN_postupdate(ctx) {
+DOME_Result PLUGIN_postUpdate(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
-DOME_PLUGIN_predraw(ctx) {
+DOME_Result PLUGIN_preDraw(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
-DOME_PLUGIN_postdraw(ctx) {
+DOME_Result PLUGIN_postDraw(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
