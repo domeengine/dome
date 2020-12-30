@@ -16,6 +16,7 @@ declare -a arr=(
 "image"
 "math"
 "json"
+"platform"
 )
  
 declare -a opts=(

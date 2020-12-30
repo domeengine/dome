@@ -6,9 +6,22 @@ The `dome` module allows you to control various aspects of how DOME as an applic
 
 It contains the following classes:
 
+- [Platform](#platform)
 - [Process](#process)
 - [Version](#version)
 - [Window](#window)
+
+## Platform
+
+Contains platform-specific utilities which may not always be supported.
+
+### Static Fields
+
+#### `name: String`
+Returns the generic name of the operating system or platform, where possible.
+
+#### `time: Number`
+Returns the integer number of seconds since the unix epoch (1st January 1970).
 
 ## Process
 
