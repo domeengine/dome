@@ -69,6 +69,7 @@ Wren code should conform to the following:
 
 * Classes are named with TitleCase, each word being capitalised, including the first.
 * Variables, methods and properties all require camelCase, even when they are intended to be constants (follows Wren convention e.g. Num.pi).
+  * Constants and variables which do not belong to a class may have the first letter of their identifier capitalised as appropriate. (This is necessary for Wren's scoping rules to work.)
 ```
 var degreeOfSeparation = 6
 
