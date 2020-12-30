@@ -1,5 +1,5 @@
 internal void
-getColorComponents(uint32_t color, int *r, int *g, int *b) {
+getColorComponents(uint32_t color, uint16_t *r, uint16_t *g, uint16_t *b) {
   *r = color & 0xFF;
   *g = (color & (0xFF << 8)) >> 8;
   *b = (color & (0xFF << 16)) >> 16;
@@ -388,7 +388,7 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 
       uint16_t newA = (0xFF000000 & c) >> 24;
 
-      int oldR, oldG, oldB, newR, newG, newB;
+      uint16_t oldR, oldG, oldB, newR, newG, newB;
       getColorComponents(current, &oldR, &oldG, &oldB);
       getColorComponents(c, &newR, &newG, &newB);
       oldR *= 255 - newA;
