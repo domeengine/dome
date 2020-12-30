@@ -15,7 +15,5 @@ class Game {
       Canvas.print(I, 0, 0, Color.white)
       Canvas.rectfill(10, 40, 50, 50, Color.rgb(0,255,0))
       Canvas.rectfill(10, 20, 50, 50, Color.rgb(255,0,0,I))
-      Canvas.rectfill(10, 20, 50, 50, Color.rgb(255,0,0,I))
-      Canvas.rectfill(10, 20, 50, 50, Color.rgb(255,0,0,I))
     }
 }

@@ -1,5 +1,5 @@
 import "vector" for Vector
-import "dome" for StringUtils
+import "stringUtils" for StringUtils
 
 class Input {
   // This sets up the whole module's event loop behaviour

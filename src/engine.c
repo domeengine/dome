@@ -1,3 +1,10 @@
+internal void
+getColorComponents(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
+  *r = color & 0xFF;
+  *g = (color & (0xFF << 8)) >> 8;
+  *b = (color & (0xFF << 16)) >> 16;
+}
+
 internal int
 ENGINE_record(void* ptr) {
   // Thread: Seperate gif record
@@ -373,26 +380,24 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
   int32_t width = engine->canvas.width;
   DOME_RECT zone = engine->canvas.clip;
 
-  if ((c & (0xFF << 24)) == 0) {
+  uint8_t newA = ((0xFF000000 & c) >> 24);
+
+  if (newA == 0) {
     return;
   } else if (zone.x <= x && x < zone.x + zone.w && zone.y <= y && y < zone.y + zone.h) {
-    if (((c & (0xFF << 24)) >> 24) < 0xFF) {
+    if (newA < 0xFF) {
       uint32_t current = ((uint32_t*)(engine->canvas.pixels))[width * y + x];
+      double normA = newA / 255.0;
+      double diffA = 1 - normA;
 
-      double newA = ((0xFF000000 & c) >> 24) / 255.0;
-      double diffA = 1 - newA;
-
-      uint16_t oldR = ((0x000000FF & current));
-      uint16_t oldG = ((0x0000FF00 & current) >> 8);
-      uint16_t oldB = ((0x00FF0000 & current) >> 16);
-      uint16_t newR = ((0x000000FF & c));
-      uint16_t newG = ((0x0000FF00 & c) >> 8);
-      uint16_t newB = ((0x00FF0000 & c) >> 16);
+      uint8_t oldR, oldG, oldB, newR, newG, newB;
+      getColorComponents(current, &oldR, &oldG, &oldB);
+      getColorComponents(c, &newR, &newG, &newB);
 
       uint8_t a = 0xFF;
-      uint8_t r = (diffA * oldR + newA * newR);
-      uint8_t g = (diffA * oldG + newA * newG);
-      uint8_t b = (diffA * oldB + newA * newB);
+      uint8_t r = (diffA * oldR + normA * newR);
+      uint8_t g = (diffA * oldG + normA * newG);
+      uint8_t b = (diffA * oldB + normA * newB);
 
       c = (a << 24) | (b << 16) | (g << 8) | r;
     }
