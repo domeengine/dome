@@ -44,19 +44,18 @@ typedef enum {
 // Opaque context pointer
 typedef void* DOME_Context;
 
-typedef void (*DOME_ForeignFn)(void* vm);
 
 #ifndef wren_h
 // If the wren header is not in use, we forward declare some types we need.
 typedef struct WrenVM WrenVM;
 typedef void (*WrenForeignMethodFn)(WrenVM* vm);
-typedef DOME_ForeignFn WrenFinalizerFn;
+typedef void (*WrenFinalizerFn)(void* data);
 typedef struct {
   WrenForeignMethodFn allocate;
   WrenFinalizerFn finalize;
 } WrenForeignClassMethods;
 #endif
-
+typedef void (*DOME_ForeignFn)(WrenVM* vm);
 typedef WrenForeignClassMethods (*DOME_BindClassFn) (const char* className);
 
 
@@ -104,13 +103,13 @@ DOME_EXPORTED void* DOME_getApiImpl(API_TYPE api, int version);
 #define DOME_registerFn(ctx, module, signature, method) \
   api->registerFnImpl(ctx, module, signature, DOME_PLUGIN_method_wrap_##method)
 
-#define DOME_PLUGIN_method(name, context) \
-  static void DOME_PLUGIN_method_##name(DOME_Context ctx, void* vm); \
-  DOME_EXPORTED void DOME_PLUGIN_method_wrap_##name(void* vm) { \
+#define DOME_PLUGIN_method(name, ctx, vm) \
+  static void DOME_PLUGIN_method_##name(DOME_Context ctx, WrenVM* vm); \
+  DOME_EXPORTED void DOME_PLUGIN_method_wrap_##name(WrenVM* vm) { \
     DOME_Context ctx = (DOME_Context) api->wren->getUserData(vm); \
     DOME_PLUGIN_method_##name(ctx, vm);\
   } \
-  static void DOME_PLUGIN_method_##name(DOME_Context ctx, void* vm)
+  static void DOME_PLUGIN_method_##name(DOME_Context ctx, WrenVM* vm)
 
 #define DOME_PLUGIN_init(apiFn, ctx) \
   DOME_EXPORTED DOME_Result DOME_hookOnInit(DOME_getAPI apiFn, DOME_Context ctx)
@@ -120,6 +119,15 @@ DOME_EXPORTED void* DOME_getApiImpl(API_TYPE api, int version);
 
 #define DOME_PLUGIN_preupdate(ctx) \
   DOME_EXPORTED DOME_Result DOME_hookOnPreUpdate(DOME_Context ctx)
+
+#define DOME_PLUGIN_postupdate(ctx) \
+  DOME_EXPORTED DOME_Result DOME_hookOnPostUpdate(DOME_Context ctx)
+
+#define DOME_PLUGIN_predraw(ctx) \
+  DOME_EXPORTED DOME_Result DOME_hookOnPreDraw(DOME_Context ctx)
+
+#define DOME_PLUGIN_postdraw(ctx) \
+  DOME_EXPORTED DOME_Result DOME_hookOnPostDraw(DOME_Context ctx)
 
 #define GET_BOOL(slot) api->wren->getSlotBool(vm, slot)
 #define GET_NUMBER(slot) api->wren->getSlotDouble(vm, slot)

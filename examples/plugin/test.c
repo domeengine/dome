@@ -9,7 +9,9 @@ static WREN_API_v0* wren;
 static size_t i;
 static bool flag = false;
 static const char* source = "foreign class Test {\n"
-"construct new() { System.print(\"New Class!\") }\n"
+                  "construct new() { \n "
+                  "  System.print(\"New Class!\") \n"
+                  "}\n"
                   "static begin() { System.print(\"Begun!\") }\n"
                   "foreign static end(value)\n"
                   "foreign static empty\n"
@@ -19,24 +21,24 @@ static const char* source = "foreign class Test {\n"
                   "foreign static bytes\n"
                   "}";
 
-DOME_PLUGIN_method(end, ctx) {
+DOME_PLUGIN_method(end, ctx, vm) {
   flag = GET_BOOL(1);
   RETURN_BOOL(flag);
 };
 
-DOME_PLUGIN_method(value, ctx) {
+DOME_PLUGIN_method(value, context, vm) {
   RETURN_NUMBER(i);
 }
-DOME_PLUGIN_method(text, ctx) {
+DOME_PLUGIN_method(text, ctx, vm) {
   RETURN_STRING("WORDS");
 }
-DOME_PLUGIN_method(empty, ctx) {
+DOME_PLUGIN_method(empty, ctx, vm) {
   RETURN_NULL();
 }
-DOME_PLUGIN_method(boolean, ctx) {
+DOME_PLUGIN_method(boolean, ctx, vm) {
   RETURN_BOOL(flag);
 }
-DOME_PLUGIN_method(bytes, ctx) {
+DOME_PLUGIN_method(bytes, ctx, vm) {
   char bytes[6] = { 65, 66, 67, 68, 69, 70 };
   RETURN_BYTES(bytes, (i / 60) < 5 ? (i / 60) : 5);
 }
@@ -92,15 +94,12 @@ DOME_PLUGIN_preupdate(ctx) {
   return DOME_RESULT_SUCCESS;
 }
 
-
-/*
 DOME_PLUGIN_postupdate(ctx) {
-  printf("postpdate hook triggered\n");
+  return DOME_RESULT_SUCCESS;
 }
 DOME_PLUGIN_predraw(ctx) {
-  printf("predraw hook triggered\n");
+  return DOME_RESULT_SUCCESS;
 }
 DOME_PLUGIN_postdraw(ctx) {
-  printf("postdraw hook triggered\n");
+  return DOME_RESULT_SUCCESS;
 }
-*/

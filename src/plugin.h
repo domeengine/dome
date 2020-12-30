@@ -1,12 +1,5 @@
 #ifndef PLUGIN_H
 #define PLUGIN_H
-typedef struct PLUGIN_MAP_NODE_t {
-  struct PLUGIN_MAP_NODE_t* prev;
-  struct PLUGIN_MAP_NODE_t* next;
-  const char* name;
-  void* objectHandle;
-} PLUGIN_MAP_NODE;
-
 
 typedef DOME_Result (*DOME_Plugin_Init_Hook) (DOME_getAPI apiFn, DOME_Context context);
 typedef DOME_Result (*DOME_Plugin_Hook) (DOME_Context context);
@@ -21,15 +14,18 @@ typedef struct {
   const char** name;
   void** objectHandle;
   DOME_Plugin_Hook* preUpdateHook;
+  DOME_Plugin_Hook* postUpdateHook;
+  DOME_Plugin_Hook* preDrawHook;
+  DOME_Plugin_Hook* postDrawHook;
 } PLUGIN_COLLECTION;
 
 typedef enum {
   DOME_PLUGIN_HOOK_PRE_UPDATE,
+  DOME_PLUGIN_HOOK_POST_UPDATE,
+  DOME_PLUGIN_HOOK_PRE_DRAW,
+  DOME_PLUGIN_HOOK_POST_DRAW,
   DOME_PLUGIN_HOOK_UNKNOWN
-
-
 } DOME_PLUGIN_HOOK;
 
-typedef PLUGIN_MAP_NODE* PLUGIN_MAP;
 
 #endif

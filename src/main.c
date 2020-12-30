@@ -249,6 +249,9 @@ LOOP_processInput(LOOP_STATE* state) {
 
 internal int
 LOOP_render(LOOP_STATE* state) {
+  if (PLUGIN_COLLECTION_runHook(state->engine, DOME_PLUGIN_HOOK_PRE_DRAW) != DOME_RESULT_SUCCESS) {
+    return EXIT_FAILURE;
+  };
   WrenInterpretResult interpreterResult;
   wrenEnsureSlots(state->vm, 8);
   wrenSetSlotHandle(state->vm, 0, state->gameClass);
@@ -257,6 +260,9 @@ LOOP_render(LOOP_STATE* state) {
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     return EXIT_FAILURE;
   }
+  if (PLUGIN_COLLECTION_runHook(state->engine, DOME_PLUGIN_HOOK_POST_DRAW) != DOME_RESULT_SUCCESS) {
+    return EXIT_FAILURE;
+  };
 
 
   return EXIT_SUCCESS;
@@ -296,6 +302,9 @@ LOOP_update(LOOP_STATE* state) {
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     return EXIT_FAILURE;
   }
+  if (PLUGIN_COLLECTION_runHook(state->engine, DOME_PLUGIN_HOOK_POST_UPDATE) != DOME_RESULT_SUCCESS) {
+    return EXIT_FAILURE;
+  };
   // updateAudio()
   if (audioEngineClass != NULL) {
     wrenEnsureSlots(state->vm, 3);

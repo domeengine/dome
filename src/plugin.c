@@ -9,6 +9,9 @@ PLUGIN_COLLECTION_initRecord(PLUGIN_COLLECTION* plugins, size_t index) {
   plugins->objectHandle[index] = NULL;
   plugins->name[index] = NULL;
   plugins->preUpdateHook[index] = PLUGIN_nullHook;
+  plugins->postUpdateHook[index] = PLUGIN_nullHook;
+  plugins->preDrawHook[index] = PLUGIN_nullHook;
+  plugins->postDrawHook[index] = PLUGIN_nullHook;
 }
 
 internal void
@@ -22,6 +25,9 @@ PLUGIN_COLLECTION_init(ENGINE* engine) {
   plugins.name = calloc(plugins.max, sizeof(char*));
   plugins.objectHandle = calloc(plugins.max, sizeof(void*));
   plugins.preUpdateHook = calloc(plugins.max, sizeof(DOME_Plugin_Hook));
+  plugins.postUpdateHook = calloc(plugins.max, sizeof(DOME_Plugin_Hook));
+  plugins.preDrawHook = calloc(plugins.max, sizeof(DOME_Plugin_Hook));
+  plugins.postDrawHook = calloc(plugins.max, sizeof(DOME_Plugin_Hook));
   for (size_t i = 0; i < plugins.max; i++) {
     PLUGIN_COLLECTION_initRecord(&plugins, i);
   }
@@ -48,6 +54,9 @@ PLUGIN_COLLECTION_free(ENGINE* engine) {
     plugins.objectHandle[i] = NULL;
 
     plugins.preUpdateHook[i] = NULL;
+    plugins.postUpdateHook[i] = NULL;
+    plugins.preDrawHook[i] = NULL;
+    plugins.postDrawHook[i] = NULL;
   }
 
   plugins.max = 0;
@@ -76,6 +85,12 @@ PLUGIN_COLLECTION_runHook(ENGINE* engine, DOME_PLUGIN_HOOK hook) {
     switch (hook) {
       case DOME_PLUGIN_HOOK_PRE_UPDATE:
         { result = plugins.preUpdateHook[i](engine); } break;
+      case DOME_PLUGIN_HOOK_POST_UPDATE:
+        { result = plugins.postUpdateHook[i](engine); } break;
+      case DOME_PLUGIN_HOOK_PRE_DRAW:
+        { result = plugins.preDrawHook[i](engine); } break;
+      case DOME_PLUGIN_HOOK_POST_DRAW:
+        { result = plugins.postDrawHook[i](engine); } break;
       default: break;
     }
     if (result != DOME_RESULT_SUCCESS) {
@@ -108,6 +123,9 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
     plugins.name = realloc(plugins.name, sizeof(char*) * plugins.max);
     plugins.objectHandle = realloc(plugins.objectHandle, sizeof(void*) * plugins.max);
     plugins.preUpdateHook = realloc(plugins.preUpdateHook, sizeof(void*) * plugins.max);
+    plugins.postUpdateHook = realloc(plugins.postUpdateHook, sizeof(void*) * plugins.max);
+    plugins.preDrawHook = realloc(plugins.preDrawHook, sizeof(void*) * plugins.max);
+    plugins.postDrawHook = realloc(plugins.postDrawHook, sizeof(void*) * plugins.max);
     for (size_t i = next + 1; i < plugins.max; i++) {
       PLUGIN_COLLECTION_initRecord(&plugins, i);
     }
@@ -123,6 +141,18 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
   hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "DOME_hookOnPreUpdate");
   if (hook != NULL) {
     plugins.preUpdateHook[next] = hook;
+  }
+  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "DOME_hookOnPostUpdate");
+  if (hook != NULL) {
+    plugins.postUpdateHook[next] = hook;
+  }
+  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "DOME_hookOnPreDraw");
+  if (hook != NULL) {
+    plugins.preDrawHook[next] = hook;
+  }
+  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "DOME_hookOnPostDraw");
+  if (hook != NULL) {
+    plugins.postDrawHook[next] = hook;
   }
 
   engine->plugins = plugins;
