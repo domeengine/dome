@@ -204,8 +204,10 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // Set modules
 
+  // StringUtils
+  MAP_addFunction(&engine->moduleMap, "stringUtils", "static StringUtils.toLowercase(_)", STRING_UTILS_toLowercase);
+
   // DOME
-  MAP_addFunction(&engine->moduleMap, "dome", "static StringUtils.toLowercase(_)", STRING_UTILS_toLowercase);
   MAP_addFunction(&engine->moduleMap, "dome", "static Process.f_exit(_)", PROCESS_exit);
   MAP_addFunction(&engine->moduleMap, "dome", "static Process.args", PROCESS_getArguments);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.resize(_,_)", WINDOW_resize);
@@ -218,6 +220,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.width", WINDOW_getWidth);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.height", WINDOW_getHeight);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.fps", WINDOW_getFps);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.f_color=(_)", WINDOW_setColor);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.f_color", WINDOW_getColor);
   MAP_addFunction(&engine->moduleMap, "dome", "static Version.toString", VERSION_getString);
 
   // Canvas

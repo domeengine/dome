@@ -13,6 +13,8 @@ It contains the following classes:
 
 ## Platform
 
+Contains platform-specific utilities which may not always be supported.
+
 ### Static Fields
 
 #### `name: String`
@@ -94,6 +96,10 @@ Setting this to true will make the renderer wait for VSync before presenting to 
 #### `static width: Number`
 
 This is the width of the window/viewport, in pixels.
+
+#### `static color: Color`
+
+This is the background color of the window. Note that to this _does not_ affect inside the drawing canvas: use `Canvas.cls()` to clear the canvas to some color. This field only affects the background color beyond canvas boundaries. Default is black. Cannot be transparent (transparency is ignored).
 
 ### Static Methods
 

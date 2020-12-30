@@ -1,3 +1,10 @@
+internal void
+getColorComponents(uint32_t color, uint16_t *r, uint16_t *g, uint16_t *b) {
+  *r = color & 0xFF;
+  *g = (color & (0xFF << 8)) >> 8;
+  *b = (color & (0xFF << 16)) >> 16;
+}
+
 internal int
 ENGINE_record(void* ptr) {
   // Thread: Seperate gif record
@@ -386,12 +393,15 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 
       uint16_t newA = (0xFF000000 & c) >> 24;
 
-      uint16_t oldR = (255-newA) * ((0x000000FF & current));
-      uint16_t oldG = (255-newA) * ((0x0000FF00 & current) >> 8);
-      uint16_t oldB = (255-newA) * ((0x00FF0000 & current) >> 16);
-      uint16_t newR = newA * ((0x000000FF & c));
-      uint16_t newG = newA * ((0x0000FF00 & c) >> 8);
-      uint16_t newB = newA * ((0x00FF0000 & c) >> 16);
+      uint16_t oldR, oldG, oldB, newR, newG, newB;
+      getColorComponents(current, &oldR, &oldG, &oldB);
+      getColorComponents(c, &newR, &newG, &newB);
+      oldR *= 255 - newA;
+      oldG *= 255 - newA;
+      oldB *= 255 - newA;
+      newR *= newA;
+      newG *= newA;
+      newB *= newA;
 
       uint8_t a = 0xFF;
       uint8_t r = (oldR + newR) / 255;
