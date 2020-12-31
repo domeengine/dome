@@ -38,7 +38,6 @@ internal void
 PLUGIN_COLLECTION_free(ENGINE* engine) {
   PLUGIN_COLLECTION plugins = engine->plugins;
   for (size_t i = 0; i < plugins.count; i++) {
-    // TODO Call the unload here
     DOME_Plugin_Hook shutdownHook;
     shutdownHook = (DOME_Plugin_Hook)SDL_LoadFunction(plugins.objectHandle[i], "PLUGIN_onShutdown");
     if (shutdownHook != NULL) {
