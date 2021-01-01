@@ -72,13 +72,31 @@ void AUDIO_ENGINE_mix(void*  userdata,
     Uint8* stream,
     int    outputBufferSize) {
   AUDIO_ENGINE* audioEngine = userdata;
-  uint32_t totalSamples = outputBufferSize / bytesPerSample;
+  size_t totalSamples = outputBufferSize / bytesPerSample;
 
-  int16_t* writeCursor = (int16_t*)(stream);
+  float* writeCursor = (float*)(stream);
   SDL_memset(writeCursor, 0, outputBufferSize);
 
-  int32_t samplesToWrite = totalSamples;//  - samplesQueued;
+  int64_t samplesToWrite = totalSamples;//  - samplesQueued;
   AUDIO_CHANNEL_LIST* channelList = audioEngine->channelList;
+
+  /*
+  TODO: New Implementation
+  for (size_t c = 0; c < channelCount; c++) {
+    AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)(channelList->channels[c]);
+    if (channel == NULL || channel->audio == NULL) {
+      continue;
+    }
+    AUDIO_DATA* audio = channel->audio;
+    if (!channel->enabled) {
+      continue;
+    }
+    float volume = channel->volume;
+    float pan = (channel->pan + 1) * M_PI / 4.0; // Channel pan is [-1,1] real pan needs to be [0,1]
+    float* readCursor = (float*)(audio->buffer) + (channel->position * channels);
+  }
+  */
+
 
   // Get channel
   for (int i = 0; i < samplesToWrite; i++) {
@@ -113,8 +131,8 @@ void AUDIO_ENGINE_mix(void*  userdata,
     left = (float)tanh(left); ///= totalEnabled;
     right = (float)tanh(right); //= totalEnabled;
     if (totalEnabled > 0) {
-      writeCursor[i*2] = (int16_t)(left * INT16_MAX);
-      writeCursor[i*2+1] = (int16_t)(right * INT16_MAX);
+      writeCursor[i*2] = (float)(left);
+      writeCursor[i*2+1] = (float)(right);
     }
   }
 }
@@ -156,7 +174,7 @@ AUDIO_allocate(WrenVM* vm) {
 
     data->spec.channels = channelsInFile;
     data->spec.freq = freq;
-    data->spec.format = AUDIO_S16LSB;
+    data->spec.format = AUDIO_F32LSB; // AUDIO_S16LSB;
   } else {
     VM_ABORT(vm, "Audio file was of an incompatible format");
     return;
@@ -222,7 +240,7 @@ AUDIO_ENGINE_init(void) {
   // SETUP player
   // set the callback function
   (engine->spec).freq = 44100;
-  (engine->spec).format = AUDIO_S16LSB;
+  (engine->spec).format = AUDIO_F32LSB;
   (engine->spec).channels = channels; // TODO: consider mono/stereo
   (engine->spec).samples = AUDIO_BUFFER_SIZE; // Consider making this configurable
   (engine->spec).callback = AUDIO_ENGINE_mix;
