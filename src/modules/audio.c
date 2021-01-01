@@ -96,16 +96,21 @@ void AUDIO_ENGINE_mix(void*  userdata,
     float pan = (channel->pan + 1) * M_PI / 4.0; // Channel pan is [-1,1] real pan needs to be [0,1]
     float* startReadCursor = (float*)(audio->buffer) + channel->position * channels;
     float* readCursor = startReadCursor;
+    float* writeCursor = (float*)(stream);
     for (int i = 0; i < samplesToWrite; i++) {
-      writeCursor[i*2] += readCursor[0] * cos(pan) * volume;
-      writeCursor[i*2+1] += readCursor[1] * sin(pan) * volume;
+      writeCursor[0] += readCursor[0] * cos(pan) * volume;
+      writeCursor[1] += readCursor[1] * sin(pan) * volume;
       readCursor += channels;
+      writeCursor += channels;
       channel->position++;
       if (channel->loop && channel->position >= audio->length) {
         channel->position = 0;
         readCursor = startReadCursor;
       }
       channel->enabled = channel->enabled && channel->position < audio->length;
+      if (!channel->enabled) {
+        break;
+      }
     }
   }
   for (int i = 0; i < samplesToWrite; i++) {
