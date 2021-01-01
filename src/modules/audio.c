@@ -79,9 +79,9 @@ void AUDIO_ENGINE_mix(void*  userdata,
 
   int64_t samplesToWrite = totalSamples;//  - samplesQueued;
   AUDIO_CHANNEL_LIST* channelList = audioEngine->channelList;
+  size_t channelCount = channelList->count;
+  size_t totalEnabled = 0;
 
-  /*
-  TODO: New Implementation
   for (size_t c = 0; c < channelCount; c++) {
     AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)(channelList->channels[c]);
     if (channel == NULL || channel->audio == NULL) {
@@ -91,13 +91,29 @@ void AUDIO_ENGINE_mix(void*  userdata,
     if (!channel->enabled) {
       continue;
     }
+    totalEnabled++;
     float volume = channel->volume;
     float pan = (channel->pan + 1) * M_PI / 4.0; // Channel pan is [-1,1] real pan needs to be [0,1]
-    float* readCursor = (float*)(audio->buffer) + (channel->position * channels);
+    float* startReadCursor = (float*)(audio->buffer) + channel->position * channels;
+    float* readCursor = startReadCursor;
+    for (int i = 0; i < samplesToWrite; i++) {
+      writeCursor[i*2] += readCursor[0] * cos(pan) * volume;
+      writeCursor[i*2+1] += readCursor[1] * sin(pan) * volume;
+      readCursor += channels;
+      channel->position++;
+      if (channel->loop && channel->position >= audio->length) {
+        channel->position = 0;
+        readCursor = startReadCursor;
+      }
+      channel->enabled = channel->enabled && channel->position < audio->length;
+    }
   }
-  */
+  for (int i = 0; i < samplesToWrite; i++) {
+    writeCursor[i*2] += tanh(writeCursor[i*2]);
+    writeCursor[i*2+1] += tanh(writeCursor[i*2+1]);
+  }
 
-
+  /*
   // Get channel
   for (int i = 0; i < samplesToWrite; i++) {
     int totalEnabled = 0;
@@ -135,6 +151,7 @@ void AUDIO_ENGINE_mix(void*  userdata,
       writeCursor[i*2+1] = (float)(right);
     }
   }
+  */
 }
 
 internal void
