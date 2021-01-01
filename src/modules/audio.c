@@ -98,10 +98,12 @@ void AUDIO_ENGINE_mix(void*  userdata,
     float* writeCursor = (float*)(stream);
     size_t length = audio->length;
     for (size_t i = 0; i < totalSamples; i++) {
-      writeCursor[0] += readCursor[0] * cos(pan) * volume;
-      writeCursor[1] += readCursor[1] * sin(pan) * volume;
-      readCursor += channels;
-      writeCursor += channels;
+      *writeCursor += *readCursor * cos(pan) * volume;
+      writeCursor += 1;
+      readCursor += 1;
+      *writeCursor += *readCursor * sin(pan) * volume;
+      readCursor += 1;
+      writeCursor += 1;
       channel->position++;
       if (channel->loop && channel->position >= length) {
         channel->position = 0;
@@ -118,8 +120,10 @@ void AUDIO_ENGINE_mix(void*  userdata,
   // Mix using tanh
   float* outputCursor = (float*)(stream);
   for (size_t i = 0; i < totalSamples; i++) {
-    outputCursor[i*2] += tanh(outputCursor[i*2]);
-    outputCursor[i*2+1] += tanh(outputCursor[i*2+1]);
+    *outputCursor += tanh(*outputCursor);
+    outputCursor++;
+    *outputCursor += tanh(*outputCursor);
+    outputCursor++;
   }
 }
 
