@@ -131,15 +131,19 @@ void AUDIO_ENGINE_mix(void*  userdata,
       continue;
     }
     totalEnabled++;
-    size_t requestSize = min(bufferSampleSize, totalSamples);
-    SDL_memset(scratchBuffer, 0, requestSize * sizeof(float) * channels);
-    channel->callback(channel, scratchBuffer, requestSize);
-
+    size_t requestServed = 0;
     float* writeCursor = (float*)(stream);
-    float* copyCursor = scratchBuffer;
-    float* endPoint = copyCursor + requestSize * channels;
-    for (; copyCursor < endPoint; copyCursor++) {
-      *(writeCursor++) += *copyCursor;
+
+    while (requestServed < totalSamples) {
+      SDL_memset(scratchBuffer, 0, bufferSampleSize * sizeof(float) * channels);
+      size_t requestSize = min(bufferSampleSize, totalSamples - requestServed);
+      channel->callback(channel, scratchBuffer, requestSize);
+      requestServed += requestSize;
+      float* copyCursor = scratchBuffer;
+      float* endPoint = copyCursor + bufferSampleSize * channels;
+      for (; copyCursor < endPoint; copyCursor++) {
+        *(writeCursor++) += *copyCursor;
+      }
     }
   }
 
