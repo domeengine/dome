@@ -127,14 +127,14 @@ void AUDIO_ENGINE_mix(void*  userdata,
 
   for (size_t c = 0; c < channelCount; c++) {
     GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)(channelList->channels[c]);
-    if (channel == NULL || !channel->enabled) {
+    if (channel == NULL) {
       continue;
     }
     totalEnabled++;
     size_t requestServed = 0;
     float* writeCursor = (float*)(stream);
 
-    while (requestServed < totalSamples) {
+    while (channel->enabled && requestServed < totalSamples) {
       SDL_memset(scratchBuffer, 0, bufferSampleSize * sizeof(float) * channels);
       size_t requestSize = min(bufferSampleSize, totalSamples - requestServed);
       channel->callback(channel, scratchBuffer, requestSize);
