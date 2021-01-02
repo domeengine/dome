@@ -97,24 +97,23 @@ void AUDIO_ENGINE_mix(void*  userdata,
     float* readCursor = startReadCursor + channel->position * channels;
     float* writeCursor = (float*)(stream);
     size_t length = audio->length;
-    for (size_t i = 0; i < totalSamples; i++) {
-      *writeCursor += *readCursor * cos(pan) * volume;
-      writeCursor += 1;
-      readCursor += 1;
-      *writeCursor += *readCursor * sin(pan) * volume;
-      readCursor += 1;
-      writeCursor += 1;
+
+    size_t samplesToWrite = channel->loop ? totalSamples : min(totalSamples, length - channel->position);
+
+    for (size_t i = 0; i < samplesToWrite; i++) {
+      // We have to advance the cursor after each read and write
+      // Read/Write left
+      *writeCursor++ += *readCursor++ * cos(pan) * volume;
+      // Read/Write right
+      *writeCursor++ += *readCursor++ * sin(pan) * volume;
+
       channel->position++;
       if (channel->loop && channel->position >= length) {
         channel->position = 0;
         readCursor = startReadCursor;
       }
-      channel->enabled = channel->enabled && channel->position < length;
-
-      if (!channel->enabled) {
-        break;
-      }
     }
+    channel->enabled = channel->position < length;
   }
 
   // Mix using tanh
