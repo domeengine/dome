@@ -113,16 +113,14 @@ void AUDIO_ENGINE_mix(void*  userdata,
         readCursor = startReadCursor;
       }
     }
-    channel->enabled = channel->position < length;
+    channel->enabled = channel->loop || channel->position < length;
   }
 
   // Mix using tanh
   float* outputCursor = (float*)(stream);
-  for (size_t i = 0; i < totalSamples; i++) {
+  float* endPoint = outputCursor + totalSamples * channels;
+  for (; outputCursor < endPoint; outputCursor++) {
     *outputCursor += tanh(*outputCursor);
-    outputCursor++;
-    *outputCursor += tanh(*outputCursor);
-    outputCursor++;
   }
 }
 
