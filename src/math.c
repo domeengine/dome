@@ -99,35 +99,11 @@ int64_t mid(int64_t n1, int64_t n2, int64_t n3) {
 
 internal uint64_t
 gcd(uint64_t a, uint64_t b) {
-  if (a == b) {
-    return a;
+  uint64_t t = b;
+  while (b != 0) {
+    t = b;
+    b = a % b;
+    a = t;
   }
-  if (a == 0) {
-    return b;
-  }
-  if (b == 0) {
-    return a;
-  }
-  if ((a % 2) == 0) {
-    // a is even
-    if ((b % 2) == 1) {
-      // b is odd
-      return gcd(a/2, b);
-    } else {
-      // b is even
-      return gcd(a/2, b/2);
-    }
-  } else {
-    // a is odd
-    if ((b % 2) == 0) {
-      // b is even
-      return gcd(a, b/2);
-    }
-    if (a > b) {
-      // a and b are both odd
-      return gcd((a - b)/2, b);
-    } else {
-      return gcd((b - a)/2, a);
-    }
-  }
+  return a;
 }
