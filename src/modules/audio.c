@@ -164,6 +164,7 @@ AUDIO_allocate(WrenVM* vm) {
   const char* fileBuffer = wrenGetSlotBytes(vm, 1, &length);
 
   int16_t* tempBuffer;
+
   if (strncmp(fileBuffer, "RIFF", 4) == 0 &&
       strncmp(&fileBuffer[8], "WAVE", 4) == 0) {
     data->audioType = AUDIO_TYPE_WAV;
@@ -201,7 +202,7 @@ AUDIO_allocate(WrenVM* vm) {
   data->buffer = calloc(channels * data->length, sizeof(float));
   assert(data->buffer != NULL);
   assert(data->length != UINT32_MAX);
-  // Process incoming values into an intermediate mixable format
+  // Process incoming values into a mixable format
   for (uint32_t i = 0; i < data->length; i++) {
     data->buffer[i * channels] = (float)(tempBuffer[i * data->spec.channels]) / INT16_MAX;
     if (data->spec.channels == 1) {
@@ -209,6 +210,9 @@ AUDIO_allocate(WrenVM* vm) {
     } else {
       data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels + 1]) / INT16_MAX;
     }
+  }
+  if (data->spec.freq == 48000) {
+    data->buffer = resample(data->buffer, data->spec.freq, 48000);
   }
   // free the intermediate buffers
   if (data->audioType == AUDIO_TYPE_WAV) {
@@ -219,6 +223,27 @@ AUDIO_allocate(WrenVM* vm) {
   if (DEBUG_MODE) {
     ENGINE* engine = wrenGetUserData(vm);
     DEBUG_printAudioSpec(engine, data->spec, data->audioType);
+  }
+}
+
+
+internal float*
+resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFrequency, size_t* destLength) {
+  // Compute GCD of both frequencies
+  uint64_t divisor = gcd(srcFrequency, targetFrequency);
+  uint64_t L = srcFrequency / divisor;
+  uint64_t M = targetFrequency / divisor;
+
+  if (targetFrequency > srcFrequency) {
+    size_t sampleLength = srcLength / (sizeof(float) * channels);
+    float* newData = calloc(L * sampleLength * channels, sizeof(float));
+    if (newData == NULL) {
+      return NULL;
+    }
+    for (size_t i = 0; i < srcLength)
+  } else {
+    // TODO: We aren't ready to downsample yet
+    assert(false);
   }
 }
 
@@ -257,7 +282,7 @@ AUDIO_ENGINE_init(void) {
   }
   // SETUP player
   // set the callback function
-  (engine->spec).freq = 44100;
+  (engine->spec).freq = 48000;
   (engine->spec).format = AUDIO_F32LSB;
   (engine->spec).channels = channels; // TODO: consider mono/stereo
   (engine->spec).samples = AUDIO_BUFFER_SIZE; // Consider making this configurable
