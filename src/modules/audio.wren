@@ -206,6 +206,7 @@ class AudioEngine {
   }
 
   foreign static f_update(list)
+  foreign static f_push(channel)
   static update() {
     var playing = __channels.values.where {|facade|
       if (__unloadQueue.contains(facade.soundId)) {

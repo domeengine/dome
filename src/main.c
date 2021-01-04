@@ -283,14 +283,18 @@ LOOP_update(LOOP_STATE* state) {
   }
   // updateAudio()
   if (audioEngineClass != NULL) {
+    AUDIO_ENGINE_update(state->vm);
+    /*
     wrenEnsureSlots(state->vm, 3);
     wrenSetSlotHandle(state->vm, 0, audioEngineClass);
     AUDIO_ENGINE_lock(state->engine->audioEngine);
     interpreterResult = wrenCall(state->vm, state->updateMethod);
     AUDIO_ENGINE_unlock(state->engine->audioEngine);
+
     if (interpreterResult != WREN_RESULT_SUCCESS) {
       return EXIT_FAILURE;
     }
+    */
   }
   return EXIT_SUCCESS;
 }
@@ -546,7 +550,7 @@ int main(int argc, char* args[])
   loop.gameClass = wrenGetSlotHandle(vm, 0);
   loop.updateMethod = wrenMakeCallHandle(vm, "update()");
   loop.drawMethod = wrenMakeCallHandle(vm, "draw(_)");
-  
+
   SDL_SetRenderDrawColor(engine.renderer, 0x00, 0x00, 0x00, 0xFF);
 
   // Initiate game loop
