@@ -699,6 +699,7 @@ cleanup:
   ENGINE_reportError(&engine);
   BASEPATH_free();
   AUDIO_ENGINE_halt(engine.audioEngine);
+  AUDIO_ENGINE_releaseHandles(engine.audioEngine, vm);
   VM_free(vm);
   result = engine.exit_status;
   ENGINE_free(&engine);

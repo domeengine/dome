@@ -199,6 +199,7 @@ class AudioEngine {
     channel.loop = loop
 
     __nextId = __nextId + 1
+    channel.update_()
     f_push(systemChannel)
     return channel
   }
