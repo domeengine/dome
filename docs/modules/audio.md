@@ -13,7 +13,7 @@ It contains the following classes:
 
 ## AudioEngine
 
-At the moment, DOME only supports OGG and WAV files, with a sample frequency of 44.1kHz (CD quality audio)
+DOME supports playback of audio files in OGG and WAV formats. It will convert all files to its native sample rate of 44.1kHz (CD quality audio), but the re-sampling algorithm used is naive and may introduce audio artifacts. It is recommended that you produce your audio with a 44.1kHz sample-rate, for the best quality audio.
 
 An audio file is loaded from disk into memory using the `load` function, and remains in memory until you call `unload(_)` or `unloadAll()`, or when DOME closes.
 
