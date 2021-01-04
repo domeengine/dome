@@ -1,5 +1,5 @@
 #define AUDIO_CHANNEL_START 2
-#define SAMPLE_RATE  48000
+#define SAMPLE_RATE 44100
 
 typedef enum {
   CHANNEL_INVALID,
@@ -213,10 +213,10 @@ AUDIO_allocate(WrenVM* vm) {
       data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels + 1]) / INT16_MAX;
     }
   }
-  if (data->spec.freq != SAMPLE_RATE) {
+  if (data->spec.freq != audioEngine->spec.freq) {
     size_t newLength;
     void* oldPtr = data->buffer;
-    data->buffer = resample(data->buffer, data->length, data->spec.freq, SAMPLE_RATE, &newLength);
+    data->buffer = resample(data->buffer, data->length, data->spec.freq, audioEngine->spec.freq, &newLength);
     data->length = newLength;
     free(oldPtr);
   }
@@ -249,7 +249,7 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
   float* tempDataCopy = calloc(tempLength, sizeof(float));
 
 
-  size_t destSampleCount = tempSampleCount / (M * channels);
+  size_t destSampleCount = ceil(tempSampleCount / M) + 1;
   *destLength = destSampleCount;
   float* destData = malloc(destSampleCount * channels * sizeof(float));
   if (destData == NULL) {
@@ -258,95 +258,29 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
   // Space out samples in temp data
   float* sampleCursor = data;
   float* writeCursor = tempData;
-  for (size_t i = 0; i < sampleCount; i++) {
-    for (size_t j = 0; j < L; j++) {
-      writeCursor[2*j] = sampleCursor[2*i];
-      writeCursor[2*j + 1] = sampleCursor[2*i + 1];
-    }
-    writeCursor += 2*L;
+  for (size_t i = 0; i < sampleCount * L; i++) {
+    size_t index = i / L;
+    writeCursor[2*i] = sampleCursor[2*index];
+    writeCursor[2*i + 1] = sampleCursor[2*index + 1];
   }
 
-  memcpy(tempDataCopy, tempData, tempSampleCount * channels * sizeof(float));
-
-  /*
-  // Low-pass filter over the data (broken)
-  float w = (M_PI * 2.0f * 8.0f) / min(M, L);
-
-  float cos_w = cos(w);
-  float sin_w = sin(w);
-
-  float Q = 1.0f;
-  float alpha = sin_w / (2.0f * Q);
-  float scalar = 1.0f / (1.0f + alpha);
-
-  float a0 = 0.5f * (1.0f - cos_w) * scalar;
-  float a1 = (1.0f - cos_w) * scalar;
-  float a2 = a0;
-  float b1 = -2.0f * cos_w * scalar;
-  float b2 = (1.0f - alpha) * scalar;
-
-  float *y = tempDataCopy;
-  float *x = tempData;
-
-  float xn, xn1, xn2, yn1, yn2;
-  // left channel
-  xn = 0;
-  xn1 = 0;
-  xn2 = 0;
-  yn1 = 0;
-  yn2 = 0;
-  for (size_t i = 0; i < tempSampleCount; i+=2) {
-    size_t n0 = 2 * i;
-    size_t n1 = 2 * (i + 1);
-    size_t n2 = 2 * (i + 2);
-
-    xn = x[n0];
-    yn2 = a0*xn + a1*xn1 * a2 * xn2 - b1 * yn1 - b2 * yn2;
-    y[n0] = yn2;
-
-    xn2 = x[n1];
-    yn1 = a0*xn2 + a1*xn * a2 * xn1 - b1 * yn2 - b2 * yn1;
-    y[n1] = yn1;
-    xn1 = xn2;
-    xn2 = xn;
-  }
-  // right channel
-  xn = 0;
-  xn1 = 0;
-  xn2 = 0;
-  yn1 = 0;
-  yn2 = 0;
-  for (size_t i = 0; i < tempSampleCount; i+=2) {
-    size_t n0 = 2 * i + 1;
-    size_t n1 = 2 * (i + 1) + 1;
-    size_t n2 = 2 * (i + 2) + 1;
-
-    xn = x[n0];
-    yn2 = a0*xn + a1*xn1 * a2 * xn2 - b1 * yn1 - b2 * yn2;
-    y[n0] = yn2;
-
-    xn2 = x[n1];
-    yn1 = a0*xn2 + a1*xn * a2 * xn1 - b1 * yn2 - b2 * yn1;
-    y[n1] = yn1;
-    xn1 = xn2;
-    xn2 = xn;
-  }
-  */
+  // memcpy(tempDataCopy, tempData, tempSampleCount * channels * sizeof(float));
+  // Low-pass filter over the data (optional - but recommended)
 
   // decimate by M
-  sampleCursor = tempDataCopy;
+  sampleCursor = tempData;
   writeCursor = destData;
 
   size_t i, j;
   for(j = i = 0; i < tempSampleCount; i += M) {
     // printf("Length: %zu - Writing sample: %zu\n", destSampleCount, j);
     if (j >= destSampleCount) {
-      break;
+      printf("sampleMiss\n");
+      continue;
     }
     writeCursor[2*j] = sampleCursor[i*2];
     writeCursor[2*j+1] = sampleCursor[i*2+1];
     j += 1;
-
   }
 
   free(tempData);
