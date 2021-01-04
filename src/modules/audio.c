@@ -247,6 +247,9 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
   size_t tempSampleCount = sampleCount * L;
   size_t tempLength = tempSampleCount * channels;
   float* tempData = calloc(tempLength, sizeof(float));
+  if (tempData == NULL) {
+    return NULL;
+  }
 
 
   size_t destSampleCount = ceil(tempSampleCount / M) + 1;
@@ -264,9 +267,7 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
     *(writeCursor++) = sampleCursor[index + 1];
   }
 
-  // Low-pass filter over the data (optional - but recommended)
-  // float* tempDataCopy = calloc(tempLength, sizeof(float));
-  // memcpy(tempDataCopy, tempData, tempSampleCount * channels * sizeof(float));
+  // TODO: Low-pass filter over the data (optional - but recommended)
 
   // decimate by M
   sampleCursor = tempData;
@@ -276,15 +277,9 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
   for(j = i = 0; i < tempSampleCount; i += M) {
     *(writeCursor++) = sampleCursor[i*2];
     *(writeCursor++) = sampleCursor[i*2+1];
-    /*
-    writeCursor[2*j] = sampleCursor[i*2];
-    writeCursor[2*j+1] = sampleCursor[i*2+1];
-    j += 1;
-    */
   }
 
   free(tempData);
-  // free(tempDataCopy);
   return destData;
 }
 
