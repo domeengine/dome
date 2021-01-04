@@ -64,7 +64,7 @@ typedef struct AUDIO_ENGINE_t {
 } AUDIO_ENGINE;
 
 const uint16_t channels = 2;
-const uint16_t bytesPerSample = sizeof(float) * 2 /* channels */;
+const uint16_t bytesPerSample = sizeof(float) * channels;
 
 internal void
 AUDIO_CHANNEL_callback(void* gChannel, float* stream, size_t totalSamples) {
@@ -213,6 +213,8 @@ AUDIO_allocate(WrenVM* vm) {
       data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels + 1]) / INT16_MAX;
     }
   }
+  ENGINE* engine = wrenGetUserData(vm);
+  AUDIO_ENGINE* audioEngine = engine->audioEngine;
   if (data->spec.freq != audioEngine->spec.freq) {
     size_t newLength;
     void* oldPtr = data->buffer;
@@ -227,7 +229,6 @@ AUDIO_allocate(WrenVM* vm) {
     free(tempBuffer);
   }
   if (DEBUG_MODE) {
-    ENGINE* engine = wrenGetUserData(vm);
     DEBUG_printAudioSpec(engine, data->spec, data->audioType);
   }
 }
@@ -241,17 +242,16 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
   uint64_t L = targetFrequency / divisor;
   uint64_t M = srcFrequency / divisor;
 
-  size_t sampleCount = srcLength; // / (sizeof(float) * channels);
+  size_t sampleCount = srcLength;
 
   size_t tempSampleCount = sampleCount * L;
   size_t tempLength = tempSampleCount * channels;
   float* tempData = calloc(tempLength, sizeof(float));
-  float* tempDataCopy = calloc(tempLength, sizeof(float));
 
 
   size_t destSampleCount = ceil(tempSampleCount / M) + 1;
   *destLength = destSampleCount;
-  float* destData = malloc(destSampleCount * channels * sizeof(float));
+  float* destData = malloc(destSampleCount * bytesPerSample);
   if (destData == NULL) {
     return NULL;
   }
@@ -259,13 +259,14 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
   float* sampleCursor = data;
   float* writeCursor = tempData;
   for (size_t i = 0; i < sampleCount * L; i++) {
-    size_t index = i / L;
-    writeCursor[2*i] = sampleCursor[2*index];
-    writeCursor[2*i + 1] = sampleCursor[2*index + 1];
+    size_t index = channels * (i / L);
+    *(writeCursor++) = sampleCursor[index];
+    *(writeCursor++) = sampleCursor[index + 1];
   }
 
-  // memcpy(tempDataCopy, tempData, tempSampleCount * channels * sizeof(float));
   // Low-pass filter over the data (optional - but recommended)
+  // float* tempDataCopy = calloc(tempLength, sizeof(float));
+  // memcpy(tempDataCopy, tempData, tempSampleCount * channels * sizeof(float));
 
   // decimate by M
   sampleCursor = tempData;
@@ -273,18 +274,17 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
 
   size_t i, j;
   for(j = i = 0; i < tempSampleCount; i += M) {
-    // printf("Length: %zu - Writing sample: %zu\n", destSampleCount, j);
-    if (j >= destSampleCount) {
-      printf("sampleMiss\n");
-      continue;
-    }
+    *(writeCursor++) = sampleCursor[i*2];
+    *(writeCursor++) = sampleCursor[i*2+1];
+    /*
     writeCursor[2*j] = sampleCursor[i*2];
     writeCursor[2*j+1] = sampleCursor[i*2+1];
     j += 1;
+    */
   }
 
   free(tempData);
-  free(tempDataCopy);
+  // free(tempDataCopy);
   return destData;
 }
 
