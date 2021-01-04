@@ -70,6 +70,7 @@ class AudioChannelFacade is AudioChannel {
 
   stop() {
     _stopRequested = true
+    _channel.enabled = false
   }
 
   release_() {
