@@ -1,4 +1,5 @@
 #define AUDIO_CHANNEL_START 2
+#define SAMPLE_RATE  48000
 
 typedef enum {
   CHANNEL_INVALID,
@@ -155,6 +156,7 @@ void AUDIO_ENGINE_mix(void*  userdata,
   }
 }
 
+internal float* resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFrequency, size_t* destLength);
 internal void
 AUDIO_allocate(WrenVM* vm) {
   wrenEnsureSlots(vm, 1);
@@ -211,8 +213,12 @@ AUDIO_allocate(WrenVM* vm) {
       data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels + 1]) / INT16_MAX;
     }
   }
-  if (data->spec.freq == 48000) {
-    data->buffer = resample(data->buffer, data->spec.freq, 48000);
+  if (data->spec.freq != SAMPLE_RATE) {
+    size_t newLength;
+    void* oldPtr = data->buffer;
+    data->buffer = resample(data->buffer, data->length, data->spec.freq, SAMPLE_RATE, &newLength);
+    data->length = newLength;
+    free(oldPtr);
   }
   // free the intermediate buffers
   if (data->audioType == AUDIO_TYPE_WAV) {
@@ -231,20 +237,121 @@ internal float*
 resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFrequency, size_t* destLength) {
   // Compute GCD of both frequencies
   uint64_t divisor = gcd(srcFrequency, targetFrequency);
-  uint64_t L = srcFrequency / divisor;
-  uint64_t M = targetFrequency / divisor;
 
-  if (targetFrequency > srcFrequency) {
-    size_t sampleLength = srcLength / (sizeof(float) * channels);
-    float* newData = calloc(L * sampleLength * channels, sizeof(float));
-    if (newData == NULL) {
-      return NULL;
-    }
-    for (size_t i = 0; i < srcLength)
-  } else {
-    // TODO: We aren't ready to downsample yet
-    assert(false);
+  uint64_t L = targetFrequency / divisor;
+  uint64_t M = srcFrequency / divisor;
+
+  size_t sampleCount = srcLength; // / (sizeof(float) * channels);
+
+  size_t tempSampleCount = sampleCount * L;
+  size_t tempLength = tempSampleCount * channels;
+  float* tempData = calloc(tempLength, sizeof(float));
+  float* tempDataCopy = calloc(tempLength, sizeof(float));
+
+
+  size_t destSampleCount = tempSampleCount / (M * channels);
+  *destLength = destSampleCount;
+  float* destData = malloc(destSampleCount * channels * sizeof(float));
+  if (destData == NULL) {
+    return NULL;
   }
+  // Space out samples in temp data
+  float* sampleCursor = data;
+  float* writeCursor = tempData;
+  for (size_t i = 0; i < sampleCount; i++) {
+    for (size_t j = 0; j < L; j++) {
+      writeCursor[2*j] = sampleCursor[2*i];
+      writeCursor[2*j + 1] = sampleCursor[2*i + 1];
+    }
+    writeCursor += 2*L;
+  }
+
+  memcpy(tempDataCopy, tempData, tempSampleCount * channels * sizeof(float));
+
+  /*
+  // Low-pass filter over the data (broken)
+  float w = (M_PI * 2.0f * 8.0f) / min(M, L);
+
+  float cos_w = cos(w);
+  float sin_w = sin(w);
+
+  float Q = 1.0f;
+  float alpha = sin_w / (2.0f * Q);
+  float scalar = 1.0f / (1.0f + alpha);
+
+  float a0 = 0.5f * (1.0f - cos_w) * scalar;
+  float a1 = (1.0f - cos_w) * scalar;
+  float a2 = a0;
+  float b1 = -2.0f * cos_w * scalar;
+  float b2 = (1.0f - alpha) * scalar;
+
+  float *y = tempDataCopy;
+  float *x = tempData;
+
+  float xn, xn1, xn2, yn1, yn2;
+  // left channel
+  xn = 0;
+  xn1 = 0;
+  xn2 = 0;
+  yn1 = 0;
+  yn2 = 0;
+  for (size_t i = 0; i < tempSampleCount; i+=2) {
+    size_t n0 = 2 * i;
+    size_t n1 = 2 * (i + 1);
+    size_t n2 = 2 * (i + 2);
+
+    xn = x[n0];
+    yn2 = a0*xn + a1*xn1 * a2 * xn2 - b1 * yn1 - b2 * yn2;
+    y[n0] = yn2;
+
+    xn2 = x[n1];
+    yn1 = a0*xn2 + a1*xn * a2 * xn1 - b1 * yn2 - b2 * yn1;
+    y[n1] = yn1;
+    xn1 = xn2;
+    xn2 = xn;
+  }
+  // right channel
+  xn = 0;
+  xn1 = 0;
+  xn2 = 0;
+  yn1 = 0;
+  yn2 = 0;
+  for (size_t i = 0; i < tempSampleCount; i+=2) {
+    size_t n0 = 2 * i + 1;
+    size_t n1 = 2 * (i + 1) + 1;
+    size_t n2 = 2 * (i + 2) + 1;
+
+    xn = x[n0];
+    yn2 = a0*xn + a1*xn1 * a2 * xn2 - b1 * yn1 - b2 * yn2;
+    y[n0] = yn2;
+
+    xn2 = x[n1];
+    yn1 = a0*xn2 + a1*xn * a2 * xn1 - b1 * yn2 - b2 * yn1;
+    y[n1] = yn1;
+    xn1 = xn2;
+    xn2 = xn;
+  }
+  */
+
+  // decimate by M
+  sampleCursor = tempDataCopy;
+  writeCursor = destData;
+
+  size_t i, j;
+  for(j = i = 0; i < tempSampleCount; i += M) {
+    // printf("Length: %zu - Writing sample: %zu\n", destSampleCount, j);
+    if (j >= destSampleCount) {
+      break;
+    }
+    writeCursor[2*j] = sampleCursor[i*2];
+    writeCursor[2*j+1] = sampleCursor[i*2+1];
+    j += 1;
+
+  }
+
+  free(tempData);
+  free(tempDataCopy);
+  return destData;
 }
 
 internal void
@@ -282,7 +389,7 @@ AUDIO_ENGINE_init(void) {
   }
   // SETUP player
   // set the callback function
-  (engine->spec).freq = 48000;
+  (engine->spec).freq = SAMPLE_RATE;
   (engine->spec).format = AUDIO_F32LSB;
   (engine->spec).channels = channels; // TODO: consider mono/stereo
   (engine->spec).samples = AUDIO_BUFFER_SIZE; // Consider making this configurable
