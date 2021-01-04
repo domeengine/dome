@@ -65,6 +65,7 @@ class AudioChannelFacade is AudioChannel {
     _loop = false
     _stopRequested = false
     _id = id
+    _channel.enabled = true
   }
 
   stop() {
@@ -198,6 +199,7 @@ class AudioEngine {
     channel.loop = loop
 
     __nextId = __nextId + 1
+    f_push(systemChannel)
     return channel
   }
 
@@ -214,7 +216,7 @@ class AudioEngine {
         facade.release_()
         return false
       }
-      facade.update_()
+      // facade.update_()
       if (facade.state == AudioState.STOPPED) {
         __channels.remove(facade.id)
         return false
