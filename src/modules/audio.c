@@ -30,6 +30,7 @@ typedef struct {
   CHANNEL_STATE state;
   char* soundId;
   volatile bool enabled;
+  bool stopRequested;
   void* context;
   WrenHandle* handle;
   CHANNEL_mix mix;
@@ -392,25 +393,19 @@ AUDIO_ENGINE_update(WrenVM* vm) {
     if (channel == NULL) {
       continue;
     }
-    if (channel->enabled == true) {
+    if (channel->enabled == true && !channel->stopRequested) {
       pending->channels[waitCount + next] = channel;
       next++;
-    } else {
-      if (channel->finish != NULL) {
-        channel->finish(vm, channel);
-      }
     }
   }
 
+  pending = CHANNEL_LIST_resize(pending, waitCount + next);
 
   AUDIO_ENGINE_lock(data);
-  pending = CHANNEL_LIST_resize(pending, waitCount + next);
-  playing = CHANNEL_LIST_resize(playing, 0);
   // transpose the two lists
   data->playing = pending;
   data->pending = playing;
   assert(data->playing->count == (waitCount + next));
-  assert(data->pending->count == 0);
 
   for (size_t i = 0; i < data->playing->count; i++) {
     GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)data->playing->channels[i];
@@ -420,32 +415,23 @@ AUDIO_ENGINE_update(WrenVM* vm) {
     }
   }
   AUDIO_ENGINE_unlock(data);
+
+  for (size_t i = 0; i < data->pending->count; i++) {
+    GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)data->pending->channels[i];
+    assert(channel != NULL);
+    if (channel->enabled == false || channel->stopRequested) {
+      channel->enabled = false;
+      if (channel->finish != NULL) {
+        channel->finish(vm, channel);
+      }
+    }
+  }
+  data->pending = CHANNEL_LIST_resize(data->pending, 0);
+  assert(data->pending->count == 0);
+
   // Safety - Make sure we don't misuse these pointers.
   pending = NULL;
   playing = NULL;
-
-  /*
-  AUDIO_ENGINE_lock(data);
-  ASSERT_SLOT_TYPE(vm, 1, LIST, "channels");
-  uint8_t soundCount = wrenGetListCount(vm, 1);
-  data->playing = CHANNEL_LIST_resize(data->playing, soundCount);
-  for (size_t i = 0; i < data->playing->count; i++) {
-    if (i < soundCount) {
-      wrenGetListElement(vm, 1, i, 2);
-      if (wrenGetSlotType(vm, 2) != WREN_TYPE_NULL) {
-        data->playing->channels[i] = wrenGetSlotForeign(vm, 2);
-        AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)data->playing->channels[i];
-        if (channel->resetPosition) {
-          channel->position = channel->newPosition;
-          channel->resetPosition = false;
-        }
-      }
-    } else {
-      data->playing->channels[i] = NULL;
-    }
-  }
-  AUDIO_ENGINE_unlock(data);
-  */
 }
 
 internal void
@@ -572,7 +558,11 @@ internal void
 AUDIO_CHANNEL_setEnabled(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   ASSERT_SLOT_TYPE(vm, 1, BOOL, "enabled");
-  channel->core.enabled = wrenGetSlotBool(vm, 1);
+  if (channel->core.enabled) {
+    channel->core.stopRequested = !wrenGetSlotBool(vm, 1);
+  } else {
+    channel->core.enabled = wrenGetSlotBool(vm, 1);
+  }
 }
 
 internal void
