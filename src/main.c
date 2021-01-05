@@ -557,12 +557,13 @@ int main(int argc, char* args[])
 
   wrenSetSlotHandle(vm, 0, loop.gameClass);
   interpreterResult = wrenCall(vm, initMethod);
-  wrenReleaseHandle(vm, initMethod);
-  initMethod = NULL;
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
     goto vm_cleanup;
   }
+  // Release this handle if it finished successfully
+  wrenReleaseHandle(vm, initMethod);
+  initMethod = NULL;
   engine.initialized = true;
 
   SDL_SetWindowPosition(engine.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -678,6 +679,9 @@ vm_cleanup:
     }
   }
 
+  // Free resources
+  ENGINE_reportError(&engine);
+
   if (initMethod != NULL) {
     wrenReleaseHandle(vm, initMethod);
   }
@@ -698,8 +702,6 @@ vm_cleanup:
   AUDIO_ENGINE_releaseHandles(engine.audioEngine, vm);
 
 cleanup:
-  // Free resources
-  ENGINE_reportError(&engine);
   BASEPATH_free();
   VM_free(vm);
   result = engine.exit_status;
