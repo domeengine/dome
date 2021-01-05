@@ -72,6 +72,7 @@ typedef struct AUDIO_ENGINE_t {
   size_t scratchBufferSize;
   CHANNEL_LIST* pending;
   CHANNEL_LIST* playing;
+  uintmax_t nextId;
 } AUDIO_ENGINE;
 
 const uint16_t channels = 2;
@@ -558,7 +559,7 @@ internal void
 AUDIO_CHANNEL_getPosition(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   wrenEnsureSlots(vm, 1);
-  wrenSetSlotDouble(vm, 0, channel->current.position);
+  wrenSetSlotDouble(vm, 0, channel->new.position);
 }
 
 internal void
@@ -608,7 +609,7 @@ internal void
 AUDIO_CHANNEL_getVolume(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   wrenEnsureSlots(vm, 1);
-  wrenSetSlotDouble(vm, 0, channel->current.volume);
+  wrenSetSlotDouble(vm, 0, channel->new.volume);
 }
 
 internal void
@@ -622,7 +623,7 @@ internal void
 AUDIO_CHANNEL_getPan(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   wrenEnsureSlots(vm, 1);
-  wrenSetSlotDouble(vm, 0, channel->current.pan);
+  wrenSetSlotDouble(vm, 0, channel->new.pan);
 }
 
 internal void
