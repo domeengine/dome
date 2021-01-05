@@ -29,7 +29,7 @@ typedef void (*CHANNEL_callback)(WrenVM* vm, void* channel);
 typedef struct {
   CHANNEL_STATE state;
   char* soundId;
-  bool enabled;
+  volatile bool enabled;
   void* context;
   WrenHandle* handle;
   CHANNEL_mix mix;
@@ -44,7 +44,7 @@ struct AUDIO_CHANNEL_PROPS {
   float volume;
   float pan;
   // Position is the sample value to play next
-  size_t position;
+  volatile size_t position;
   bool resetPosition;
 };
 
@@ -96,11 +96,14 @@ AUDIO_CHANNEL_finish(WrenVM* vm, void* gChannel) {
 internal void
 AUDIO_CHANNEL_update(WrenVM* vm, void* gChannel) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)gChannel;
-  size_t position = channel->new.resetPosition ? channel->new.position : channel->current.position;
+  size_t position = channel->current.position;
+  if (channel->new.resetPosition) {
+    position = channel->new.position;
+    channel->new.resetPosition = false;
+  }
   channel->current = channel->new;
   channel->current.position = position;
-  channel->new.resetPosition = false;
-  // printf("position: %zu\n", channel->current.position);
+  channel->new = channel->current;
   // printf("volume: %f\n", channel->current.volume);
   // printf("pan: %f\n", channel->current.pan);
 }
@@ -132,6 +135,9 @@ AUDIO_CHANNEL_mix(void* gChannel, float* stream, size_t totalSamples) {
     if (channel->current.loop && channel->current.position >= length) {
       channel->current.position = 0;
       readCursor = startReadCursor;
+    }
+    if (!channel->core.enabled) {
+      break;
     }
   }
   channel->core.enabled = channel->core.enabled && (channel->current.loop || channel->current.position < length);
@@ -587,7 +593,7 @@ internal void
 AUDIO_CHANNEL_getLoop(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   wrenEnsureSlots(vm, 1);
-  wrenSetSlotBool(vm, 0, channel->current.loop);
+  wrenSetSlotBool(vm, 0, channel->new.loop);
 }
 
 internal void
@@ -598,6 +604,7 @@ AUDIO_CHANNEL_setPosition(WrenVM* vm) {
   channel->new.position = mid(0, newPosition, channel->audio->length);
   channel->new.resetPosition = true;
 }
+
 internal void
 AUDIO_CHANNEL_setVolume(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);

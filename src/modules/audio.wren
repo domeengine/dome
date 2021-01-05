@@ -129,7 +129,7 @@ class AudioChannelFacade is AudioChannel {
 
   // Public
   position { _position || _channel.position }
-  position=(v) { _position = v }
+  position=(v) { _channel.position = v }
   length { _length }
   soundId { _soundId }
   volume { _volume }
