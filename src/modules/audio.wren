@@ -68,7 +68,6 @@ foreign class SystemChannel is AudioChannel {
 class AudioEngine {
   // TODO: Allow device enumeration and selection
   static init() {
-    __unloadQueue = []
     __nameMap = {}
     __files = {}
     __nextId = 0
