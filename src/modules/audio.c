@@ -192,17 +192,18 @@ AUDIO_CHANNEL_mix(void* gChannel, float* stream, size_t totalSamples) {
     *(writeCursor++) += *(readCursor++) * sin(pan) * currentVolume;
 
     channel->current.position++;
-    if (channel->current.loop && channel->current.position >= length) {
-      channel->current.position = 0;
-      readCursor = startReadCursor;
-    }
-    if (!channel->core.enabled) {
-      break;
+    if (channel->current.position >= length) {
+      if (channel->current.loop) {
+        channel->current.position = 0;
+        readCursor = startReadCursor;
+      } else {
+        break;
+      }
     }
   }
   channel->actualVolume = channel->current.volume;
   channel->actualPan = channel->current.pan;
-  channel->core.enabled = channel->core.enabled && (channel->current.loop || channel->current.position < length);
+  channel->core.enabled = (channel->current.loop || channel->current.position < length);
 }
 
 // audio callback function
@@ -460,7 +461,6 @@ internal void
 AUDIO_ENGINE_unlock(AUDIO_ENGINE* engine) {
   SDL_UnlockAudioDevice(engine->deviceId);
 }
-
 
 internal void
 AUDIO_ENGINE_pushChannel(AUDIO_ENGINE* engine, GENERIC_CHANNEL* channel) {
