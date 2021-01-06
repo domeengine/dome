@@ -31,6 +31,7 @@ class AudioChannel {}
 // Encapsulates the data of the currently playing channel
 foreign class SystemChannel is AudioChannel {
   construct new(soundId) {
+    // Sensible defaults
     volume = 1
     pan = 0
     enabled = true
@@ -77,6 +78,7 @@ class AudioEngine {
   static register(name, path) {
     __nameMap[name] = path
   }
+
   static load(name, path) {
     register(name, path)
     return load(name)

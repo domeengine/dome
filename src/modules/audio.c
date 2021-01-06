@@ -113,14 +113,27 @@ internal void
 AUDIO_CHANNEL_update(WrenVM* vm, void* gChannel) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)gChannel;
   switch (channel->core.state) {
-    case CHANNEL_INITIALIZE: channel->core.state = CHANNEL_TO_PLAY;
-
-    case CHANNEL_TO_PLAY:
+    case CHANNEL_INITIALIZE:
+      channel->core.state = CHANNEL_TO_PLAY;
+      // Fallthrough
     case CHANNEL_DEVIRTUALIZE:
+    case CHANNEL_TO_PLAY:
+      if (channel->core.state == CHANNEL_DEVIRTUALIZE) {
+        // We might do special things to de-virtualize a channel
+      }
+      if (channel->audio == NULL) {
+        channel->core.state = CHANNEL_LOADING;
+        break;
+      }
       // We assume data is loaded by now.
       channel->core.state = CHANNEL_PLAYING;
       channel->core.enabled = true;
       AUDIO_CHANNEL_commit(channel);
+      break;
+    case CHANNEL_LOADING:
+      if (channel->audio != NULL) {
+        channel->core.state = CHANNEL_TO_PLAY;
+      }
       break;
     case CHANNEL_PLAYING:
       AUDIO_CHANNEL_commit(channel);
@@ -129,7 +142,7 @@ AUDIO_CHANNEL_update(WrenVM* vm, void* gChannel) {
       }
       break;
     case CHANNEL_STOPPING:
-      channel->new.volume -= 0.05;
+      channel->new.volume -= 0.1;
       AUDIO_CHANNEL_commit(channel);
       if (channel->new.volume <= 0) {
         channel->new.volume = 0;
@@ -415,7 +428,8 @@ AUDIO_ENGINE_push(WrenVM* vm) {
   GENERIC_CHANNEL* channel = wrenGetSlotForeign(vm, 1);
   channel->handle = wrenGetSlotHandle(vm, 1);
   channel->enabled = true;
- AUDIO_ENGINE_pushChannel(data, channel);
+  AUDIO_ENGINE_pushChannel(data, channel);
+  wrenSetSlotDouble(vm, 0, channel->id);
 }
 
 internal void
