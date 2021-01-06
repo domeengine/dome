@@ -245,15 +245,6 @@ void AUDIO_ENGINE_mix(void*  userdata,
       }
     }
   }
-
-  // Mix using tanh
-  float* readCursor = (float*)(stream);
-  float* outputCursor = (float*)(stream);
-  float* endPoint = readCursor + totalSamples * channels;
-  for (; readCursor < endPoint; readCursor++) {
-    *(outputCursor) = (float)(tanh(*readCursor));
-    outputCursor++;
-  }
 }
 
 internal float* resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFrequency, size_t* destLength);
