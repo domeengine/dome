@@ -1,5 +1,5 @@
 #define AUDIO_CHANNEL_START 0
-#define SAMPLE_RATE 44100
+#define SAMPLE_RATE 48000
 
 typedef enum {
   CHANNEL_INVALID,
@@ -57,6 +57,7 @@ typedef struct {
   struct AUDIO_CHANNEL_PROPS new;
   float actualVolume;
   float actualPan;
+  bool fade;
 
   AUDIO_DATA* audio;
   WrenHandle* audioHandle;
@@ -143,7 +144,11 @@ AUDIO_CHANNEL_update(WrenVM* vm, void* gChannel) {
       }
       break;
     case CHANNEL_STOPPING:
-      channel->new.volume -= 0.1;
+      if (channel->fade) {
+        channel->new.volume -= 0.1;
+      } else {
+        channel->new.volume = 0;
+      }
       AUDIO_CHANNEL_commit(channel);
       if (channel->new.volume <= 0) {
         channel->new.volume = 0;
