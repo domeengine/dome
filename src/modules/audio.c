@@ -1,4 +1,5 @@
 #define AUDIO_CHANNEL_START 0
+#define SAMPLE_RATE 44100
 
 typedef enum {
   CHANNEL_INVALID,
@@ -80,7 +81,7 @@ typedef struct AUDIO_ENGINE_t {
 } AUDIO_ENGINE;
 
 const uint16_t channels = 2;
-const uint16_t bytesPerSample = sizeof(float) * 2 /* channels */;
+const uint16_t bytesPerSample = sizeof(float) * channels;
 
 internal void
 AUDIO_CHANNEL_finish(WrenVM* vm, void* gChannel) {
@@ -255,6 +256,7 @@ void AUDIO_ENGINE_mix(void*  userdata,
   }
 }
 
+internal float* resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFrequency, size_t* destLength);
 internal void
 AUDIO_allocate(WrenVM* vm) {
   wrenEnsureSlots(vm, 1);
@@ -264,6 +266,7 @@ AUDIO_allocate(WrenVM* vm) {
   const char* fileBuffer = wrenGetSlotBytes(vm, 1, &length);
 
   int16_t* tempBuffer;
+
   if (strncmp(fileBuffer, "RIFF", 4) == 0 &&
       strncmp(&fileBuffer[8], "WAVE", 4) == 0) {
     data->audioType = AUDIO_TYPE_WAV;
@@ -301,7 +304,7 @@ AUDIO_allocate(WrenVM* vm) {
   data->buffer = calloc(channels * data->length, sizeof(float));
   assert(data->buffer != NULL);
   assert(data->length != UINT32_MAX);
-  // Process incoming values into an intermediate mixable format
+  // Process incoming values into a mixable format
   for (uint32_t i = 0; i < data->length; i++) {
     data->buffer[i * channels] = (float)(tempBuffer[i * data->spec.channels]) / INT16_MAX;
     if (data->spec.channels == 1) {
@@ -310,6 +313,15 @@ AUDIO_allocate(WrenVM* vm) {
       data->buffer[i * channels + 1] = (float)(tempBuffer[i * data->spec.channels + 1]) / INT16_MAX;
     }
   }
+  ENGINE* engine = wrenGetUserData(vm);
+  AUDIO_ENGINE* audioEngine = engine->audioEngine;
+  if (data->spec.freq != audioEngine->spec.freq) {
+    size_t newLength;
+    void* oldPtr = data->buffer;
+    data->buffer = resample(data->buffer, data->length, data->spec.freq, audioEngine->spec.freq, &newLength);
+    data->length = newLength;
+    free(oldPtr);
+  }
   // free the intermediate buffers
   if (data->audioType == AUDIO_TYPE_WAV) {
     SDL_FreeWAV((uint8_t*)tempBuffer);
@@ -317,9 +329,58 @@ AUDIO_allocate(WrenVM* vm) {
     free(tempBuffer);
   }
   if (DEBUG_MODE) {
-    ENGINE* engine = wrenGetUserData(vm);
     DEBUG_printAudioSpec(engine, data->spec, data->audioType);
   }
+}
+
+
+internal float*
+resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFrequency, size_t* destLength) {
+  // Compute GCD of both frequencies
+  uint64_t divisor = gcd(srcFrequency, targetFrequency);
+
+  uint64_t L = targetFrequency / divisor;
+  uint64_t M = srcFrequency / divisor;
+
+  size_t sampleCount = srcLength;
+
+  size_t tempSampleCount = sampleCount * L;
+  size_t tempLength = tempSampleCount * channels;
+  float* tempData = calloc(tempLength, sizeof(float));
+  if (tempData == NULL) {
+    return NULL;
+  }
+
+
+  size_t destSampleCount = ceil(tempSampleCount / M) + 1;
+  *destLength = destSampleCount;
+  float* destData = malloc(destSampleCount * bytesPerSample);
+  if (destData == NULL) {
+    return NULL;
+  }
+  // Space out samples in temp data
+  float* sampleCursor = data;
+  float* writeCursor = tempData;
+  for (size_t i = 0; i < sampleCount * L; i++) {
+    size_t index = channels * (i / L);
+    *(writeCursor++) = sampleCursor[index];
+    *(writeCursor++) = sampleCursor[index + 1];
+  }
+
+  // TODO: Low-pass filter over the data (optional - but recommended)
+
+  // decimate by M
+  sampleCursor = tempData;
+  writeCursor = destData;
+
+  size_t i, j;
+  for(j = i = 0; i < tempSampleCount; i += M) {
+    *(writeCursor++) = sampleCursor[i*2];
+    *(writeCursor++) = sampleCursor[i*2+1];
+  }
+
+  free(tempData);
+  return destData;
 }
 
 internal void
@@ -358,7 +419,7 @@ AUDIO_ENGINE_init(void) {
 
   // SETUP player
   // set the callback function
-  (engine->spec).freq = 44100;
+  (engine->spec).freq = SAMPLE_RATE;
   (engine->spec).format = AUDIO_F32LSB;
   (engine->spec).channels = channels; // TODO: consider mono/stereo
   (engine->spec).samples = AUDIO_BUFFER_SIZE;
