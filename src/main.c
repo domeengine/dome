@@ -61,7 +61,6 @@
 
 // Used in the io variable, but we need to catch it here
 global_variable WrenHandle* bufferClass = NULL;
-global_variable WrenHandle* audioEngineClass = NULL;
 global_variable WrenHandle* keyboardClass = NULL;
 global_variable WrenHandle* mouseClass = NULL;
 global_variable WrenHandle* gamepadClass = NULL;
@@ -282,20 +281,7 @@ LOOP_update(LOOP_STATE* state) {
     return EXIT_FAILURE;
   }
   // updateAudio()
-  if (audioEngineClass != NULL) {
-    AUDIO_ENGINE_update(state->vm);
-    /*
-    wrenEnsureSlots(state->vm, 3);
-    wrenSetSlotHandle(state->vm, 0, audioEngineClass);
-    AUDIO_ENGINE_lock(state->engine->audioEngine);
-    interpreterResult = wrenCall(state->vm, state->updateMethod);
-    AUDIO_ENGINE_unlock(state->engine->audioEngine);
-
-    if (interpreterResult != WREN_RESULT_SUCCESS) {
-      return EXIT_FAILURE;
-    }
-    */
-  }
+  AUDIO_ENGINE_update(state->vm);
   return EXIT_SUCCESS;
 }
 
@@ -690,10 +676,6 @@ vm_cleanup:
 
   if (bufferClass != NULL) {
     wrenReleaseHandle(vm, bufferClass);
-  }
-
-  if (audioEngineClass != NULL) {
-    wrenReleaseHandle(vm, audioEngineClass);
   }
 
   INPUT_release(vm);

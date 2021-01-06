@@ -128,7 +128,7 @@ AUDIO_CHANNEL_update(WrenVM* vm, void* gChannel) {
       }
       break;
     case CHANNEL_STOPPING:
-      channel->new.volume -= 0.008;
+      channel->new.volume -= 0.05;
       AUDIO_CHANNEL_commit(channel);
       if (channel->new.volume <= 0) {
         channel->new.volume = 0;
@@ -191,14 +191,6 @@ AUDIO_CHANNEL_mix(void* gChannel, float* stream, size_t totalSamples) {
   channel->actualVolume = channel->current.volume;
   channel->actualPan = channel->current.pan;
   channel->core.enabled = channel->core.enabled && (channel->current.loop || channel->current.position < length);
-}
-
-internal void
-AUDIO_ENGINE_capture(WrenVM* vm) {
-  if (audioEngineClass == NULL) {
-    wrenGetVariable(vm, "audio", "AudioEngine", 0);
-    audioEngineClass = wrenGetSlotHandle(vm, 0);
-  }
 }
 
 // audio callback function
@@ -413,6 +405,7 @@ AUDIO_ENGINE_pushChannel(AUDIO_ENGINE* engine, GENERIC_CHANNEL* channel) {
   engine->pending = list;
   list->channels[next] = channel;
 }
+
 internal void
 AUDIO_ENGINE_push(WrenVM* vm) {
   ENGINE* engine = wrenGetUserData(vm);
@@ -421,7 +414,7 @@ AUDIO_ENGINE_push(WrenVM* vm) {
   GENERIC_CHANNEL* channel = wrenGetSlotForeign(vm, 1);
   channel->handle = wrenGetSlotHandle(vm, 1);
   channel->enabled = true;
-  AUDIO_ENGINE_pushChannel(data, channel);
+ AUDIO_ENGINE_pushChannel(data, channel);
 }
 
 internal void
@@ -493,6 +486,23 @@ internal void
 AUDIO_ENGINE_resume(AUDIO_ENGINE* engine) {
   SDL_PauseAudioDevice(engine->deviceId, 0);
 }
+
+internal void
+AUDIO_ENGINE_stopAll(AUDIO_ENGINE* engine) {
+  CHANNEL_LIST* playing = engine->playing;
+  for (size_t i = 0; i < playing->count; i++) {
+    GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)playing->channels[i];
+    channel->stopRequested = true;
+  }
+}
+
+internal void
+AUDIO_ENGINE_wrenStopAll(WrenVM* vm) {
+  ENGINE* engine = wrenGetUserData(vm);
+  AUDIO_ENGINE* audioEngine = engine->audioEngine;
+  AUDIO_ENGINE_stopAll(audioEngine);
+}
+
 
 internal void
 AUDIO_ENGINE_halt(AUDIO_ENGINE* engine) {

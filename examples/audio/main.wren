@@ -18,6 +18,9 @@ class Game {
       if (Keyboard["backspace"].justPressed) {
         __channel.stop()
       }
+      if (Keyboard["0"].justPressed) {
+        AudioEngine.stopAllChannels()
+      }
       if (Keyboard["left"].justPressed) {
         __channel.pan = __channel.pan - 0.05
       }

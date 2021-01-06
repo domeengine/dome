@@ -73,9 +73,7 @@ class AudioEngine {
     __files = {}
     __nextId = 0
     __channels = {}
-    f_captureVariable()
   }
-  foreign static f_captureVariable()
 
   static register(name, path) {
     __nameMap[name] = path
@@ -122,9 +120,10 @@ class AudioEngine {
     return channel
   }
 
+  foreign static f_stopAllChannels()
   static stopAllChannels() {
     // TODO: foreign call
-    __channels.values.each { |channel| channel.stop() }
+    f_stopAllChannels()
   }
 
   foreign static f_update(list)
