@@ -96,7 +96,6 @@ class AudioEngine {
   static unload(name) {
     var path = __nameMap[name]
     __files.remove(path)
-    __nameMap.remove(name)
     System.gc()
   }
 

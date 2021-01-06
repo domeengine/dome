@@ -411,7 +411,7 @@ internal void
 AUDIO_ENGINE_push(WrenVM* vm) {
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
-  // assert
+
   GENERIC_CHANNEL* channel = wrenGetSlotForeign(vm, 1);
   channel->handle = wrenGetSlotHandle(vm, 1);
   channel->enabled = true;
@@ -420,13 +420,10 @@ AUDIO_ENGINE_push(WrenVM* vm) {
 
 internal void
 AUDIO_ENGINE_update(WrenVM* vm) {
-  // We need additional slots to parse a list
-  // wrenEnsureSlots(vm, 3);
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
   CHANNEL_LIST* pending = data->pending;
   CHANNEL_LIST* playing = data->playing;
-
 
   // Copy enabled channels into pending
   size_t waitCount = pending->count;
@@ -498,6 +495,17 @@ AUDIO_ENGINE_stopAll(AUDIO_ENGINE* engine) {
 }
 
 internal void
+AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, uintmax_t id) {
+  CHANNEL_LIST* playing = engine->playing;
+  for (size_t i = 0; i < playing->count; i++) {
+    GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)playing->channels[i];
+    if (channel->id == id) {
+      channel->stopRequested = true;
+    }
+  }
+}
+
+internal void
 AUDIO_ENGINE_wrenStopAll(WrenVM* vm) {
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* audioEngine = engine->audioEngine;
@@ -554,7 +562,7 @@ AUDIO_CHANNEL_allocate(WrenVM* vm) {
 
   struct AUDIO_CHANNEL_PROPS props = {0, 0, 0, 0, 0};
   channel->current = channel->new = props;
-  channel->actualVolume = 1.0f;
+  channel->actualVolume = 0.0f;
 
   channel->core.state = CHANNEL_INITIALIZE;
   channel->core.enabled = true;
