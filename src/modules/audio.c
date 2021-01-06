@@ -1,5 +1,5 @@
 #define AUDIO_CHANNEL_START 0
-#define SAMPLE_RATE 48000
+#define SAMPLE_RATE 44100
 
 typedef enum {
   CHANNEL_INVALID,
