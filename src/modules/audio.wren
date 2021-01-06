@@ -40,6 +40,7 @@ foreign class SystemChannel is AudioChannel {
 
   foreign length
   foreign soundId
+  foreign id
   foreign position
   foreign position=(v)
 
@@ -70,7 +71,6 @@ class AudioEngine {
   static init() {
     __nameMap = {}
     __files = {}
-    __nextId = 0
     __channels = {}
   }
 
@@ -110,13 +110,11 @@ class AudioEngine {
   static play(name, volume, loop, pan) {
     var channel = SystemChannel.new(name)
     channel.audio = load(name)
-    __channels[__nextId] = channel
     channel.volume = volume
     channel.pan = pan
     channel.loop = loop
-
-    __nextId = __nextId + 1
     f_push(channel)
+    __channels[channel.id] = channel
     return channel
   }
 

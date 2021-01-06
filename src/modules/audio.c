@@ -28,6 +28,7 @@ typedef void (*CHANNEL_mix)(void* channel, float* buffer, size_t requestedSample
 typedef void (*CHANNEL_callback)(WrenVM* vm, void* channel);
 typedef struct {
   CHANNEL_STATE state;
+  uintmax_t id;
   char* soundId;
   volatile bool enabled;
   bool stopRequested;
@@ -141,8 +142,6 @@ AUDIO_CHANNEL_update(WrenVM* vm, void* gChannel) {
       break;
     default: break;
   }
-  // printf("volume: %f\n", channel->current.volume);
-  // printf("pan: %f\n", channel->current.pan);
 }
 
 internal void
@@ -171,7 +170,6 @@ AUDIO_CHANNEL_mix(void* gChannel, float* stream, size_t totalSamples) {
     float currentVolume = lerp(actualVolume, volume, f);
     float currentPan = lerp(actualPan, targetPan, f);
     float pan = (currentPan + 1.0f) * M_PI / 4.0f; // Channel pan is [-1,1] real pan needs to be [0,1]
-    // printf("pan: %f\n", currentPan);
 
     // We have to advance the cursor after each read and write
     // Read/Write left
@@ -342,6 +340,9 @@ AUDIO_ENGINE_init(void) {
   engine->playing = CHANNEL_LIST_init(AUDIO_CHANNEL_START);
   engine->pending = CHANNEL_LIST_init(AUDIO_CHANNEL_START);
 
+  // zero is reserved for uninitialized.
+  engine->nextId = 1;
+
   // SETUP player
   // set the callback function
   (engine->spec).freq = 44100;
@@ -358,7 +359,6 @@ AUDIO_ENGINE_init(void) {
   engine->scratchBuffer = calloc(AUDIO_BUFFER_SIZE, sizeof(float) * channels);
   if (engine->scratchBuffer != NULL) {
     engine->scratchBufferSize = AUDIO_BUFFER_SIZE;
-    printf("Scratch buffer size: %zu\n", engine->scratchBufferSize);
   }
 
   // Unpause audio so we can begin taking over the buffer
@@ -404,6 +404,7 @@ AUDIO_ENGINE_pushChannel(AUDIO_ENGINE* engine, GENERIC_CHANNEL* channel) {
   list = CHANNEL_LIST_resize(list, next + 1);
   engine->pending = list;
   list->channels[next] = channel;
+  channel->id = engine->nextId++;
 }
 
 internal void
@@ -588,17 +589,24 @@ AUDIO_CHANNEL_setState(WrenVM* vm) {
 }
 
 internal void
-AUDIO_CHANNEL_getSoundId(WrenVM* vm) {
-  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
-  wrenEnsureSlots(vm, 1);
-  wrenSetSlotString(vm, 0, channel->core.soundId);
-}
-
-internal void
 AUDIO_CHANNEL_getState(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   wrenEnsureSlots(vm, 1);
   wrenSetSlotDouble(vm, 0, channel->core.state);
+}
+
+internal void
+AUDIO_CHANNEL_getId(WrenVM* vm) {
+  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
+  wrenEnsureSlots(vm, 1);
+  wrenSetSlotDouble(vm, 0, channel->core.id);
+}
+
+internal void
+AUDIO_CHANNEL_getSoundId(WrenVM* vm) {
+  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
+  wrenEnsureSlots(vm, 1);
+  wrenSetSlotString(vm, 0, channel->core.soundId);
 }
 
 internal void
