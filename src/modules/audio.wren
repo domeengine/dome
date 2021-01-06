@@ -95,12 +95,13 @@ class AudioEngine {
   }
 
   static unload(name) {
-    // TODO: deprecate
-    __unloadQueue.add(name)
+    var path = __nameMap[name]
+    __files.remove(path)
+    __nameMap.remove(name)
+    System.gc()
   }
 
   static unloadAll() {
-    // TODO: deprecate
     __nameMap.keys.each {|key| unload(key) }
   }
 
@@ -120,12 +121,11 @@ class AudioEngine {
     return channel
   }
 
-  foreign static f_stopAllChannels()
   static stopAllChannels() {
-    // TODO: foreign call
     f_stopAllChannels()
   }
 
+  foreign static f_stopAllChannels()
   foreign static f_update(list)
   foreign static f_push(channel)
 }

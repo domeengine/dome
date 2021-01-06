@@ -21,6 +21,10 @@ class Game {
       if (Keyboard["0"].justPressed) {
         AudioEngine.stopAllChannels()
       }
+      if (Keyboard["-"].justPressed) {
+        AudioEngine.unload("music")
+        AudioEngine.unload("sfx")
+      }
       if (Keyboard["left"].justPressed) {
         __channel.pan = __channel.pan - 0.05
       }

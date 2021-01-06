@@ -570,7 +570,7 @@ AUDIO_CHANNEL_setAudio(WrenVM* vm) {
   if (channel->core.state == CHANNEL_INITIALIZE) {
     ASSERT_SLOT_TYPE(vm, 1, FOREIGN, "audio");
     channel->audio = (AUDIO_DATA*)wrenGetSlotForeign(vm, 1);
-    channel->audioHandle = wrenGetSlotHandle(vm, 0);
+    channel->audioHandle = wrenGetSlotHandle(vm, 1);
   } else {
     VM_ABORT(vm, "Cannot change audio in channel once initialized");
   }
