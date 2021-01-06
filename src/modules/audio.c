@@ -95,8 +95,7 @@ AUDIO_CHANNEL_finish(WrenVM* vm, void* gChannel) {
 }
 
 internal void
-AUDIO_CHANNEL_update(WrenVM* vm, void* gChannel) {
-  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)gChannel;
+AUDIO_CHANNEL_commit(AUDIO_CHANNEL* channel) {
   size_t position = channel->current.position;
   if (channel->new.resetPosition) {
     position = channel->new.position;
@@ -105,6 +104,40 @@ AUDIO_CHANNEL_update(WrenVM* vm, void* gChannel) {
   channel->current = channel->new;
   channel->current.position = position;
   channel->new = channel->current;
+}
+
+internal void
+AUDIO_CHANNEL_update(WrenVM* vm, void* gChannel) {
+  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)gChannel;
+  switch (channel->core.state) {
+    case CHANNEL_INITIALIZE: channel->core.state = CHANNEL_TO_PLAY;
+
+    case CHANNEL_TO_PLAY:
+    case CHANNEL_DEVIRTUALIZE:
+      // We assume data is loaded by now.
+      channel->core.state = CHANNEL_PLAYING;
+      channel->core.enabled = true;
+      AUDIO_CHANNEL_commit(channel);
+      break;
+    case CHANNEL_PLAYING:
+      AUDIO_CHANNEL_commit(channel);
+      if (channel->core.stopRequested) {
+        channel->core.state = CHANNEL_STOPPING;
+      }
+      break;
+    case CHANNEL_STOPPING:
+      channel->new.volume -= 0.008;
+      AUDIO_CHANNEL_commit(channel);
+      if (channel->new.volume <= 0) {
+        channel->core.state = CHANNEL_STOPPED;
+      }
+      break;
+    case CHANNEL_STOPPED:
+      channel->core.enabled = false;
+      AUDIO_CHANNEL_commit(channel);
+      break;
+    default: break;
+  }
   // printf("volume: %f\n", channel->current.volume);
   // printf("pan: %f\n", channel->current.pan);
 }
@@ -117,7 +150,7 @@ AUDIO_CHANNEL_mix(void* gChannel, float* stream, size_t totalSamples) {
   }
   AUDIO_DATA* audio = channel->audio;
   float volume = channel->current.volume;
-  float pan = (channel->current.pan + 1) * M_PI / 4.0; // Channel pan is [-1,1] real pan needs to be [0,1]
+  float pan = (channel->current.pan + 1.0f) * M_PI / 4.0f; // Channel pan is [-1,1] real pan needs to be [0,1]
   float* startReadCursor = (float*)(audio->buffer);
   float* readCursor = startReadCursor + channel->current.position * channels;
   float* writeCursor = stream;
@@ -128,9 +161,9 @@ AUDIO_CHANNEL_mix(void* gChannel, float* stream, size_t totalSamples) {
   for (size_t i = 0; i < samplesToWrite; i++) {
     // We have to advance the cursor after each read and write
     // Read/Write left
-    *writeCursor++ += *readCursor++ * cos(pan) * volume;
+    *(writeCursor++) += *(readCursor++) * cos(pan) * volume;
     // Read/Write right
-    *writeCursor++ += *readCursor++ * sin(pan) * volume;
+    *(writeCursor++) += *(readCursor++) * sin(pan) * volume;
 
     channel->current.position++;
     if (channel->current.loop && channel->current.position >= length) {
@@ -195,10 +228,12 @@ void AUDIO_ENGINE_mix(void*  userdata,
   }
 
   // Mix using tanh
+  float* readCursor = (float*)(stream);
   float* outputCursor = (float*)(stream);
-  float* endPoint = outputCursor + totalSamples * channels;
-  for (; outputCursor < endPoint; outputCursor++) {
-    *outputCursor += tanh(*outputCursor);
+  float* endPoint = readCursor + totalSamples * channels;
+  for (; readCursor < endPoint; readCursor++) {
+    *(outputCursor) = (float)(tanh(*readCursor));
+    outputCursor++;
   }
 }
 
@@ -305,7 +340,7 @@ AUDIO_ENGINE_init(void) {
   (engine->spec).freq = 44100;
   (engine->spec).format = AUDIO_F32LSB;
   (engine->spec).channels = channels; // TODO: consider mono/stereo
-  (engine->spec).samples = AUDIO_BUFFER_SIZE; // Consider making this configurable
+  (engine->spec).samples = AUDIO_BUFFER_SIZE;
   (engine->spec).callback = AUDIO_ENGINE_mix;
   (engine->spec).userdata = engine;
 
@@ -393,7 +428,7 @@ AUDIO_ENGINE_update(WrenVM* vm) {
     if (channel == NULL) {
       continue;
     }
-    if (channel->enabled == true && !channel->stopRequested) {
+    if (channel->enabled == true) {
       pending->channels[waitCount + next] = channel;
       next++;
     }
@@ -419,7 +454,7 @@ AUDIO_ENGINE_update(WrenVM* vm) {
   for (size_t i = 0; i < data->pending->count; i++) {
     GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)data->pending->channels[i];
     assert(channel != NULL);
-    if (channel->enabled == false || channel->stopRequested) {
+    if (channel->enabled == false) {
       channel->enabled = false;
       if (channel->finish != NULL) {
         channel->finish(vm, channel);
