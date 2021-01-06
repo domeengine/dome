@@ -53,6 +53,8 @@ typedef struct {
   GENERIC_CHANNEL core;
   struct AUDIO_CHANNEL_PROPS current;
   struct AUDIO_CHANNEL_PROPS new;
+  float actualVolume;
+  float actualPan;
 
   AUDIO_DATA* audio;
   WrenHandle* audioHandle;
@@ -129,6 +131,7 @@ AUDIO_CHANNEL_update(WrenVM* vm, void* gChannel) {
       channel->new.volume -= 0.008;
       AUDIO_CHANNEL_commit(channel);
       if (channel->new.volume <= 0) {
+        channel->new.volume = 0;
         channel->core.state = CHANNEL_STOPPED;
       }
       break;
@@ -149,21 +152,32 @@ AUDIO_CHANNEL_mix(void* gChannel, float* stream, size_t totalSamples) {
     return;
   }
   AUDIO_DATA* audio = channel->audio;
-  float volume = channel->current.volume;
-  float pan = (channel->current.pan + 1.0f) * M_PI / 4.0f; // Channel pan is [-1,1] real pan needs to be [0,1]
   float* startReadCursor = (float*)(audio->buffer);
   float* readCursor = startReadCursor + channel->current.position * channels;
   float* writeCursor = stream;
   size_t length = audio->length;
 
   size_t samplesToWrite = channel->current.loop ? totalSamples : min(totalSamples, length - channel->current.position);
+  float volume = channel->current.volume;
+  float targetPan = channel->current.pan;
+  float actualVolume = channel->actualVolume;
+  float actualPan = channel->actualPan;
+
 
   for (size_t i = 0; i < samplesToWrite; i++) {
+    // We have to lerp the volume and pan change across the whole sample buffer
+    // or we get a clicking sound.
+    float f = i / (float)samplesToWrite;
+    float currentVolume = lerp(actualVolume, volume, f);
+    float currentPan = lerp(actualPan, targetPan, f);
+    float pan = (currentPan + 1.0f) * M_PI / 4.0f; // Channel pan is [-1,1] real pan needs to be [0,1]
+    // printf("pan: %f\n", currentPan);
+
     // We have to advance the cursor after each read and write
     // Read/Write left
-    *(writeCursor++) += *(readCursor++) * cos(pan) * volume;
+    *(writeCursor++) += *(readCursor++) * cos(pan) * currentVolume;
     // Read/Write right
-    *(writeCursor++) += *(readCursor++) * sin(pan) * volume;
+    *(writeCursor++) += *(readCursor++) * sin(pan) * currentVolume;
 
     channel->current.position++;
     if (channel->current.loop && channel->current.position >= length) {
@@ -174,6 +188,8 @@ AUDIO_CHANNEL_mix(void* gChannel, float* stream, size_t totalSamples) {
       break;
     }
   }
+  channel->actualVolume = channel->current.volume;
+  channel->actualPan = channel->current.pan;
   channel->core.enabled = channel->core.enabled && (channel->current.loop || channel->current.position < length);
 }
 
@@ -197,7 +213,6 @@ void AUDIO_ENGINE_mix(void*  userdata,
   size_t totalSamples = outputBufferSize / bytesPerSample;
 
   SDL_memset(stream, 0, outputBufferSize);
-
   CHANNEL_LIST* playing = audioEngine->playing;
   size_t channelCount = playing->count;
   size_t totalEnabled = 0;
@@ -528,6 +543,7 @@ AUDIO_CHANNEL_allocate(WrenVM* vm) {
 
   struct AUDIO_CHANNEL_PROPS props = {0, 0, 0, 0, 0};
   channel->current = channel->new = props;
+  channel->actualVolume = 1.0f;
 
   channel->core.state = CHANNEL_INITIALIZE;
   channel->core.enabled = true;

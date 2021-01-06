@@ -43,6 +43,9 @@ VEC VEC_perp(VEC v) {
 }
 
 
+float lerp(float a, float b, float f) {
+  return (a * (1.0 - f)) + (b * f);
+}
 
 
 int64_t max(int64_t n1, int64_t n2) {

@@ -18,8 +18,17 @@ class Game {
       if (Keyboard["backspace"].justPressed) {
         __channel.stop()
       }
+      if (Keyboard["left"].justPressed) {
+        __channel.pan = __channel.pan - 0.05
+      }
+      if (Keyboard["right"].justPressed) {
+        __channel.pan = __channel.pan + 0.05
+      }
     }
     static draw(dt) {
-      Canvas.print("DOME Installed Successfully.", 10, 10, Color.white)
+      Canvas.cls()
+      Canvas.print(__channel == null ? "Nothing Playing" : "Music Playing", 10, 10, Color.white)
+      Canvas.print(__channel == null ? "" : "Volume %(__channel.volume)", 10, 18, Color.white)
+      Canvas.print(__channel == null ? "" : "Pan %(__channel.pan)", 10, 26, Color.white)
     }
 }
