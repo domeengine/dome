@@ -124,7 +124,6 @@ class AudioEngine {
   }
 
   foreign static f_stopAllChannels()
-  foreign static f_update(list)
   foreign static f_push(channel)
 }
 AudioEngine.init()
