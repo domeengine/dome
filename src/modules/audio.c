@@ -82,8 +82,7 @@ typedef struct AUDIO_ENGINE_t {
 } AUDIO_ENGINE;
 
 const uint16_t channels = 2;
-const uint16_t bytesPerChannel = sizeof(float);
-const uint16_t bytesPerSample = bytesPerChannel * channels;
+const uint16_t bytesPerSample = 4; // 4-byte float * 2 channels;
 
 internal void
 AUDIO_CHANNEL_finish(WrenVM* vm, void* gChannel) {
