@@ -34,7 +34,6 @@ foreign class SystemChannel is AudioChannel {
     // Sensible defaults
     volume = 1
     pan = 0
-    enabled = true
     loop = false
   }
   foreign audio=(value)
@@ -48,7 +47,6 @@ foreign class SystemChannel is AudioChannel {
   foreign state
   foreign state=(value)
 
-  foreign enabled=(enable)
   foreign enabled
 
   foreign loop=(do)
@@ -60,9 +58,7 @@ foreign class SystemChannel is AudioChannel {
   foreign volume=(volume)
   foreign volume
 
-  stop() {
-    enabled = false
-  }
+  foreign stop()
 
   finished { !enabled || state == AudioState.STOPPED }
 }

@@ -252,7 +252,6 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "image", "DrawCommand.draw(_,_)", DRAW_COMMAND_draw);
 
   // Audio
-  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.enabled=(_)", AUDIO_CHANNEL_setEnabled);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.enabled", AUDIO_CHANNEL_getEnabled);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.loop=(_)", AUDIO_CHANNEL_setLoop);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.loop", AUDIO_CHANNEL_getLoop);
@@ -263,6 +262,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.position=(_)", AUDIO_CHANNEL_setPosition);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.state=(_)", AUDIO_CHANNEL_setState);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.audio=(_)", AUDIO_CHANNEL_setAudio);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.stop()", AUDIO_CHANNEL_stop);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.state", AUDIO_CHANNEL_getState);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.length", AUDIO_CHANNEL_getLength);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.position", AUDIO_CHANNEL_getPosition);

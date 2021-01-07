@@ -82,7 +82,7 @@ typedef struct AUDIO_ENGINE_t {
 } AUDIO_ENGINE;
 
 const uint16_t channels = 2;
-const uint16_t bytesPerSample = 4; // 4-byte float * 2 channels;
+const uint16_t bytesPerSample = 8; // 4-byte float * 2 channels;
 
 internal void
 AUDIO_CHANNEL_finish(WrenVM* vm, void* gChannel) {
@@ -129,7 +129,6 @@ AUDIO_CHANNEL_update(WrenVM* vm, void* gChannel) {
       }
       // We assume data is loaded by now.
       channel->core.state = CHANNEL_PLAYING;
-      channel->core.enabled = true;
       AUDIO_CHANNEL_commit(channel);
       break;
     case CHANNEL_LOADING:
@@ -576,6 +575,12 @@ AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, uintmax_t id) {
 }
 
 internal void
+AUDIO_CHANNEL_stop(WrenVM* vm) {
+  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
+  channel->core.stopRequested = true;
+}
+
+internal void
 AUDIO_ENGINE_wrenStopAll(WrenVM* vm) {
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* audioEngine = engine->audioEngine;
@@ -699,17 +704,6 @@ AUDIO_CHANNEL_getPosition(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   wrenEnsureSlots(vm, 1);
   wrenSetSlotDouble(vm, 0, channel->new.position);
-}
-
-internal void
-AUDIO_CHANNEL_setEnabled(WrenVM* vm) {
-  AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
-  ASSERT_SLOT_TYPE(vm, 1, BOOL, "enabled");
-  if (channel->core.enabled) {
-    channel->core.stopRequested = !wrenGetSlotBool(vm, 1);
-  } else {
-    channel->core.enabled = wrenGetSlotBool(vm, 1);
-  }
 }
 
 internal void
