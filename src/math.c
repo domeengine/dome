@@ -42,8 +42,8 @@ VEC VEC_perp(VEC v) {
   return result;
 }
 
-
-float lerp(float a, float b, float f) {
+internal float
+lerp(float a, float b, float f) {
   return (a * (1.0 - f)) + (b * f);
 }
 
