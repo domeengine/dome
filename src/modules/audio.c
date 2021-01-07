@@ -82,7 +82,7 @@ typedef struct AUDIO_ENGINE_t {
 } AUDIO_ENGINE;
 
 global_variable const uint16_t channels = 2;
-global_variable const uint16_t bytesPerSample = 4 * channels; // 4-byte float * 2 channels;
+global_variable const uint16_t bytesPerSample = 4 * 2; // 4-byte float * 2 channels;
 
 internal void
 AUDIO_CHANNEL_finish(WrenVM* vm, void* gChannel) {
