@@ -15,7 +15,7 @@ It contains the following classes:
 
 DOME supports playback of audio files in OGG and WAV formats. It will convert all files to its native sample rate of 44.1kHz (CD quality audio), but the re-sampling algorithm used is naive and may introduce audio artifacts. It is recommended that you produce your audio with a 44.1kHz sample-rate, for the best quality audio.
 
-An audio file is loaded from disk into memory using the `load` function, and remains in memory until you call `unload(_)` or `unloadAll()`, or when DOME closes.
+An audio file is loaded from disk into memory using the `load` function, and remains in memory until you call `unload(_)` or `unloadAll()`, or when DOME closes. If the audio needs to be resampled, this may take some time and block the main thread.
 
 When an audio file is about to be played, DOME allocates it an "audio channel", which handles the settings for volume, looping and panning.
 Once the audio is stopped or finishes playing, that channel is no longer usable, and a new one will need to be acquired.
