@@ -176,7 +176,7 @@ internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
 
 internal const char*
 VM_resolve_module_name(WrenVM* vm, const char* importer, const char* name) {
-  char* localName = name;
+  const char* localName = name;
   if (strlen(name) > 1) {
     while (localName[0] == '.' && localName[1] == '/') {
       localName = localName + 2;

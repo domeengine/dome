@@ -82,7 +82,8 @@ typedef struct AUDIO_ENGINE_t {
 } AUDIO_ENGINE;
 
 const uint16_t channels = 2;
-const uint16_t bytesPerSample = sizeof(float) * channels;
+const uint16_t bytesPerChannel = sizeof(float);
+const uint16_t bytesPerSample = bytesPerChannel * channels;
 
 internal void
 AUDIO_CHANNEL_finish(WrenVM* vm, void* gChannel) {
@@ -370,8 +371,7 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
   sampleCursor = tempData;
   writeCursor = destData;
 
-  size_t i, j;
-  for(j = i = 0; i < tempSampleCount; i += M) {
+  for(size_t i = 0; i < tempSampleCount; i += M) {
     *(writeCursor++) = sampleCursor[i*2];
     *(writeCursor++) = sampleCursor[i*2+1];
   }
