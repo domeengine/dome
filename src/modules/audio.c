@@ -291,7 +291,7 @@ AUDIO_allocate(WrenVM* vm) {
 
     data->spec.channels = channelsInFile;
     data->spec.freq = freq;
-    data->spec.format = AUDIO_F32LSB; // AUDIO_S16LSB;
+    data->spec.format = AUDIO_F32LSB;
   } else {
     VM_ABORT(vm, "Audio file was of an incompatible format");
     return;
@@ -341,12 +341,10 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
   size_t sampleCount = srcLength;
 
   size_t tempSampleCount = sampleCount * L;
-  size_t tempLength = tempSampleCount * channels;
   float* tempData = calloc(tempSampleCount, bytesPerSample);
   if (tempData == NULL) {
     return NULL;
   }
-
 
   size_t destSampleCount = ceil(tempSampleCount / M) + 1;
   *destLength = destSampleCount;
