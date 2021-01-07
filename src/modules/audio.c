@@ -224,7 +224,6 @@ void AUDIO_ENGINE_mix(void*  userdata,
   SDL_memset(stream, 0, outputBufferSize);
   CHANNEL_LIST* playing = audioEngine->playing;
   size_t channelCount = playing->count;
-  size_t totalEnabled = 0;
 
   float* scratchBuffer = audioEngine->scratchBuffer;
   size_t bufferSampleSize = audioEngine->scratchBufferSize;
@@ -234,7 +233,6 @@ void AUDIO_ENGINE_mix(void*  userdata,
     if (channel == NULL) {
       continue;
     }
-    totalEnabled++;
     size_t requestServed = 0;
     float* writeCursor = (float*)(stream);
 
