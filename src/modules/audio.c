@@ -82,7 +82,7 @@ typedef struct AUDIO_ENGINE_t {
 } AUDIO_ENGINE;
 
 const uint16_t channels = 2;
-const uint16_t bytesPerSample = 8; // 4-byte float * 2 channels;
+const uint16_t bytesPerSample = 4 * channels; // 4-byte float * 2 channels;
 
 internal void
 AUDIO_CHANNEL_finish(WrenVM* vm, void* gChannel) {
@@ -239,7 +239,7 @@ void AUDIO_ENGINE_mix(void*  userdata,
     float* writeCursor = (float*)(stream);
 
     while (channel->enabled && requestServed < totalSamples) {
-      SDL_memset(scratchBuffer, 0, bufferSampleSize * sizeof(float) * channels);
+      SDL_memset(scratchBuffer, 0, bufferSampleSize * bytesPerSample);
       size_t requestSize = min(bufferSampleSize, totalSamples - requestServed);
       channel->mix(channel, scratchBuffer, requestSize);
       requestServed += requestSize;
@@ -297,7 +297,7 @@ AUDIO_allocate(WrenVM* vm) {
     return;
   }
 
-  data->buffer = calloc(channels * data->length, sizeof(float));
+  data->buffer = calloc(data->length, bytesPerSample);
   assert(data->buffer != NULL);
   assert(data->length != UINT32_MAX);
   // Process incoming values into a mixable format
@@ -342,7 +342,7 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
 
   size_t tempSampleCount = sampleCount * L;
   size_t tempLength = tempSampleCount * channels;
-  float* tempData = calloc(tempLength, sizeof(float));
+  float* tempData = calloc(tempSampleCount, bytesPerSample);
   if (tempData == NULL) {
     return NULL;
   }
@@ -425,7 +425,7 @@ AUDIO_ENGINE_init(void) {
   engine->deviceId = SDL_OpenAudioDevice(NULL, 0, &(engine->spec), NULL, 0);
   // TODO: Handle if we can't get a device!
 
-  engine->scratchBuffer = calloc(AUDIO_BUFFER_SIZE, sizeof(float) * channels);
+  engine->scratchBuffer = calloc(AUDIO_BUFFER_SIZE, bytesPerSample);
   if (engine->scratchBuffer != NULL) {
     engine->scratchBufferSize = AUDIO_BUFFER_SIZE;
   }
