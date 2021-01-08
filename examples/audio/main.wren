@@ -26,10 +26,22 @@ class Game {
         AudioEngine.unload("sfx")
       }
       if (Keyboard["left"].justPressed) {
-        __channel.pan = __channel.pan - 0.05
+        __channel.pan = __channel.pan - 0.01
       }
       if (Keyboard["right"].justPressed) {
-        __channel.pan = __channel.pan + 0.05
+        __channel.pan = __channel.pan + 0.01
+      }
+      if (Keyboard["down"].justPressed) {
+        __channel.volume = __channel.volume - 0.01
+      }
+      if (Keyboard["up"].justPressed) {
+        __channel.volume = __channel.volume + 0.01
+      }
+      if (__channel.pan.abs < 0.009) {
+        __channel.pan = 0
+      }
+      if (__channel.volume.abs < 0.009) {
+        __channel.volume = 0
       }
     }
     static draw(dt) {

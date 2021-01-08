@@ -1,20 +1,3 @@
-#define AUDIO_CHANNEL_START 0
-#define SAMPLE_RATE 44100
-
-typedef enum {
-  CHANNEL_INVALID,
-  CHANNEL_INITIALIZE,
-  CHANNEL_TO_PLAY,
-  CHANNEL_DEVIRTUALIZE,
-  CHANNEL_LOADING,
-  CHANNEL_PLAYING,
-  CHANNEL_STOPPING,
-  CHANNEL_STOPPED,
-  CHANNEL_VIRTUALIZING,
-  CHANNEL_VIRTUAL,
-  CHANNEL_LAST
-} CHANNEL_STATE;
-
 typedef struct {
   SDL_AudioSpec spec;
   AUDIO_TYPE audioType;
@@ -23,22 +6,6 @@ typedef struct {
   // Audio is stored as a stream of interleaved normalised values from [-1, 1)
   float* buffer;
 } AUDIO_DATA;
-
-
-typedef void (*CHANNEL_mix)(void* channel, float* buffer, size_t requestedSamples);
-typedef void (*CHANNEL_callback)(WrenVM* vm, void* channel);
-typedef struct {
-  CHANNEL_STATE state;
-  uintmax_t id;
-  char* soundId;
-  volatile bool enabled;
-  bool stopRequested;
-  void* context;
-  WrenHandle* handle;
-  CHANNEL_mix mix;
-  CHANNEL_callback update;
-  CHANNEL_callback finish;
-} GENERIC_CHANNEL;
 
 struct AUDIO_CHANNEL_PROPS {
   // Control variables
@@ -52,9 +19,10 @@ struct AUDIO_CHANNEL_PROPS {
 };
 
 typedef struct {
-  GENERIC_CHANNEL core;
+  CHANNEL base;
   struct AUDIO_CHANNEL_PROPS current;
   struct AUDIO_CHANNEL_PROPS new;
+  char* soundId;
   float actualVolume;
   float actualPan;
   bool fade;
@@ -63,34 +31,14 @@ typedef struct {
   WrenHandle* audioHandle;
 } AUDIO_CHANNEL;
 
-typedef struct {
-  size_t count;
-  GENERIC_CHANNEL* channels[];
-} CHANNEL_LIST;
-
-internal CHANNEL_LIST* CHANNEL_LIST_init(size_t initialSize);
-internal CHANNEL_LIST* CHANNEL_LIST_resize(CHANNEL_LIST* list, size_t channels);
-
-typedef struct AUDIO_ENGINE_t {
-  SDL_AudioDeviceID deviceId;
-  SDL_AudioSpec spec;
-  float* scratchBuffer;
-  size_t scratchBufferSize;
-  CHANNEL_LIST* pending;
-  CHANNEL_LIST* playing;
-  uintmax_t nextId;
-} AUDIO_ENGINE;
-
-global_variable const uint16_t channels = 2;
-global_variable const uint16_t bytesPerSample = 4 * 2; // 4-byte float * 2 channels;
 
 internal void
 AUDIO_CHANNEL_finish(WrenVM* vm, void* gChannel) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)gChannel;
   assert(channel != NULL);
-  if (channel->core.handle != NULL) {
-    wrenReleaseHandle(vm, channel->core.handle);
-    channel->core.handle = NULL;
+  if (channel->base.handle != NULL) {
+    wrenReleaseHandle(vm, channel->base.handle);
+    channel->base.handle = NULL;
   }
 
   if (channel->audioHandle != NULL) {
@@ -114,32 +62,32 @@ AUDIO_CHANNEL_commit(AUDIO_CHANNEL* channel) {
 internal void
 AUDIO_CHANNEL_update(WrenVM* vm, void* gChannel) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)gChannel;
-  switch (channel->core.state) {
+  switch (channel->base.state) {
     case CHANNEL_INITIALIZE:
-      channel->core.state = CHANNEL_TO_PLAY;
+      channel->base.state = CHANNEL_TO_PLAY;
       // Fallthrough
     case CHANNEL_DEVIRTUALIZE:
     case CHANNEL_TO_PLAY:
-      if (channel->core.state == CHANNEL_DEVIRTUALIZE) {
+      if (channel->base.state == CHANNEL_DEVIRTUALIZE) {
         // We might do special things to de-virtualize a channel
       }
       if (channel->audio == NULL) {
-        channel->core.state = CHANNEL_LOADING;
+        channel->base.state = CHANNEL_LOADING;
         break;
       }
       // We assume data is loaded by now.
-      channel->core.state = CHANNEL_PLAYING;
+      channel->base.state = CHANNEL_PLAYING;
       AUDIO_CHANNEL_commit(channel);
       break;
     case CHANNEL_LOADING:
       if (channel->audio != NULL) {
-        channel->core.state = CHANNEL_TO_PLAY;
+        channel->base.state = CHANNEL_TO_PLAY;
       }
       break;
     case CHANNEL_PLAYING:
       AUDIO_CHANNEL_commit(channel);
-      if (channel->core.stopRequested) {
-        channel->core.state = CHANNEL_STOPPING;
+      if (channel->base.stopRequested) {
+        channel->base.state = CHANNEL_STOPPING;
       }
       break;
     case CHANNEL_STOPPING:
@@ -151,11 +99,11 @@ AUDIO_CHANNEL_update(WrenVM* vm, void* gChannel) {
       AUDIO_CHANNEL_commit(channel);
       if (channel->new.volume <= 0) {
         channel->new.volume = 0;
-        channel->core.state = CHANNEL_STOPPED;
+        channel->base.state = CHANNEL_STOPPED;
       }
       break;
     case CHANNEL_STOPPED:
-      channel->core.enabled = false;
+      channel->base.enabled = false;
       AUDIO_CHANNEL_commit(channel);
       break;
     default: break;
@@ -207,48 +155,9 @@ AUDIO_CHANNEL_mix(void* gChannel, float* stream, size_t totalSamples) {
   }
   channel->actualVolume = channel->current.volume;
   channel->actualPan = channel->current.pan;
-  channel->core.enabled = (channel->current.loop || channel->current.position < length);
+  channel->base.enabled = (channel->current.loop || channel->current.position < length);
 }
 
-// audio callback function
-// Allows SDL to "pull" data into the output buffer
-// on a seperate thread. We need to be pretty efficient
-// here as it holds a lock.
-void AUDIO_ENGINE_mix(void*  userdata,
-    Uint8* stream,
-    int    outputBufferSize) {
-  AUDIO_ENGINE* audioEngine = userdata;
-
-  size_t totalSamples = outputBufferSize / bytesPerSample;
-
-  SDL_memset(stream, 0, outputBufferSize);
-  CHANNEL_LIST* playing = audioEngine->playing;
-  size_t channelCount = playing->count;
-
-  float* scratchBuffer = audioEngine->scratchBuffer;
-  size_t bufferSampleSize = audioEngine->scratchBufferSize;
-
-  for (size_t c = 0; c < channelCount; c++) {
-    GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)(playing->channels[c]);
-    if (channel == NULL) {
-      continue;
-    }
-    size_t requestServed = 0;
-    float* writeCursor = (float*)(stream);
-
-    while (channel->enabled && requestServed < totalSamples) {
-      SDL_memset(scratchBuffer, 0, bufferSampleSize * bytesPerSample);
-      size_t requestSize = min(bufferSampleSize, totalSamples - requestServed);
-      channel->mix(channel, scratchBuffer, requestSize);
-      requestServed += requestSize;
-      float* copyCursor = scratchBuffer;
-      float* endPoint = copyCursor + bufferSampleSize * channels;
-      for (; copyCursor < endPoint; copyCursor++) {
-        *(writeCursor++) += *copyCursor;
-      }
-    }
-  }
-}
 
 internal float* resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFrequency, size_t* destLength);
 internal void
@@ -398,38 +307,6 @@ AUDIO_getLength(WrenVM* vm) {
   wrenSetSlotDouble(vm, 0, data->length);
 }
 
-internal AUDIO_ENGINE*
-AUDIO_ENGINE_init(void) {
-  SDL_InitSubSystem(SDL_INIT_AUDIO);
-  AUDIO_ENGINE* engine = malloc(sizeof(AUDIO_ENGINE));
-  engine->playing = CHANNEL_LIST_init(AUDIO_CHANNEL_START);
-  engine->pending = CHANNEL_LIST_init(AUDIO_CHANNEL_START);
-
-  // zero is reserved for uninitialized.
-  engine->nextId = 1;
-
-  // SETUP player
-  // set the callback function
-  (engine->spec).freq = SAMPLE_RATE;
-  (engine->spec).format = AUDIO_F32LSB;
-  (engine->spec).channels = channels; // TODO: consider mono/stereo
-  (engine->spec).samples = AUDIO_BUFFER_SIZE;
-  (engine->spec).callback = AUDIO_ENGINE_mix;
-  (engine->spec).userdata = engine;
-
-  // open audio device
-  engine->deviceId = SDL_OpenAudioDevice(NULL, 0, &(engine->spec), NULL, 0);
-  // TODO: Handle if we can't get a device!
-
-  engine->scratchBuffer = calloc(AUDIO_BUFFER_SIZE, bytesPerSample);
-  if (engine->scratchBuffer != NULL) {
-    engine->scratchBufferSize = AUDIO_BUFFER_SIZE;
-  }
-
-  // Unpause audio so we can begin taking over the buffer
-  SDL_PauseAudioDevice(engine->deviceId, 0);
-  return engine;
-}
 
 
 internal CHANNEL_LIST*
@@ -443,7 +320,7 @@ CHANNEL_LIST_init(size_t initialSize) {
 internal CHANNEL_LIST*
 CHANNEL_LIST_resize(CHANNEL_LIST* list, size_t channels) {
   size_t current = list->count;
-  list = realloc(list, sizeof(CHANNEL_LIST) + sizeof(GENERIC_CHANNEL*) * channels);
+  list = realloc(list, sizeof(CHANNEL_LIST) + sizeof(CHANNEL*) * channels);
   list->count = channels;
   for (int i = current; i < channels; i++) {
     list->channels[i] = NULL;
@@ -451,94 +328,19 @@ CHANNEL_LIST_resize(CHANNEL_LIST* list, size_t channels) {
   return list;
 }
 
-internal void
-AUDIO_ENGINE_lock(AUDIO_ENGINE* engine) {
-  SDL_LockAudioDevice(engine->deviceId);
-}
-
-internal void
-AUDIO_ENGINE_unlock(AUDIO_ENGINE* engine) {
-  SDL_UnlockAudioDevice(engine->deviceId);
-}
-
-internal void
-AUDIO_ENGINE_pushChannel(AUDIO_ENGINE* engine, GENERIC_CHANNEL* channel) {
-  CHANNEL_LIST* list = engine->pending;
-  size_t next = list->count;
-  list = CHANNEL_LIST_resize(list, next + 1);
-  engine->pending = list;
-  list->channels[next] = channel;
-  channel->id = engine->nextId++;
-}
 
 internal void
 AUDIO_ENGINE_push(WrenVM* vm) {
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
 
-  GENERIC_CHANNEL* channel = wrenGetSlotForeign(vm, 1);
+  CHANNEL* channel = wrenGetSlotForeign(vm, 1);
   channel->handle = wrenGetSlotHandle(vm, 1);
   channel->enabled = true;
   AUDIO_ENGINE_pushChannel(data, channel);
   wrenSetSlotDouble(vm, 0, channel->id);
 }
 
-internal void
-AUDIO_ENGINE_update(WrenVM* vm) {
-  ENGINE* engine = wrenGetUserData(vm);
-  AUDIO_ENGINE* data = engine->audioEngine;
-  CHANNEL_LIST* pending = data->pending;
-  CHANNEL_LIST* playing = data->playing;
-
-  // Copy enabled channels into pending
-  size_t waitCount = pending->count;
-  size_t next = 0;
-  pending = CHANNEL_LIST_resize(pending, waitCount + playing->count);
-  for (size_t i = 0; i < playing->count; i++) {
-    GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)playing->channels[i];
-    if (channel == NULL) {
-      continue;
-    }
-    if (channel->enabled == true) {
-      pending->channels[waitCount + next] = channel;
-      next++;
-    }
-  }
-
-  pending = CHANNEL_LIST_resize(pending, waitCount + next);
-
-  AUDIO_ENGINE_lock(data);
-  // transpose the two lists
-  data->playing = pending;
-  data->pending = playing;
-  assert(data->playing->count == (waitCount + next));
-
-  for (size_t i = 0; i < data->playing->count; i++) {
-    GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)data->playing->channels[i];
-    assert(channel != NULL);
-    if (channel->update != NULL) {
-      channel->update(vm, channel);
-    }
-  }
-  AUDIO_ENGINE_unlock(data);
-
-  for (size_t i = 0; i < data->pending->count; i++) {
-    GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)data->pending->channels[i];
-    assert(channel != NULL);
-    if (channel->enabled == false) {
-      channel->enabled = false;
-      if (channel->finish != NULL) {
-        channel->finish(vm, channel);
-      }
-    }
-  }
-  data->pending = CHANNEL_LIST_resize(data->pending, 0);
-  assert(data->pending->count == 0);
-
-  // Safety - Make sure we don't misuse these pointers.
-  pending = NULL;
-  playing = NULL;
-}
 
 internal void
 AUDIO_ENGINE_pause(AUDIO_ENGINE* engine) {
@@ -554,26 +356,16 @@ internal void
 AUDIO_ENGINE_stopAll(AUDIO_ENGINE* engine) {
   CHANNEL_LIST* playing = engine->playing;
   for (size_t i = 0; i < playing->count; i++) {
-    GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)playing->channels[i];
+    CHANNEL* channel = (CHANNEL*)playing->channels[i];
     channel->stopRequested = true;
   }
 }
 
-internal void
-AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, uintmax_t id) {
-  CHANNEL_LIST* playing = engine->playing;
-  for (size_t i = 0; i < playing->count; i++) {
-    GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)playing->channels[i];
-    if (channel->id == id) {
-      channel->stopRequested = true;
-    }
-  }
-}
 
 internal void
 AUDIO_CHANNEL_stop(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
-  channel->core.stopRequested = true;
+  channel->base.stopRequested = true;
 }
 
 internal void
@@ -583,71 +375,53 @@ AUDIO_ENGINE_wrenStopAll(WrenVM* vm) {
   AUDIO_ENGINE_stopAll(audioEngine);
 }
 
-
-internal void
-AUDIO_ENGINE_halt(AUDIO_ENGINE* engine) {
-  if (engine != NULL) {
-    SDL_PauseAudioDevice(engine->deviceId, 1);
-    SDL_CloseAudioDevice(engine->deviceId);
-  }
-}
-
 internal void
 AUDIO_ENGINE_releaseHandles(AUDIO_ENGINE* engine, WrenVM* vm) {
   CHANNEL_LIST* pending = engine->pending;
   CHANNEL_LIST* playing = engine->playing;
   for (size_t i = 0; i < playing->count; i++) {
-    GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)playing->channels[i];
+    CHANNEL* channel = (CHANNEL*)playing->channels[i];
     channel->enabled = false;
-    if (channel->finish != NULL) {
-      channel->finish(vm, channel);
+    if (channel->methods.finish != NULL) {
+      channel->methods.finish(vm, channel);
     }
   }
   for (size_t i = 0; i < pending->count; i++) {
-    GENERIC_CHANNEL* channel = (GENERIC_CHANNEL*)pending->channels[i];
+    CHANNEL* channel = (CHANNEL*)pending->channels[i];
     channel->enabled = false;
-    if (channel->finish != NULL) {
-      channel->finish(vm, channel);
+    if (channel->methods.finish != NULL) {
+      channel->methods.finish(vm, channel);
     }
   }
 }
 
-internal void
-AUDIO_ENGINE_free(AUDIO_ENGINE* engine) {
-  // We might need to free contained audio here
-  AUDIO_ENGINE_halt(engine);
-  free(engine->scratchBuffer);
-  free(engine->playing);
-}
 
 internal void
 AUDIO_CHANNEL_allocate(WrenVM* vm) {
   wrenEnsureSlots(vm, 2);
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_CHANNEL));
   ASSERT_SLOT_TYPE(vm, 1, STRING, "sound id");
+
   const char* soundId = wrenGetSlotString(vm, 1);
-  size_t len = strlen(soundId);
-  channel->core.soundId = malloc((1 + len) * sizeof(char));
-  strcpy(channel->core.soundId, soundId);
-  channel->core.soundId[len] = '\0';
+  channel->soundId = strdup(soundId);
 
   struct AUDIO_CHANNEL_PROPS props = {0, 0, 0, 0, 0};
   channel->current = channel->new = props;
   channel->actualVolume = 0.0f;
 
-  channel->core.state = CHANNEL_INITIALIZE;
-  channel->core.enabled = true;
+  channel->base.state = CHANNEL_INITIALIZE;
+  channel->base.enabled = true;
   channel->audio = NULL;
 
-  channel->core.mix = AUDIO_CHANNEL_mix;
-  channel->core.update = AUDIO_CHANNEL_update;
-  channel->core.finish = AUDIO_CHANNEL_finish;
+  channel->base.methods.mix = AUDIO_CHANNEL_mix;
+  channel->base.methods.update = AUDIO_CHANNEL_update;
+  channel->base.methods.finish = AUDIO_CHANNEL_finish;
 }
 
 internal void
 AUDIO_CHANNEL_setAudio(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
-  if (channel->core.state == CHANNEL_INITIALIZE) {
+  if (channel->base.state == CHANNEL_INITIALIZE) {
     ASSERT_SLOT_TYPE(vm, 1, FOREIGN, "audio");
     channel->audio = (AUDIO_DATA*)wrenGetSlotForeign(vm, 1);
     channel->audioHandle = wrenGetSlotHandle(vm, 1);
@@ -664,28 +438,28 @@ AUDIO_CHANNEL_setState(WrenVM* vm) {
   if (state <= CHANNEL_INVALID || state >= CHANNEL_LAST) {
     VM_ABORT(vm, "Setting invalid channel state");
   }
-  channel->core.state = state;
+  channel->base.state = state;
 }
 
 internal void
 AUDIO_CHANNEL_getState(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   wrenEnsureSlots(vm, 1);
-  wrenSetSlotDouble(vm, 0, channel->core.state);
+  wrenSetSlotDouble(vm, 0, channel->base.state);
 }
 
 internal void
 AUDIO_CHANNEL_getId(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   wrenEnsureSlots(vm, 1);
-  wrenSetSlotDouble(vm, 0, channel->core.id);
+  wrenSetSlotDouble(vm, 0, channel->base.id);
 }
 
 internal void
 AUDIO_CHANNEL_getSoundId(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   wrenEnsureSlots(vm, 1);
-  wrenSetSlotString(vm, 0, channel->core.soundId);
+  wrenSetSlotString(vm, 0, channel->soundId);
 }
 
 internal void
@@ -706,7 +480,7 @@ internal void
 AUDIO_CHANNEL_getEnabled(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenGetSlotForeign(vm, 0);
   wrenEnsureSlots(vm, 1);
-  wrenSetSlotBool(vm, 0, channel->core.enabled);
+  wrenSetSlotBool(vm, 0, channel->base.enabled);
 }
 
 internal void
@@ -763,7 +537,7 @@ AUDIO_CHANNEL_getPan(WrenVM* vm) {
 internal void
 AUDIO_CHANNEL_finalize(void* data) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)data;
-  free(channel->core.soundId);
+  free(channel->soundId);
 }
 
 internal double

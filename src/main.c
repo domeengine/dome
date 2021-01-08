@@ -86,6 +86,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "util/font8x8.h"
 #include "io.c"
 #include "engine.c"
+#include "audio.c"
 
 #include "modules/dome.c"
 #include "modules/font.c"
