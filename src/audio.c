@@ -1,45 +1,6 @@
 #define AUDIO_CHANNEL_START 0
 #define SAMPLE_RATE 44100
 
-typedef enum {
-  CHANNEL_INVALID,
-  CHANNEL_INITIALIZE,
-  CHANNEL_TO_PLAY,
-  CHANNEL_DEVIRTUALIZE,
-  CHANNEL_LOADING,
-  CHANNEL_PLAYING,
-  CHANNEL_STOPPING,
-  CHANNEL_STOPPED,
-  CHANNEL_VIRTUALIZING,
-  CHANNEL_VIRTUAL,
-  CHANNEL_LAST
-} CHANNEL_STATE;
-
-typedef void (*CHANNEL_mix)(void* channel, float* buffer, size_t requestedSamples);
-typedef void (*CHANNEL_callback)(WrenVM* vm, void* channel);
-
-typedef struct {
-  CHANNEL_mix mix;
-  CHANNEL_callback update;
-  CHANNEL_callback finish;
-} CHANNEL_METHODS;
-
-typedef struct {
-  CHANNEL_STATE state;
-  uintmax_t id;
-  volatile bool enabled;
-  bool stopRequested;
-  CHANNEL_METHODS methods;
-
-  void* userdata;
-  WrenHandle* handle;
-} CHANNEL;
-
-
-typedef struct {
-  size_t count;
-  CHANNEL* channels[];
-} CHANNEL_LIST;
 
 internal CHANNEL_LIST* CHANNEL_LIST_init(size_t initialSize);
 internal CHANNEL_LIST* CHANNEL_LIST_resize(CHANNEL_LIST* list, size_t channels);
@@ -54,6 +15,8 @@ typedef struct AUDIO_ENGINE_t {
   size_t scratchBufferSize;
   CHANNEL_LIST* pending;
   CHANNEL_LIST* playing;
+
+  TABLE channels;
   uintmax_t nextId;
 } AUDIO_ENGINE;
 
@@ -127,6 +90,28 @@ AUDIO_ENGINE_init(void) {
 
   // Unpause audio so we can begin taking over the buffer
   SDL_PauseAudioDevice(engine->deviceId, 0);
+
+  TABLE* table = &(engine->channels);
+  TABLE_init(table);
+  CHANNEL channel;
+  for (int i = 0; i < 10; i++) {
+    channel.id = i;
+    TABLE_set(table, i, channel);
+  }
+  bool found = TABLE_get(table, 7, &channel);
+  if (found) {
+    printf("Channel id: %zu\n", channel.id);
+  } else {
+    printf("NOT FOUND!\n");
+  }
+  TABLE_delete(table, 7);
+  found = TABLE_get(table, 7, &channel);
+  if (found) {
+    printf("Channel id: %zu\n", channel.id);
+  } else {
+    printf("deleted!\n");
+  }
+
   return engine;
 }
 

@@ -2,21 +2,24 @@
 #define TABLE_MAX_LOAD 0.75
 #define NIL_KEY 0
 
-global_variable const GENERIC_CHANNEL TOMBSTONE  = {
+#define IS_TOMBSTONE(entry) (entry->value.state == CHANNEL_LAST)
+#define IS_EMPTY(entry) (entry->value.state == CHANNEL_INVALID)
+
+global_variable const CHANNEL TOMBSTONE  = {
   .state = CHANNEL_LAST
 };
-global_variable const GENERIC_CHANNEL EMPTY_CHANNEL  = {
+global_variable const CHANNEL EMPTY_CHANNEL  = {
   .state = CHANNEL_INVALID
 };
 
 typedef struct {
   uint32_t key;
-  GENERIC_CHANNEL value;
+  CHANNEL value;
 } ENTRY;
 
 typedef struct {
-   uint32_t count;
-   uint32_t capacity;
+  uint32_t count;
+  uint32_t capacity;
   ENTRY* entries;
 } TABLE;
 
@@ -56,9 +59,11 @@ TABLE_findEntry(ENTRY* entries, uint32_t capacity, uintmax_t key) {
   for (;;) {
     ENTRY* entry = &entries[index];
     if (entry->key == NIL_KEY) {
-      if (entry->value.state == CHANNEL_INVALID) {
+      if (IS_EMPTY(entry)) {
+        // Empty entry
         return tombstone != NULL ? tombstone : entry;
       } else {
+        // tombstone
         if (tombstone == NULL) {
           tombstone = entry;
         }
@@ -78,6 +83,7 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
     // dubious
     entries[i].value = EMPTY_CHANNEL;
   }
+  printf("Resizing to: %i\n", capacity);
   table->count = 0;
   for (uint32_t i = 0; i < table->capacity; i++) {
     ENTRY* entry = &table->entries[i];
@@ -95,17 +101,15 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
   table->entries = entries;
 }
 
-#define IS_TOMBSTONE(entry) entry->value.state == CHANNEL_LAST
-#define IS_EMPTY(entry) entry->value.state == CHANNEL_INVALID
 
 internal bool
-TABLE_set(TABLE* table, uintmax_t key, GENERIC_CHANNEL channel) {
+TABLE_set(TABLE* table, uintmax_t key, CHANNEL channel) {
   if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
     uint32_t capacity = table->capacity < 8 ? 8 : table->capacity * 2;
     TABLE_resize(table, capacity);
   }
   ENTRY* entry = TABLE_findEntry(table->entries, table->capacity, key);
-  bool isNewKey = entry == NULL;
+  bool isNewKey = entry->key == NIL_KEY;
 
   if (isNewKey && IS_EMPTY(entry)) {
     table->count++;
@@ -117,7 +121,7 @@ TABLE_set(TABLE* table, uintmax_t key, GENERIC_CHANNEL channel) {
 }
 
 internal bool
-TABLE_get(TABLE* table, uintmax_t key, GENERIC_CHANNEL* channel) {
+TABLE_get(TABLE* table, uintmax_t key, CHANNEL* channel) {
   if (table->count == 0) {
     return false;
   }
