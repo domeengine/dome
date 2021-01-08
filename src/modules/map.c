@@ -54,10 +54,7 @@ MAP_getSource(MAP* map, const char* moduleName) {
     return NULL;
   }
 
-  size_t sourceLen = strlen(module->source);
-  char* file = calloc(sourceLen + 1, sizeof(char));
-  strcpy(file, module->source);
-  file[sourceLen] = '\0';
+  const char* file = strdup(module->source);
   return file;
 }
 

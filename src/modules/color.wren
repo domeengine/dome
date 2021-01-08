@@ -12,7 +12,7 @@ class Color is Vector {
 
   static rgb(r, g, b) { Color.new(r, g, b, 255) }
   static rgb(r, g, b, a) { Color.new(r, g, b, a) }
- 
+
   static hsv(h, s, v) { hsv(h, s, v, 255) }
   static hsv(h, s, v, a) {
 
@@ -106,7 +106,7 @@ class Color is Vector {
     super(r, g, b, a)
     checkRange()
   }
-  
+
   checkRange() {
     if (r < 0 || 255 < r) Fiber.abort("Red channel out of range")
     if (g < 0 || 255 < g) Fiber.abort("Green channel out of range")
@@ -115,7 +115,7 @@ class Color is Vector {
   }
 
   toNum { a << 24 | b << 16 | g << 8 | r }
-  fromNum(v) {
+  static fromNum(v) {
     var r = v & 0xFF
     var g = (v >> 8) & 0xFF
     var b = (v >> 16) & 0xFF

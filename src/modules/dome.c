@@ -125,7 +125,7 @@ WINDOW_setColor(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASSERT_SLOT_TYPE(vm, 1, NUM, "color");
   uint32_t color = (uint32_t)wrenGetSlotDouble(vm, 1);
-  uint16_t r, g, b;
+  uint8_t r, g, b;
   getColorComponents(color, &r, &g, &b);
   SDL_SetRenderDrawColor(engine->renderer, r, g, b, 0xFF);
 }

@@ -1,5 +1,5 @@
 internal void
-getColorComponents(uint32_t color, uint16_t *r, uint16_t *g, uint16_t *b) {
+getColorComponents(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
   *r = color & 0xFF;
   *g = (color & (0xFF << 8)) >> 8;
   *b = (color & (0xFF << 16)) >> 16;
@@ -385,28 +385,24 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
   int32_t width = engine->canvas.width;
   DOME_RECT zone = engine->canvas.clip;
 
-  if ((c & (0xFF << 24)) == 0) {
+  uint8_t newA = ((0xFF000000 & c) >> 24);
+
+  if (newA == 0) {
     return;
   } else if (zone.x <= x && x < zone.x + zone.w && zone.y <= y && y < zone.y + zone.h) {
-    if (((c & (0xFF << 24)) >> 24) < 0xFF) {
+    if (newA < 0xFF) {
       uint32_t current = ((uint32_t*)(engine->canvas.pixels))[width * y + x];
+      double normA = newA / (double)UINT8_MAX;
+      double diffA = 1 - normA;
 
-      uint16_t newA = (0xFF000000 & c) >> 24;
-
-      uint16_t oldR, oldG, oldB, newR, newG, newB;
+      uint8_t oldR, oldG, oldB, newR, newG, newB;
       getColorComponents(current, &oldR, &oldG, &oldB);
       getColorComponents(c, &newR, &newG, &newB);
-      oldR *= 255 - newA;
-      oldG *= 255 - newA;
-      oldB *= 255 - newA;
-      newR *= newA;
-      newG *= newA;
-      newB *= newA;
 
       uint8_t a = 0xFF;
-      uint8_t r = (oldR + newR) / 255;
-      uint8_t g = (oldG + newG) / 255;
-      uint8_t b = (oldB + newB) / 255;
+      uint8_t r = (diffA * oldR + normA * newR);
+      uint8_t g = (diffA * oldG + normA * newG);
+      uint8_t b = (diffA * oldB + normA * newB);
 
       c = (a << 24) | (b << 16) | (g << 8) | r;
     }

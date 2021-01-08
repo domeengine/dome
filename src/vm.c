@@ -180,7 +180,7 @@ internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
 
 internal const char*
 VM_resolve_module_name(WrenVM* vm, const char* importer, const char* name) {
-  char* localName = name;
+  const char* localName = name;
   if (strlen(name) > 1) {
     while (localName[0] == '.' && localName[1] == '/') {
       localName = localName + 2;
@@ -256,7 +256,6 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "image", "DrawCommand.draw(_,_)", DRAW_COMMAND_draw);
 
   // Audio
-  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.enabled=(_)", AUDIO_CHANNEL_setEnabled);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.enabled", AUDIO_CHANNEL_getEnabled);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.loop=(_)", AUDIO_CHANNEL_setLoop);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.loop", AUDIO_CHANNEL_getLoop);
@@ -267,15 +266,17 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.position=(_)", AUDIO_CHANNEL_setPosition);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.state=(_)", AUDIO_CHANNEL_setState);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.audio=(_)", AUDIO_CHANNEL_setAudio);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.stop()", AUDIO_CHANNEL_stop);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.state", AUDIO_CHANNEL_getState);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.length", AUDIO_CHANNEL_getLength);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.position", AUDIO_CHANNEL_getPosition);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.soundId", AUDIO_CHANNEL_getSoundId);
+  MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.id", AUDIO_CHANNEL_getId);
 
   MAP_addFunction(&engine->moduleMap, "audio", "AudioData.length", AUDIO_getLength);
 
-  MAP_addFunction(&engine->moduleMap, "audio", "static AudioEngine.f_update(_)", AUDIO_ENGINE_update);
-  MAP_addFunction(&engine->moduleMap, "audio", "static AudioEngine.f_captureVariable()", AUDIO_ENGINE_capture);
+  MAP_addFunction(&engine->moduleMap, "audio", "static AudioEngine.f_push(_)", AUDIO_ENGINE_push);
+  MAP_addFunction(&engine->moduleMap, "audio", "static AudioEngine.f_stopAllChannels()", AUDIO_ENGINE_wrenStopAll);
 
   // FileSystem
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.f_load(_,_)", FILESYSTEM_loadAsync);
