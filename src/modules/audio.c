@@ -626,10 +626,7 @@ AUDIO_CHANNEL_allocate(WrenVM* vm) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_CHANNEL));
   ASSERT_SLOT_TYPE(vm, 1, STRING, "sound id");
   const char* soundId = wrenGetSlotString(vm, 1);
-  size_t len = strlen(soundId);
-  channel->core.soundId = malloc((1 + len) * sizeof(char));
-  strcpy(channel->core.soundId, soundId);
-  channel->core.soundId[len] = '\0';
+  channel->core.soundId = strdup(soundId);
 
   struct AUDIO_CHANNEL_PROPS props = {0, 0, 0, 0, 0};
   channel->current = channel->new = props;
