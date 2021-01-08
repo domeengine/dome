@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <libgen.h>
+#include <time.h>
 #include <math.h>
 #ifndef M_PI
   #define M_PI 3.14159265358979323846
@@ -61,7 +62,6 @@
 
 // Used in the io variable, but we need to catch it here
 global_variable WrenHandle* bufferClass = NULL;
-global_variable WrenHandle* audioEngineClass = NULL;
 global_variable WrenHandle* keyboardClass = NULL;
 global_variable WrenHandle* mouseClass = NULL;
 global_variable WrenHandle* gamepadClass = NULL;
@@ -282,16 +282,7 @@ LOOP_update(LOOP_STATE* state) {
     return EXIT_FAILURE;
   }
   // updateAudio()
-  if (audioEngineClass != NULL) {
-    wrenEnsureSlots(state->vm, 3);
-    wrenSetSlotHandle(state->vm, 0, audioEngineClass);
-    AUDIO_ENGINE_lock(state->engine->audioEngine);
-    interpreterResult = wrenCall(state->vm, state->updateMethod);
-    AUDIO_ENGINE_unlock(state->engine->audioEngine);
-    if (interpreterResult != WREN_RESULT_SUCCESS) {
-      return EXIT_FAILURE;
-    }
-  }
+  AUDIO_ENGINE_update(state->vm);
   return EXIT_SUCCESS;
 }
 
@@ -546,19 +537,20 @@ int main(int argc, char* args[])
   loop.gameClass = wrenGetSlotHandle(vm, 0);
   loop.updateMethod = wrenMakeCallHandle(vm, "update()");
   loop.drawMethod = wrenMakeCallHandle(vm, "draw(_)");
-  
+
   SDL_SetRenderDrawColor(engine.renderer, 0x00, 0x00, 0x00, 0xFF);
 
   // Initiate game loop
 
   wrenSetSlotHandle(vm, 0, loop.gameClass);
   interpreterResult = wrenCall(vm, initMethod);
-  wrenReleaseHandle(vm, initMethod);
-  initMethod = NULL;
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
     goto vm_cleanup;
   }
+  // Release this handle if it finished successfully
+  wrenReleaseHandle(vm, initMethod);
+  initMethod = NULL;
   engine.initialized = true;
 
   SDL_SetWindowPosition(engine.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
@@ -674,6 +666,9 @@ vm_cleanup:
     }
   }
 
+  // Free resources
+  ENGINE_reportError(&engine);
+
   if (initMethod != NULL) {
     wrenReleaseHandle(vm, initMethod);
   }
@@ -684,17 +679,13 @@ vm_cleanup:
     wrenReleaseHandle(vm, bufferClass);
   }
 
-  if (audioEngineClass != NULL) {
-    wrenReleaseHandle(vm, audioEngineClass);
-  }
-
   INPUT_release(vm);
 
-cleanup:
-  // Free resources
-  ENGINE_reportError(&engine);
-  BASEPATH_free();
   AUDIO_ENGINE_halt(engine.audioEngine);
+  AUDIO_ENGINE_releaseHandles(engine.audioEngine, vm);
+
+cleanup:
+  BASEPATH_free();
   VM_free(vm);
   result = engine.exit_status;
   ENGINE_free(&engine);

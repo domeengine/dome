@@ -42,7 +42,10 @@ VEC VEC_perp(VEC v) {
   return result;
 }
 
-
+internal float
+lerp(float a, float b, float f) {
+  return (a * (1.0 - f)) + (b * f);
+}
 
 
 int64_t max(int64_t n1, int64_t n2) {
@@ -95,4 +98,15 @@ int64_t mid(int64_t n1, int64_t n2, int64_t n3) {
   } else {
     return n3;
   }
+}
+
+internal uint64_t
+gcd(uint64_t a, uint64_t b) {
+  uint64_t t = b;
+  while (b != 0) {
+    t = b;
+    b = a % b;
+    a = t;
+  }
+  return a;
 }
