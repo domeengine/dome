@@ -91,6 +91,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/font.c"
 #include "modules/io.c"
 #include "modules/audio.c"
+#include "hashmap.c"
 #include "modules/graphics.c"
 #include "modules/image.c"
 #include "modules/input.c"
