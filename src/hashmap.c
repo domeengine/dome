@@ -13,6 +13,13 @@ global_variable const CHANNEL EMPTY_CHANNEL  = {
 };
 
 typedef struct {
+  uint32_t next;
+  uint32_t found;
+  bool done;
+  CHANNEL* value;
+} TABLE_ITERATOR;
+
+typedef struct {
   uint32_t key;
   CHANNEL value;
 } ENTRY;
@@ -34,6 +41,28 @@ void TABLE_free(TABLE* table) {
     free(table->entries);
   }
   TABLE_init(table);
+}
+
+internal bool
+TABLE_iterate(TABLE* table, TABLE_ITERATOR* iter) {
+  CHANNEL* value = NULL;
+  if (!iter->done) {
+    for (uint32_t i = iter->next; i < table->capacity; i++) {
+      ENTRY* entry = &table->entries[i];
+      if (entry->key == NIL_KEY) {
+        continue;
+      }
+      iter->next = i + 1;
+      iter->found++;
+      value = &entry->value;
+      break;
+    }
+    if (iter->found >= table->count) {
+      iter->done = true;
+    }
+    iter->value = value;
+  }
+  return iter->done;
 }
 
 // FNV-1a Hash algorithm, as copied from "Crafting Interpreters"
@@ -80,7 +109,6 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
   ENTRY* entries = malloc(sizeof(ENTRY) * capacity);
   for (uint32_t i = 0; i < capacity; i++) {
     entries[i].key = NIL_KEY;
-    // dubious
     entries[i].value = EMPTY_CHANNEL;
   }
   printf("Resizing to: %i\n", capacity);
@@ -102,8 +130,8 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
 }
 
 
-internal bool
-TABLE_set(TABLE* table, uintmax_t key, CHANNEL channel) {
+internal CHANNEL*
+TABLE_reserve(TABLE* table, uintmax_t key) {
   if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
     uint32_t capacity = table->capacity < 8 ? 8 : table->capacity * 2;
     TABLE_resize(table, capacity);
@@ -116,8 +144,16 @@ TABLE_set(TABLE* table, uintmax_t key, CHANNEL channel) {
   }
 
   entry->key = key;
-  entry->value = channel;
-  return isNewKey;
+  memset(&entry->value, 0, sizeof(CHANNEL));
+  return &(entry->value);
+}
+
+internal CHANNEL*
+TABLE_set(TABLE* table, uintmax_t key, CHANNEL channel) {
+  CHANNEL* ptr = TABLE_reserve(table, key);
+  *(ptr) = channel;
+
+  return ptr;
 }
 
 internal bool

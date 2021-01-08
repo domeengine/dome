@@ -41,6 +41,6 @@ typedef struct {
 
 typedef struct {
   size_t count;
-  CHANNEL* channels[];
+  CHANNEL channels[];
 } CHANNEL_LIST;
 

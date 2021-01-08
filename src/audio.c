@@ -13,9 +13,9 @@ typedef struct AUDIO_ENGINE_t {
   SDL_AudioSpec spec;
   float* scratchBuffer;
   size_t scratchBufferSize;
-  CHANNEL_LIST* pending;
-  CHANNEL_LIST* playing;
+  // CHANNEL_LIST* pending;
 
+  TABLE pending;
   TABLE channels;
   uintmax_t nextId;
 } AUDIO_ENGINE;
@@ -32,12 +32,35 @@ void AUDIO_ENGINE_mix(void*  userdata,
   size_t totalSamples = outputBufferSize / bytesPerSample;
 
   SDL_memset(stream, 0, outputBufferSize);
-  CHANNEL_LIST* playing = audioEngine->playing;
-  size_t channelCount = playing->count;
 
   float* scratchBuffer = audioEngine->scratchBuffer;
   size_t bufferSampleSize = audioEngine->scratchBufferSize;
+  TABLE_ITERATOR iter;
+  CHANNEL* channel;
+  while (TABLE_iterate(&(audioEngine->channels), &iter)) {
+    channel = iter.value;
+    if (iter.done) {
+      break;
+    }
 
+    assert(channel != NULL);
+    size_t requestServed = 0;
+    float* writeCursor = (float*)(stream);
+
+    while (channel->enabled && requestServed < totalSamples) {
+      SDL_memset(scratchBuffer, 0, bufferSampleSize * bytesPerSample);
+      size_t requestSize = min(bufferSampleSize, totalSamples - requestServed);
+      channel->methods.mix(channel, scratchBuffer, requestSize);
+      requestServed += requestSize;
+      float* copyCursor = scratchBuffer;
+      float* endPoint = copyCursor + bufferSampleSize * channels;
+      for (; copyCursor < endPoint; copyCursor++) {
+        *(writeCursor++) += *copyCursor;
+      }
+    }
+  }
+
+  /*
   for (size_t c = 0; c < channelCount; c++) {
     CHANNEL* channel = (CHANNEL*)(playing->channels[c]);
     if (channel == NULL) {
@@ -58,6 +81,7 @@ void AUDIO_ENGINE_mix(void*  userdata,
       }
     }
   }
+  */
 }
 
 internal AUDIO_ENGINE*
@@ -93,24 +117,6 @@ AUDIO_ENGINE_init(void) {
 
   TABLE* table = &(engine->channels);
   TABLE_init(table);
-  CHANNEL channel;
-  for (int i = 0; i < 10; i++) {
-    channel.id = i;
-    TABLE_set(table, i, channel);
-  }
-  bool found = TABLE_get(table, 7, &channel);
-  if (found) {
-    printf("Channel id: %zu\n", channel.id);
-  } else {
-    printf("NOT FOUND!\n");
-  }
-  TABLE_delete(table, 7);
-  found = TABLE_get(table, 7, &channel);
-  if (found) {
-    printf("Channel id: %zu\n", channel.id);
-  } else {
-    printf("deleted!\n");
-  }
 
   return engine;
 }
@@ -125,20 +131,49 @@ AUDIO_ENGINE_unlock(AUDIO_ENGINE* engine) {
   SDL_UnlockAudioDevice(engine->deviceId);
 }
 
-internal void
-AUDIO_ENGINE_pushChannel(AUDIO_ENGINE* engine, CHANNEL* channel) {
-  CHANNEL_LIST* list = engine->pending;
-  size_t next = list->count;
-  list = CHANNEL_LIST_resize(list, next + 1);
-  engine->pending = list;
-  list->channels[next] = channel;
-  channel->id = engine->nextId++;
+/*
+internal CHANNEL*
+AUDIO_ENGINE_newChannel(AUDIO_ENGINE* engine) {
+  size_t nextId = engine->nextId++;
+  CHANNEL* channel = TABLE_reserve(&engine->channels, nextId);
+  channel->id = nextId;
+  return channel;
+}
+*/
+
+internal uintmax_t
+AUDIO_ENGINE_channelInit(
+    AUDIO_ENGINE* engine,
+    CHANNEL_mix mix,
+    CHANNEL_callback update,
+    CHANNEL_callback finish,
+    void* userdata
+    ) {
+
+  uintmax_t id = engine->nextId++;
+  CHANNEL channel;
+  channel = {
+    .state = CHANNEL_INITIALIZE,
+    .mix = mix,
+    .update = update,
+    .finish = finish,
+    .userdata = userdata
+  }
+  TABLE_set(&engine->pending, id, channel);
+
+  return id;
 }
 
 internal void
 AUDIO_ENGINE_update(WrenVM* vm) {
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
+  TABLE_ITERATOR iter;
+
+
+
+
+  /*
   CHANNEL_LIST* pending = data->pending;
   CHANNEL_LIST* playing = data->playing;
 
@@ -190,6 +225,7 @@ AUDIO_ENGINE_update(WrenVM* vm) {
   // Safety - Make sure we don't misuse these pointers.
   pending = NULL;
   playing = NULL;
+  */
 }
 
 internal void
@@ -201,6 +237,26 @@ AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, uintmax_t id) {
       channel->stopRequested = true;
     }
   }
+}
+
+internal void
+AUDIO_ENGINE_stopAll(AUDIO_ENGINE* engine) {
+  CHANNEL_LIST* playing = engine->playing;
+  for (size_t i = 0; i < playing->count; i++) {
+    CHANNEL* channel = (CHANNEL*)playing->channels[i];
+    channel->stopRequested = true;
+  }
+}
+
+
+internal void
+AUDIO_ENGINE_pause(AUDIO_ENGINE* engine) {
+  SDL_PauseAudioDevice(engine->deviceId, 1);
+}
+
+internal void
+AUDIO_ENGINE_resume(AUDIO_ENGINE* engine) {
+  SDL_PauseAudioDevice(engine->deviceId, 0);
 }
 
 internal void
@@ -217,4 +273,22 @@ AUDIO_ENGINE_free(AUDIO_ENGINE* engine) {
   AUDIO_ENGINE_halt(engine);
   free(engine->scratchBuffer);
   free(engine->playing);
+  // TODO: Free correctly the table and list
+}
+
+internal CHANNEL_LIST*
+CHANNEL_LIST_init(size_t initialSize) {
+  CHANNEL_LIST* list = malloc(sizeof(CHANNEL_LIST));
+  list->count = 0;
+  list = CHANNEL_LIST_resize(list, initialSize);
+  return list;
+}
+
+internal CHANNEL_LIST*
+CHANNEL_LIST_resize(CHANNEL_LIST* list, size_t channels) {
+  size_t current = list->count;
+  list = realloc(list, sizeof(CHANNEL_LIST) + sizeof(CHANNEL) * channels);
+  list->count = channels;
+  memset(&(list->channels[current], 0, sizeof(CHANNEL) * max(0, channels - current));
+  return list;
 }

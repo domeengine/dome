@@ -308,27 +308,6 @@ AUDIO_getLength(WrenVM* vm) {
 }
 
 
-
-internal CHANNEL_LIST*
-CHANNEL_LIST_init(size_t initialSize) {
-  CHANNEL_LIST* list = malloc(sizeof(CHANNEL_LIST));
-  list->count = 0;
-  list = CHANNEL_LIST_resize(list, initialSize);
-  return list;
-}
-
-internal CHANNEL_LIST*
-CHANNEL_LIST_resize(CHANNEL_LIST* list, size_t channels) {
-  size_t current = list->count;
-  list = realloc(list, sizeof(CHANNEL_LIST) + sizeof(CHANNEL*) * channels);
-  list->count = channels;
-  for (int i = current; i < channels; i++) {
-    list->channels[i] = NULL;
-  }
-  return list;
-}
-
-
 internal void
 AUDIO_ENGINE_push(WrenVM* vm) {
   ENGINE* engine = wrenGetUserData(vm);
@@ -339,26 +318,6 @@ AUDIO_ENGINE_push(WrenVM* vm) {
   channel->enabled = true;
   AUDIO_ENGINE_pushChannel(data, channel);
   wrenSetSlotDouble(vm, 0, channel->id);
-}
-
-
-internal void
-AUDIO_ENGINE_pause(AUDIO_ENGINE* engine) {
-  SDL_PauseAudioDevice(engine->deviceId, 1);
-}
-
-internal void
-AUDIO_ENGINE_resume(AUDIO_ENGINE* engine) {
-  SDL_PauseAudioDevice(engine->deviceId, 0);
-}
-
-internal void
-AUDIO_ENGINE_stopAll(AUDIO_ENGINE* engine) {
-  CHANNEL_LIST* playing = engine->playing;
-  for (size_t i = 0; i < playing->count; i++) {
-    CHANNEL* channel = (CHANNEL*)playing->channels[i];
-    channel->stopRequested = true;
-  }
 }
 
 
