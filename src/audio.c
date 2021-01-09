@@ -11,7 +11,7 @@ typedef struct AUDIO_ENGINE_t {
   size_t scratchBufferSize;
 
   TABLE pending;
-  TABLE channels;
+  TABLE playing;
   CHANNEL_ID nextId;
 } AUDIO_ENGINE;
 
@@ -32,7 +32,7 @@ void AUDIO_ENGINE_mix(void*  userdata,
   size_t bufferSampleSize = audioEngine->scratchBufferSize;
   TABLE_ITERATOR iter = {0, 0, 0, NULL };
   CHANNEL* channel;
-  while (TABLE_iterate(&(audioEngine->channels), &iter)) {
+  while (TABLE_iterate(&(audioEngine->playing), &iter)) {
     if (iter.done) {
       break;
     }
@@ -122,7 +122,7 @@ AUDIO_ENGINE_init(void) {
   // Unpause audio so we can begin taking over the buffer
   SDL_PauseAudioDevice(engine->deviceId, 0);
 
-  TABLE* table = &(engine->channels);
+  TABLE* table = &(engine->playing);
   TABLE_init(table);
   table = &(engine->pending);
   TABLE_init(table);
@@ -133,7 +133,7 @@ AUDIO_ENGINE_init(void) {
 internal bool
 AUDIO_ENGINE_get(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, CHANNEL** channel) {
   CHANNEL_ID id = ref->id;
-  bool result = TABLE_get(&engine->channels, id, channel);
+  bool result = TABLE_get(&engine->playing, id, channel);
   if (!result) {
     result = TABLE_get(&engine->pending, id, channel);
   }
@@ -180,8 +180,8 @@ AUDIO_ENGINE_update(WrenVM* vm) {
   TABLE_ITERATOR iter = {0, 0, 0, NULL};
   CHANNEL* channel;
   AUDIO_ENGINE_lock(engine);
-  TABLE_addAll(&engine->channels, &engine->pending);
-  while (TABLE_iterate(&(engine->channels), &iter)) {
+  TABLE_addAll(&engine->playing, &engine->pending);
+  while (TABLE_iterate(&(engine->playing), &iter)) {
     channel = iter.value;
     if (iter.done) {
       break;
@@ -193,12 +193,12 @@ AUDIO_ENGINE_update(WrenVM* vm) {
       if (channel->finish != NULL) {
         channel->finish(vm, channel);
       }
-      TABLE_delete(&engine->channels, channel->id);
+      TABLE_delete(&engine->playing, channel->id);
     }
   }
   AUDIO_ENGINE_unlock(engine);
   TABLE_free(&engine->pending);
-  //  DEBUG_LOG("Capacity: %u / %u", engine->channels.items, (engine->channels).capacity);
+  //  DEBUG_LOG("Capacity: %u / %u", engine->playing.items, (engine->playing).capacity);
 }
 
 internal void
@@ -215,7 +215,7 @@ AUDIO_ENGINE_stopAll(AUDIO_ENGINE* engine) {
   TABLE_ITERATOR iter = {0, 0, 0, NULL };
   TABLE_iterInit(&iter);
   CHANNEL* channel;
-  while (TABLE_iterate(&(engine->channels), &iter)) {
+  while (TABLE_iterate(&(engine->playing), &iter)) {
     if (iter.done) {
       break;
     }
@@ -256,7 +256,7 @@ AUDIO_ENGINE_free(AUDIO_ENGINE* engine) {
   // We might need to free contained audio here
   AUDIO_ENGINE_halt(engine);
   free(engine->scratchBuffer);
-  TABLE_free(&engine->channels);
+  TABLE_free(&engine->playing);
   TABLE_free(&engine->pending);
 }
 

@@ -312,7 +312,7 @@ AUDIO_ENGINE_releaseHandles(AUDIO_ENGINE* audioEngine, WrenVM* vm) {
   TABLE_ITERATOR iter;
   TABLE_iterInit(&iter);
   CHANNEL* channel;
-  while (TABLE_iterate(&(audioEngine->channels), &iter)) {
+  while (TABLE_iterate(&(audioEngine->playing), &iter)) {
     if (iter.done) {
       break;
     }
