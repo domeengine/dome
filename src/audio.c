@@ -197,6 +197,7 @@ AUDIO_ENGINE_update(WrenVM* vm) {
   }
   AUDIO_ENGINE_unlock(engine);
   TABLE_free(&engine->pending);
+  //  DEBUG_LOG("Capacity: %u / %u", engine->channels.items, (engine->channels).capacity);
 }
 
 internal void

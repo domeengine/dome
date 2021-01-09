@@ -1,4 +1,6 @@
 // Hash table based on the implementation in "Crafting Interpreters"
+// as well as the Wren VM.
+
 #define TABLE_MAX_LOAD 0.75
 #define NIL_KEY 0
 
@@ -10,7 +12,7 @@
 internal inline  uint32_t
 hashBits(uint64_t hash)
 {
-  // From v8's ComputeLongHash() which in turn cites:
+  // Wren VM cites v8's computeLongHash() function which in turn cites:
   // Thomas Wang, Integer Hash Functions.
   // http://www.concentric.net/~Ttwang/tech/inthash.htm
   hash = ~hash + (hash << 18);  // hash = (hash << 18) - hash - 1;
@@ -21,9 +23,6 @@ hashBits(uint64_t hash)
   hash = hash ^ (hash >> 22);
   return (uint32_t)(hash & 0x3fffffff);
 }
-
-
-
 
 global_variable const CHANNEL TOMBSTONE  = {
   .state = CHANNEL_LAST,
@@ -133,7 +132,7 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
   for (uint32_t i = 0; i < capacity; i++) {
     entries[i].key = NIL_KEY;
     entries[i].value = EMPTY_CHANNEL;
-    entries[i].value.state = CHANNEL_INVALID;
+    // entries[i].value.state = CHANNEL_INVALID;
   }
   table->count = 0;
   for (uint32_t i = 0; i < table->capacity; i++) {
