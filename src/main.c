@@ -1,6 +1,8 @@
 #define _DEFAULT_SOURCE
 #define NOMINMAX
 
+#define DEBUG_LOG(string, ...) printf(string"\n",  __VA_ARGS__)
+
 #ifndef DOME_VERSION
 #define DOME_VERSION "0.0.0 - CUSTOM"
 #endif

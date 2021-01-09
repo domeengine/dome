@@ -19,12 +19,20 @@ typedef struct {
   CHANNEL* value;
 } TABLE_ITERATOR;
 
+void TABLE_iterInit(TABLE_ITERATOR* iter) {
+  iter->next = 0;
+  iter->found = 0;
+  iter->done = false;
+  iter->value = NULL;
+}
+
 typedef struct {
   uint32_t key;
   CHANNEL value;
 } ENTRY;
 
 typedef struct {
+  uint32_t items;
   uint32_t count;
   uint32_t capacity;
   ENTRY* entries;
@@ -32,6 +40,7 @@ typedef struct {
 
 void TABLE_init(TABLE* table) {
   table->count = 0;
+  table->items = 0;
   table->capacity = 0;
   table->entries = NULL;
 }
@@ -46,6 +55,9 @@ void TABLE_free(TABLE* table) {
 internal bool
 TABLE_iterate(TABLE* table, TABLE_ITERATOR* iter) {
   CHANNEL* value = NULL;
+  if (iter->found >= table->items) {
+    iter->done = true;
+  }
   if (!iter->done) {
     for (uint32_t i = iter->next; i < table->capacity; i++) {
       ENTRY* entry = &table->entries[i];
@@ -57,12 +69,9 @@ TABLE_iterate(TABLE* table, TABLE_ITERATOR* iter) {
       value = &entry->value;
       break;
     }
-    if (iter->found >= table->count) {
-      iter->done = true;
-    }
     iter->value = value;
   }
-  return iter->done;
+  return !iter->done;
 }
 
 // FNV-1a Hash algorithm, as copied from "Crafting Interpreters"
@@ -87,7 +96,6 @@ TABLE_findEntry(ENTRY* entries, uint32_t capacity, uintmax_t key) {
   ENTRY* tombstone = NULL;
   for (;;) {
     ENTRY* entry = &entries[index];
-    printf("%i\n", index);
     if (entry->key == NIL_KEY) {
       if (IS_EMPTY(entry)) {
         // Empty entry
@@ -142,6 +150,7 @@ TABLE_reserve(TABLE* table, uintmax_t key) {
 
   if (isNewKey && IS_EMPTY(entry)) {
     table->count++;
+    table->items++;
   }
 
   entry->key = key;
@@ -182,6 +191,7 @@ TABLE_delete(TABLE* table, uintmax_t key) {
   // set a tombstone
   entry->key = NIL_KEY;
   entry->value = TOMBSTONE;
+  table->items--;
   return true;
 }
 

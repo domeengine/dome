@@ -7,6 +7,7 @@ AUDIO_CHANNEL_finish(WrenVM* vm, CHANNEL* base) {
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)CHANNEL_getData(base);
   assert(channel != NULL);
   if (channel->audioHandle != NULL) {
+    // DEBUG_LOG("releasing handle %p", channel->audioHandle);
     wrenReleaseHandle(vm, channel->audioHandle);
     channel->audioHandle = NULL;
   }
@@ -54,6 +55,9 @@ AUDIO_CHANNEL_update(WrenVM* vm, CHANNEL* base) {
       AUDIO_CHANNEL_commit(channel);
       if (CHANNEL_hasStopRequested(base)) {
         CHANNEL_setState(base, CHANNEL_STOPPING);
+      }
+      if (CHANNEL_getEnabled(base) == false) {
+        CHANNEL_setState(base, CHANNEL_STOPPED);
       }
       break;
     case CHANNEL_STOPPING:
@@ -308,25 +312,31 @@ AUDIO_ENGINE_wrenStopAll(WrenVM* vm) {
 }
 
 internal void
-AUDIO_ENGINE_releaseHandles(AUDIO_ENGINE* engine, WrenVM* vm) {
-  /*
-  CHANNEL_LIST* pending = engine->pending;
-  CHANNEL_LIST* playing = engine->playing;
-  for (size_t i = 0; i < playing->count; i++) {
-    CHANNEL* channel = (CHANNEL*)playing->channels[i];
+AUDIO_ENGINE_releaseHandles(AUDIO_ENGINE* audioEngine, WrenVM* vm) {
+  TABLE_ITERATOR iter;
+  TABLE_iterInit(&iter);
+  CHANNEL* channel;
+  while (TABLE_iterate(&(audioEngine->channels), &iter)) {
+    if (iter.done) {
+      break;
+    }
+    channel = iter.value;
     channel->enabled = false;
     if (channel->finish != NULL) {
       channel->finish(vm, channel);
     }
   }
-  for (size_t i = 0; i < pending->count; i++) {
-    CHANNEL* channel = (CHANNEL*)pending->channels[i];
+  TABLE_iterInit(&iter);
+  while (TABLE_iterate(&(audioEngine->pending), &iter)) {
+    if (iter.done) {
+      break;
+    }
+    channel = iter.value;
     channel->enabled = false;
     if (channel->finish != NULL) {
       channel->finish(vm, channel);
     }
   }
-  */
 }
 
 
@@ -355,10 +365,11 @@ AUDIO_CHANNEL_setAudio(WrenVM* vm) {
     return;
   }
   AUDIO_CHANNEL* channel = CHANNEL_getData(base);
-  if (CHANNEL_getState(base) == CHANNEL_INITIALIZE) {
+  if (CHANNEL_getState(base) < CHANNEL_PLAYING) {
     ASSERT_SLOT_TYPE(vm, 1, FOREIGN, "audio");
     channel->audio = (AUDIO_DATA*)wrenGetSlotForeign(vm, 1);
     channel->audioHandle = wrenGetSlotHandle(vm, 1);
+    // DEBUG_LOG("acquiring handle %p", channel->audioHandle);
   } else {
     VM_ABORT(vm, "Cannot change audio in channel once initialized");
   }
@@ -376,7 +387,6 @@ AUDIO_CHANNEL_setState(WrenVM* vm) {
   if (!AUDIO_ENGINE_get(data, ref->id, &base)) {
     return;
   }
-  AUDIO_CHANNEL* channel = CHANNEL_getData(base);
   int state = wrenGetSlotDouble(vm, 1);
   if (state <= CHANNEL_INVALID || state >= CHANNEL_LAST) {
     VM_ABORT(vm, "Setting invalid channel state");
@@ -395,7 +405,6 @@ AUDIO_CHANNEL_getState(WrenVM* vm) {
   if (!AUDIO_ENGINE_get(data, ref->id, &base)) {
     return;
   }
-  AUDIO_CHANNEL* channel = CHANNEL_getData(base);
   wrenEnsureSlots(vm, 1);
   wrenSetSlotDouble(vm, 0, CHANNEL_getState(base));
 }
