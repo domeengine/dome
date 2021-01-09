@@ -131,7 +131,8 @@ AUDIO_ENGINE_init(void) {
 }
 
 internal bool
-AUDIO_ENGINE_get(AUDIO_ENGINE* engine, CHANNEL_ID id, CHANNEL** channel) {
+AUDIO_ENGINE_get(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, CHANNEL** channel) {
+  CHANNEL_ID id = ref->id;
   bool result = TABLE_get(&engine->channels, id, channel);
   if (!result) {
     result = TABLE_get(&engine->pending, id, channel);
@@ -201,9 +202,9 @@ AUDIO_ENGINE_update(WrenVM* vm) {
 }
 
 internal void
-AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, CHANNEL_ID id) {
+AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref) {
   CHANNEL* channel;
-  AUDIO_ENGINE_get(engine, id, &channel);
+  AUDIO_ENGINE_get(engine, ref, &channel);
   if (channel != NULL) {
     CHANNEL_requestStop(channel);
   }
@@ -259,7 +260,7 @@ AUDIO_ENGINE_free(AUDIO_ENGINE* engine) {
   TABLE_free(&engine->pending);
 }
 
-internal CHANNEL_ID
+internal AUDIO_CHANNEL_REF
 AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, char* soundId) {
 
   AUDIO_CHANNEL* data = malloc(sizeof(AUDIO_CHANNEL));
@@ -276,6 +277,9 @@ AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, char* soundId) {
     AUDIO_CHANNEL_finish,
     data
   );
-  return id;
+  AUDIO_CHANNEL_REF ref = {
+    .id = id
+  };
+  return ref;
 }
 

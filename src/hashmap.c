@@ -48,7 +48,7 @@ void TABLE_iterInit(TABLE_ITERATOR* iter) {
 }
 
 typedef struct {
-  uint32_t key;
+  CHANNEL_ID key;
   CHANNEL value;
 } ENTRY;
 
@@ -157,14 +157,13 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
 internal CHANNEL*
 TABLE_set(TABLE* table, CHANNEL_ID key, CHANNEL channel) {
   if ((table->items + 1) > table->capacity * TABLE_MAX_LOAD) {
-    uint32_t capacity = table->capacity < 8 ? 8 : table->capacity * 2;
+    uint32_t capacity = table->capacity < 4 ? 4 : table->capacity * 2;
     TABLE_resize(table, capacity);
   }
   ENTRY* entry = NULL;
   bool found = TABLE_findEntry(table->entries, table->capacity, key, &entry);
   if (found) {
     entry->value = channel;
-    assert(!IS_TOMBSTONE(entry));
   } else {
     if (!IS_TOMBSTONE(entry)) {
       table->count++;

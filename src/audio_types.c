@@ -1,4 +1,7 @@
 typedef uint64_t CHANNEL_ID;
+typedef struct {
+  CHANNEL_ID id;
+} AUDIO_CHANNEL_REF;
 
 typedef enum {
   AUDIO_TYPE_UNKNOWN,
