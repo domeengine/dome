@@ -50,7 +50,7 @@ void AUDIO_ENGINE_mix(void*  userdata,
     while (channel->enabled && requestServed < totalSamples) {
       SDL_memset(scratchBuffer, 0, bufferSampleSize * bytesPerSample);
       size_t requestSize = min(bufferSampleSize, totalSamples - requestServed);
-      channel->methods.mix(channel, scratchBuffer, requestSize);
+      channel->mix(channel, scratchBuffer, requestSize);
       requestServed += requestSize;
       float* copyCursor = scratchBuffer;
       float* endPoint = copyCursor + bufferSampleSize * channels;
@@ -72,7 +72,7 @@ void AUDIO_ENGINE_mix(void*  userdata,
     while (channel->enabled && requestServed < totalSamples) {
       SDL_memset(scratchBuffer, 0, bufferSampleSize * bytesPerSample);
       size_t requestSize = min(bufferSampleSize, totalSamples - requestServed);
-      channel->methods.mix(channel, scratchBuffer, requestSize);
+      channel->mix(channel, scratchBuffer, requestSize);
       requestServed += requestSize;
       float* copyCursor = scratchBuffer;
       float* endPoint = copyCursor + bufferSampleSize * channels;
@@ -88,8 +88,8 @@ internal AUDIO_ENGINE*
 AUDIO_ENGINE_init(void) {
   SDL_InitSubSystem(SDL_INIT_AUDIO);
   AUDIO_ENGINE* engine = malloc(sizeof(AUDIO_ENGINE));
-  engine->playing = CHANNEL_LIST_init(AUDIO_CHANNEL_START);
-  engine->pending = CHANNEL_LIST_init(AUDIO_CHANNEL_START);
+  // engine->playing = CHANNEL_LIST_init(AUDIO_CHANNEL_START);
+  // engine->pending = CHANNEL_LIST_init(AUDIO_CHANNEL_START);
 
   // zero is reserved for uninitialized.
   engine->nextId = 1;
@@ -131,34 +131,22 @@ AUDIO_ENGINE_unlock(AUDIO_ENGINE* engine) {
   SDL_UnlockAudioDevice(engine->deviceId);
 }
 
-/*
-internal CHANNEL*
-AUDIO_ENGINE_newChannel(AUDIO_ENGINE* engine) {
-  size_t nextId = engine->nextId++;
-  CHANNEL* channel = TABLE_reserve(&engine->channels, nextId);
-  channel->id = nextId;
-  return channel;
-}
-*/
-
 internal uintmax_t
 AUDIO_ENGINE_channelInit(
     AUDIO_ENGINE* engine,
     CHANNEL_mix mix,
     CHANNEL_callback update,
     CHANNEL_callback finish,
-    void* userdata
-    ) {
+    void* userdata) {
 
   uintmax_t id = engine->nextId++;
-  CHANNEL channel;
-  channel = {
+  CHANNEL channel = {
     .state = CHANNEL_INITIALIZE,
     .mix = mix,
     .update = update,
     .finish = finish,
     .userdata = userdata
-  }
+  };
   TABLE_set(&engine->pending, id, channel);
 
   return id;
@@ -169,9 +157,6 @@ AUDIO_ENGINE_update(WrenVM* vm) {
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
   TABLE_ITERATOR iter;
-
-
-
 
   /*
   CHANNEL_LIST* pending = data->pending;
@@ -203,8 +188,8 @@ AUDIO_ENGINE_update(WrenVM* vm) {
   for (size_t i = 0; i < data->playing->count; i++) {
     CHANNEL* channel = (CHANNEL*)data->playing->channels[i];
     assert(channel != NULL);
-    if (channel->methods.update != NULL) {
-      channel->methods.update(vm, channel);
+    if (channel->update != NULL) {
+      channel->update(vm, channel);
     }
   }
   AUDIO_ENGINE_unlock(data);
@@ -214,8 +199,8 @@ AUDIO_ENGINE_update(WrenVM* vm) {
     assert(channel != NULL);
     if (channel->enabled == false) {
       channel->enabled = false;
-      if (channel->methods.finish != NULL) {
-        channel->methods.finish(vm, channel);
+      if (channel->finish != NULL) {
+        channel->finish(vm, channel);
       }
     }
   }
@@ -230,22 +215,26 @@ AUDIO_ENGINE_update(WrenVM* vm) {
 
 internal void
 AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, uintmax_t id) {
-  CHANNEL_LIST* playing = engine->playing;
+  /*
+     CHANNEL_LIST* playing = engine->playing;
   for (size_t i = 0; i < playing->count; i++) {
     CHANNEL* channel = (CHANNEL*)playing->channels[i];
     if (channel->id == id) {
       channel->stopRequested = true;
     }
   }
+  */
 }
 
 internal void
 AUDIO_ENGINE_stopAll(AUDIO_ENGINE* engine) {
+  /*
   CHANNEL_LIST* playing = engine->playing;
   for (size_t i = 0; i < playing->count; i++) {
     CHANNEL* channel = (CHANNEL*)playing->channels[i];
     channel->stopRequested = true;
   }
+  */
 }
 
 
@@ -272,7 +261,7 @@ AUDIO_ENGINE_free(AUDIO_ENGINE* engine) {
   // We might need to free contained audio here
   AUDIO_ENGINE_halt(engine);
   free(engine->scratchBuffer);
-  free(engine->playing);
+  // free(engine->playing);
   // TODO: Free correctly the table and list
 }
 
@@ -289,6 +278,64 @@ CHANNEL_LIST_resize(CHANNEL_LIST* list, size_t channels) {
   size_t current = list->count;
   list = realloc(list, sizeof(CHANNEL_LIST) + sizeof(CHANNEL) * channels);
   list->count = channels;
-  memset(&(list->channels[current], 0, sizeof(CHANNEL) * max(0, channels - current));
+  SDL_memset(&(list->channels[current]), 0, sizeof(CHANNEL) * max(0, channels - current));
   return list;
+}
+
+internal inline void*
+CHANNEL_getData(CHANNEL* channel) {
+  return channel->userdata;
+}
+
+internal inline void
+CHANNEL_setState(CHANNEL* channel, CHANNEL_STATE state) {
+  channel->state = state;
+}
+internal inline CHANNEL_STATE
+CHANNEL_getState(CHANNEL* channel) {
+  return channel->state;
+}
+internal inline void
+CHANNEL_requestStop(CHANNEL* channel) {
+  channel->stopRequested = true;
+}
+
+internal inline bool
+CHANNEL_hasStopRequested(CHANNEL* channel) {
+  return channel->stopRequested;
+}
+
+internal inline void
+CHANNEL_setEnabled(CHANNEL* channel, bool enabled) {
+  channel->enabled = enabled;
+}
+internal inline bool
+CHANNEL_getEnabled(CHANNEL* channel) {
+  return channel->enabled;
+}
+
+internal uintmax_t
+AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, char* soundId) {
+
+  AUDIO_CHANNEL* data = malloc(sizeof(AUDIO_CHANNEL));
+  data->soundId = strdup(soundId);
+  data->actualVolume = 0;
+  struct AUDIO_CHANNEL_PROPS props = {0, 0, 0, 0, 0};
+  data->current = data->new = props;
+  data->actualVolume = 0.0f;
+  data->audio = NULL;
+
+  uintmax_t id = AUDIO_ENGINE_channelInit(
+    engine,
+    AUDIO_CHANNEL_mix,
+    AUDIO_CHANNEL_update,
+    AUDIO_CHANNEL_finish,
+    data
+  );
+  return id;
+}
+
+internal bool
+AUDIO_ENGINE_get(AUDIO_ENGINE* engine, uintmax_t id, CHANNEL** channel) {
+  return TABLE_get(&engine->channels, id, channel);
 }

@@ -87,6 +87,7 @@ TABLE_findEntry(ENTRY* entries, uint32_t capacity, uintmax_t key) {
   ENTRY* tombstone = NULL;
   for (;;) {
     ENTRY* entry = &entries[index];
+    printf("%i\n", index);
     if (entry->key == NIL_KEY) {
       if (IS_EMPTY(entry)) {
         // Empty entry
@@ -157,7 +158,7 @@ TABLE_set(TABLE* table, uintmax_t key, CHANNEL channel) {
 }
 
 internal bool
-TABLE_get(TABLE* table, uintmax_t key, CHANNEL* channel) {
+TABLE_get(TABLE* table, uintmax_t key, CHANNEL** channel) {
   if (table->count == 0) {
     return false;
   }
@@ -165,7 +166,7 @@ TABLE_get(TABLE* table, uintmax_t key, CHANNEL* channel) {
   if (entry->key == NIL_KEY) {
     return false;
   }
-  *channel = entry->value;
+  *channel = &entry->value;
   return true;
 }
 

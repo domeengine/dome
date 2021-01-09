@@ -18,24 +18,20 @@ typedef enum {
   CHANNEL_LAST
 } CHANNEL_STATE;
 
-typedef void (*CHANNEL_mix)(void* channel, float* buffer, size_t requestedSamples);
-typedef void (*CHANNEL_callback)(WrenVM* vm, void* channel);
+struct CHANNEL_t;
+typedef void (*CHANNEL_mix)(struct CHANNEL_t* channel, float* buffer, size_t requestedSamples);
+typedef void (*CHANNEL_callback)(WrenVM* vm, struct CHANNEL_t* channel);
 
-typedef struct {
-  CHANNEL_mix mix;
-  CHANNEL_callback update;
-  CHANNEL_callback finish;
-} CHANNEL_METHODS;
-
-typedef struct {
+typedef struct CHANNEL_t {
   CHANNEL_STATE state;
   uintmax_t id;
   volatile bool enabled;
   bool stopRequested;
-  CHANNEL_METHODS methods;
+  CHANNEL_mix mix;
+  CHANNEL_callback update;
+  CHANNEL_callback finish;
 
   void* userdata;
-  WrenHandle* handle;
 } CHANNEL;
 
 
@@ -44,3 +40,38 @@ typedef struct {
   CHANNEL channels[];
 } CHANNEL_LIST;
 
+typedef struct {
+  SDL_AudioSpec spec;
+  AUDIO_TYPE audioType;
+  // Length is the number of LR samples
+  uint32_t length;
+  // Audio is stored as a stream of interleaved normalised values from [-1, 1)
+  float* buffer;
+} AUDIO_DATA;
+
+struct AUDIO_CHANNEL_PROPS {
+  // Control variables
+  bool loop;
+  // Playback variables
+  float volume;
+  float pan;
+  // Position is the sample value to play next
+  volatile size_t position;
+  bool resetPosition;
+};
+
+typedef struct {
+  struct AUDIO_CHANNEL_PROPS current;
+  struct AUDIO_CHANNEL_PROPS new;
+  char* soundId;
+  float actualVolume;
+  float actualPan;
+  bool fade;
+
+  AUDIO_DATA* audio;
+  WrenHandle* audioHandle;
+} AUDIO_CHANNEL;
+
+internal void AUDIO_CHANNEL_mix(CHANNEL* base, float* stream, size_t totalSamples);
+internal void AUDIO_CHANNEL_update(WrenVM* vm, CHANNEL* base);
+internal void AUDIO_CHANNEL_finish(WrenVM* vm, CHANNEL* base);
