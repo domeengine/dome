@@ -66,11 +66,11 @@ AUDIO_CHANNEL_update(WrenVM* vm, CHANNEL* base) {
       } else {
         channel->new.volume = 0;
       }
-      AUDIO_CHANNEL_commit(channel);
       if (channel->new.volume <= 0) {
         channel->new.volume = 0;
         CHANNEL_setState(base, CHANNEL_STOPPED);
       }
+      AUDIO_CHANNEL_commit(channel);
       break;
     case CHANNEL_STOPPED:
       CHANNEL_setEnabled(base, false);

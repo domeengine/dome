@@ -196,7 +196,6 @@ AUDIO_ENGINE_update(WrenVM* vm) {
     }
   }
   AUDIO_ENGINE_unlock(engine);
-  // DEBUG_LOG("table active %u - %u / %u", engine->channels.items, engine->channels.count, engine->channels.capacity);
   TABLE_free(&engine->pending);
 }
 

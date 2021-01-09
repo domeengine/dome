@@ -5,11 +5,33 @@
 #define IS_TOMBSTONE(entry) ((entry)->value.state == CHANNEL_LAST)
 #define IS_EMPTY(entry) ((entry)->value.state == CHANNEL_INVALID)
 
+// Thomas Wang, Integer Hash Functions.
+// http://www.concentric.net/~Ttwang/tech/inthash.htm
+internal inline  uint32_t
+hashBits(uint64_t hash)
+{
+  // From v8's ComputeLongHash() which in turn cites:
+  // Thomas Wang, Integer Hash Functions.
+  // http://www.concentric.net/~Ttwang/tech/inthash.htm
+  hash = ~hash + (hash << 18);  // hash = (hash << 18) - hash - 1;
+  hash = hash ^ (hash >> 31);
+  hash = hash * 21;  // hash = (hash + (hash << 2)) + (hash << 4);
+  hash = hash ^ (hash >> 11);
+  hash = hash + (hash << 6);
+  hash = hash ^ (hash >> 22);
+  return (uint32_t)(hash & 0x3fffffff);
+}
+
+
+
+
 global_variable const CHANNEL TOMBSTONE  = {
-  .state = CHANNEL_LAST
+  .state = CHANNEL_LAST,
+  .id = NIL_KEY
 };
 global_variable const CHANNEL EMPTY_CHANNEL  = {
-  .state = CHANNEL_INVALID
+  .state = CHANNEL_INVALID,
+  .id = NIL_KEY
 };
 
 typedef struct {
@@ -74,66 +96,35 @@ TABLE_iterate(TABLE* table, TABLE_ITERATOR* iter) {
   return !iter->done;
 }
 
-/*
-// FNV-1a Hash algorithm, as copied from "Crafting Interpreters"
-internal uint32_t
-hashData(const void* key, size_t length) {
-  uint32_t hash = 2166136261u;
-  const char* keyPtr = key;
-
-  for (int i = 0; i < length; i++) {
-    hash ^= keyPtr[i];
-    hash *= 16777619;
+internal bool
+TABLE_findEntry(ENTRY* entries, uint32_t capacity, CHANNEL_ID key, ENTRY** result) {
+  if (capacity == 0) {
+    return false;
   }
 
-  return hash;
-}
-*/
-
-// Thomas Wang, Integer Hash Functions.
-// http://www.concentric.net/~Ttwang/tech/inthash.htm
-internal inline  uint32_t
-hashBits(uint64_t hash)
-{
-  // From v8's ComputeLongHash() which in turn cites:
-  // Thomas Wang, Integer Hash Functions.
-  // http://www.concentric.net/~Ttwang/tech/inthash.htm
-  hash = ~hash + (hash << 18);  // hash = (hash << 18) - hash - 1;
-  hash = hash ^ (hash >> 31);
-  hash = hash * 21;  // hash = (hash + (hash << 2)) + (hash << 4);
-  hash = hash ^ (hash >> 11);
-  hash = hash + (hash << 6);
-  hash = hash ^ (hash >> 22);
-  return (uint32_t)(hash & 0x3fffffff);
-}
-
-internal ENTRY*
-TABLE_findEntry(ENTRY* entries, uint32_t capacity, CHANNEL_ID key) {
   uint32_t startIndex = hashBits(key) % capacity;
   uint32_t index = startIndex;
   ENTRY* tombstone = NULL;
   do {
-    ENTRY* entry = &entries[index];
+    ENTRY* entry = &(entries[index]);
     if (entry->key == NIL_KEY) {
       if (IS_EMPTY(entry)) {
-        // Empty entry
-        DEBUG_LOG("For %llu, starting in %llu", key, startIndex);
-        DEBUG_LOG("empty at %llu", index);
-        return tombstone != NULL ? tombstone : entry;
+        *result = tombstone != NULL ? tombstone : entry;
+        return false;
       } else {
-        // tombstone
         if (tombstone == NULL) {
           tombstone = entry;
         }
       }
     } else if (entry->key == key) {
-      return entry;
+      *result = entry;
+      return true;
     }
+
     index = (index + 1) % capacity;
   } while (index != startIndex);
-
-  assert(tombstone != NULL);
-  return tombstone;
+  *result = tombstone;
+  return false;
 }
 
 internal void
@@ -142,6 +133,7 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
   for (uint32_t i = 0; i < capacity; i++) {
     entries[i].key = NIL_KEY;
     entries[i].value = EMPTY_CHANNEL;
+    entries[i].value.state = CHANNEL_INVALID;
   }
   table->count = 0;
   for (uint32_t i = 0; i < table->capacity; i++) {
@@ -149,10 +141,13 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
     if (entry->key == NIL_KEY) {
       continue;
     }
-    ENTRY* dest = TABLE_findEntry(entries, capacity, entry->key);
-    dest->key = entry->key;
-    dest->value = entry->value;
-    table->count++;
+    ENTRY* dest;
+    bool found = TABLE_findEntry(entries, capacity, entry->key, &dest);
+    if (!found) {
+      dest->key = entry->key;
+      dest->value = entry->value;
+      table->count++;
+    }
   }
   free(table->entries);
 
@@ -162,23 +157,22 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
 
 internal CHANNEL*
 TABLE_set(TABLE* table, CHANNEL_ID key, CHANNEL channel) {
-  if ((table->count + 1) > table->capacity * TABLE_MAX_LOAD) {
+  if ((table->items + 1) > table->capacity * TABLE_MAX_LOAD) {
     uint32_t capacity = table->capacity < 8 ? 8 : table->capacity * 2;
     TABLE_resize(table, capacity);
-    DEBUG_LOG("capacity: %u", capacity);
   }
-  ENTRY* entry = TABLE_findEntry(table->entries, table->capacity, key);
-  bool isNewKey = entry->key == NIL_KEY;
-
-  if (isNewKey && IS_EMPTY(entry)) {
-    table->count++;
+  ENTRY* entry = NULL;
+  bool found = TABLE_findEntry(table->entries, table->capacity, key, &entry);
+  if (found) {
+    entry->value = channel;
+    assert(!IS_TOMBSTONE(entry));
+  } else {
+    if (!IS_TOMBSTONE(entry)) {
+      table->count++;
+    }
     table->items++;
-  }
-  if (isNewKey) {
     entry->key = key;
     entry->value = channel;
-  } else {
-    assert(false);
   }
 
   return &(entry->value);
@@ -187,14 +181,16 @@ TABLE_set(TABLE* table, CHANNEL_ID key, CHANNEL channel) {
 internal bool
 TABLE_get(TABLE* table, CHANNEL_ID key, CHANNEL** channel) {
   if (table->count == 0) {
+    *channel = NULL;
     return false;
   }
-  ENTRY* entry = TABLE_findEntry(table->entries, table->capacity, key);
-  if (entry->key == NIL_KEY) {
-    return false;
+  ENTRY* entry;
+  bool found = TABLE_findEntry(table->entries, table->capacity, key, &entry);
+  if (found) {
+    *channel = &entry->value;
+    return true;
   }
-  *channel = &entry->value;
-  return true;
+  return false;
 }
 
 internal bool
@@ -202,17 +198,15 @@ TABLE_delete(TABLE* table, CHANNEL_ID key) {
   if (table->count == 0) {
     return false;
   }
-  ENTRY* entry = TABLE_findEntry(table->entries, table->capacity, key);
-  if (entry->key == NIL_KEY) {
-    return false;
+  ENTRY* entry;
+  bool found = TABLE_findEntry(table->entries, table->capacity, key, &entry);
+  if (found) {
+    table->items--;
+    entry->key = NIL_KEY;
+    entry->value = TOMBSTONE;
+    return true;
   }
-  DEBUG_LOG("deleting %u", key);
-  // set a tombstone
-  entry->key = NIL_KEY;
-  entry->value = TOMBSTONE;
-  table->items--;
-  assert(IS_TOMBSTONE(entry));
-  return true;
+  return false;
 }
 
 internal void
