@@ -122,10 +122,8 @@ AUDIO_ENGINE_init(void) {
   // Unpause audio so we can begin taking over the buffer
   SDL_PauseAudioDevice(engine->deviceId, 0);
 
-  TABLE* table = &(engine->playing);
-  TABLE_init(table);
-  table = &(engine->pending);
-  TABLE_init(table);
+  TABLE_init(&(engine->pending));
+  TABLE_init(&(engine->playing));
 
   return engine;
 }
