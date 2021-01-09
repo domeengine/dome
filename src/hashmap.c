@@ -2,8 +2,8 @@
 #define TABLE_MAX_LOAD 0.75
 #define NIL_KEY 0
 
-#define IS_TOMBSTONE(entry) (entry->value.state == CHANNEL_LAST)
-#define IS_EMPTY(entry) (entry->value.state == CHANNEL_INVALID)
+#define IS_TOMBSTONE(entry) ((entry)->value.state == CHANNEL_LAST)
+#define IS_EMPTY(entry) ((entry)->value.state == CHANNEL_INVALID)
 
 global_variable const CHANNEL TOMBSTONE  = {
   .state = CHANNEL_LAST
@@ -92,7 +92,6 @@ hashData(const void* key, size_t length) {
 
 // Thomas Wang, Integer Hash Functions.
 // http://www.concentric.net/~Ttwang/tech/inthash.htm
-/*
 internal inline  uint32_t
 hashBits(uint64_t hash)
 {
@@ -107,17 +106,19 @@ hashBits(uint64_t hash)
   hash = hash ^ (hash >> 22);
   return (uint32_t)(hash & 0x3fffffff);
 }
-*/
 
 internal ENTRY*
 TABLE_findEntry(ENTRY* entries, uint32_t capacity, CHANNEL_ID key) {
-  uint32_t index = key % capacity;
+  uint32_t startIndex = hashBits(key) % capacity;
+  uint32_t index = startIndex;
   ENTRY* tombstone = NULL;
-  for (;;) {
+  do {
     ENTRY* entry = &entries[index];
     if (entry->key == NIL_KEY) {
       if (IS_EMPTY(entry)) {
         // Empty entry
+        DEBUG_LOG("For %llu, starting in %llu", key, startIndex);
+        DEBUG_LOG("empty at %llu", index);
         return tombstone != NULL ? tombstone : entry;
       } else {
         // tombstone
@@ -129,7 +130,10 @@ TABLE_findEntry(ENTRY* entries, uint32_t capacity, CHANNEL_ID key) {
       return entry;
     }
     index = (index + 1) % capacity;
-  }
+  } while (index != startIndex);
+
+  assert(tombstone != NULL);
+  return tombstone;
 }
 
 internal void
@@ -158,9 +162,10 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
 
 internal CHANNEL*
 TABLE_set(TABLE* table, CHANNEL_ID key, CHANNEL channel) {
-  if ((table->items + 1) > table->capacity * TABLE_MAX_LOAD) {
+  if ((table->count + 1) > table->capacity * TABLE_MAX_LOAD) {
     uint32_t capacity = table->capacity < 8 ? 8 : table->capacity * 2;
     TABLE_resize(table, capacity);
+    DEBUG_LOG("capacity: %u", capacity);
   }
   ENTRY* entry = TABLE_findEntry(table->entries, table->capacity, key);
   bool isNewKey = entry->key == NIL_KEY;
@@ -169,9 +174,12 @@ TABLE_set(TABLE* table, CHANNEL_ID key, CHANNEL channel) {
     table->count++;
     table->items++;
   }
-
-  entry->key = key;
-  entry->value = channel;
+  if (isNewKey) {
+    entry->key = key;
+    entry->value = channel;
+  } else {
+    assert(false);
+  }
 
   return &(entry->value);
 }
@@ -198,11 +206,12 @@ TABLE_delete(TABLE* table, CHANNEL_ID key) {
   if (entry->key == NIL_KEY) {
     return false;
   }
+  DEBUG_LOG("deleting %u", key);
   // set a tombstone
   entry->key = NIL_KEY;
   entry->value = TOMBSTONE;
   table->items--;
-  DEBUG_LOG("deleting %i", key);
+  assert(IS_TOMBSTONE(entry));
   return true;
 }
 
