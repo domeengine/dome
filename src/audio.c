@@ -33,9 +33,6 @@ void AUDIO_ENGINE_mix(void*  userdata,
   TABLE_ITERATOR iter = {0, 0, 0, NULL };
   CHANNEL* channel;
   while (TABLE_iterate(&(audioEngine->playing), &iter)) {
-    if (iter.done) {
-      break;
-    }
     channel = iter.value;
     if (!(channel->state == CHANNEL_PLAYING
         || channel->state == CHANNEL_STOPPING
@@ -181,9 +178,6 @@ AUDIO_ENGINE_update(WrenVM* vm) {
   TABLE_addAll(&engine->playing, &engine->pending);
   while (TABLE_iterate(&(engine->playing), &iter)) {
     channel = iter.value;
-    if (iter.done) {
-      break;
-    }
     if (channel->update != NULL) {
       channel->update(vm, channel);
     }
@@ -214,17 +208,11 @@ AUDIO_ENGINE_stopAll(AUDIO_ENGINE* engine) {
   TABLE_iterInit(&iter);
   CHANNEL* channel;
   while (TABLE_iterate(&(engine->playing), &iter)) {
-    if (iter.done) {
-      break;
-    }
     channel = iter.value;
     CHANNEL_requestStop(channel);
   }
   TABLE_iterInit(&iter);
   while (TABLE_iterate(&(engine->pending), &iter)) {
-    if (iter.done) {
-      break;
-    }
     channel = iter.value;
     CHANNEL_requestStop(channel);
   }
