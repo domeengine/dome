@@ -12,7 +12,7 @@ typedef struct AUDIO_ENGINE_t {
 
   TABLE pending;
   TABLE channels;
-  uintmax_t nextId;
+  CHANNEL_ID nextId;
 } AUDIO_ENGINE;
 
 // audio callback function
@@ -131,7 +131,7 @@ AUDIO_ENGINE_init(void) {
 }
 
 internal bool
-AUDIO_ENGINE_get(AUDIO_ENGINE* engine, uintmax_t id, CHANNEL** channel) {
+AUDIO_ENGINE_get(AUDIO_ENGINE* engine, CHANNEL_ID id, CHANNEL** channel) {
   bool result = TABLE_get(&engine->channels, id, channel);
   if (!result) {
     result = TABLE_get(&engine->pending, id, channel);
@@ -149,7 +149,7 @@ AUDIO_ENGINE_unlock(AUDIO_ENGINE* engine) {
   SDL_UnlockAudioDevice(engine->deviceId);
 }
 
-internal uintmax_t
+internal CHANNEL_ID
 AUDIO_ENGINE_channelInit(
     AUDIO_ENGINE* engine,
     CHANNEL_mix mix,
@@ -157,7 +157,7 @@ AUDIO_ENGINE_channelInit(
     CHANNEL_callback finish,
     void* userdata) {
 
-  uintmax_t id = engine->nextId++;
+  CHANNEL_ID id = engine->nextId++;
   CHANNEL channel = {
     .state = CHANNEL_INITIALIZE,
     .enabled = true,
@@ -196,12 +196,12 @@ AUDIO_ENGINE_update(WrenVM* vm) {
     }
   }
   AUDIO_ENGINE_unlock(engine);
-  DEBUG_LOG("table active %zu", engine->channels.capacity);
+  // DEBUG_LOG("table active %u - %u / %u", engine->channels.items, engine->channels.count, engine->channels.capacity);
   TABLE_free(&engine->pending);
 }
 
 internal void
-AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, uintmax_t id) {
+AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, CHANNEL_ID id) {
   CHANNEL* channel;
   AUDIO_ENGINE_get(engine, id, &channel);
   if (channel != NULL) {
@@ -259,7 +259,7 @@ AUDIO_ENGINE_free(AUDIO_ENGINE* engine) {
   TABLE_free(&engine->pending);
 }
 
-internal uintmax_t
+internal CHANNEL_ID
 AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, char* soundId) {
 
   AUDIO_CHANNEL* data = malloc(sizeof(AUDIO_CHANNEL));
@@ -269,7 +269,7 @@ AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, char* soundId) {
   data->actualVolume = 0.0f;
   data->audio = NULL;
 
-  uintmax_t id = AUDIO_ENGINE_channelInit(
+  CHANNEL_ID id = AUDIO_ENGINE_channelInit(
     engine,
     AUDIO_CHANNEL_mix,
     AUDIO_CHANNEL_update,

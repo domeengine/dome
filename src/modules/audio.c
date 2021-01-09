@@ -1,5 +1,5 @@
 typedef struct {
-  uintmax_t id;
+  CHANNEL_ID id;
 } AUDIO_CHANNEL_REF;
 
 internal void

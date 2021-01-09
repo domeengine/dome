@@ -74,6 +74,7 @@ TABLE_iterate(TABLE* table, TABLE_ITERATOR* iter) {
   return !iter->done;
 }
 
+/*
 // FNV-1a Hash algorithm, as copied from "Crafting Interpreters"
 internal uint32_t
 hashData(const void* key, size_t length) {
@@ -87,12 +88,30 @@ hashData(const void* key, size_t length) {
 
   return hash;
 }
+*/
 
-#define HASH(key) hashData(&key, sizeof(uintmax_t))
+// Thomas Wang, Integer Hash Functions.
+// http://www.concentric.net/~Ttwang/tech/inthash.htm
+/*
+internal inline  uint32_t
+hashBits(uint64_t hash)
+{
+  // From v8's ComputeLongHash() which in turn cites:
+  // Thomas Wang, Integer Hash Functions.
+  // http://www.concentric.net/~Ttwang/tech/inthash.htm
+  hash = ~hash + (hash << 18);  // hash = (hash << 18) - hash - 1;
+  hash = hash ^ (hash >> 31);
+  hash = hash * 21;  // hash = (hash + (hash << 2)) + (hash << 4);
+  hash = hash ^ (hash >> 11);
+  hash = hash + (hash << 6);
+  hash = hash ^ (hash >> 22);
+  return (uint32_t)(hash & 0x3fffffff);
+}
+*/
 
 internal ENTRY*
-TABLE_findEntry(ENTRY* entries, uint32_t capacity, uintmax_t key) {
-  uint32_t index = HASH(key) % capacity;
+TABLE_findEntry(ENTRY* entries, uint32_t capacity, CHANNEL_ID key) {
+  uint32_t index = key % capacity;
   ENTRY* tombstone = NULL;
   for (;;) {
     ENTRY* entry = &entries[index];
@@ -120,7 +139,6 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
     entries[i].key = NIL_KEY;
     entries[i].value = EMPTY_CHANNEL;
   }
-  printf("Resizing to: %i\n", capacity);
   table->count = 0;
   for (uint32_t i = 0; i < table->capacity; i++) {
     ENTRY* entry = &table->entries[i];
@@ -138,10 +156,9 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
   table->entries = entries;
 }
 
-
 internal CHANNEL*
-TABLE_reserve(TABLE* table, uintmax_t key) {
-  if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
+TABLE_set(TABLE* table, CHANNEL_ID key, CHANNEL channel) {
+  if ((table->items + 1) > table->capacity * TABLE_MAX_LOAD) {
     uint32_t capacity = table->capacity < 8 ? 8 : table->capacity * 2;
     TABLE_resize(table, capacity);
   }
@@ -154,20 +171,13 @@ TABLE_reserve(TABLE* table, uintmax_t key) {
   }
 
   entry->key = key;
-  memset(&entry->value, 0, sizeof(CHANNEL));
+  entry->value = channel;
+
   return &(entry->value);
 }
 
-internal CHANNEL*
-TABLE_set(TABLE* table, uintmax_t key, CHANNEL channel) {
-  CHANNEL* ptr = TABLE_reserve(table, key);
-  *(ptr) = channel;
-
-  return ptr;
-}
-
 internal bool
-TABLE_get(TABLE* table, uintmax_t key, CHANNEL** channel) {
+TABLE_get(TABLE* table, CHANNEL_ID key, CHANNEL** channel) {
   if (table->count == 0) {
     return false;
   }
@@ -180,7 +190,7 @@ TABLE_get(TABLE* table, uintmax_t key, CHANNEL** channel) {
 }
 
 internal bool
-TABLE_delete(TABLE* table, uintmax_t key) {
+TABLE_delete(TABLE* table, CHANNEL_ID key) {
   if (table->count == 0) {
     return false;
   }
@@ -192,6 +202,7 @@ TABLE_delete(TABLE* table, uintmax_t key) {
   entry->key = NIL_KEY;
   entry->value = TOMBSTONE;
   table->items--;
+  DEBUG_LOG("deleting %i", key);
   return true;
 }
 

@@ -1,3 +1,5 @@
+typedef uint64_t CHANNEL_ID;
+
 typedef enum {
   AUDIO_TYPE_UNKNOWN,
   AUDIO_TYPE_WAV,
@@ -24,7 +26,7 @@ typedef void (*CHANNEL_callback)(WrenVM* vm, struct CHANNEL_t* channel);
 
 typedef struct CHANNEL_t {
   CHANNEL_STATE state;
-  uintmax_t id;
+  CHANNEL_ID id;
   volatile bool enabled;
   bool stopRequested;
   CHANNEL_mix mix;
