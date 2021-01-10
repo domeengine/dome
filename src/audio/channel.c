@@ -44,6 +44,16 @@ AUDIO_ENGINE_setPosition(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, size_t po
   channel->new.resetPosition = true;
 }
 
+internal void
+AUDIO_ENGINE_setState(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, CHANNEL_STATE state) {
+  CHANNEL* base;
+  if (!AUDIO_ENGINE_get(engine, ref, &base)) {
+    return;
+  }
+  CHANNEL_setState(base, state);
+}
+
+
 #define AUDIO_CHANNEL_GETTER(fieldName, method, fieldType, defaultValue) \
   internal fieldType \
   AUDIO_ENGINE_get##method(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref) { \

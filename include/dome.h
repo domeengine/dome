@@ -41,6 +41,7 @@ typedef enum {
 
 #define DOME_API_VERSION 0
 #define WREN_API_VERSION 0
+#define AUDIO_API_VERSION 0
 
 // Opaque context pointer
 typedef void* DOME_Context;
@@ -107,12 +108,28 @@ typedef uint64_t CHANNEL_ID;
 typedef struct {
   CHANNEL_ID id;
 } AUDIO_CHANNEL_REF;
+typedef AUDIO_CHANNEL_REF CHANNEL_REF;
 typedef struct CHANNEL_t CHANNEL;
+typedef enum {
+  CHANNEL_INVALID,
+  CHANNEL_INITIALIZE,
+  CHANNEL_TO_PLAY,
+  CHANNEL_DEVIRTUALIZE,
+  CHANNEL_LOADING,
+  CHANNEL_PLAYING,
+  CHANNEL_STOPPING,
+  CHANNEL_STOPPED,
+  CHANNEL_VIRTUALIZING,
+  CHANNEL_VIRTUAL,
+  CHANNEL_LAST
+} CHANNEL_STATE;
+
 typedef void (*CHANNEL_mix)(CHANNEL* channel, float* buffer, size_t requestedSamples);
 typedef void (*CHANNEL_callback)(WrenVM* vm, CHANNEL* channel);
 
 typedef struct {
   AUDIO_CHANNEL_REF (*channelCreate)(DOME_Context ctx, CHANNEL_mix mix, CHANNEL_callback update, CHANNEL_callback finish, void* userdata);
+  void (*setState)(DOME_Context ctx, AUDIO_CHANNEL_REF ref, CHANNEL_STATE state);
   void (*stop)(DOME_Context ctx, AUDIO_CHANNEL_REF ref);
 } AUDIO_API_v0;
 
