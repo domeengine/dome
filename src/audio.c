@@ -30,7 +30,8 @@ void AUDIO_ENGINE_mix(void*  userdata,
 
   float* scratchBuffer = audioEngine->scratchBuffer;
   size_t bufferSampleSize = audioEngine->scratchBufferSize;
-  TABLE_ITERATOR iter = {0, 0, 0, NULL };
+  TABLE_ITERATOR iter;
+  TABLE_iterInit(&iter);
   CHANNEL* channel;
   while (TABLE_iterate(&(audioEngine->playing), &iter)) {
     channel = iter.value;
@@ -172,7 +173,8 @@ internal void
 AUDIO_ENGINE_update(WrenVM* vm) {
   ENGINE* data = wrenGetUserData(vm);
   AUDIO_ENGINE* engine = data->audioEngine;
-  TABLE_ITERATOR iter = {0, 0, 0, NULL};
+  TABLE_ITERATOR iter;
+  TABLE_iterInit(&iter);
   CHANNEL* channel;
   AUDIO_ENGINE_lock(engine);
   TABLE_addAll(&engine->playing, &engine->pending);
@@ -204,7 +206,7 @@ AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref) {
 
 internal void
 AUDIO_ENGINE_stopAll(AUDIO_ENGINE* engine) {
-  TABLE_ITERATOR iter = {0, 0, 0, NULL };
+  TABLE_ITERATOR iter;
   TABLE_iterInit(&iter);
   CHANNEL* channel;
   while (TABLE_iterate(&(engine->playing), &iter)) {

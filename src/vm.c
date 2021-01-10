@@ -271,7 +271,6 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   MAP_addFunction(&engine->moduleMap, "audio", "AudioData.length", AUDIO_getLength);
 
-  MAP_addFunction(&engine->moduleMap, "audio", "static AudioEngine.f_push(_)", AUDIO_ENGINE_push);
   MAP_addFunction(&engine->moduleMap, "audio", "static AudioEngine.f_stopAllChannels()", AUDIO_ENGINE_wrenStopAll);
 
   // FileSystem

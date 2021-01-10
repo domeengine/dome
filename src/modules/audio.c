@@ -8,6 +8,7 @@ AUDIO_CHANNEL_finish(WrenVM* vm, CHANNEL* base) {
     channel->audioHandle = NULL;
   }
   free(channel->soundId);
+  free(channel);
 }
 
 internal void
@@ -49,11 +50,8 @@ AUDIO_CHANNEL_update(WrenVM* vm, CHANNEL* base) {
       break;
     case CHANNEL_PLAYING:
       AUDIO_CHANNEL_commit(channel);
-      if (CHANNEL_hasStopRequested(base)) {
+      if (CHANNEL_getEnabled(base) == false || CHANNEL_hasStopRequested(base)) {
         CHANNEL_setState(base, CHANNEL_STOPPING);
-      }
-      if (CHANNEL_getEnabled(base) == false) {
-        CHANNEL_setState(base, CHANNEL_STOPPED);
       }
       break;
     case CHANNEL_STOPPING:
@@ -271,20 +269,6 @@ AUDIO_getLength(WrenVM* vm) {
   wrenEnsureSlots(vm, 1);
   wrenSetSlotDouble(vm, 0, data->length);
 }
-
-
-internal void
-AUDIO_ENGINE_push(WrenVM* vm) {
-  /*
-  ENGINE* engine = wrenGetUserData(vm);
-  AUDIO_ENGINE* data = engine->audioEngine;
-
-  channel->enabled = true;
-  AUDIO_ENGINE_pushChannel(data, channel);
-  */
-  wrenSetSlotDouble(vm, 0, 1);
-}
-
 
 internal void
 AUDIO_CHANNEL_stop(WrenVM* vm) {
