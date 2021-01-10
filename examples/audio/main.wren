@@ -25,16 +25,16 @@ class Game {
         AudioEngine.unload("music")
         AudioEngine.unload("sfx")
       }
-      if (Keyboard["left"].justPressed) {
+      if (Keyboard["left"].down) {
         __channel.pan = __channel.pan - 0.01
       }
-      if (Keyboard["right"].justPressed) {
+      if (Keyboard["right"].down) {
         __channel.pan = __channel.pan + 0.01
       }
-      if (Keyboard["down"].justPressed) {
+      if (Keyboard["down"].down) {
         __channel.volume = __channel.volume - 0.01
       }
-      if (Keyboard["up"].justPressed) {
+      if (Keyboard["up"].down) {
         __channel.volume = __channel.volume + 0.01
       }
       if (__channel.pan.abs < 0.009) {

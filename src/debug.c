@@ -1,3 +1,4 @@
+#define DEBUG_LOG(string, ...) printf(string"\n",  __VA_ARGS__)
 
 internal char*
 DEBUG_printWrenType(WrenType type) {
