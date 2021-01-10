@@ -39,12 +39,6 @@ typedef struct CHANNEL_t {
   void* userdata;
 } CHANNEL;
 
-
-typedef struct {
-  size_t count;
-  CHANNEL channels[];
-} CHANNEL_LIST;
-
 typedef struct {
   SDL_AudioSpec spec;
   AUDIO_TYPE audioType;
