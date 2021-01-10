@@ -132,7 +132,6 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
   for (uint32_t i = 0; i < capacity; i++) {
     entries[i].key = NIL_KEY;
     entries[i].value = EMPTY_CHANNEL;
-    // entries[i].value.state = CHANNEL_INVALID;
   }
   table->count = 0;
   for (uint32_t i = 0; i < table->capacity; i++) {
