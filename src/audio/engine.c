@@ -170,9 +170,7 @@ AUDIO_ENGINE_channelInit(
 }
 
 internal void
-AUDIO_ENGINE_update(WrenVM* vm) {
-  ENGINE* data = wrenGetUserData(vm);
-  AUDIO_ENGINE* engine = data->audioEngine;
+AUDIO_ENGINE_update(AUDIO_ENGINE* engine, WrenVM* vm) {
   TABLE_ITERATOR iter;
   TABLE_iterInit(&iter);
   CHANNEL* channel;
