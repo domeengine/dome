@@ -74,3 +74,4 @@ typedef struct {
 internal void AUDIO_CHANNEL_mix(CHANNEL* base, float* stream, size_t totalSamples);
 internal void AUDIO_CHANNEL_update(WrenVM* vm, CHANNEL* base);
 internal void AUDIO_CHANNEL_finish(WrenVM* vm, CHANNEL* base);
+internal void CHANNEL_requestStop(CHANNEL* channel);

@@ -1,3 +1,38 @@
+internal inline void*
+CHANNEL_getData(CHANNEL* channel) {
+  return channel->userdata;
+}
+
+internal inline void
+CHANNEL_setState(CHANNEL* channel, CHANNEL_STATE state) {
+  channel->state = state;
+}
+
+internal inline CHANNEL_STATE
+CHANNEL_getState(CHANNEL* channel) {
+  return channel->state;
+}
+
+internal inline void
+CHANNEL_requestStop(CHANNEL* channel) {
+  channel->stopRequested = true;
+}
+
+internal inline bool
+CHANNEL_hasStopRequested(CHANNEL* channel) {
+  return channel->stopRequested;
+}
+
+internal inline void
+CHANNEL_setEnabled(CHANNEL* channel, bool enabled) {
+  channel->enabled = enabled;
+}
+
+internal inline bool
+CHANNEL_getEnabled(CHANNEL* channel) {
+  return channel->enabled;
+}
+
 internal void
 AUDIO_ENGINE_setPosition(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, size_t position) {
   CHANNEL* base;
@@ -221,5 +256,28 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
 
   free(tempData);
   return destData;
+}
+
+internal AUDIO_CHANNEL_REF
+AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, char* soundId) {
+
+  AUDIO_CHANNEL* data = malloc(sizeof(AUDIO_CHANNEL));
+  data->soundId = strdup(soundId);
+  struct AUDIO_CHANNEL_PROPS props = {0, 0, 0, 0, 0};
+  data->current = data->new = props;
+  data->actualVolume = 0.0f;
+  data->audio = NULL;
+
+  CHANNEL_ID id = AUDIO_ENGINE_channelInit(
+    engine,
+    AUDIO_CHANNEL_mix,
+    AUDIO_CHANNEL_update,
+    AUDIO_CHANNEL_finish,
+    data
+  );
+  AUDIO_CHANNEL_REF ref = {
+    .id = id
+  };
+  return ref;
 }
 
