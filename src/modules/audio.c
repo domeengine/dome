@@ -5,7 +5,7 @@ AUDIO_allocate(WrenVM* vm) {
   wrenEnsureSlots(vm, 1);
   AUDIO_DATA* data = (AUDIO_DATA*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_DATA));
   int length;
-  ASSERT_SLOT_TYPE(vm, 1, STRING, "fbuffer");
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "buffer");
   const char* fileBuffer = wrenGetSlotBytes(vm, 1, &length);
 
   int16_t* tempBuffer;
