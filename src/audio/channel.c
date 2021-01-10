@@ -188,15 +188,21 @@ AUDIO_CHANNEL_mix(CHANNEL* base, float* stream, size_t totalSamples) {
     // We have to lerp the volume and pan change across the whole sample buffer
     // or we get a clicking sound.
     float f = i / (float)samplesToWrite;
-    float currentVolume = lerp(actualVolume, volume, f);
-    float currentPan = lerp(actualPan, targetPan, f);
+    float currentVolume = actualVolume;
+    if (actualVolume != volume) {
+      currentVolume = lerp(actualVolume, volume, f);
+    }
+    float currentPan = actualPan;
+    if (actualPan != targetPan) {
+      currentPan = lerp(actualPan, targetPan, f);
+    }
     float pan = (currentPan + 1.0f) * M_PI / 4.0f; // Channel pan is [-1,1] real pan needs to be [0,1]
 
     // We have to advance the cursor after each read and write
     // Read/Write left
-    *(writeCursor++) += *(readCursor++) * cos(pan) * currentVolume;
+    *(writeCursor++) = *(readCursor++) * cos(pan) * currentVolume;
     // Read/Write right
-    *(writeCursor++) += *(readCursor++) * sin(pan) * currentVolume;
+    *(writeCursor++) = *(readCursor++) * sin(pan) * currentVolume;
 
     channel->current.position++;
     if (channel->current.position >= length) {
