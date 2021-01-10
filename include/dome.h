@@ -35,7 +35,8 @@
 
 typedef enum {
   API_DOME,
-  API_WREN
+  API_WREN,
+  API_AUDIO
 } API_TYPE;
 
 #define DOME_API_VERSION 0
@@ -101,6 +102,19 @@ typedef struct {
   DOME_Result (*registerFn)(DOME_Context ctx, const char* name, const char* signature, DOME_ForeignFn method);
   DOME_Result (*registerBindFn)(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn);
 } DOME_API_v0;
+
+typedef uint64_t CHANNEL_ID;
+typedef struct {
+  CHANNEL_ID id;
+} AUDIO_CHANNEL_REF;
+typedef struct CHANNEL_t CHANNEL;
+typedef void (*CHANNEL_mix)(CHANNEL* channel, float* buffer, size_t requestedSamples);
+typedef void (*CHANNEL_callback)(WrenVM* vm, CHANNEL* channel);
+
+typedef struct {
+  AUDIO_CHANNEL_REF (*channelCreate)(DOME_Context ctx, CHANNEL_mix mix, CHANNEL_callback update, CHANNEL_callback finish, void* userdata);
+  void (*stop)(DOME_Context ctx, AUDIO_CHANNEL_REF ref);
+} AUDIO_API_v0;
 
 typedef void* (*DOME_getAPIFunction)(API_TYPE api, int version);
 DOME_EXPORTED void* DOME_getAPI(API_TYPE api, int version);

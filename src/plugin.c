@@ -210,11 +210,13 @@ WREN_API_v0 wren_v0 = {
 
   .abortFiber = wrenAbortFiber
 };
+
 DOME_API_v0 dome_v0 = {
   .registerModule = DOME_registerModuleImpl,
   .registerFn = DOME_registerFnImpl,
   .registerBindFn = DOME_registerBindFnImpl,
 };
+
 
 external void*
 DOME_getAPI(API_TYPE api, int version) {
@@ -225,6 +227,10 @@ DOME_getAPI(API_TYPE api, int version) {
   } else if (api == API_WREN) {
     if (version == 0) {
       return &wren_v0;
+    }
+  } else if (api == API_AUDIO) {
+    if (version == 0) {
+      return &audio_v0;
     }
   }
 

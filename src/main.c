@@ -99,6 +99,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "audio/hashmap.c"
 #include "audio/engine.c"
 #include "audio/channel.c"
+#include "audio/api.c"
 #include "debug.c"
 
 #include "engine.c"

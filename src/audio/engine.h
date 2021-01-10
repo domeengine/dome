@@ -1,8 +1,3 @@
-typedef uint64_t CHANNEL_ID;
-typedef struct {
-  CHANNEL_ID id;
-} AUDIO_CHANNEL_REF;
-
 typedef enum {
   AUDIO_TYPE_UNKNOWN,
   AUDIO_TYPE_WAV,
@@ -23,11 +18,8 @@ typedef enum {
   CHANNEL_LAST
 } CHANNEL_STATE;
 
-struct CHANNEL_t;
-typedef void (*CHANNEL_mix)(struct CHANNEL_t* channel, float* buffer, size_t requestedSamples);
-typedef void (*CHANNEL_callback)(WrenVM* vm, struct CHANNEL_t* channel);
 
-typedef struct CHANNEL_t {
+struct CHANNEL_t {
   CHANNEL_STATE state;
   CHANNEL_ID id;
   volatile bool enabled;
@@ -37,7 +29,7 @@ typedef struct CHANNEL_t {
   CHANNEL_callback finish;
 
   void* userdata;
-} CHANNEL;
+};
 
 typedef struct {
   SDL_AudioSpec spec;
