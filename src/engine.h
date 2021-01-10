@@ -51,7 +51,7 @@ typedef struct {
   DOME_RECT clip;
 } CANVAS;
 
-typedef struct {
+typedef struct ENGINE_t {
   ENGINE_RECORDER record;
   SDL_Window* window;
   SDL_Renderer *renderer;

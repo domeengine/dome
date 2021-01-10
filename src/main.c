@@ -1,6 +1,7 @@
 #define _DEFAULT_SOURCE
 #define NOMINMAX
 
+
 #ifndef DOME_VERSION
 #define DOME_VERSION "0.0.0 - CUSTOM"
 #endif
@@ -86,16 +87,22 @@ global_variable size_t GIF_SCALE = 1;
 // Game code
 #include "math.c"
 #include "strings.c"
-#include "audio_types.c"
+
 #include "modules/map.c"
 
 #include "plugin.h"
 #include "engine.h"
-#include "debug.c"
 #include "util/font8x8.h"
 #include "io.c"
-#include "plugin.c"
+
+#include "audio/engine.h"
+#include "audio/hashmap.c"
+#include "audio/engine.c"
+#include "audio/channel.c"
+#include "debug.c"
+
 #include "engine.c"
+#include "plugin.c"
 
 #include "modules/dome.c"
 #include "modules/font.c"
@@ -306,7 +313,7 @@ LOOP_update(LOOP_STATE* state) {
     return EXIT_FAILURE;
   };
   // updateAudio()
-  AUDIO_ENGINE_update(state->vm);
+  AUDIO_ENGINE_update(state->engine->audioEngine, state->vm);
   return EXIT_SUCCESS;
 }
 

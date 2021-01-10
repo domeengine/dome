@@ -110,7 +110,6 @@ class AudioEngine {
     channel.volume = volume
     channel.pan = pan
     channel.loop = loop
-    f_push(channel)
     __channels[channel.id] = channel
     return channel
   }
@@ -120,6 +119,5 @@ class AudioEngine {
   }
 
   foreign static f_stopAllChannels()
-  foreign static f_push(channel)
 }
 AudioEngine.init()

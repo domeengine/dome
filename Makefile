@@ -3,6 +3,7 @@ SOURCE=src
 LIBS=lib
 OBJS=obj
 INCLUDES=include
+SOURCE_FILES = $(shell find src -type f)
 UTILS = $(SOURCE)/util
 MODULES=$(SOURCE)/modules
 SCRIPTS=scripts
@@ -166,7 +167,7 @@ $(OBJS)/vendor.o: $(INCLUDES)/vendor.c
 	@echo "==== Building vendor module ===="
 	$(CC) $(CFLAGS) -c $(INCLUDES)/vendor.c -o $(OBJS)/vendor.o $(IFLAGS)
 
-$(OBJS)/main.o: $(SOURCE)/*.h $(SOURCE)/*.c $(MODULES)/*.c $(MODULES)/*.inc $(INCLUDES) $(WREN_LIB)
+$(OBJS)/main.o: $(SOURCE_FILES) $(INCLUDES) $(WREN_LIB) $(MODULES)/*.inc
 	@mkdir -p $(OBJS)
 	@echo "==== Building core ($(TAGS)) module ===="
 	$(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(OBJS)/main.o $(IFLAGS) 
