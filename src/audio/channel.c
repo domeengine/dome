@@ -34,7 +34,7 @@ CHANNEL_getEnabled(CHANNEL* channel) {
 }
 
 internal void
-AUDIO_ENGINE_setPosition(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, size_t position) {
+AUDIO_ENGINE_setPosition(AUDIO_ENGINE* engine, CHANNEL_REF* ref, size_t position) {
   CHANNEL* base;
   if (!AUDIO_ENGINE_get(engine, ref, &base)) {
     return;
@@ -45,7 +45,7 @@ AUDIO_ENGINE_setPosition(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, size_t po
 }
 
 internal void
-AUDIO_ENGINE_setState(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, CHANNEL_STATE state) {
+AUDIO_ENGINE_setState(AUDIO_ENGINE* engine, CHANNEL_REF* ref, CHANNEL_STATE state) {
   CHANNEL* base;
   if (!AUDIO_ENGINE_get(engine, ref, &base)) {
     return;
@@ -56,7 +56,7 @@ AUDIO_ENGINE_setState(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, CHANNEL_STAT
 
 #define AUDIO_CHANNEL_GETTER(fieldName, method, fieldType, defaultValue) \
   internal fieldType \
-  AUDIO_ENGINE_get##method(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref) { \
+  AUDIO_ENGINE_get##method(AUDIO_ENGINE* engine, CHANNEL_REF* ref) { \
     CHANNEL* base; \
     if (!AUDIO_ENGINE_get(engine, ref, &base)) { \
       return defaultValue; \
@@ -67,7 +67,7 @@ AUDIO_ENGINE_setState(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, CHANNEL_STAT
 
 #define AUDIO_CHANNEL_SETTER(fieldName, method, fieldType) \
   internal void \
-  AUDIO_ENGINE_set##method(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, fieldType value) { \
+  AUDIO_ENGINE_set##method(AUDIO_ENGINE* engine, CHANNEL_REF* ref, fieldType value) { \
     CHANNEL* base; \
     if (!AUDIO_ENGINE_get(engine, ref, &base)) { \
       return; \
@@ -77,7 +77,7 @@ AUDIO_ENGINE_setState(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, CHANNEL_STAT
   }
 #define AUDIO_CHANNEL_SETTER_WITH_RANGE(fieldName, method, fieldType, min, max) \
   internal void \
-  AUDIO_ENGINE_set##method(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, fieldType value) { \
+  AUDIO_ENGINE_set##method(AUDIO_ENGINE* engine, CHANNEL_REF* ref, fieldType value) { \
     CHANNEL* base; \
     if (!AUDIO_ENGINE_get(engine, ref, &base)) { \
       return; \
@@ -277,7 +277,7 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
   return destData;
 }
 
-internal AUDIO_CHANNEL_REF
+internal CHANNEL_REF
 AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, char* soundId) {
 
   AUDIO_CHANNEL* data = malloc(sizeof(AUDIO_CHANNEL));

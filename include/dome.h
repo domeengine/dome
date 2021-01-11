@@ -108,8 +108,8 @@ typedef uint64_t CHANNEL_ID;
 typedef struct {
   CHANNEL_ID id;
   void* engine;
-} AUDIO_CHANNEL_REF;
-typedef AUDIO_CHANNEL_REF CHANNEL_REF;
+} CHANNEL_REF;
+
 typedef struct CHANNEL_t CHANNEL;
 typedef enum {
   CHANNEL_INVALID,
@@ -129,9 +129,9 @@ typedef void (*CHANNEL_mix)(CHANNEL* channel, float* buffer, size_t requestedSam
 typedef void (*CHANNEL_callback)(WrenVM* vm, CHANNEL* channel);
 
 typedef struct {
-  AUDIO_CHANNEL_REF (*channelCreate)(DOME_Context ctx, CHANNEL_mix mix, CHANNEL_callback update, CHANNEL_callback finish, void* userdata);
-  void (*setState)(DOME_Context ctx, AUDIO_CHANNEL_REF ref, CHANNEL_STATE state);
-  void (*stop)(DOME_Context ctx, AUDIO_CHANNEL_REF ref);
+  CHANNEL_REF (*channelCreate)(DOME_Context ctx, CHANNEL_mix mix, CHANNEL_callback update, CHANNEL_callback finish, void* userdata);
+  void (*setState)(DOME_Context ctx, CHANNEL_REF ref, CHANNEL_STATE state);
+  void (*stop)(DOME_Context ctx, CHANNEL_REF ref);
 } AUDIO_API_v0;
 
 typedef void* (*DOME_getAPIFunction)(API_TYPE api, int version);

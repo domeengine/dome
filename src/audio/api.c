@@ -1,5 +1,5 @@
 
-internal AUDIO_CHANNEL_REF
+internal CHANNEL_REF
 AUDIO_API_channelCreate(
     DOME_Context ctx,
     CHANNEL_mix mix,
@@ -18,14 +18,14 @@ AUDIO_API_channelCreate(
  }
 
 internal void
-AUDIO_API_stop(DOME_Context ctx, AUDIO_CHANNEL_REF ref) {
+AUDIO_API_stop(DOME_Context ctx, CHANNEL_REF ref) {
   AUDIO_ENGINE* engine = ((ENGINE*)ctx)->audioEngine;
   AUDIO_ENGINE_stop(engine, &ref);
 }
 
 
 internal void
-AUDIO_API_setState(DOME_Context ctx, AUDIO_CHANNEL_REF ref, CHANNEL_STATE state) {
+AUDIO_API_setState(DOME_Context ctx, CHANNEL_REF ref, CHANNEL_STATE state) {
   AUDIO_ENGINE* engine = ((ENGINE*)ctx)->audioEngine;
   AUDIO_ENGINE_setState(engine, &ref, state);
 }

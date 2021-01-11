@@ -96,7 +96,7 @@ AUDIO_ENGINE_init(void) {
 }
 
 internal bool
-AUDIO_ENGINE_get(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, CHANNEL** channel) {
+AUDIO_ENGINE_get(AUDIO_ENGINE* engine, CHANNEL_REF* ref, CHANNEL** channel) {
   CHANNEL_ID id = ref->id;
   bool result = TABLE_get(&engine->playing, id, channel);
   if (!result) {
@@ -167,7 +167,7 @@ AUDIO_ENGINE_update(AUDIO_ENGINE* engine, WrenVM* vm) {
 }
 
 internal void
-AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref) {
+AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, CHANNEL_REF* ref) {
   CHANNEL* channel;
   AUDIO_ENGINE_get(engine, ref, &channel);
   if (channel != NULL) {
