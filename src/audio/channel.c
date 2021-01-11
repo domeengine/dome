@@ -288,16 +288,13 @@ AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, char* soundId) {
   data->actualPan = 0.0f;
   data->audio = NULL;
 
-  CHANNEL_ID id = AUDIO_ENGINE_channelInit(
+  CHANNEL_REF ref = AUDIO_ENGINE_channelInit(
     engine,
     AUDIO_CHANNEL_mix,
     AUDIO_CHANNEL_update,
     AUDIO_CHANNEL_finish,
     data
   );
-  AUDIO_CHANNEL_REF ref = {
-    .id = id
-  };
   return ref;
 }
 

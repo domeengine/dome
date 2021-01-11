@@ -26,11 +26,15 @@ hashBits(uint64_t hash)
 
 global_variable const CHANNEL TOMBSTONE  = {
   .state = CHANNEL_LAST,
-  .id = NIL_KEY
+  .ref = {
+    .id = NIL_KEY
+  }
 };
 global_variable const CHANNEL EMPTY_CHANNEL  = {
   .state = CHANNEL_INVALID,
-  .id = NIL_KEY
+  .ref = {
+    .id = NIL_KEY
+  }
 };
 
 typedef struct {

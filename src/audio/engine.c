@@ -44,11 +44,12 @@ void AUDIO_ENGINE_mix(void*  userdata,
     assert(channel != NULL);
     size_t requestServed = 0;
     float* writeCursor = (float*)(stream);
+    CHANNEL_mix mixFn = channel->mix;
 
     while (channel->enabled && requestServed < totalSamples) {
       SDL_memset(scratchBuffer, 0, bufferSampleSize * bytesPerSample);
       size_t requestSize = min(bufferSampleSize, totalSamples - requestServed);
-      channel->mix(channel, scratchBuffer, requestSize);
+      mixFn(channel, scratchBuffer, requestSize);
       requestServed += requestSize;
       float* copyCursor = scratchBuffer;
       float* endPoint = copyCursor + bufferSampleSize * channels;
@@ -114,7 +115,7 @@ AUDIO_ENGINE_unlock(AUDIO_ENGINE* engine) {
   SDL_UnlockAudioDevice(engine->deviceId);
 }
 
-internal CHANNEL_ID
+internal CHANNEL_REF
 AUDIO_ENGINE_channelInit(
     AUDIO_ENGINE* engine,
     CHANNEL_mix mix,
@@ -123,6 +124,10 @@ AUDIO_ENGINE_channelInit(
     void* userdata) {
 
   CHANNEL_ID id = engine->nextId++;
+  CHANNEL_REF ref = {
+    .id = id,
+    .engine = engine
+  };
   CHANNEL channel = {
     .state = CHANNEL_INITIALIZE,
     .enabled = true,
@@ -130,11 +135,11 @@ AUDIO_ENGINE_channelInit(
     .update = update,
     .finish = finish,
     .userdata = userdata,
-    .id = id
+    .ref = ref
   };
   TABLE_set(&engine->pending, id, channel);
 
-  return id;
+  return ref;
 }
 
 internal void
@@ -153,7 +158,7 @@ AUDIO_ENGINE_update(AUDIO_ENGINE* engine, WrenVM* vm) {
       if (channel->finish != NULL) {
         channel->finish(vm, channel);
       }
-      TABLE_delete(&engine->playing, channel->id);
+      TABLE_delete(&engine->playing, channel->ref.id);
     }
   }
   AUDIO_ENGINE_unlock(engine);

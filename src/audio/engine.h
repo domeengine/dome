@@ -4,11 +4,9 @@ typedef enum {
   AUDIO_TYPE_OGG
 } AUDIO_TYPE;
 
-
-
 struct CHANNEL_t {
   CHANNEL_STATE state;
-  CHANNEL_ID id;
+  CHANNEL_REF ref;
   volatile bool enabled;
   bool stopRequested;
   CHANNEL_mix mix;

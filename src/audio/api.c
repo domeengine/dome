@@ -7,16 +7,14 @@ AUDIO_API_channelCreate(
     CHANNEL_callback finish,
     void* userdata) {
 
-  AUDIO_CHANNEL_REF result;
   AUDIO_ENGINE* engine = ((ENGINE*)ctx)->audioEngine;
-  result.id = AUDIO_ENGINE_channelInit(
+  return AUDIO_ENGINE_channelInit(
       engine,
       mix,
       update,
       finish,
       userdata
   );
-  return result;
  }
 
 internal void

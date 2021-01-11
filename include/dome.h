@@ -107,6 +107,7 @@ typedef struct {
 typedef uint64_t CHANNEL_ID;
 typedef struct {
   CHANNEL_ID id;
+  void* engine;
 } AUDIO_CHANNEL_REF;
 typedef AUDIO_CHANNEL_REF CHANNEL_REF;
 typedef struct CHANNEL_t CHANNEL;
