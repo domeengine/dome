@@ -282,6 +282,7 @@ AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, char* soundId) {
   struct AUDIO_CHANNEL_PROPS props = {0, 0, 0, 0, 0};
   data->current = data->new = props;
   data->actualVolume = 0.0f;
+  data->actualPan = 0.0f;
   data->audio = NULL;
 
   CHANNEL_ID id = AUDIO_ENGINE_channelInit(
