@@ -8,6 +8,7 @@ AUDIO_API_channelCreate(
     void* userdata) {
 
   AUDIO_ENGINE* engine = ((ENGINE*)ctx)->audioEngine;
+  printf("%p\n", engine);
   return AUDIO_ENGINE_channelInit(
       engine,
       mix,
@@ -18,15 +19,16 @@ AUDIO_API_channelCreate(
  }
 
 internal void
-AUDIO_API_stop(DOME_Context ctx, CHANNEL_REF ref) {
-  AUDIO_ENGINE* engine = ((ENGINE*)ctx)->audioEngine;
+AUDIO_API_stop(CHANNEL_REF ref) {
+  AUDIO_ENGINE* engine = ref.engine;
   AUDIO_ENGINE_stop(engine, &ref);
 }
 
 
 internal void
-AUDIO_API_setState(DOME_Context ctx, CHANNEL_REF ref, CHANNEL_STATE state) {
-  AUDIO_ENGINE* engine = ((ENGINE*)ctx)->audioEngine;
+AUDIO_API_setState(CHANNEL_REF ref, CHANNEL_STATE state) {
+  AUDIO_ENGINE* engine = ref.engine;
+  printf("%p\n", engine);
   AUDIO_ENGINE_setState(engine, &ref, state);
 }
 

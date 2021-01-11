@@ -131,7 +131,7 @@ AUDIO_ENGINE_releaseHandles(AUDIO_ENGINE* audioEngine, WrenVM* vm) {
     channel = iter.value;
     channel->enabled = false;
     if (channel->finish != NULL) {
-      channel->finish(vm, channel);
+      channel->finish(channel->ref, vm);
     }
   }
   TABLE_iterInit(&iter);
@@ -139,7 +139,7 @@ AUDIO_ENGINE_releaseHandles(AUDIO_ENGINE* audioEngine, WrenVM* vm) {
     channel = iter.value;
     channel->enabled = false;
     if (channel->finish != NULL) {
-      channel->finish(vm, channel);
+      channel->finish(channel->ref, vm);
     }
   }
 }

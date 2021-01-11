@@ -125,13 +125,13 @@ typedef enum {
   CHANNEL_LAST
 } CHANNEL_STATE;
 
-typedef void (*CHANNEL_mix)(CHANNEL* channel, float* buffer, size_t requestedSamples);
-typedef void (*CHANNEL_callback)(WrenVM* vm, CHANNEL* channel);
+typedef void (*CHANNEL_mix)(CHANNEL_REF ref, float* buffer, size_t requestedSamples);
+typedef void (*CHANNEL_callback)(CHANNEL_REF ref, WrenVM* vm);
 
 typedef struct {
   CHANNEL_REF (*channelCreate)(DOME_Context ctx, CHANNEL_mix mix, CHANNEL_callback update, CHANNEL_callback finish, void* userdata);
-  void (*setState)(DOME_Context ctx, CHANNEL_REF ref, CHANNEL_STATE state);
-  void (*stop)(DOME_Context ctx, CHANNEL_REF ref);
+  void (*setState)(CHANNEL_REF ref, CHANNEL_STATE state);
+  void (*stop)(CHANNEL_REF ref);
 } AUDIO_API_v0;
 
 typedef void* (*DOME_getAPIFunction)(API_TYPE api, int version);

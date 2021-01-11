@@ -48,7 +48,7 @@ typedef struct {
   WrenHandle* audioHandle;
 } AUDIO_CHANNEL;
 
-internal void AUDIO_CHANNEL_mix(CHANNEL* base, float* stream, size_t totalSamples);
-internal void AUDIO_CHANNEL_update(WrenVM* vm, CHANNEL* base);
-internal void AUDIO_CHANNEL_finish(WrenVM* vm, CHANNEL* base);
+internal void AUDIO_CHANNEL_mix(CHANNEL_REF ref, float* stream, size_t totalSamples);
+internal void AUDIO_CHANNEL_update(CHANNEL_REF ref, WrenVM* vm);
+internal void AUDIO_CHANNEL_finish(CHANNEL_REF ref, WrenVM* vm);
 internal void CHANNEL_requestStop(CHANNEL* channel);

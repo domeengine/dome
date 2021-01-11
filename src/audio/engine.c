@@ -49,7 +49,7 @@ void AUDIO_ENGINE_mix(void*  userdata,
     while (channel->enabled && requestServed < totalSamples) {
       SDL_memset(scratchBuffer, 0, bufferSampleSize * bytesPerSample);
       size_t requestSize = min(bufferSampleSize, totalSamples - requestServed);
-      mixFn(channel, scratchBuffer, requestSize);
+      mixFn(channel->ref, scratchBuffer, requestSize);
       requestServed += requestSize;
       float* copyCursor = scratchBuffer;
       float* endPoint = copyCursor + bufferSampleSize * channels;
@@ -98,6 +98,9 @@ AUDIO_ENGINE_init(void) {
 internal bool
 AUDIO_ENGINE_get(AUDIO_ENGINE* engine, CHANNEL_REF* ref, CHANNEL** channel) {
   CHANNEL_ID id = ref->id;
+  if (id == 0) {
+    return false;
+  }
   bool result = TABLE_get(&engine->playing, id, channel);
   if (!result) {
     result = TABLE_get(&engine->pending, id, channel);
@@ -152,11 +155,11 @@ AUDIO_ENGINE_update(AUDIO_ENGINE* engine, WrenVM* vm) {
   while (TABLE_iterate(&(engine->playing), &iter)) {
     channel = iter.value;
     if (channel->update != NULL) {
-      channel->update(vm, channel);
+      channel->update(channel->ref, vm);
     }
     if (channel->state == CHANNEL_STOPPED) {
       if (channel->finish != NULL) {
-        channel->finish(vm, channel);
+        channel->finish(channel->ref, vm);
       }
       TABLE_delete(&engine->playing, channel->ref.id);
     }

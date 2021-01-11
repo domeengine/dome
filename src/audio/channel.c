@@ -101,7 +101,11 @@ AUDIO_CHANNEL_GETTER(new.position, Position, size_t, 0)
 
 
 internal void
-AUDIO_CHANNEL_finish(WrenVM* vm, CHANNEL* base) {
+AUDIO_CHANNEL_finish(CHANNEL_REF ref, WrenVM* vm) {
+  CHANNEL* base;
+  if (!AUDIO_ENGINE_get(ref.engine, &ref, &base)) {
+    return;
+  }
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)CHANNEL_getData(base);
   assert(channel != NULL);
   if (channel->audioHandle != NULL) {
@@ -125,7 +129,11 @@ AUDIO_CHANNEL_commit(AUDIO_CHANNEL* channel) {
 }
 
 internal void
-AUDIO_CHANNEL_update(WrenVM* vm, CHANNEL* base) {
+AUDIO_CHANNEL_update(CHANNEL_REF ref, WrenVM* vm) {
+  CHANNEL* base;
+  if (!AUDIO_ENGINE_get(ref.engine, &ref, &base)) {
+    return;
+  }
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)CHANNEL_getData(base);
   switch (CHANNEL_getState(base)) {
     case CHANNEL_INITIALIZE:
@@ -176,7 +184,11 @@ AUDIO_CHANNEL_update(WrenVM* vm, CHANNEL* base) {
 }
 
 internal void
-AUDIO_CHANNEL_mix(CHANNEL* base, float* stream, size_t totalSamples) {
+AUDIO_CHANNEL_mix(CHANNEL_REF ref, float* stream, size_t totalSamples) {
+  CHANNEL* base;
+  if (!AUDIO_ENGINE_get(ref.engine, &ref, &base)) {
+    return;
+  }
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)CHANNEL_getData(base);
   if (channel->audio == NULL) {
     return;
