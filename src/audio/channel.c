@@ -193,17 +193,20 @@ AUDIO_CHANNEL_mix(CHANNEL* base, float* stream, size_t totalSamples) {
   float actualVolume = channel->actualVolume;
   float actualPan = channel->actualPan;
 
+  bool blendVolume = actualVolume != volume;
+  bool blendPan = actualPan != targetPan;
+
 
   for (size_t i = 0; i < samplesToWrite; i++) {
     // We have to lerp the volume and pan change across the whole sample buffer
     // or we get a clicking sound.
     float f = i / (float)samplesToWrite;
     float currentVolume = actualVolume;
-    if (actualVolume != volume) {
+    if (blendVolume) {
       currentVolume = lerp(actualVolume, volume, f);
     }
     float currentPan = actualPan;
-    if (actualPan != targetPan) {
+    if (blendPan) {
       currentPan = lerp(actualPan, targetPan, f);
     }
     float pan = (currentPan + 1.0f) * M_PI / 4.0f; // Channel pan is [-1,1] real pan needs to be [0,1]
