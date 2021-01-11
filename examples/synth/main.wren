@@ -36,7 +36,7 @@ class Game {
         if (Keyboard[name].justPressed) {
           __note = i
           Synth.setTone(__octave, __note)
-          Synth.playTone(0.1)
+          Synth.playTone(0.2)
         }
       }
     }

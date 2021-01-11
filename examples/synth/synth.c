@@ -19,7 +19,7 @@ static const char* source = "class Synth {\n"
 
 
 static double globalTime = 0.0;
-static double step = 1.0f / 60.0f;
+static double step = 1.0f / 44100.0f;
 
 static CHANNEL_REF ref;
 typedef struct {
@@ -70,11 +70,12 @@ PLUGIN_method(setTone, ctx, vm) {
 }
 
 void SYNTH_mix(CHANNEL_REF ref, float* buffer, size_t requestedSamples) {
-  if ((globalTime - synth.start) > synth.length) {
-    return;
-  }
   float note = getNoteFrequency(synth.octave, synth.note);
   for (size_t i = 0; i < requestedSamples; i++) {
+    if ((globalTime - synth.start) > synth.length) {
+      break;
+    }
+    globalTime += step;
     float s = AdvanceOscilator_Square(&synth.phase, note, 44100);
     buffer[2*i] = s * synth.volume;
     buffer[2*i+1] = s * synth.volume;
@@ -83,7 +84,6 @@ void SYNTH_mix(CHANNEL_REF ref, float* buffer, size_t requestedSamples) {
 
 void SYNTH_update(CHANNEL_REF ref, WrenVM* vm) {
   if ((globalTime - synth.start) > synth.length) {
-//    audio->setState(ref, CHANNEL_STOPPED);
   }
 }
 void SYNTH_finish(CHANNEL_REF ref, WrenVM* vm) {
@@ -135,6 +135,5 @@ DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getApi, DOME_Context ctx) {
 }
 
 DOME_Result PLUGIN_preUpdate(DOME_Context ctx) {
-  globalTime += step;
   return DOME_RESULT_SUCCESS;
 }
