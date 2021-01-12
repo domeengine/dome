@@ -1,0 +1,38 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. 
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+strategy:
+  matrix:
+    platform: ["windows-x64", "windows-x32", "macosx-x64", "linux-x64", "linux-x64-shared"]
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+
+      - id: fetch-latest-release
+        uses: thebritican/fetch-latest-release@v1
+        with:
+          github_token: ${{ github.token }}
+      - uses: dsaltares/fetch-gh-release-asset@master
+          with:
+            repo: "domeengine/dome"
+            version: "latest"
+            file: "dome-${{tag_name}}-${{matrix.platform}}.zip"
+            token: ${{ secrets.ASSET_TOKEN }}
+      - uses: josephbmanley/butler-publish-itchio-action@master
+        env:
+          BUTLER_CREDENTIALS: ${{ secrets.BUTLER_CREDENTIALS }}
+          CHANNEL: ${{matrix.platform}}
+          ITCH_GAME: dome
+          ITCH_USER: avivbeeri
+          PACKAGE: dome-${{tag_name}}-${{matrix.platform}}.zip
