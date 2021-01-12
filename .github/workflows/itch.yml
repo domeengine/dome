@@ -24,11 +24,11 @@ jobs:
         with:
           github_token: ${{ github.token }}
       - uses: dsaltares/fetch-gh-release-asset@master
-          with:
-            repo: "domeengine/dome"
-            version: "latest"
-            file: "dome-${{tag_name}}-${{matrix.platform}}.zip"
-            token: ${{ secrets.ASSET_TOKEN }}
+        with:
+          repo: "domeengine/dome"
+          version: "latest"
+          file: "dome-${{tag_name}}-${{matrix.platform}}.zip"
+          token: ${{ secrets.ASSET_TOKEN }}
       - uses: josephbmanley/butler-publish-itchio-action@master
         env:
           BUTLER_CREDENTIALS: ${{ secrets.BUTLER_CREDENTIALS }}
