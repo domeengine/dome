@@ -29,7 +29,7 @@ jobs:
         with:
           repo: "domeengine/dome"
           version: "latest"
-          file: "dome-${{tag_name}}-${{matrix.platform}}.zip"
+          file: "dome-${{steps.fetch-latest-release.outputs.tag_name}}-${{matrix.platform}}.zip"
           token: ${{ secrets.ASSET_TOKEN }}
       - uses: josephbmanley/butler-publish-itchio-action@master
         env:
@@ -37,4 +37,4 @@ jobs:
           CHANNEL: ${{matrix.platform}}
           ITCH_GAME: dome
           ITCH_USER: avivbeeri
-          PACKAGE: dome-${{tag_name}}-${{matrix.platform}}.zip
+          PACKAGE: dome-${{steps.fetch-latest-release.outputs.tag_name}}-${{matrix.platform}}.zip
