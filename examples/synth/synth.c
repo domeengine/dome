@@ -1,6 +1,8 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <ctype.h>
 #include "dome.h"
 #include <math.h>
 
@@ -15,18 +17,27 @@ static const char* source = "class Synth {\n"
                     "foreign static volume=(v)\n"
                     "foreign static volume\n"
                     "foreign static playTone(time)\n"
-                    "foreign static noteOn()\n"
+                    "foreign static noteOn(octave, note)\n"
                     "foreign static noteOff()\n"
+                    "foreign static storePattern(pattern)\n"
+                    "foreign static playPattern()\n"
                   "}";
 
 
 
 
-static _Atomic(double) globalTime = 0.0;
+static volatile _Atomic(double) globalTime = 0.0;
 // sample step
 static double step = 1.0f / 44100.0f;
 
 static CHANNEL_REF ref;
+
+typedef enum {
+  OSC_SINE,
+  OSC_SQUARE,
+  OSC_SAW,
+  OSC_TRIANGLE
+} OSC_TYPE;
 
 typedef struct {
   double attack;
@@ -35,22 +46,37 @@ typedef struct {
 
   double startAmp;
   double sustainAmp;
-  double triggerOnTime;
-  double triggerOffTime;
-  atomic_bool playing;
+  volatile double triggerOnTime;
+  volatile double triggerOffTime;
+  volatile atomic_bool playing;
 } ENVELOPE;
 
 typedef struct {
-  float phase;
+  double duration; // 2/4/8/16/32/64
+  int8_t pitch; // 0-11, C -> B
+  int8_t octave; //1-3  - Minimal support  - 0 means silence
+} NOTE;
+
+typedef struct {
+  size_t count;
+  NOTE notes[];
+} PATTERN;
+
+typedef struct {
+  OSC_TYPE type;
   float volume;
   float octave;
   float note;
   float length;
-  bool active;
+  volatile bool active;
   ENVELOPE env;
+  size_t position;
+  volatile PATTERN* pattern;
+  volatile PATTERN* pendingPattern;
 } SYNTH;
 static SYNTH synth;
 
+// frequenct to Angular frequency
 float envelope(ENVELOPE* env, double time) {
   double amp = 0.0;
   double lifeTime;
@@ -78,61 +104,13 @@ float envelope(ENVELOPE* env, double time) {
   return amp;
 }
 
-
-float AdvanceOscilator_Saw(float* fPhase, float frequency, float fSampleRate) {
-  *fPhase += frequency/fSampleRate;
-
-	while(*fPhase > 1.0f)
-		*fPhase -= 1.0f;
-
-	while(*fPhase < 0.0f)
-		*fPhase += 1.0f;
-
-	return (*fPhase * 2.0f) - 1.0f;
+float w(double frequency) {
+  return (2 * M_PI * frequency);
 }
 
-float AdvanceOscilator_Triangle(float* fPhase, float frequency, float fSampleRate)
-{
-	*fPhase += frequency/fSampleRate;
 
-	while(*fPhase > 1.0f)
-		*fPhase -= 1.0f;
-
-	while(*fPhase < 0.0f)
-		*fPhase += 1.0f;
-
-	float fRet;
-	if(*fPhase <= 0.5f)
-		fRet=*fPhase*2;
-	else
-		fRet=(1.0f - *fPhase)*2;
-
-	return (fRet * 2.0f) - 1.0f;
-}
-
-float AdvanceOscilator_Square(float* fPhase, float fFrequency, float fSampleRate)
-{
-	*fPhase += fFrequency/fSampleRate;
-
-	while(*fPhase >= 1)
-		*fPhase -= 1;
-
-	while(*fPhase < 0)
-		*fPhase += 1.0;
-
-	return *fPhase > 0.5 ? -1.0 : 1.0;
-}
-float AdvanceOscilator_Sine(float* fPhase, float fFrequency, float fSampleRate)
-{
-	*fPhase += 2 * (float)M_PI * fFrequency/fSampleRate;
-
-	while(*fPhase >= 2 * (float)M_PI)
-		*fPhase -= 2 * (float)M_PI;
-
-	while(*fPhase < 0)
-		*fPhase += 2 * (float)M_PI;
-
-	return sin(*fPhase);
+float phase(float frequency, float time) {
+  return sin(w(frequency) * time);
 }
 
 #define C4 261.68
@@ -141,12 +119,125 @@ float getNoteFrequency(float octave, float noteIndex) {
   return C4 * pow(2, (((octave - 4) * 12) + noteIndex) / 12.0f);
 }
 
+void SYNTH_mix(CHANNEL_REF ref, float* buffer, size_t requestedSamples) {
+  float note = getNoteFrequency(synth.octave, synth.note);
+  if (!synth.active) {
+    // We should still advance the clock when we aren't playing anything?
+    globalTime += step * requestedSamples;
+    return;
+  }
+  for (size_t i = 0; i < requestedSamples; i++) {
+    globalTime += step;
+    float s;
+    switch (synth.type) {
+      case OSC_SINE:
+        s = phase(note, globalTime);
+        break;
+      case OSC_SQUARE:
+        s = phase(note, globalTime) > 0 ? 1 : -1;
+        break;
+      case OSC_TRIANGLE:
+        s = asin(phase(note, globalTime)) * (2.0f / M_PI);
+        break;
+      case OSC_SAW:
+        s = (2.0f / M_PI) * note * M_PI * fmod(globalTime, 1.0 / note) - (M_PI / 2.0f);
+        break;
+
+      default: s = 0;
+    }
+
+    s = s * envelope(&synth.env, globalTime) * synth.volume;
+    buffer[2*i] = s;
+    buffer[2*i+1] = s;
+  }
+}
+
+void SYNTH_update(CHANNEL_REF ref, WrenVM* vm) {
+  //if ((globalTime - synth.start) > synth.length) {
+  // }
+  if (synth.pattern != synth.pendingPattern) {
+    synth.pattern - synth.pendingPattern;
+    synth.position = 0;
+  }
+}
+void SYNTH_finish(CHANNEL_REF ref, WrenVM* vm) {
+
+}
+
+inline bool isNoteLetter(char c) {
+  return (c >= 'a' && c <= 'g') || (c >= 'A' && c <= 'G');
+}
+
+PLUGIN_method(playPattern, ctx, vm) {
+}
+PLUGIN_method(storePattern, ctx, vm) {
+  const char* patternStr = GET_STRING(1);
+
+  PATTERN* pattern = malloc(sizeof(PATTERN));
+  pattern->count = 0;
+  char* saveptr = NULL;
+  char* token = strtok_r((char*)patternStr, " ", &saveptr);
+  char buf[8];
+  double bpm = 60;
+  while (token != NULL) {
+    printf("token: %s\n", token);
+    NOTE note;
+    size_t len = strlen(token);
+
+
+    size_t i = 0;
+    note.duration = 240.0 / bpm / 4.0;
+    if (isdigit(token[i])) {
+      while (i < len && isdigit(token[i])) {
+        buf[i] = token[i];
+        i++;
+      }
+      buf[i] = '\0';
+      printf("%s\n", buf);
+      note.duration = 240.0 / bpm / atoi(buf);
+    }
+    bool sharp = token[i] == '#';
+    if (sharp) {
+      i++;
+    }
+    char letter = token[i];
+    if (isNoteLetter(letter)) {
+      int k = tolower(letter) & 7;
+      note.pitch = (((int)(k * 1.6) + 8 + sharp) % 12);
+      i++;
+    }
+    note.octave = 1;
+    if (i < len) {
+      if (token[i] >= '1' && token[i] <= '3') {
+        note.octave = token[i] - '0';
+      }
+      if (token[i] == '_') {
+        note.octave = 0;
+      }
+    }
+    pattern->count++;
+    pattern = realloc(pattern, sizeof(PATTERN) + sizeof(NOTE) * pattern->count);
+    pattern->notes[pattern->count - 1] = note;
+    token = strtok_r(NULL, " ", &saveptr);
+  }
+  // Should be done in a safe spot
+  synth.pattern = pattern;
+  for (size_t i = 0; i < pattern->count; i++) {
+    NOTE note = pattern->notes[i];
+    printf("Duration: %f - Pitch: %i - Octave: %i\n", note.duration, note.pitch, note.octave);
+  }
+}
+
+
 PLUGIN_method(setTone, ctx, vm) {
   synth.octave = GET_NUMBER(1);
   synth.note = GET_NUMBER(2);
 }
 
 PLUGIN_method(noteOn, ctx, vm) {
+  synth.octave = GET_NUMBER(1);
+  synth.note = GET_NUMBER(2);
+
   synth.active = true;
   if (!synth.env.playing) {
     synth.env.triggerOnTime = globalTime;
@@ -157,32 +248,6 @@ PLUGIN_method(noteOn, ctx, vm) {
 PLUGIN_method(noteOff, ctx, vm) {
   synth.env.triggerOffTime = globalTime;
   synth.env.playing = false;
-}
-void SYNTH_mix(CHANNEL_REF ref, float* buffer, size_t requestedSamples) {
-  float note = getNoteFrequency(synth.octave, synth.note);
-  if (!synth.active) {
-    globalTime += step * requestedSamples;
-    return;
-  }
-  for (size_t i = 0; i < requestedSamples; i++) {
-    /*
-    if ((globalTime - synth.start) > synth.length) {
-      break;
-    }
-    */
-    globalTime += step;
-    float s = AdvanceOscilator_Saw(&synth.phase, note, 44100) * envelope(&synth.env, globalTime);
-    buffer[2*i] = s * synth.volume;
-    buffer[2*i+1] = s * synth.volume;
-  }
-}
-
-void SYNTH_update(CHANNEL_REF ref, WrenVM* vm) {
-  //if ((globalTime - synth.start) > synth.length) {
-  // }
-}
-void SYNTH_finish(CHANNEL_REF ref, WrenVM* vm) {
-
 }
 
 PLUGIN_method(setVolume, ctx, vm) {
@@ -210,8 +275,10 @@ DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getApi, DOME_Context ctx) {
   DOME_registerFn(ctx, "synth", "static Synth.volume=(_)", setVolume);
   DOME_registerFn(ctx, "synth", "static Synth.volume", getVolume);
   DOME_registerFn(ctx, "synth", "static Synth.playTone(_)", playTone);
-  DOME_registerFn(ctx, "synth", "static Synth.noteOn()", noteOn);
+  DOME_registerFn(ctx, "synth", "static Synth.noteOn(_,_)", noteOn);
   DOME_registerFn(ctx, "synth", "static Synth.noteOff()", noteOff);
+  DOME_registerFn(ctx, "synth", "static Synth.storePattern(_)", storePattern);
+  DOME_registerFn(ctx, "synth", "static Synth.playPattern()", playPattern);
   ref = audio->channelCreate(ctx,
       SYNTH_mix,
       SYNTH_update,
@@ -229,8 +296,8 @@ DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getApi, DOME_Context ctx) {
     .playing = false
   };
   synth.env = env;
-  synth.volume = 0.1;
-  synth.phase = 0;
+  synth.volume = 0.5;
+  synth.type = OSC_SAW;
   synth.octave = 4;
   synth.note = 0;
   synth.length = 0;

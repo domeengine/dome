@@ -34,12 +34,14 @@ class Game {
         var name = KEYS[i+1]
         if (Keyboard[name].justPressed) {
           __note = i
-          Synth.setTone(__octave, __note)
-          Synth.noteOn()
-          Synth.playTone(0.2)
+          Synth.noteOn(__octave, __note)
         } else if (!Keyboard[name].down && Keyboard[name].previous) {
           Synth.noteOff()
         }
+      }
+      if (Keyboard["1"].justPressed) {
+        Synth.storePattern("16c1 32#g3 a #a b c 64_ #c d #d e f #f g #g")
+        Synth.playPattern()
       }
     }
 
