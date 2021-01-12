@@ -76,6 +76,27 @@ typedef struct {
 } SYNTH;
 static SYNTH synth;
 
+void SYNTH_init() {
+  ENVELOPE env = {
+    .attack = 0.02,
+    .decay = 0.01,
+    .release = 0.02,
+    .startAmp = 1.0,
+    .sustainAmp = 0.8,
+    .triggerOnTime = 0,
+    .triggerOffTime = 0,
+    .playing = false
+  };
+  synth.env = env;
+  synth.volume = 0.5;
+  synth.type = OSC_SAW;
+  synth.octave = 4;
+  synth.note = 0;
+  synth.length = 0;
+  synth.pattern = NULL;
+  synth.pendingPattern = NULL;
+}
+
 // frequenct to Angular frequency
 float envelope(ENVELOPE* env, double time) {
   double amp = 0.0;
@@ -155,13 +176,24 @@ void SYNTH_mix(CHANNEL_REF ref, float* buffer, size_t requestedSamples) {
 void SYNTH_update(CHANNEL_REF ref, WrenVM* vm) {
   //if ((globalTime - synth.start) > synth.length) {
   // }
-  if (synth.pattern != synth.pendingPattern) {
-    synth.pattern - synth.pendingPattern;
+  if (synth.pendingPattern != NULL) {
+    if (synth.pattern != NULL) {
+      free((void*)synth.pattern);
+    }
+    synth.pattern = synth.pendingPattern;
     synth.position = 0;
+    synth.pendingPattern = NULL;
   }
 }
 void SYNTH_finish(CHANNEL_REF ref, WrenVM* vm) {
-
+  if (synth.pattern != NULL) {
+    free((void*)synth.pattern);
+  }
+  if (synth.pattern != synth.pendingPattern && synth.pendingPattern != NULL) {
+    free((void*)synth.pendingPattern);
+  }
+  synth.pattern = NULL;
+  synth.pendingPattern = NULL;
 }
 
 inline bool isNoteLetter(char c) {
@@ -171,7 +203,7 @@ inline bool isNoteLetter(char c) {
 PLUGIN_method(playPattern, ctx, vm) {
 }
 PLUGIN_method(storePattern, ctx, vm) {
-  const char* patternStr = GET_STRING(1);
+  const char* patternStr = strdup(GET_STRING(1));
 
   PATTERN* pattern = malloc(sizeof(PATTERN));
   pattern->count = 0;
@@ -183,7 +215,6 @@ PLUGIN_method(storePattern, ctx, vm) {
     printf("token: %s\n", token);
     NOTE note;
     size_t len = strlen(token);
-
 
     size_t i = 0;
     note.duration = 240.0 / bpm / 4.0;
@@ -221,11 +252,16 @@ PLUGIN_method(storePattern, ctx, vm) {
     token = strtok_r(NULL, " ", &saveptr);
   }
   // Should be done in a safe spot
-  synth.pattern = pattern;
+  if (synth.pendingPattern != synth.pattern && synth.pendingPattern != NULL) {
+    free((void*)synth.pendingPattern);
+  }
+  synth.pendingPattern = pattern;
+
   for (size_t i = 0; i < pattern->count; i++) {
     NOTE note = pattern->notes[i];
     printf("Duration: %f - Pitch: %i - Octave: %i\n", note.duration, note.pitch, note.octave);
   }
+  free((void*)patternStr);
 }
 
 
@@ -285,27 +321,13 @@ DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getApi, DOME_Context ctx) {
       SYNTH_finish,
       &synth
   );
-  ENVELOPE env = {
-    .attack = 0.02,
-    .decay = 0.01,
-    .release = 0.02,
-    .startAmp = 1.0,
-    .sustainAmp = 0.8,
-    .triggerOnTime = 0,
-    .triggerOffTime = 0,
-    .playing = false
-  };
-  synth.env = env;
-  synth.volume = 0.5;
-  synth.type = OSC_SAW;
-  synth.octave = 4;
-  synth.note = 0;
-  synth.length = 0;
+  SYNTH_init();
 
   audio->setState(ref, CHANNEL_PLAYING);
 
   return DOME_RESULT_SUCCESS;
 }
+
 
 DOME_Result PLUGIN_preUpdate(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
