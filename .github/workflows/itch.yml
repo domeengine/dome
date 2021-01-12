@@ -37,4 +37,5 @@ jobs:
           CHANNEL: ${{matrix.platform}}
           ITCH_GAME: dome
           ITCH_USER: avivbeeri
+          VERSION: ${{steps.fetch-latest-release.outputs.tag_name}}
           PACKAGE: dome-${{steps.fetch-latest-release.outputs.tag_name}}-${{matrix.platform}}.zip
