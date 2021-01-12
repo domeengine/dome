@@ -22,7 +22,7 @@ jobs:
     steps:
 
       - id: fetch-latest-release
-        uses: thebritican/fetch-latest-release@v2
+        uses: thebritican/fetch-latest-release@v2.0.0
         with:
           github_token: ${{ github.token }}
       - uses: dsaltares/fetch-gh-release-asset@master
