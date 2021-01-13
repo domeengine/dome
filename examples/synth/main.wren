@@ -40,7 +40,7 @@ class Game {
         }
       }
       if (Keyboard["1"].justPressed) {
-        Synth.storePattern("16c1 32#g3 a #a b c 64_ #c d #d e f #f g #g")
+        Synth.storePattern("c3 d3 e3 f3 g3 a3 b3")
         Synth.playPattern()
       }
     }

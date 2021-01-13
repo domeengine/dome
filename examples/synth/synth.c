@@ -65,12 +65,12 @@ typedef struct {
 typedef struct {
   OSC_TYPE type;
   float volume;
-  float octave;
-  float note;
+  NOTE note;
   float length;
   volatile bool active;
   ENVELOPE env;
   size_t position;
+  double startTime;
   volatile PATTERN* pattern;
   volatile PATTERN* pendingPattern;
 } SYNTH;
@@ -90,10 +90,11 @@ void SYNTH_init() {
   synth.env = env;
   synth.volume = 0.5;
   synth.type = OSC_SAW;
-  synth.octave = 4;
-  synth.note = 0;
+  synth.note.octave = 4;
+  synth.note.pitch = 0;
   synth.length = 0;
   synth.pattern = NULL;
+  synth.startTime = 0;
   synth.pendingPattern = NULL;
 }
 
@@ -116,7 +117,6 @@ float envelope(ENVELOPE* env, double time) {
     // R
     lifeTime = time - env->triggerOffTime;
     amp = (1 - (lifeTime / env->release)) * env->sustainAmp;
-//    dAmplitude = ((dTime - dTriggerOffTime) / dReleaseTime) * (0.0 - dSustainAmplitude) + dSustainAmplitude;
   }
   if (amp < 0.0001) {
     amp = 0;
@@ -141,35 +141,53 @@ float getNoteFrequency(float octave, float noteIndex) {
 }
 
 void SYNTH_mix(CHANNEL_REF ref, float* buffer, size_t requestedSamples) {
-  float note = getNoteFrequency(synth.octave, synth.note);
-  if (!synth.active) {
+  NOTE note;
+  if (synth.pattern == NULL) {
+    note = synth.note;
+  } else {
+    note = synth.pattern->notes[synth.position];
+  }
+
+  float freq = getNoteFrequency(note.octave, note.pitch);
+  if (note.octave == 0 || !synth.active) {
     // We should still advance the clock when we aren't playing anything?
     globalTime += step * requestedSamples;
-    return;
-  }
-  for (size_t i = 0; i < requestedSamples; i++) {
-    globalTime += step;
-    float s;
-    switch (synth.type) {
-      case OSC_SINE:
-        s = phase(note, globalTime);
-        break;
-      case OSC_SQUARE:
-        s = phase(note, globalTime) > 0 ? 1 : -1;
-        break;
-      case OSC_TRIANGLE:
-        s = asin(phase(note, globalTime)) * (2.0f / M_PI);
-        break;
-      case OSC_SAW:
-        s = (2.0f / M_PI) * note * M_PI * fmod(globalTime, 1.0 / note) - (M_PI / 2.0f);
-        break;
+  } else {
+    for (size_t i = 0; i < requestedSamples; i++) {
+      globalTime += step;
+      float s;
+      switch (synth.type) {
+        case OSC_SINE:
+          s = phase(freq, globalTime);
+          break;
+        case OSC_SQUARE:
+          s = phase(freq, globalTime) > 0 ? 1 : -1;
+          break;
+        case OSC_TRIANGLE:
+          s = asin(phase(freq, globalTime)) * (2.0f / M_PI);
+          break;
+        case OSC_SAW:
+          s = (2.0f / M_PI) * freq * M_PI * fmod(globalTime, 1.0 / freq) - (M_PI / 2.0f);
+          break;
 
-      default: s = 0;
+        default: s = 0;
+      }
+
+      s = s * envelope(&synth.env, globalTime) * synth.volume;
+      buffer[2*i] = s;
+      buffer[2*i+1] = s;
     }
-
-    s = s * envelope(&synth.env, globalTime) * synth.volume;
-    buffer[2*i] = s;
-    buffer[2*i+1] = s;
+  }
+  if (synth.pattern != NULL) {
+    // Move through the pattern
+    if (globalTime >= note.duration) {
+      synth.position++;
+      if (synth.position >= synth.pattern->count) {
+        synth.position = 0;
+      }
+      globalTime = 0;
+    }
+    note = synth.pattern->notes[synth.position];
   }
 }
 
@@ -266,13 +284,13 @@ PLUGIN_method(storePattern, ctx, vm) {
 
 
 PLUGIN_method(setTone, ctx, vm) {
-  synth.octave = GET_NUMBER(1);
-  synth.note = GET_NUMBER(2);
+  synth.note.octave = GET_NUMBER(1);
+  synth.note.pitch = GET_NUMBER(2);
 }
 
 PLUGIN_method(noteOn, ctx, vm) {
-  synth.octave = GET_NUMBER(1);
-  synth.note = GET_NUMBER(2);
+  synth.note.octave = GET_NUMBER(1);
+  synth.note.pitch = GET_NUMBER(2);
 
   synth.active = true;
   if (!synth.env.playing) {
@@ -297,7 +315,7 @@ PLUGIN_method(playTone, ctx, vm) {
   synth.length = GET_NUMBER(1);
 
   printf("begin");
-  printf("Octave: %f - Note: %f - Frequency: %f\n", synth.octave, synth.note, getNoteFrequency(synth.octave, synth.note));
+  printf("Octave: %i - Note: %i - Frequency: %f\n", synth.note.octave, synth.note.pitch, getNoteFrequency(synth.note.octave, synth.note.pitch));
 }
 
 DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getApi, DOME_Context ctx) {
