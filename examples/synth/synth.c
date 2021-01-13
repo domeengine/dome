@@ -84,14 +84,14 @@ void SYNTH_init() {
     .decay = 0.01,
     .release = 0.02,
     .startAmp = 1.0,
-    .sustainAmp = 0.8,
+    .sustainAmp = 1.0,
     .triggerOnTime = 0,
     .triggerOffTime = 0,
     .playing = false
   };
   synth.env = env;
   synth.volume = 0.5;
-  synth.type = OSC_SQUARE;
+  synth.type = OSC_SAW;
   synth.note.octave = 4;
   synth.note.pitch = 0;
   synth.length = 0;
@@ -156,6 +156,7 @@ void SYNTH_advancePattern(SYNTH* synth) {
           free((void*)synth->pattern);
           synth->pattern = NULL;
           synth->active = false;
+          synth->env.playing = false;
         }
       }
       globalTime = 0;
@@ -243,6 +244,8 @@ inline bool isNoteLetter(char c) {
 PLUGIN_method(playPattern, ctx, vm) {
   synth.swapPattern = true;
   synth.active = true;
+  synth.env.playing = true;
+  synth.env.triggerOnTime = 0;
 }
 PLUGIN_method(storePattern, ctx, vm) {
   const char* patternStr = strdup(GET_STRING(1));
