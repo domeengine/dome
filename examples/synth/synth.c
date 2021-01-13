@@ -68,9 +68,11 @@ typedef struct {
   NOTE note;
   float length;
   volatile bool active;
+  volatile bool loop;
   ENVELOPE env;
   size_t position;
   double startTime;
+  volatile bool swapPattern;
   volatile PATTERN* pattern;
   volatile PATTERN* pendingPattern;
 } SYNTH;
@@ -89,10 +91,11 @@ void SYNTH_init() {
   };
   synth.env = env;
   synth.volume = 0.5;
-  synth.type = OSC_SAW;
+  synth.type = OSC_SQUARE;
   synth.note.octave = 4;
   synth.note.pitch = 0;
   synth.length = 0;
+  synth.loop = false;
   synth.pattern = NULL;
   synth.startTime = 0;
   synth.pendingPattern = NULL;
@@ -140,74 +143,93 @@ float getNoteFrequency(float octave, float noteIndex) {
   return C4 * pow(2, (((octave - 4) * 12) + noteIndex) / 12.0f);
 }
 
-void SYNTH_mix(CHANNEL_REF ref, float* buffer, size_t requestedSamples) {
-  NOTE note;
-  if (synth.pattern == NULL) {
-    note = synth.note;
-  } else {
-    note = synth.pattern->notes[synth.position];
-  }
-
-  float freq = getNoteFrequency(note.octave, note.pitch);
-  if (note.octave == 0 || !synth.active) {
-    // We should still advance the clock when we aren't playing anything?
-    globalTime += step * requestedSamples;
-  } else {
-    for (size_t i = 0; i < requestedSamples; i++) {
-      globalTime += step;
-      float s;
-      switch (synth.type) {
-        case OSC_SINE:
-          s = phase(freq, globalTime);
-          break;
-        case OSC_SQUARE:
-          s = phase(freq, globalTime) > 0 ? 1 : -1;
-          break;
-        case OSC_TRIANGLE:
-          s = asin(phase(freq, globalTime)) * (2.0f / M_PI);
-          break;
-        case OSC_SAW:
-          s = (2.0f / M_PI) * freq * M_PI * fmod(globalTime, 1.0 / freq) - (M_PI / 2.0f);
-          break;
-
-        default: s = 0;
-      }
-
-      s = s * envelope(&synth.env, globalTime) * synth.volume;
-      buffer[2*i] = s;
-      buffer[2*i+1] = s;
-    }
-  }
-  if (synth.pattern != NULL) {
+void SYNTH_advancePattern(SYNTH* synth) {
+  if (synth->pattern != NULL) {
+    NOTE note = synth->pattern->notes[synth->position];
     // Move through the pattern
     if (globalTime >= note.duration) {
-      synth.position++;
-      if (synth.position >= synth.pattern->count) {
-        synth.position = 0;
+      synth->position++;
+      if (synth->position >= synth->pattern->count) {
+        if (synth->loop) {
+          synth->position = 0;
+        } else if (synth->pattern != NULL) {
+          free((void*)synth->pattern);
+          synth->pattern = NULL;
+          synth->active = false;
+        }
       }
       globalTime = 0;
     }
-    note = synth.pattern->notes[synth.position];
   }
 }
 
+void SYNTH_mix(CHANNEL_REF ref, float* buffer, size_t requestedSamples) {
+  NOTE note;
+  float freq;
+  if (synth.pattern == NULL) {
+    note = synth.note;
+    freq = getNoteFrequency(note.octave, note.pitch);
+  }
+
+  if (note.octave == 0 || !synth.active) {
+    // We should still advance the clock when we aren't playing anything?
+    globalTime += step * requestedSamples;
+    SYNTH_advancePattern(&synth);
+  } else {
+    for (size_t i = 0; i < requestedSamples; i++) {
+      if (synth.pattern != NULL) {
+        note = synth.pattern->notes[synth.position];
+        freq = getNoteFrequency(note.octave, note.pitch);
+      }
+      if (note.octave > 0) {
+
+        float s;
+        switch (synth.type) {
+          case OSC_SINE:
+            s = phase(freq, globalTime);
+            break;
+          case OSC_SQUARE:
+            s = phase(freq, globalTime) > 0 ? 1 : -1;
+            break;
+          case OSC_TRIANGLE:
+            s = asin(phase(freq, globalTime)) * (2.0f / M_PI);
+            break;
+          case OSC_SAW:
+            s = (2.0f / M_PI) * freq * M_PI * fmod(globalTime, 1.0 / freq) - (M_PI / 2.0f);
+            break;
+
+          default: s = 0;
+        }
+
+        s = s * envelope(&synth.env, globalTime) * synth.volume;
+        buffer[2*i] = s;
+        buffer[2*i+1] = s;
+      }
+
+      globalTime += step;
+      SYNTH_advancePattern(&synth);
+    }
+  }
+}
+
+
 void SYNTH_update(CHANNEL_REF ref, WrenVM* vm) {
-  //if ((globalTime - synth.start) > synth.length) {
-  // }
-  if (synth.pendingPattern != NULL) {
+  if (synth.swapPattern && synth.pendingPattern != NULL) {
     if (synth.pattern != NULL) {
       free((void*)synth.pattern);
     }
     synth.pattern = synth.pendingPattern;
     synth.position = 0;
     synth.pendingPattern = NULL;
+    synth.swapPattern = false;
+    globalTime = 0;
   }
 }
 void SYNTH_finish(CHANNEL_REF ref, WrenVM* vm) {
   if (synth.pattern != NULL) {
     free((void*)synth.pattern);
   }
-  if (synth.pattern != synth.pendingPattern && synth.pendingPattern != NULL) {
+  if (synth.pendingPattern != NULL) {
     free((void*)synth.pendingPattern);
   }
   synth.pattern = NULL;
@@ -219,6 +241,8 @@ inline bool isNoteLetter(char c) {
 }
 
 PLUGIN_method(playPattern, ctx, vm) {
+  synth.swapPattern = true;
+  synth.active = true;
 }
 PLUGIN_method(storePattern, ctx, vm) {
   const char* patternStr = strdup(GET_STRING(1));
@@ -228,14 +252,17 @@ PLUGIN_method(storePattern, ctx, vm) {
   char* saveptr = NULL;
   char* token = strtok_r((char*)patternStr, " ", &saveptr);
   char buf[8];
-  double bpm = 60;
+  double bpm = 125;
+  int8_t defaultDuration = 4;
+  int8_t defaultOctave = 3;
+  int8_t baseOctave = defaultOctave - 1;
   while (token != NULL) {
     printf("token: %s\n", token);
     NOTE note;
     size_t len = strlen(token);
 
     size_t i = 0;
-    note.duration = 240.0 / bpm / 4.0;
+    int8_t d = defaultDuration;
     if (isdigit(token[i])) {
       while (i < len && isdigit(token[i])) {
         buf[i] = token[i];
@@ -243,8 +270,15 @@ PLUGIN_method(storePattern, ctx, vm) {
       }
       buf[i] = '\0';
       printf("%s\n", buf);
-      note.duration = 240.0 / bpm / atoi(buf);
+      d = atoi(buf);
     }
+    note.duration = 240.0 / bpm / d;
+    bool dot = token[i] == '.';
+    if (dot) {
+      note.duration *= 1.5;
+      i++;
+    }
+
     bool sharp = token[i] == '#';
     if (sharp) {
       i++;
@@ -255,12 +289,12 @@ PLUGIN_method(storePattern, ctx, vm) {
       note.pitch = (((int)(k * 1.6) + 8 + sharp) % 12);
       i++;
     }
-    note.octave = 1;
+    note.octave = defaultOctave;
     if (i < len) {
-      if (token[i] >= '1' && token[i] <= '3') {
-        note.octave = token[i] - '0';
+      if (token[i] >= '1' && token[i] <= '8') {
+        note.octave = baseOctave + (token[i] - '0');
       }
-      if (token[i] == '_') {
+      if (token[i] == '_' || token[i] == '-') {
         note.octave = 0;
       }
     }
@@ -270,7 +304,7 @@ PLUGIN_method(storePattern, ctx, vm) {
     token = strtok_r(NULL, " ", &saveptr);
   }
   // Should be done in a safe spot
-  if (synth.pendingPattern != synth.pattern && synth.pendingPattern != NULL) {
+  if (synth.pendingPattern != NULL) {
     free((void*)synth.pendingPattern);
   }
   synth.pendingPattern = pattern;
