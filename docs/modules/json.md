@@ -63,21 +63,19 @@ class MyClass {
   // override toString to provide a serializable representation
   // of the object. This serialization will be called by the
   // Json.encode() method.
-  toString {Json.encode(toMap)}
-  toMap {{
-    "is": isTrue
-  }}
+  toString { Json.encode(toMap) }
+  toMap { { "is": isTrue } }
 
-  isTrue {_isTrue}
+  isTrue { _isTrue }
 
   construct new(isTrue) {
-  _isTrue = isTrue
- }
+    _isTrue = isTrue
+  }
 }
 
 var obj = MyClass.new(true)
 
-// prints: {"is":true}
+// prints: { "is":true }
 System.print(Json.encode(obj))
 ```
 
