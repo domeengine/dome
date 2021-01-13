@@ -7,7 +7,7 @@ You can either download the compiled binaries from GitHub, or you can build the 
 
 ## Method 1: Download
 
-Get the latest release from the [Github releases page](https://github.com/domeengine/dome/releases/latest) and select a zip file from the "assets" matching your computer's operating system and architecture. This will download it to your computer.
+You can download the latest public version of DOME from [itch.io](https://avivbeeri.itch.io/dome) or [GitHub](https://github.com/domeengine/dome/releases/latest). Pick the correct version for your computer's operating system and architecture.
 
 Once the download is complete, unzip the downloaded archive and place its contents in the directory you want to make your game in.
 
