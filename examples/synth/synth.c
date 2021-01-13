@@ -153,7 +153,9 @@ void SYNTH_advancePattern(SYNTH* synth) {
         if (synth->loop) {
           synth->position = 0;
         } else if (synth->pattern != NULL) {
-          free((void*)synth->pattern);
+          if (synth->pattern != synth->pendingPattern) {
+            free((void*)synth->pattern);
+          }
           synth->pattern = NULL;
           synth->active = false;
           synth->env.playing = false;
@@ -229,7 +231,7 @@ void SYNTH_finish(CHANNEL_REF ref, WrenVM* vm) {
   if (synth.pattern != NULL) {
     free((void*)synth.pattern);
   }
-  if (synth.pendingPattern != NULL) {
+  if (synth.pendingPattern != NULL && synth.pendingPattern != synth.pattern) {
     free((void*)synth.pendingPattern);
   }
   synth.pattern = NULL;
