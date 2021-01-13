@@ -16,6 +16,7 @@ class Game {
     static init() {
       __note = 0
       __octave = 4
+      Synth.storePattern("16g2 16f2 8a1 8b1 16e2 16d2 8f1 8g1 16d2 16c2 8e1 8g1 4.c2 8- 4-")
     }
     static update() {
       if (Keyboard["up"].justPressed) {
@@ -40,7 +41,6 @@ class Game {
         }
       }
       if (Keyboard["1"].justPressed) {
-        Synth.storePattern("16g2 16f2 8a1 8b1 16e2 16d2 8f1 8g1 16d2 16c2 8e1 8g1 4.c2 8- 4-")
         Synth.playPattern()
       }
     }

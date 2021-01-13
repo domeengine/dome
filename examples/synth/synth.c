@@ -91,7 +91,7 @@ void SYNTH_init() {
   };
   synth.env = env;
   synth.volume = 0.5;
-  synth.type = OSC_SAW;
+  synth.type = OSC_TRIANGLE;
   synth.note.octave = 4;
   synth.note.pitch = 0;
   synth.length = 0;
@@ -215,13 +215,12 @@ void SYNTH_mix(CHANNEL_REF ref, float* buffer, size_t requestedSamples) {
 
 
 void SYNTH_update(CHANNEL_REF ref, WrenVM* vm) {
-  if (synth.swapPattern && synth.pendingPattern != NULL) {
-    if (synth.pattern != NULL) {
+  if (synth.swapPattern) {
+    if (synth.pattern != synth.pendingPattern && synth.pattern != NULL) {
       free((void*)synth.pattern);
     }
     synth.pattern = synth.pendingPattern;
     synth.position = 0;
-    synth.pendingPattern = NULL;
     synth.swapPattern = false;
     globalTime = 0;
   }
@@ -257,8 +256,8 @@ PLUGIN_method(storePattern, ctx, vm) {
   char buf[8];
   double bpm = 125;
   int8_t defaultDuration = 4;
-  int8_t defaultOctave = 3;
-  int8_t baseOctave = defaultOctave - 1;
+  int8_t defaultOctave = 4;
+  int8_t baseOctave = defaultOctave;
   while (token != NULL) {
     printf("token: %s\n", token);
     NOTE note;
@@ -295,9 +294,9 @@ PLUGIN_method(storePattern, ctx, vm) {
     note.octave = defaultOctave;
     if (i < len) {
       if (token[i] >= '1' && token[i] <= '8') {
-        note.octave = baseOctave + (token[i] - '0');
+        note.octave = baseOctave + (token[i] - '1');
       }
-      if (token[i] == '_' || token[i] == '-') {
+      if (token[i] == '_' || token[i] == '-' || token[i] == 'p' || token[i] == 'P') {
         note.octave = 0;
       }
     }
