@@ -66,17 +66,15 @@ ENGINE_openLogFile(ENGINE* engine) {
 }
 
 internal void
-ENGINE_printLog(ENGINE* engine, char* line, ...) {
-  // Args is mutated by each vsnprintf call,
-  // so it needs to be reinitialised.
+ENGINE_printLogVariadic(ENGINE* engine, char* line, va_list argList) {
   va_list args;
-  va_start(args, line);
+  va_copy(args, argList);
   size_t bufSize = vsnprintf(NULL, 0, line, args) + 1;
   va_end(args);
 
   char buffer[bufSize];
   buffer[0] = '\0';
-  va_start(args, line);
+  va_copy(args, argList);
   vsnprintf(buffer, bufSize, line, args);
   va_end(args);
 
@@ -91,6 +89,16 @@ ENGINE_printLog(ENGINE* engine, char* line, ...) {
     fputs(buffer, engine->debug.logFile);
     fflush(engine->debug.logFile);
   }
+}
+
+internal void
+ENGINE_printLog(ENGINE* engine, char* line, ...) {
+  // Args is mutated by each vsnprintf call,
+  // so it needs to be reinitialised.
+  va_list args;
+  va_start(args, line);
+  ENGINE_printLogVariadic(engine, line, args);
+  va_end(args);
 }
 
 internal ENGINE_WRITE_RESULT

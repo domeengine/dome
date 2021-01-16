@@ -165,6 +165,7 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
   return DOME_RESULT_SUCCESS;
 }
 
+
 internal DOME_Result
 DOME_registerModuleImpl(DOME_Context ctx, const char* name, const char* source) {
 
@@ -196,6 +197,13 @@ internal DOME_Context
 DOME_getVMContext(WrenVM* vm) {
   return wrenGetUserData(vm);
 }
+internal void
+DOME_printLog(DOME_Context ctx, const char* text, ...) {
+  va_list args;
+  va_start(args, text);
+  ENGINE_printLogVariadic(ctx, text, args);
+  va_end(args);
+}
 
 WREN_API_v0 wren_v0 = {
   .getUserData = wrenGetUserData,
@@ -220,7 +228,8 @@ DOME_API_v0 dome_v0 = {
   .registerModule = DOME_registerModuleImpl,
   .registerFn = DOME_registerFnImpl,
   .registerBindFn = DOME_registerBindFnImpl,
-  .getContext = DOME_getVMContext
+  .getContext = DOME_getVMContext,
+  .log = DOME_printLog
 };
 
 
