@@ -102,6 +102,7 @@ typedef struct {
   DOME_Result (*registerModule)(DOME_Context ctx, const char* name, const char* source);
   DOME_Result (*registerFn)(DOME_Context ctx, const char* name, const char* signature, DOME_ForeignFn method);
   DOME_Result (*registerBindFn)(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn);
+  DOME_Context (*getContext)(WrenVM* vm);
 } DOME_API_v0;
 
 typedef uint64_t CHANNEL_ID;
@@ -144,11 +145,12 @@ DOME_EXPORTED void* DOME_getAPI(API_TYPE api, int version);
 #define DOME_registerBindFn(ctx, module, fn) api->registerBindFn(ctx, module, fn)
 #define DOME_registerFn(ctx, module, signature, method) \
   api->registerFn(ctx, module, signature, PLUGIN_method_wrap_##method)
+#define DOME_getContext(vm) (api->getContext(vm))
 
 #define PLUGIN_method(name, ctx, vm) \
   static void PLUGIN_method_##name(DOME_Context ctx, WrenVM* vm); \
   DOME_EXPORTED void PLUGIN_method_wrap_##name(WrenVM* vm) { \
-    DOME_Context ctx = (DOME_Context) wren->getUserData(vm); \
+    DOME_Context ctx = DOME_getContext(vm); \
     PLUGIN_method_##name(ctx, vm);\
   } \
   static void PLUGIN_method_##name(DOME_Context ctx, WrenVM* vm)

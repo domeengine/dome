@@ -192,6 +192,11 @@ DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signat
   return DOME_RESULT_SUCCESS;
 }
 
+internal DOME_Context
+DOME_getVMContext(WrenVM* vm) {
+  return wrenGetUserData(vm);
+}
+
 WREN_API_v0 wren_v0 = {
   .getUserData = wrenGetUserData,
 
@@ -215,6 +220,7 @@ DOME_API_v0 dome_v0 = {
   .registerModule = DOME_registerModuleImpl,
   .registerFn = DOME_registerFnImpl,
   .registerBindFn = DOME_registerBindFnImpl,
+  .getContext = DOME_getVMContext
 };
 
 
