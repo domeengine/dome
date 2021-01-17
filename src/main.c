@@ -553,6 +553,8 @@ int main(int argc, char* args[])
   // Load user game file
   SDL_Thread* recordThread = NULL;
 
+  WrenHandle* initMethod = NULL;
+
   interpreterResult = wrenInterpret(vm, "main", gameFile);
   free(gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -563,7 +565,6 @@ int main(int argc, char* args[])
 
 
   wrenEnsureSlots(vm, 3);
-  WrenHandle* initMethod = NULL;
   initMethod = wrenMakeCallHandle(vm, "init()");
   wrenGetVariable(vm, "main", "Game", 0);
   loop.gameClass = wrenGetSlotHandle(vm, 0);

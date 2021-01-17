@@ -1,3 +1,14 @@
+internal char*
+PLUGIN_COLLECTION_hookName(DOME_PLUGIN_HOOK hook) {
+  switch (hook) {
+    case DOME_PLUGIN_HOOK_PRE_UPDATE: return "pre-update";
+    case DOME_PLUGIN_HOOK_POST_UPDATE: return "post-update";
+    case DOME_PLUGIN_HOOK_PRE_DRAW: return "pre-draw";
+    case DOME_PLUGIN_HOOK_POST_DRAW: return "post-draw";
+    default: return "unknown";
+  }
+}
+
 internal DOME_Result
 PLUGIN_nullHook(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
@@ -16,22 +27,28 @@ PLUGIN_COLLECTION_initRecord(PLUGIN_COLLECTION* plugins, size_t index) {
 
 internal void
 PLUGIN_COLLECTION_init(ENGINE* engine) {
-  // TODO: handle allocation failures
   PLUGIN_COLLECTION plugins = engine->plugins;
-  plugins.max = 1;
+  plugins.max = 0;
   plugins.count = 0;
   assert(plugins.count <= plugins.max);
-  plugins.active = calloc(plugins.max, sizeof(bool));
-  plugins.name = calloc(plugins.max, sizeof(char*));
-  plugins.objectHandle = calloc(plugins.max, sizeof(void*));
-  plugins.preUpdateHook = calloc(plugins.max, sizeof(DOME_Plugin_Hook));
-  plugins.postUpdateHook = calloc(plugins.max, sizeof(DOME_Plugin_Hook));
-  plugins.preDrawHook = calloc(plugins.max, sizeof(DOME_Plugin_Hook));
-  plugins.postDrawHook = calloc(plugins.max, sizeof(DOME_Plugin_Hook));
+  plugins.active = NULL;
+  plugins.name = NULL;
+  plugins.objectHandle = NULL;
+  plugins.preUpdateHook = NULL;
+  plugins.postUpdateHook = NULL;
+  plugins.preDrawHook = NULL;
+  plugins.postDrawHook = NULL;
   for (size_t i = 0; i < plugins.max; i++) {
     PLUGIN_COLLECTION_initRecord(&plugins, i);
   }
   engine->plugins = plugins;
+}
+
+internal void
+PLUGIN_reportHookError(ENGINE* engine, DOME_PLUGIN_HOOK hook, const char* pluginName) {
+  ENGINE_printLog(engine, "DOME cannot continue as the following plugin reported a problem:\n");
+  ENGINE_printLog(engine, "Plugin: %s - hook: %s\n", pluginName,  PLUGIN_COLLECTION_hookName(hook));
+  ENGINE_printLog(engine, "Aborting.\n");
 }
 
 internal void
@@ -41,8 +58,10 @@ PLUGIN_COLLECTION_free(ENGINE* engine) {
     DOME_Plugin_Hook shutdownHook;
     shutdownHook = (DOME_Plugin_Hook)SDL_LoadFunction(plugins.objectHandle[i], "PLUGIN_onShutdown");
     if (shutdownHook != NULL) {
-      shutdownHook(engine);
-      // TODO: Log failure
+      DOME_Result result = shutdownHook(engine);
+      if (result != DOME_RESULT_SUCCESS) {
+        PLUGIN_reportHookError(engine, DOME_PLUGIN_HOOK_SHUTDOWN, plugins.name[i]);
+      }
     }
     plugins.active[i] = false;
 
@@ -71,16 +90,22 @@ PLUGIN_COLLECTION_free(ENGINE* engine) {
   plugins.objectHandle = NULL;
 
   engine->plugins = plugins;
+
+  free(plugins.preUpdateHook);
+  free(plugins.postUpdateHook);
+  free(plugins.preDrawHook);
+  free(plugins.postDrawHook);
 }
 
 internal DOME_Result
 PLUGIN_COLLECTION_runHook(ENGINE* engine, DOME_PLUGIN_HOOK hook) {
   PLUGIN_COLLECTION plugins = engine->plugins;
-  size_t failures = 0;
+  bool failure = false;
 
   for (size_t i = 0; i < plugins.count; i++) {
     assert(plugins.active[i]);
     DOME_Result result = DOME_RESULT_SUCCESS;
+
     switch (hook) {
       case DOME_PLUGIN_HOOK_PRE_UPDATE:
         { result = plugins.preUpdateHook[i](engine); } break;
@@ -93,14 +118,17 @@ PLUGIN_COLLECTION_runHook(ENGINE* engine, DOME_PLUGIN_HOOK hook) {
       default: break;
     }
     if (result != DOME_RESULT_SUCCESS) {
-      failures++;
-      // Do something about errors?
+      PLUGIN_reportHookError(engine, hook, plugins.name[i]);
+      failure = true;
+      break;
     }
+  }
+  if (failure) {
+    return DOME_RESULT_FAILURE;
   }
 
   return DOME_RESULT_SUCCESS;
 }
-
 
 internal DOME_Result
 PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
@@ -112,23 +140,38 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
 
   PLUGIN_COLLECTION plugins = engine->plugins;
   size_t next = plugins.count;
-  printf("Next is %zu, max is %zu\n", next, plugins.max);
 
   if (next >= plugins.max) {
-    plugins.max *= 2;
-    printf("Increasing max to %zu\n", plugins.max);
+    #define PLUGIN_FIELD_REALLOC(FIELD, TYPE) \
+    do {\
+      void* prev = plugins.FIELD; \
+      plugins.FIELD = realloc(plugins.FIELD, sizeof(TYPE) * plugins.max); \
+      if (plugins.FIELD == NULL) { \
+        plugins.FIELD = prev; \
+        ENGINE_printLog(engine, "There was a problem allocating memory for plugins\n"); \
+        return DOME_RESULT_FAILURE; \
+      }\
+    } while(false);
 
-    plugins.active = realloc(plugins.active, sizeof(bool) * plugins.max);
-    plugins.name = realloc(plugins.name, sizeof(char*) * plugins.max);
-    plugins.objectHandle = realloc(plugins.objectHandle, sizeof(void*) * plugins.max);
-    plugins.preUpdateHook = realloc(plugins.preUpdateHook, sizeof(void*) * plugins.max);
-    plugins.postUpdateHook = realloc(plugins.postUpdateHook, sizeof(void*) * plugins.max);
-    plugins.preDrawHook = realloc(plugins.preDrawHook, sizeof(void*) * plugins.max);
-    plugins.postDrawHook = realloc(plugins.postDrawHook, sizeof(void*) * plugins.max);
+    plugins.max = plugins.max == 0 ? 2 : plugins.max * 2;
+
+    PLUGIN_FIELD_REALLOC(active, bool);
+    PLUGIN_FIELD_REALLOC(name, char*);
+    PLUGIN_FIELD_REALLOC(objectHandle, void*);
+    PLUGIN_FIELD_REALLOC(preUpdateHook, void*);
+    PLUGIN_FIELD_REALLOC(postUpdateHook, void*);
+    PLUGIN_FIELD_REALLOC(preDrawHook, void*);
+    PLUGIN_FIELD_REALLOC(postDrawHook, void*);
+
+    if (next == 0) {
+      PLUGIN_COLLECTION_initRecord(&plugins, 0);
+    }
     for (size_t i = next + 1; i < plugins.max; i++) {
+      printf("INIT\n");
       PLUGIN_COLLECTION_initRecord(&plugins, i);
     }
-    // TODO handle allocation failure
+
+   #undef PLUGIN_FIELD_REALLOC
   }
   plugins.active[next] = true;
   plugins.name[next] = strdup(name);
