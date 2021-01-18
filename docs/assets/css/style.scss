@@ -169,3 +169,27 @@ pre code {
 .highlight .vg { color: #e270ef } /* Name.Variable.Global */
 .highlight .vi { color: #e270ef } /* Name.Variable.Instance */
 .highlight .il { color: #e270ef } /* Literal.Number.Integer.Long */
+
+.wrapper {
+  width: 1024px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+
+
+  header {
+    flex: none;
+    position: relative;
+    left: 0;
+    top: 0;
+
+    float: left;
+    margin-right: 50px;
+  }
+
+  section {
+    flex-grow: 2;
+    float: right;
+    flex-shrink: 1;
+  }
+}
