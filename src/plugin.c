@@ -250,6 +250,8 @@ DOME_printLog(DOME_Context ctx, const char* text, ...) {
 
 WREN_API_v0 wren_v0 = {
   .getUserData = wrenGetUserData,
+  .ensureSlots = wrenEnsureSlots,
+
 
   .setSlotNull = wrenSetSlotNull,
   .setSlotDouble = wrenSetSlotDouble,

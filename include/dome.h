@@ -81,6 +81,8 @@ typedef struct {
 } PLUGIN;
 
 typedef struct {
+  void (*ensureSlots)(WrenVM* vm, int slotCount);
+
   void (*setSlotNull)(WrenVM* vm, int slot);
   void (*setSlotBool)(WrenVM* vm, int slot, bool value);
   void (*setSlotDouble)(WrenVM* vm, int slot, double value);
