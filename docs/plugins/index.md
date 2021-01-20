@@ -24,7 +24,7 @@ Using plugins with DOME can hugely expand the functions of your application, but
    - [Post-Draw](#post-draw)
    - [Shutdown](#shutdown)
  * API Services
-   - [Core](#method-core)
+   - [Core](#core)
      * [enum: DOME_Result](#enum-dome_result)
      * [method: registerModule](#method-registermodule)
      * [method: registerFn](#method-registerfn)
@@ -37,7 +37,7 @@ Using plugins with DOME can hugely expand the functions of your application, but
      * [method: setState](#method-setstate)
      * [method: stop](#method-stop)
      * [enum: CHANNEL_STATE](#enum-channel_state)
- * [Example](example)
+ * [Example](#example)
 
 
 # Getting Started
