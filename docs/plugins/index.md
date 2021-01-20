@@ -9,9 +9,9 @@ Advanced developers are invited to build native plugins using a compiled languag
 
 Using plugins with DOME can hugely expand the functions of your application, but there are certain things to be aware of:
 
-  1. Standard DOME applications are safely portable, as the DOME platform is compiled for multiple platforms. This does not extend to plugins, which will need to be compiled for your target platforms and supplied with distributions of your application.
+  1. Standard DOME applications are safely portable, as the engine is compiled for multiple platforms. This does not extend to plugins, which will need to be compiled for your target platforms and supplied with distributions of your application.
   2. DOME cannot verify the correctness of plugin implementations, which means that a badly implemented plugin could cause DOME to crash unexpectedly.
-  3. Your plugin will need to expose symbols with C-style function names. It cannot access names which have been mangled.
+  3. Your plugin will need to expose symbols with C-style function names. DOME cannot access functions whose names have been mangled.
 
 # Contents 
 
@@ -41,10 +41,10 @@ Using plugins with DOME can hugely expand the functions of your application, but
 
 
 # Getting Started
-In order to start writing your plugins, you will need to include `dome.h` in your project. This file can be found in the `includes` folder of the GitHub repository.
+In order to start writing your plugins, you will need to include `dome.h` in your project. This file can be found [here](https://github.com/domeengine/dome/blob/main/includes/dome.h) in the `includes` folder of the GitHub repository.
 You will also need to configure your compiler/linker to ignore undefined methods and output a shared library. DOME supports plugins compiled as `.dll` (on Windows), `.so` (on Linux) and `.dylib` (on Mac OS X).
 
-The compiled library has to be available in the shared library path with respect to the working directory DOME is invoked from, not necessarily where DOME is located on disk.
+The compiled library has to be available in the shared library path with respect to the working directory DOME is invoked from, not necessarily where DOME is located on disk, or where your application's `main.wren` or `game.egg` file is.
 
 # Plugin Interfaces
 
@@ -63,7 +63,7 @@ DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI, DOME_Context ctx)
 DOME calls this function when the plugin is first loaded, which gives you a chance to perform any initialisation you need to.
 You can also signal to DOME that there was a problem by returning the correct error code.
 
-This is also the best opportunity to acquire the available APIs, thanks to the `DOME_getAPI`, which is explained in the [API Services](#api-services) section. The structs returned from this call should be stored for use throughout the lifetime of your plugin.
+This is also the best opportunity to acquire the available APIs, thanks to the `DOME_getAPI` function pointer, which is explained in the [API Services](#api-services) section. The structs returned from this call should be stored for use throughout the lifetime of your plugin.
 
 ### Pre-Update
 ```

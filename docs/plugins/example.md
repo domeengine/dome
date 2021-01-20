@@ -2,10 +2,9 @@
 
 Plugin Example
 ============
+This example has two parts: A plugin file and a DOME application which loads it:
 
-A basic example requires two parts: A plugin file and a Wren application which loads it:
-
-## Wren application
+## DOME application
 
 This is a basic example of loading a plugin, and making use of an external module
 to access native methods.
@@ -117,4 +116,14 @@ DOME_Result PLUGIN_onShutdown(DOME_Context ctx) {
 
 ```
 
+## Compiling your plugin
 
+For demonstration purposes, this is the command for compiling this plugin file on Mac OS X:
+
+```
+> gcc -dynamiclib -o pluginName.dylib -I../../include plugin.c -undefined dynamic_lookup
+```
+
+We tell it we are building a `dynamiclib`, and that we want to treat `undefined` functions as fine using `dynamic_lookup`, so that methods can be acquired and linked at runtime. You may also want to add optimisation flags to your compliation command, but each plugin's requirements will be unique.
+
+In this case, the `dome.h` file is located in `../../include`, so we make sure this is added to the include folder list. You should adjust this to suit your development environment as necessary.
