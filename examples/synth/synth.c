@@ -23,9 +23,6 @@ static const char* source = "class Synth {\n"
                     "foreign static playPattern()\n"
                   "}";
 
-
-
-
 static volatile _Atomic(double) globalTime = 0.0;
 // sample step
 static double step = 1.0f / 44100.0f;
@@ -362,7 +359,10 @@ DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getApi, DOME_Context ctx) {
   wren = DOME_getAPI(API_WREN, WREN_API_VERSION);
 
   DOME_log(ctx, "init hook triggered\n");
-  DOME_registerModule(ctx, "synth", source);
+  const DOME_Result result = DOME_registerModule(ctx, "synth", source);
+  if (result == DOME_RESULT_FAILURE) {
+    return result;
+  }
   DOME_registerFn(ctx, "synth", "static Synth.setTone(_,_)", setTone);
   DOME_registerFn(ctx, "synth", "static Synth.volume=(_)", setVolume);
   DOME_registerFn(ctx, "synth", "static Synth.volume", getVolume);

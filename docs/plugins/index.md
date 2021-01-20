@@ -25,6 +25,7 @@ Using plugins with DOME can hugely expand the functions of your application, but
    - [Shutdown](#shutdown)
  * API Services
    - [Core](#method-core)
+     * [enum: DOME_Result](#enum-dome_result)
      * [method: registerModule](#method-registermodule)
      * [method: registerFn](#method-registerfn)
      * [method: registerBindFn](#method-registerbindfn)
@@ -36,7 +37,6 @@ Using plugins with DOME can hugely expand the functions of your application, but
      * [method: setState](#method-setstate)
      * [method: stop](#method-stop)
      * [enum: CHANNEL_STATE](#enum-channel_state)
- * [enum: DOME_Result](#enum-dome_result)
  * [Example](example)
 
 
@@ -119,13 +119,24 @@ This API allows your plugin to register modules and provides some basic utilitie
 DOME_API_v0* core = (DOME_API_v0*)DOME_getAPI(API_DOME, DOME_API_VERSION);
 ```
 
+### Enums: 
+
+#### enum: DOME_Result
+
+Various methods return an enum of type `DOME_Result`, which indicates success or failure. These are the valid values:
+
+ * `DOME_RESULT_SUCCESS`
+ * `DOME_RESULT_FAILURE`
+ * `DOME_RESULT_UNKNOWN`
+
+
 ### Methods
 
 #### method: registerModule
 ```
 DOME_Result registerModule(DOME_Context ctx, const char* name, const char* moduleSource)`
 ```
-This call registers module `name` with the source code `moduleSource`.
+This call registers module `name` with the source code `moduleSource`. You cannot register modules with the same name as DOME's internal modules. These are reserved.
 
 #### method: registerFn
 ```
@@ -241,14 +252,6 @@ enum CHANNEL_STATE {
   CHANNEL_STOPPED
 }
 ```
-
-# enum: DOME_Result
-
-Various methods return an enum of type `DOME_Result`, which indicates success or failure. These are the valid values:
-
- * `DOME_RESULT_SUCCESS`
- * `DOME_RESULT_FAILURE`
- * `DOME_RESULT_UNKNOWN`
 
 # Example
 
