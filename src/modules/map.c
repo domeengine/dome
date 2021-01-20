@@ -1,6 +1,5 @@
 #include "modules.inc"
 
-
 typedef struct FUNCTION_NODE {
   char* signature;
   WrenForeignMethodFn fn;
@@ -10,6 +9,7 @@ typedef struct FUNCTION_NODE {
 typedef struct MODULE_NODE {
   const char* name;
   const char* source;
+  bool locked;
   DOME_BindClassFn foreignClassFn;
   struct FUNCTION_NODE* functions;
   struct MODULE_NODE* next;
@@ -19,18 +19,27 @@ typedef struct {
   MODULE_NODE* head;
 } MAP;
 
+internal MODULE_NODE* MAP_getModule(MAP* map, const char* name);
 
-internal void
+internal bool
 MAP_addModule(MAP* map, char* name, const char* source) {
+
+  if (MAP_getModule(map, name) != NULL) {
+    return false;
+  }
+
   MODULE_NODE* newNode = malloc(sizeof(MODULE_NODE));
 
   newNode->source = source;
   newNode->name = name;
   newNode->functions = NULL;
   newNode->foreignClassFn = NULL;
+  newNode->locked = false;
 
   newNode->next = map->head;
   map->head = newNode;
+
+  return true;
 }
 
 internal MODULE_NODE*
@@ -58,28 +67,37 @@ MAP_getSource(MAP* map, const char* moduleName) {
   return file;
 }
 
-internal DOME_Result
+internal bool
 MAP_bindForeignClass(MAP* map, char* moduleName, DOME_BindClassFn fn) {
   MODULE_NODE* module = MAP_getModule(map, moduleName);
   if (module != NULL) {
     module->foreignClassFn = fn;
-    return DOME_RESULT_SUCCESS;
-  } else {
-    return DOME_RESULT_FAILURE;
+    return true;
   }
+  return false;
+}
+
+internal bool
+MAP_addFunction(MAP* map, char* moduleName, char* signature, WrenForeignMethodFn fn) {
+  MODULE_NODE* module = MAP_getModule(map, moduleName);
+  if (module != NULL && !module->locked) {
+    FUNCTION_NODE* node = (FUNCTION_NODE*) malloc(sizeof(FUNCTION_NODE));
+    node->signature = signature;
+    node->fn = fn;
+
+    node->next = module->functions;
+    module->functions = node;
+    return true;
+  }
+  return false;
 }
 
 internal void
-MAP_addFunction(MAP* map, char* moduleName, char* signature, WrenForeignMethodFn fn) {
-  FUNCTION_NODE* node = (FUNCTION_NODE*) malloc(sizeof(FUNCTION_NODE));
-  node->signature = signature;
-  node->fn = fn;
-
-  MODULE_NODE* module = MAP_getModule(map, moduleName);
-  assert(module != NULL);
-
-  node->next = module->functions;
-  module->functions = node;
+MAP_lockModule(MAP* map, char* name) {
+  MODULE_NODE* module = MAP_getModule(map, name);
+  if (module != NULL) {
+    module->locked = true;
+  }
 }
 
 internal WrenForeignMethodFn

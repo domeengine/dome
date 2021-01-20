@@ -334,6 +334,20 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Plugin
   MAP_addFunction(&engine->moduleMap, "plugin", "static Plugin.f_load(_)", PLUGIN_load);
 
+
+  // Lock all the modules so plugins can't interfere with it
+  MAP_lockModule(&engine->moduleMap, "json");
+  MAP_lockModule(&engine->moduleMap, "plugin");
+  MAP_lockModule(&engine->moduleMap, "input");
+  MAP_lockModule(&engine->moduleMap, "audio");
+  MAP_lockModule(&engine->moduleMap, "graphics");
+  MAP_lockModule(&engine->moduleMap, "platform");
+  MAP_lockModule(&engine->moduleMap, "dome");
+  MAP_lockModule(&engine->moduleMap, "io");
+  MAP_lockModule(&engine->moduleMap, "image");
+  MAP_lockModule(&engine->moduleMap, "font");
+  MAP_lockModule(&engine->moduleMap, "stringUtils");
+
   return vm;
 }
 

@@ -214,16 +214,20 @@ DOME_registerModuleImpl(DOME_Context ctx, const char* name, const char* source) 
 
   ENGINE* engine = (ENGINE*)ctx;
   MAP* moduleMap = &(engine->moduleMap);
-  MAP_addModule(moduleMap, name, source);
-
-  return DOME_RESULT_SUCCESS;
+  if (MAP_addModule(moduleMap, name, source)) {
+    return DOME_RESULT_SUCCESS;
+  }
+  return DOME_RESULT_FAILURE;
 }
 
 internal DOME_Result
 DOME_registerBindFnImpl(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn) {
   ENGINE* engine = (ENGINE*)ctx;
   MAP* moduleMap = &(engine->moduleMap);
-  return MAP_bindForeignClass(moduleMap, moduleName, fn);
+  if (MAP_bindForeignClass(moduleMap, moduleName, fn)) {
+    return DOME_RESULT_SUCCESS;
+  }
+  return DOME_RESULT_FAILURE;
 }
 
 internal DOME_Result
@@ -231,9 +235,11 @@ DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signat
 
   ENGINE* engine = (ENGINE*)ctx;
   MAP* moduleMap = &(engine->moduleMap);
-  MAP_addFunction(moduleMap, moduleName, signature, (WrenForeignMethodFn)method);
+  if (MAP_addFunction(moduleMap, moduleName, signature, (WrenForeignMethodFn)method)) {
+    return DOME_RESULT_SUCCESS;
+  }
 
-  return DOME_RESULT_SUCCESS;
+  return DOME_RESULT_FAILURE;
 }
 
 internal DOME_Context
