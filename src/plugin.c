@@ -51,12 +51,25 @@ PLUGIN_reportHookError(ENGINE* engine, DOME_PLUGIN_HOOK hook, const char* plugin
   ENGINE_printLog(engine, "Aborting.\n");
 }
 
+#pragma GCC diagnostic push    //Save actual diagnostics state
+#pragma GCC diagnostic ignored "-Wpedantic"    //Disable pedantic
+internal inline DOME_Plugin_Hook
+acquireHook(void* handle, const char* functionName) {
+  return SDL_LoadFunction(handle, functionName);
+}
+
+internal inline DOME_Plugin_Init_Hook
+acquireInitHook(void* handle, const char* functionName) {
+  return SDL_LoadFunction(handle, functionName);
+}
+#pragma GCC diagnostic pop // Restore diagnostics state
+
+
 internal void
 PLUGIN_COLLECTION_free(ENGINE* engine) {
   PLUGIN_COLLECTION plugins = engine->plugins;
   for (size_t i = 0; i < plugins.count; i++) {
-    DOME_Plugin_Hook shutdownHook;
-    shutdownHook = (DOME_Plugin_Hook)SDL_LoadFunction(plugins.objectHandle[i], "PLUGIN_onShutdown");
+    DOME_Plugin_Hook shutdownHook = acquireHook(plugins.objectHandle[i], "PLUGIN_onShutdown");
     if (shutdownHook != NULL) {
       DOME_Result result = shutdownHook(engine);
       if (result != DOME_RESULT_SUCCESS) {
@@ -180,19 +193,19 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
 
   // Acquire hook function pointers
   DOME_Plugin_Hook hook;
-  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "PLUGIN_preUpdate");
+  hook = acquireHook(handle, "PLUGIN_preUpdate");
   if (hook != NULL) {
     plugins.preUpdateHook[next] = hook;
   }
-  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "PLUGIN_postUpdate");
+  hook = acquireHook(handle, "PLUGIN_postUpdate");
   if (hook != NULL) {
     plugins.postUpdateHook[next] = hook;
   }
-  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "PLUGIN_preDraw");
+  hook = acquireHook(handle, "PLUGIN_preDraw");
   if (hook != NULL) {
     plugins.preDrawHook[next] = hook;
   }
-  hook = (DOME_Plugin_Hook)SDL_LoadFunction(handle, "PLUGIN_postDraw");
+  hook = acquireHook(handle, "PLUGIN_postDraw");
   if (hook != NULL) {
     plugins.postDrawHook[next] = hook;
   }
@@ -200,7 +213,8 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
   engine->plugins = plugins;
 
   DOME_Plugin_Init_Hook initHook;
-  initHook = (DOME_Plugin_Init_Hook)SDL_LoadFunction(handle, "PLUGIN_onInit");
+  // initHook = (DOME_Plugin_Init_Hook)SDL_LoadFunction(handle, "PLUGIN_onInit");
+  initHook = acquireInitHook(handle, "PLUGIN_onInit");
   if (initHook != NULL) {
     return initHook(DOME_getAPI, engine);
   }
