@@ -14,6 +14,7 @@ The modules you can import are here:
 * [io](io)
 * [json](json)
 * [math](math)
+* [plugin](plugin)
 
 For example, the `graphics` module can be imported to access the `Canvas` and `Color` classes, like this:
 

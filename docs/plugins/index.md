@@ -5,17 +5,12 @@ Native Plugins
 
 Advanced developers are invited to build native plugins using a compiled language. This allows for deeper system access than DOME's module API's expose, as well as greater performance. It also makes the features of various shared libraries available, at a small cost.
 
-### Caveats 
-
-Using plugins with DOME can hugely expand the functions of your application, but there are certain things to be aware of:
-
-  1. Standard DOME applications are safely portable, as the engine is compiled for multiple platforms. This does not extend to plugins, which will need to be compiled for your target platforms and supplied with distributions of your application.
-  2. DOME cannot verify the correctness of plugin implementations, which means that a badly implemented plugin could cause DOME to crash unexpectedly.
-  3. Your plugin will need to expose symbols with C-style function names. DOME cannot access functions whose names have been mangled.
 
 # Contents 
 
  * [Getting Started](#getting-started)
+   - [Example](#example)
+   - [Caveats](#caveats)
  * Lifecycle hooks
    - [Init](#init)
    - [Pre-Update](#pre-update)
@@ -40,7 +35,6 @@ Using plugins with DOME can hugely expand the functions of your application, but
      * [method: setState](#method-setstate)
      * [method: stop](#method-stop)
      * [enum: CHANNEL_STATE](#enum-channel_state)
- * [Example](#example)
 
 
 # Getting Started
@@ -48,6 +42,20 @@ In order to start writing your plugins, you will need to include `dome.h` in you
 You will also need to configure your compiler/linker to ignore undefined methods and output a shared library. DOME supports plugins compiled as `.dll` (on Windows), `.so` (on Linux) and `.dylib` (on Mac OS X).
 
 The compiled library has to be available in the shared library path with respect to the working directory DOME is invoked from, not necessarily where DOME is located on disk, or where your application's `main.wren` or `game.egg` file is.
+
+You can load the plugin from your DOME application by calling [`Plugin.load(name)`](/modules/plugin)
+
+## Example
+
+You can find a well-commented example plugin and application on [this](example) page, which demonstrates all the currently available lifecycle hooks.
+
+## Caveats 
+
+Using plugins with DOME can hugely expand the functions of your application, but there are certain things to be aware of:
+
+  1. Standard DOME applications are safely portable, as the engine is compiled for multiple platforms. This does not extend to plugins, which will need to be compiled for your target platforms and supplied with distributions of your application.
+  2. DOME cannot verify the correctness of plugin implementations, which means that a badly implemented plugin could cause DOME to crash unexpectedly.
+  3. Your plugin will need to expose symbols with C-style function names. DOME cannot access functions whose names have been mangled.
 
 # Plugin Interfaces
 
@@ -63,8 +71,8 @@ Returning any result other than `DOME_RESULT_SUCCESS` will cause DOME to abort a
 DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI, DOME_Context ctx)
 ```
 
-DOME calls this function when the plugin is first loaded, which gives you a chance to perform any initialisation you need to.
-You can also signal to DOME that there was a problem by returning the correct error code.
+DOME calls this function when the plugin is loaded, which gives you a chance to perform any initialisation you need to.
+You can also signal to DOME that there was a problem by returning `DOME_RESULT_FAILURE`.
 
 This is also the best opportunity to acquire the available APIs, thanks to the `DOME_getAPI` function pointer, which is explained in the [API Services](#api-services) section. The structs returned from this call should be stored for use throughout the lifetime of your plugin.
 
@@ -286,6 +294,3 @@ enum CHANNEL_STATE {
 }
 ```
 
-# Example
-
-You can find a well-commented example plugin on [this](example) page, which demonstrates all the currently available lifecycle hooks.
