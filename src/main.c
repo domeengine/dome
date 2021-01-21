@@ -34,7 +34,7 @@
 // Import plugin-specific definitions
 #include "dome.h"
 // project-specific definitions
-#define external DOME_EXPORTED
+#define external
 #define internal DOME_NOT_EXPORTED static
 #define global_variable static
 #define local_persist static
