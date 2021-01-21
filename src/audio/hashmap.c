@@ -143,9 +143,10 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
     if (entry->key == NIL_KEY) {
       continue;
     }
-    ENTRY* dest;
+    ENTRY* dest = NULL;
     bool found = TABLE_findEntry(entries, capacity, entry->key, &dest);
     if (!found) {
+      assert(dest != NULL);
       dest->key = entry->key;
       dest->value = entry->value;
       table->count++;

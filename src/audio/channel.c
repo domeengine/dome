@@ -297,7 +297,7 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
 }
 
 internal CHANNEL_REF
-AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, char* soundId) {
+AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, const char* soundId) {
 
   AUDIO_CHANNEL* data = malloc(sizeof(AUDIO_CHANNEL));
   data->soundId = strdup(soundId);

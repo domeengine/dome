@@ -59,7 +59,7 @@ AUDIO_allocate(WrenVM* vm) {
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* audioEngine = engine->audioEngine;
   if (data->spec.freq != audioEngine->spec.freq) {
-    size_t newLength;
+    size_t newLength = 0;
     void* oldPtr = data->buffer;
     data->buffer = resample(data->buffer, data->length, data->spec.freq, audioEngine->spec.freq, &newLength);
     data->length = newLength;
