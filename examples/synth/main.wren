@@ -31,6 +31,9 @@ class Game {
       if (Keyboard["right"].justPressed) {
         Synth.volume = Synth.volume + 0.05
       }
+      if (Keyboard["return"].justPressed) {
+        Synth.playTone(350, 1000)
+      }
       for (i in -1...13) {
         var name = KEYS[i+1]
         if (Keyboard[name].justPressed) {
