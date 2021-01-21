@@ -18,7 +18,7 @@ Check out the documentation:
   * [io](modules/io)
   * [json](modules/json)
   * [math](modules/math)
-* [Plugins](plugins/)
+* [Native Plugins](plugins/)
 * Guides
   * [Import Resolution](guides/module-imports)
   * [Game Loop Behaviour](guides/game-loop)

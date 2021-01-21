@@ -1,6 +1,6 @@
 [< Back](..)
 
-Plugins
+Native Plugins
 ============
 
 Advanced developers are invited to build native plugins using a compiled language. This allows for deeper system access than DOME's module API's expose, as well as greater performance. It also makes the features of various shared libraries available, at a small cost.
