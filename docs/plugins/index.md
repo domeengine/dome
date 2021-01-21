@@ -139,12 +139,13 @@ Various methods return an enum of type `DOME_Result`, which indicates success or
 DOME_Result registerModule(DOME_Context ctx, const char* name, const char* moduleSource)`
 ```
 This call registers module `name` with the source code `moduleSource`. You cannot register modules with the same name as DOME's internal modules. These are reserved.
+Returns `DOME_RESULT_SUCCESS` if the module was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
 
 #### method: registerFn
 ```
 DOME_Result registerFn(DOME_Context ctx, const char* name, const char* signature, DOME_ForeignFn method)`
 ```
-Register `method` as the function to call for the foreign method specified by `signature` in the module `name`.
+Register `method` as the function to call for the foreign method specified by `signature` in the module `name`. Returns `DOME_RESULT_SUCCESS` if the function was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
 
 The format for the `signature` string is as follows:
  * `static` if the method is a static class method, followed by a space, otherwise both are omitted.
@@ -160,7 +161,8 @@ DOME_ForeignFn methods have the signature: `void method(WrenVM* vm)`
 ```
 DOME_Result registerBindFn(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn)
 ```
-Register a method to call when trying to resolve class allocators for the module `moduleName`. A `DOME_BindClassFn` has the signature: `WrenForeignClassMethods method(const char* className)`
+Register a method to call when trying to resolve class allocators for the module `moduleName`. Returns `DOME_RESULT_SUCCESS` if the function was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
+A `DOME_BindClassFn` has the signature: `WrenForeignClassMethods method(const char* className)`.
 
 
 #### method: getContext

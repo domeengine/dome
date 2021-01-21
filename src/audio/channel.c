@@ -19,18 +19,15 @@ CHANNEL_requestStop(CHANNEL* channel) {
 }
 
 internal inline bool
-CHANNEL_hasStopRequested(CHANNEL* channel) {
-  return channel->stopRequested;
-}
-
-internal inline void
-CHANNEL_setEnabled(CHANNEL* channel, bool enabled) {
-  channel->enabled = enabled;
+CHANNEL_isPlaying(CHANNEL* channel) {
+  return channel->state == CHANNEL_PLAYING
+    || channel->state == CHANNEL_STOPPING
+    || channel->state == CHANNEL_VIRTUALIZING;
 }
 
 internal inline bool
-CHANNEL_getEnabled(CHANNEL* channel) {
-  return channel->enabled;
+CHANNEL_hasStopRequested(CHANNEL* channel) {
+  return channel->stopRequested;
 }
 
 internal void
@@ -168,7 +165,7 @@ AUDIO_CHANNEL_update(CHANNEL_REF ref, WrenVM* vm) {
       break;
     case CHANNEL_PLAYING:
       AUDIO_CHANNEL_commit(channel);
-      if (CHANNEL_getEnabled(base) == false || CHANNEL_hasStopRequested(base)) {
+      if (CHANNEL_isPlaying(base) == false || CHANNEL_hasStopRequested(base)) {
         CHANNEL_setState(base, CHANNEL_STOPPING);
       }
       break;
@@ -185,7 +182,6 @@ AUDIO_CHANNEL_update(CHANNEL_REF ref, WrenVM* vm) {
       AUDIO_CHANNEL_commit(channel);
       break;
     case CHANNEL_STOPPED:
-      CHANNEL_setEnabled(base, false);
       AUDIO_CHANNEL_commit(channel);
       break;
     default: break;
@@ -250,7 +246,9 @@ AUDIO_CHANNEL_mix(CHANNEL_REF ref, float* stream, size_t totalSamples) {
   }
   channel->actualVolume = channel->current.volume;
   channel->actualPan = channel->current.pan;
-  CHANNEL_setEnabled(base, channel->current.loop || channel->current.position < length);
+  if (!channel->current.loop && channel->current.position >= length) {
+    CHANNEL_setState(base, CHANNEL_STOPPED);
+  }
 }
 internal float*
 resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFrequency, size_t* destLength) {

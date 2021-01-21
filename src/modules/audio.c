@@ -129,7 +129,7 @@ AUDIO_ENGINE_releaseHandles(AUDIO_ENGINE* audioEngine, WrenVM* vm) {
   CHANNEL* channel;
   while (TABLE_iterate(&(audioEngine->playing), &iter)) {
     channel = iter.value;
-    channel->enabled = false;
+    channel->state = CHANNEL_STOPPED;
     if (channel->finish != NULL) {
       channel->finish(channel->ref, vm);
     }
@@ -137,7 +137,7 @@ AUDIO_ENGINE_releaseHandles(AUDIO_ENGINE* audioEngine, WrenVM* vm) {
   TABLE_iterInit(&iter);
   while (TABLE_iterate(&(audioEngine->pending), &iter)) {
     channel = iter.value;
-    channel->enabled = false;
+    channel->state = CHANNEL_STOPPED;
     if (channel->finish != NULL) {
       channel->finish(channel->ref, vm);
     }
@@ -261,22 +261,6 @@ AUDIO_CHANNEL_getPosition(WrenVM* vm) {
   AUDIO_ENGINE* data = engine->audioEngine;
   wrenEnsureSlots(vm, 1);
   wrenSetSlotDouble(vm, 0, AUDIO_ENGINE_getPosition(data, ref));
-}
-
-internal void
-AUDIO_CHANNEL_getEnabled(WrenVM* vm) {
-  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
-
-  ENGINE* engine = wrenGetUserData(vm);
-  AUDIO_ENGINE* data = engine->audioEngine;
-
-  CHANNEL* base;
-  if (!AUDIO_ENGINE_get(data, ref, &base)) {
-    wrenSetSlotBool(vm, 0, false);
-    return;
-  }
-  wrenEnsureSlots(vm, 1);
-  wrenSetSlotBool(vm, 0, CHANNEL_getEnabled(base));
 }
 
 internal void

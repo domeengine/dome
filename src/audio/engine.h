@@ -5,9 +5,8 @@ typedef enum {
 } AUDIO_TYPE;
 
 struct CHANNEL_t {
-  CHANNEL_STATE state;
+  volatile CHANNEL_STATE state;
   CHANNEL_REF ref;
-  volatile bool enabled;
   bool stopRequested;
   CHANNEL_mix mix;
   CHANNEL_callback update;
@@ -53,3 +52,4 @@ internal void AUDIO_CHANNEL_update(CHANNEL_REF ref, WrenVM* vm);
 internal void AUDIO_CHANNEL_finish(CHANNEL_REF ref, WrenVM* vm);
 internal void CHANNEL_requestStop(CHANNEL* channel);
 internal void* CHANNEL_getData(CHANNEL* channel);
+internal inline bool CHANNEL_isPlaying(CHANNEL* channel);

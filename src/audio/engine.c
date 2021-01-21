@@ -35,9 +35,7 @@ void AUDIO_ENGINE_mix(void*  userdata,
   CHANNEL* channel;
   while (TABLE_iterate(&(audioEngine->playing), &iter)) {
     channel = iter.value;
-    if (!(channel->state == CHANNEL_PLAYING
-        || channel->state == CHANNEL_STOPPING
-        || channel->state == CHANNEL_VIRTUALIZING)) {
+    if (!CHANNEL_isPlaying(channel)) {
       continue;
     }
 
@@ -46,7 +44,7 @@ void AUDIO_ENGINE_mix(void*  userdata,
     float* writeCursor = (float*)(stream);
     CHANNEL_mix mixFn = channel->mix;
 
-    while (channel->enabled && requestServed < totalSamples) {
+    while (CHANNEL_isPlaying(channel) && requestServed < totalSamples) {
       SDL_memset(scratchBuffer, 0, bufferSampleSize * bytesPerSample);
       size_t requestSize = min(bufferSampleSize, totalSamples - requestServed);
       mixFn(channel->ref, scratchBuffer, requestSize);
@@ -133,7 +131,6 @@ AUDIO_ENGINE_channelInit(
   };
   CHANNEL channel = {
     .state = CHANNEL_INITIALIZE,
-    .enabled = true,
     .mix = mix,
     .update = update,
     .finish = finish,

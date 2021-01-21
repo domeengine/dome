@@ -47,8 +47,6 @@ foreign class SystemChannel is AudioChannel {
   foreign state
   foreign state=(value)
 
-  foreign enabled
-
   foreign loop=(do)
   foreign loop
 
@@ -60,7 +58,7 @@ foreign class SystemChannel is AudioChannel {
 
   foreign stop()
 
-  finished { !enabled || state == AudioState.STOPPED }
+  finished { state == AudioState.STOPPED }
 }
 
 class AudioEngine {
