@@ -52,3 +52,4 @@ internal void AUDIO_CHANNEL_mix(CHANNEL_REF ref, float* stream, size_t totalSamp
 internal void AUDIO_CHANNEL_update(CHANNEL_REF ref, WrenVM* vm);
 internal void AUDIO_CHANNEL_finish(CHANNEL_REF ref, WrenVM* vm);
 internal void CHANNEL_requestStop(CHANNEL* channel);
+internal void* CHANNEL_getData(CHANNEL* channel);

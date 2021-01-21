@@ -96,6 +96,14 @@ pre code {
   display: inline-block;
 }
 
+a code {
+  text-decoration: underline;
+ 
+  &:hover {
+    text-decoration: none;
+  }
+}
+
 .highlight,
 .highlight pre,
 .highlight table {

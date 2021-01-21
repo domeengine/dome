@@ -34,6 +34,8 @@ Using plugins with DOME can hugely expand the functions of your application, but
    - [Wren](#wren)
    - [Audio](#audio)
      * [method: channelCreate](#method-channelcreate)
+     * [method: getData](#method-getdata)
+     * [method: getState](#method-getstate)
      * [method: setState](#method-setstate)
      * [method: stop](#method-stop)
      * [enum: CHANNEL_STATE](#enum-channel_state)
@@ -52,7 +54,7 @@ The compiled library has to be available in the shared library path with respect
 
 DOME can call specially named functions implemented by your plugin, at different times during the game loop. For this to work, you must ensure that your compiler does not mangle names.
 
-Returning any result other than `DOME_RESULT_SUCCESS` will cause DOME to abort and shutdown. You should use the `core->log` call to print an error before this.
+Returning any result other than `DOME_RESULT_SUCCESS` will cause DOME to abort and shutdown. You should use the [`log(text)`](#method-log) call to print an error before this.
 
 ### Init
 
@@ -226,6 +228,24 @@ CHANNEL_REF channelCreate(DOME_Context ctx,
                           void* userdata);
 ```
 This creates a channel with the specified callbacks. You can set the `userdata` pointer to any relevant data you like. You are responsible for the management of the memory pointed to by that pointer. This also returns a CHANNEL_REF value, which can be used to manipulate the channel's state during execution.
+
+* `CHANNEL_mix` functions have a signature of `void mix(CHANNEL_REF ref, float* buffer, size_t sampleRequestSize)`. `ref` is a reference to the channel being mixed. `buffer` is an interleaved stereo buffer to write your audio data into. One sample is two values, for left and right, so `buffer` is `2 * sampleRequestSize` in size. 
+* `CHANNEL_callback` functions have this signature: `void callback(CHANNEL_REF ref, WrenVM* vm)`.
+  + `update` is called once a frame, and can be used for safely modifying the state of the channel data.
+  + `finish` is called once the channel as been set to `STOPPED`, before its memory is released.
+* `userdata` is a pointer set by the plugin developer, which can be used to pass through associated data, and retrieved by [`getData(ref)`](#method-getdata)
+
+#### method: getData
+``` 
+void* getData(CHANNEL_REF ref)
+```
+Fetch the `userdata` pointer for the given channel `ref`.
+
+#### method: getState
+``` 
+CHANNEL_STATE getState(CHANNEL_REF ref)
+```
+Get the current [state](#enum-channel_state) of the channel specified by `ref`.
 
 #### method: setState
 ``` 

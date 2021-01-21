@@ -53,6 +53,15 @@ AUDIO_ENGINE_setState(AUDIO_ENGINE* engine, CHANNEL_REF* ref, CHANNEL_STATE stat
   CHANNEL_setState(base, state);
 }
 
+internal CHANNEL_STATE
+AUDIO_ENGINE_getState(AUDIO_ENGINE* engine, CHANNEL_REF* ref) {
+  CHANNEL* base;
+  if (!AUDIO_ENGINE_get(engine, ref, &base)) {
+    return CHANNEL_STOPPED;
+  }
+  return CHANNEL_getState(base);
+}
+
 
 #define AUDIO_CHANNEL_GETTER(fieldName, method, fieldType, defaultValue) \
   internal fieldType \

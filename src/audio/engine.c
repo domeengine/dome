@@ -178,6 +178,16 @@ AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, CHANNEL_REF* ref) {
   }
 }
 
+internal void*
+AUDIO_ENGINE_getData(AUDIO_ENGINE* engine, CHANNEL_REF* ref) {
+  CHANNEL* channel;
+  AUDIO_ENGINE_get(engine, ref, &channel);
+  if (channel != NULL) {
+    return CHANNEL_getData(channel);
+  }
+  return NULL;
+}
+
 internal void
 AUDIO_ENGINE_stopAll(AUDIO_ENGINE* engine) {
   TABLE_ITERATOR iter;
