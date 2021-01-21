@@ -206,6 +206,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // StringUtils
   MAP_addFunction(&engine->moduleMap, "stringUtils", "static StringUtils.toLowercase(_)", STRING_UTILS_toLowercase);
+  MAP_lockModule(&engine->moduleMap, "stringUtils");
 
   // DOME
   MAP_addFunction(&engine->moduleMap, "dome", "static Process.f_exit(_)", PROCESS_exit);
@@ -223,6 +224,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.f_color=(_)", WINDOW_setColor);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.f_color", WINDOW_getColor);
   MAP_addFunction(&engine->moduleMap, "dome", "static Version.toString", VERSION_getString);
+  MAP_lockModule(&engine->moduleMap, "dome");
 
   // Canvas
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_pset(_,_,_)", CANVAS_pset);
@@ -241,10 +243,13 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_resize(_,_,_)", CANVAS_resize);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.width", CANVAS_getWidth);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.height", CANVAS_getHeight);
+  MAP_lockModule(&engine->moduleMap, "graphics");
 
   // Font
   MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.f_print(_,_,_,_)", FONT_RASTER_print);
   MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.antialias=(_)", FONT_RASTER_setAntiAlias);
+  MAP_lockModule(&engine->moduleMap, "font");
+
   // Image
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_loadFromFile(_)", IMAGE_loadFromFile);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_getPNG()", IMAGE_getPNG);
@@ -254,6 +259,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_pget(_,_)", IMAGE_pget);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_pset(_,_,_)", IMAGE_pset);
   MAP_addFunction(&engine->moduleMap, "image", "DrawCommand.draw(_,_)", DRAW_COMMAND_draw);
+  MAP_lockModule(&engine->moduleMap, "image");
 
   // Audio
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.loop=(_)", AUDIO_CHANNEL_setLoop);
@@ -271,10 +277,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.position", AUDIO_CHANNEL_getPosition);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.soundId", AUDIO_CHANNEL_getSoundId);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.id", AUDIO_CHANNEL_getId);
-
   MAP_addFunction(&engine->moduleMap, "audio", "AudioData.length", AUDIO_getLength);
-
   MAP_addFunction(&engine->moduleMap, "audio", "static AudioEngine.f_stopAllChannels()", AUDIO_ENGINE_wrenStopAll);
+  MAP_lockModule(&engine->moduleMap, "audio");
 
   // FileSystem
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.f_load(_,_)", FILESYSTEM_loadAsync);
@@ -286,7 +291,6 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.basePath()", FILESYSTEM_getBasePath);
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.createDirectory(_)", FILESYSTEM_createDirectory);
 
-
   // Buffer
   MAP_addFunction(&engine->moduleMap, "io", "static DataBuffer.f_capture()", DBUFFER_capture);
   MAP_addFunction(&engine->moduleMap, "io", "DataBuffer.f_data", DBUFFER_getData);
@@ -296,6 +300,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // AsyncOperation
   MAP_addFunction(&engine->moduleMap, "io", "AsyncOperation.result", ASYNCOP_getResult);
   MAP_addFunction(&engine->moduleMap, "io", "AsyncOperation.complete", ASYNCOP_getComplete);
+  MAP_lockModule(&engine->moduleMap, "io");
 
   // Input
   MAP_addFunction(&engine->moduleMap, "input", "static Input.f_captureVariables()", INPUT_capture);
@@ -315,6 +320,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.attached", GAMEPAD_isAttached);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.name", GAMEPAD_getName);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.id", GAMEPAD_getId);
+  MAP_lockModule(&engine->moduleMap, "input");
 
   // Json
   MAP_addFunction(&engine->moduleMap, "json", "JsonStream.stream_begin(_)", JSON_STREAM_begin);
@@ -325,27 +331,16 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "json", "JsonStream.lineno", JSON_STREAM_lineno);
   MAP_addFunction(&engine->moduleMap, "json", "JsonStream.pos", JSON_STREAM_pos);
   MAP_addFunction(&engine->moduleMap, "json", "static JsonStream.escapechar(_,_)", JSON_STREAM_escapechar);
+  MAP_lockModule(&engine->moduleMap, "json");
 
   // Platform
   MAP_addFunction(&engine->moduleMap, "platform", "static Platform.time", PLATFORM_getTime);
   MAP_addFunction(&engine->moduleMap, "platform", "static Platform.name", PLATFORM_getName);
+  MAP_lockModule(&engine->moduleMap, "platform");
 
   // Plugin
   MAP_addFunction(&engine->moduleMap, "plugin", "static Plugin.f_load(_)", PLUGIN_load);
-
-
-  // Lock all the modules so plugins can't interfere with it
-  MAP_lockModule(&engine->moduleMap, "json");
   MAP_lockModule(&engine->moduleMap, "plugin");
-  MAP_lockModule(&engine->moduleMap, "input");
-  MAP_lockModule(&engine->moduleMap, "audio");
-  MAP_lockModule(&engine->moduleMap, "graphics");
-  MAP_lockModule(&engine->moduleMap, "platform");
-  MAP_lockModule(&engine->moduleMap, "dome");
-  MAP_lockModule(&engine->moduleMap, "io");
-  MAP_lockModule(&engine->moduleMap, "image");
-  MAP_lockModule(&engine->moduleMap, "font");
-  MAP_lockModule(&engine->moduleMap, "stringUtils");
 
   return vm;
 }
