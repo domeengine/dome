@@ -216,9 +216,7 @@ const char*  getSlotBytes(WrenVM* vm, int slot, int* length);
 
 ## Audio
 
-This set of APIs gives you access to DOME's audio engine, to implement your own implementation of audio. You can use this to synthesize sounds, or play your own files.
-
-When you create a new audio channel, you have to supply callbacks for mixing, updating and finalizing the channel. This allows it to play nicely within DOME's expected audio lifecycle.
+This set of APIs gives you access to DOME's audio engine, to provide your own audio channel implementations. You can use this to synthesize sounds, or play custom audio formats.
 
 ### Acquisition
 
@@ -236,13 +234,19 @@ CHANNEL_REF channelCreate(DOME_Context ctx,
                           CHANNEL_callback finish, 
                           void* userdata);
 ```
+
+When you create a new audio channel, you have to supply callbacks for mixing, updating and finalizing the channel. This allows it to play nicely within DOME's expected audio lifecycle.
+
 This creates a channel with the specified callbacks. You can set the `userdata` pointer to any relevant data you like. You are responsible for the management of the memory pointed to by that pointer. This also returns a CHANNEL_REF value, which can be used to manipulate the channel's state during execution.
+
 
 * `CHANNEL_mix` functions have a signature of `void mix(CHANNEL_REF ref, float* buffer, size_t sampleRequestSize)`. `ref` is a reference to the channel being mixed. `buffer` is an interleaved stereo buffer to write your audio data into. One sample is two values, for left and right, so `buffer` is `2 * sampleRequestSize` in size. 
 * `CHANNEL_callback` functions have this signature: `void callback(CHANNEL_REF ref, WrenVM* vm)`.
   + `update` is called once a frame, and can be used for safely modifying the state of the channel data.
   + `finish` is called once the channel as been set to `STOPPED`, before its memory is released.
 * `userdata` is a pointer set by the plugin developer, which can be used to pass through associated data, and retrieved by [`getData(ref)`](#method-getdata)
+
+The channel will be created in the state `CHANNEL_INITIALIZE`, which gives you the opportunity to set up the channel configuration before it is played.
 
 #### method: getData
 ``` 
