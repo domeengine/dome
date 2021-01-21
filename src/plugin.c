@@ -242,6 +242,14 @@ DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signat
   return DOME_RESULT_FAILURE;
 }
 
+internal void
+DOME_lockModuleImpl(DOME_Context ctx, const char* moduleName) {
+  ENGINE* engine = (ENGINE*)ctx;
+  MAP* moduleMap = &(engine->moduleMap);
+
+  MAP_lockModule(moduleMap, moduleName);
+}
+
 internal DOME_Context
 DOME_getVMContext(WrenVM* vm) {
   return wrenGetUserData(vm);
@@ -279,6 +287,7 @@ DOME_API_v0 dome_v0 = {
   .registerModule = DOME_registerModuleImpl,
   .registerFn = DOME_registerFnImpl,
   .registerBindFn = DOME_registerBindFnImpl,
+  .lockModule = DOME_lockModuleImpl,
   .getContext = DOME_getVMContext,
   .log = DOME_printLog
 };

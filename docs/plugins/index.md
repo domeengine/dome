@@ -27,6 +27,7 @@ Using plugins with DOME can hugely expand the functions of your application, but
    - [Core](#core)
      * [enum: DOME_Result](#enum-dome_result)
      * [method: registerModule](#method-registermodule)
+     * [method: lockModule](#method-lockmodule)
      * [method: registerFn](#method-registerfn)
      * [method: registerBindFn](#method-registerbindfn)
      * [method: getContext](#method-getcontext)
@@ -140,6 +141,12 @@ DOME_Result registerModule(DOME_Context ctx, const char* name, const char* modul
 ```
 This call registers module `name` with the source code `moduleSource`. You cannot register modules with the same name as DOME's internal modules. These are reserved.
 Returns `DOME_RESULT_SUCCESS` if the module was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
+
+#### method: lockModule
+```
+void lockModule(DOME_Context ctx, const char* name)`
+```
+This marks the module `name` as locked, so that further functions cannot modify it. It is recommended to do this after you have registered all the methods for your module, however there is no requirement to.
 
 #### method: registerFn
 ```

@@ -104,6 +104,7 @@ typedef struct {
   DOME_Result (*registerModule)(DOME_Context ctx, const char* name, const char* source);
   DOME_Result (*registerFn)(DOME_Context ctx, const char* name, const char* signature, DOME_ForeignFn method);
   DOME_Result (*registerBindFn)(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn);
+  void (*lockModule)(DOME_Context ctx, const char* name);
   DOME_Context (*getContext)(WrenVM* vm);
   void (*log)(DOME_Context ctx, const char* text, ...);
 } DOME_API_v0;
@@ -150,6 +151,7 @@ DOME_EXPORTED void* DOME_getAPI(API_TYPE api, int version);
 #define DOME_registerBindFn(ctx, module, fn) api->registerBindFn(ctx, module, fn)
 #define DOME_registerFn(ctx, module, signature, method) \
   api->registerFn(ctx, module, signature, PLUGIN_method_wrap_##method)
+#define DOME_lockModule(ctx, module) api->lockModule(ctx, module)
 #define DOME_getContext(vm) (api->getContext(vm))
 
 #define DOME_log(ctx, ...) (api->log(ctx, ##__VA_ARGS__))
