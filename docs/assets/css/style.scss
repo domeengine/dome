@@ -8,7 +8,7 @@ body {
   color: #ffffff;
 }
 
-header h1 {
+header {
   text-align: center;
 }
 
@@ -190,28 +190,3 @@ a code {
 .highlight .vi { color: #e270ef } /* Name.Variable.Instance */
 .highlight .il { color: #e270ef } /* Literal.Number.Integer.Long */
 
-.wrapper {
-  width: 1024px;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-
-
-  header {
-    flex: 0;
-    position: relative;
-    left: 0;
-    top: 0;
-
-    float: left;
-    margin-right: 50px;
-    flex-shrink: 0.5;
-    padding-right: 50px;
-  }
-
-  section {
-    flex-grow: 2;
-    float: right;
-    flex-shrink: 0.5;
-  }
-}
