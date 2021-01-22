@@ -180,7 +180,6 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
       PLUGIN_COLLECTION_initRecord(&plugins, 0);
     }
     for (size_t i = next + 1; i < plugins.max; i++) {
-      printf("INIT\n");
       PLUGIN_COLLECTION_initRecord(&plugins, i);
     }
 
