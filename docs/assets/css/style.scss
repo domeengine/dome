@@ -198,18 +198,20 @@ a code {
 
 
   header {
-    flex: none;
+    flex: 0;
     position: relative;
     left: 0;
     top: 0;
 
     float: left;
     margin-right: 50px;
+    flex-shrink: 0.5;
+    padding-right: 50px;
   }
 
   section {
     flex-grow: 2;
     float: right;
-    flex-shrink: 1;
+    flex-shrink: 0.5;
   }
 }
