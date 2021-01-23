@@ -69,9 +69,6 @@ ifdef DOME_OPT_VERSION
 else
   DOME_OPTS += -DDOME_VERSION=\"$(shell git describe --tags)\"
 endif
-ifneq ($(filter windows,$(TAGS)),)
-  DOME_OPTS += -DWIN_EXPORT=1
-endif
 
 SDL_CONFIG ?= $(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || (which "$(LIBS)/sdl2-config" 1>/dev/null && echo "$(LIBS)/sdl2-config" || echo ""))
 

@@ -7,22 +7,20 @@
 
 // Define external for any platform
 #if defined _WIN32 || defined __CYGWIN__
-  #ifdef WIN_EXPORT
     // Exporting...
     #ifdef __GNUC__
       #define DOME_EXPORTED __attribute__ ((dllexport))
     #else
       #define DOME_EXPORTED __declspec(dllexport) // Note: actually gcc seems to also supports this syntax.
     #endif
-  #else
     #ifdef __GNUC__
-      #define DOME_EXPORTED __attribute__ ((dllimport))
+      #define DOME_IMPORTED __attribute__ ((dllimport))
     #else
-      #define DOME_EXPORTED __declspec(dllimport) // Note: actually gcc seems to also supports this syntax.
+      #define DOME_IMPORTED __declspec(dllimport) // Note: actually gcc seems to also supports this syntax.
     #endif
-  #endif
   #define DOME_NOT_EXPORTED
 #else
+  #define DOME_IMPORTED
   #if __GNUC__ >= 4
     #define DOME_EXPORTED __attribute__ ((visibility ("default")))
     #define DOME_NOT_EXPORTED  __attribute__ ((visibility ("hidden")))
@@ -142,10 +140,7 @@ typedef struct {
 } AUDIO_API_v0;
 
 typedef void* (*DOME_getAPIFunction)(API_TYPE api, int version);
-
-#if !defined _WIN32 && !defined __CYGWIN__
-DOME_EXPORTED void* DOME_getAPI(API_TYPE api, int version);
-#endif
+DOME_IMPORTED void* DOME_getAPI(API_TYPE api, int version);
 
 
 // Helper macros to abstract the api->method

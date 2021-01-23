@@ -143,12 +143,6 @@ PLUGIN_COLLECTION_runHook(ENGINE* engine, DOME_PLUGIN_HOOK hook) {
   return DOME_RESULT_SUCCESS;
 }
 
-// This is usually in the public header, but
-// it isn't supported for Windows so we forward declare it here as well.
-#if defined _WIN32 || defined __CYGWIN__
-external void* DOME_getAPI(API_TYPE api, int version);
-#endif
-
 internal DOME_Result
 PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
   void* handle = SDL_LoadObject(name);
