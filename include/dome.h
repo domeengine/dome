@@ -21,6 +21,7 @@
       #define DOME_IMPORTED __declspec(dllimport) // Note: actually gcc seems to also supports this syntax.
     #endif
   #endif
+  #define DOME_NOT_EXPORTED
 #else
   #if __GNUC__ >= 4
     #define DOME_EXPORTED __attribute__ ((visibility ("default")))
