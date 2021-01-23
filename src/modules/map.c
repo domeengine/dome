@@ -68,7 +68,7 @@ MAP_getSource(MAP* map, const char* moduleName) {
 }
 
 internal bool
-MAP_bindForeignClass(MAP* map, char* moduleName, DOME_BindClassFn fn) {
+MAP_bindForeignClass(MAP* map, const char* moduleName, DOME_BindClassFn fn) {
   MODULE_NODE* module = MAP_getModule(map, moduleName);
   if (module != NULL) {
     module->foreignClassFn = fn;
@@ -78,7 +78,7 @@ MAP_bindForeignClass(MAP* map, char* moduleName, DOME_BindClassFn fn) {
 }
 
 internal bool
-MAP_addFunction(MAP* map, char* moduleName, char* signature, WrenForeignMethodFn fn) {
+MAP_addFunction(MAP* map, const char* moduleName, const char* signature, WrenForeignMethodFn fn) {
   MODULE_NODE* module = MAP_getModule(map, moduleName);
   if (module != NULL && !module->locked) {
     FUNCTION_NODE* node = (FUNCTION_NODE*) malloc(sizeof(FUNCTION_NODE));
@@ -93,7 +93,7 @@ MAP_addFunction(MAP* map, char* moduleName, char* signature, WrenForeignMethodFn
 }
 
 internal void
-MAP_lockModule(MAP* map, char* name) {
+MAP_lockModule(MAP* map, const char* name) {
   MODULE_NODE* module = MAP_getModule(map, name);
   if (module != NULL) {
     module->locked = true;

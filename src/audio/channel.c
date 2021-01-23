@@ -1,25 +1,30 @@
 internal inline void*
 CHANNEL_getData(CHANNEL* channel) {
+  assert(channel != NULL);
   return channel->userdata;
 }
 
 internal inline void
 CHANNEL_setState(CHANNEL* channel, CHANNEL_STATE state) {
+  assert(channel != NULL);
   channel->state = state;
 }
 
 internal inline CHANNEL_STATE
 CHANNEL_getState(CHANNEL* channel) {
+  assert(channel != NULL);
   return channel->state;
 }
 
 internal inline void
 CHANNEL_requestStop(CHANNEL* channel) {
+  assert(channel != NULL);
   channel->stopRequested = true;
 }
 
 internal inline bool
 CHANNEL_isPlaying(CHANNEL* channel) {
+  assert(channel != NULL);
   return channel->state == CHANNEL_PLAYING
     || channel->state == CHANNEL_STOPPING
     || channel->state == CHANNEL_VIRTUALIZING;
@@ -27,6 +32,7 @@ CHANNEL_isPlaying(CHANNEL* channel) {
 
 internal inline bool
 CHANNEL_hasStopRequested(CHANNEL* channel) {
+  assert(channel != NULL);
   return channel->stopRequested;
 }
 

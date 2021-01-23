@@ -66,7 +66,7 @@ ENGINE_openLogFile(ENGINE* engine) {
 }
 
 internal void
-ENGINE_printLogVariadic(ENGINE* engine, char* line, va_list argList) {
+ENGINE_printLogVariadic(ENGINE* engine, const char* line, va_list argList) {
   va_list args;
   va_copy(args, argList);
   size_t bufSize = vsnprintf(NULL, 0, line, args) + 1;

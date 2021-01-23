@@ -78,7 +78,7 @@ PLUGIN_COLLECTION_free(ENGINE* engine) {
     }
     plugins.active[i] = false;
 
-    free(plugins.name[i]);
+    free((void*)plugins.name[i]);
     plugins.name[i] = NULL;
 
     SDL_UnloadObject(plugins.objectHandle[i]);
@@ -93,21 +93,21 @@ PLUGIN_COLLECTION_free(ENGINE* engine) {
   plugins.max = 0;
   plugins.count = 0;
 
-  free(plugins.active);
+  free((void*)plugins.active);
   plugins.active = NULL;
 
-  free(plugins.name);
+  free((void*)plugins.name);
   plugins.name = NULL;
 
-  free(plugins.objectHandle);
+  free((void*)plugins.objectHandle);
   plugins.objectHandle = NULL;
 
   engine->plugins = plugins;
 
-  free(plugins.preUpdateHook);
-  free(plugins.postUpdateHook);
-  free(plugins.preDrawHook);
-  free(plugins.postDrawHook);
+  free((void*)plugins.preUpdateHook);
+  free((void*)plugins.postUpdateHook);
+  free((void*)plugins.preDrawHook);
+  free((void*)plugins.postDrawHook);
 }
 
 internal DOME_Result
