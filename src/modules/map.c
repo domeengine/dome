@@ -22,7 +22,7 @@ typedef struct {
 internal MODULE_NODE* MAP_getModule(MAP* map, const char* name);
 
 internal bool
-MAP_addModule(MAP* map, char* name, const char* source) {
+MAP_addModule(MAP* map, const char* name, const char* source) {
 
   if (MAP_getModule(map, name) != NULL) {
     return false;

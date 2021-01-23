@@ -84,7 +84,7 @@ WARNING_FLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
 else ifneq ($(filter windows,$(TAGS)),)
 WARNING_FLAGS += -Wno-discarded-qualifiers -Wno-clobbered
 else ifneq ($(filter linux,$(TAGS)),)
-	WARNING_FLAGS += -Wno-clobbered
+	WARNING_FLAGS += -Wno-clobbered -Wno-maybe-uninitialized
 endif
 
 
