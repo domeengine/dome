@@ -35,7 +35,7 @@
 #include "dome.h"
 // project-specific definitions
 #define external DOME_EXPORTED
-#define internal DOME_NOT_EXPORTED static
+#define internal DOME_NOT_EXPORTED
 #define global_variable static
 #define local_persist static
 
