@@ -118,12 +118,30 @@ DOME_Result PLUGIN_onShutdown(DOME_Context ctx) {
 
 ## Compiling your plugin
 
-For demonstration purposes, this is the command for compiling this plugin file on Mac OS X:
+Compiling plugins is a little tricky, as each platform has slightly different requirements. This section attempts to demonstrate ways of doing this on the common platforms.
 
+
+The `dome.h` file is located in `../../include`, so we make sure this is added to the include folder list. You can adjust this to suit your development environment as necessary.
+
+### Mac OS X
 ```
 > gcc -dynamiclib -o pluginName.dylib -I../../include plugin.c -undefined dynamic_lookup
 ```
 
+The resulting file should be in the working directory where DOME is invoked from.
+
 We tell it we are building a `dynamiclib`, and that we want to treat `undefined` functions as fine using `dynamic_lookup`, so that methods can be acquired and linked at runtime. You may also want to add optimisation flags to your compliation command, but each plugin's requirements will be unique.
 
-In this case, the `dome.h` file is located in `../../include`, so we make sure this is added to the include folder list. You should adjust this to suit your development environment as necessary.
+### Windows
+```
+> gcc -O3 -std=gnu11 -shared -fPIC  -I../../include pluginName.c -Wl,--unresolved-symbols=ignore-in-object-files -o pluginName.dll
+```
+This example uses MSYS/MinGW for compiling the library on Windows, but there's no reason you couldn't use Visual Studio to compile a plugin instead. The `.dll` needs to be in the directory where DOME is invoked from.
+
+### Linux:
+```
+> gcc -O3 -std=c11 -shared -o pluginName.so -fPIC  -I../../include pluginName.c
+```
+The resulting `.so` file needs be placed somewhere that the operating system knows to look for it. You might need to add the path to `LD_LIBRARY_PATH`, or position it in a user library folder, as appropriate.
+
+

@@ -41,7 +41,7 @@ Advanced developers are invited to build native plugins using a compiled languag
 In order to start writing your plugins, you will need to include `dome.h` in your project. This file can be found [here](https://github.com/domeengine/dome/blob/main/includes/dome.h) in the `includes` folder of the GitHub repository.
 You will also need to configure your compiler/linker to ignore undefined methods and output a shared library. DOME supports plugins compiled as `.dll` (on Windows), `.so` (on Linux) and `.dylib` (on Mac OS X).
 
-The compiled library has to be available in the shared library path with respect to the working directory DOME is invoked from, not necessarily where DOME is located on disk, or where your application's `main.wren` or `game.egg` file is.
+The compiled library has to be available in the shared library path, which varies by operating system convention. Consult your operating system's developer documentation for more details.
 
 You can load the plugin from your DOME application by calling [`Plugin.load(name)`](/modules/plugin)
 
