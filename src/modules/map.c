@@ -1,7 +1,7 @@
 #include "modules.inc"
 
 typedef struct FUNCTION_NODE {
-  char* signature;
+  const char* signature;
   WrenForeignMethodFn fn;
   struct FUNCTION_NODE* next;
 } FUNCTION_NODE;
