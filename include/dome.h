@@ -8,28 +8,32 @@
 // Define external for any platform
 #if defined _WIN32 || defined __CYGWIN__
     // Exporting...
-  #ifdef WIN_EXPORT
-    #ifdef __GNUC__
-      #define DOME_EXPORTED __attribute__ ((dllexport))
-    #else
-      #define DOME_EXPORTED __declspec(dllexport) // Note: actually gcc seems to also supports this syntax.
-    #endif
+  #ifdef __GNUC__
+    #define DOME_EXPORT __attribute__ ((dllexport))
   #else
-    #ifdef __GNUC__
-      #define DOME_IMPORTED __attribute__ ((dllimport))
-    #else
-      #define DOME_IMPORTED __declspec(dllimport) // Note: actually gcc seems to also supports this syntax.
-    #endif
+    #define DOME_EXPORT __declspec(dllexport) // Note: actually gcc seems to also supports this syntax.
   #endif
-  #define DOME_NOT_EXPORTED
+  #ifdef __GNUC__
+    #define DOME_IMPORT __attribute__ ((dllimport))
+  #else
+    #define DOME_IMPORT __declspec(dllimport) // Note: actually gcc seems to also supports this syntax.
+  #endif
+  #define DOME_INTERNAL
 #else
   #if __GNUC__ >= 4
-    #define DOME_EXPORTED __attribute__ ((visibility ("default")))
-    #define DOME_NOT_EXPORTED  __attribute__ ((visibility ("hidden")))
+    #define DOME_EXPORT __attribute__ ((visibility ("default")))
+    #define DOME_INTERNAL  __attribute__ ((visibility ("hidden")))
   #else
-    #define DOME_EXPORTED
-    #define DOME_NOT_EXPORTED
+    #define DOME_EXPORT
+    #define DOME_INTERNAL
   #endif
+  #define DOME_IMPORT
+#endif
+
+#ifdef WIN_EXPORT
+  #define PUBLIC_EXPORT DOME_EXPORT
+#else
+  #define PUBLIC_EXPORT DOME_IMPORT
 #endif
 
 
@@ -142,7 +146,7 @@ typedef struct {
 } AUDIO_API_v0;
 
 typedef void* (*DOME_getAPIFunction)(API_TYPE api, int version);
-DOME_EXPORTED void* DOME_getAPI(API_TYPE api, int version);
+PUBLIC_EXPORT void* DOME_getAPI(API_TYPE api, int version);
 
 
 // Helper macros to abstract the api->method
@@ -158,7 +162,7 @@ DOME_EXPORTED void* DOME_getAPI(API_TYPE api, int version);
 
 #define PLUGIN_method(name, ctx, vm) \
   static void PLUGIN_method_##name(DOME_Context ctx, WrenVM* vm); \
-  DOME_EXPORTED void PLUGIN_method_wrap_##name(WrenVM* vm) { \
+  DOME_EXPORT void PLUGIN_method_wrap_##name(WrenVM* vm) { \
     DOME_Context ctx = DOME_getContext(vm); \
     PLUGIN_method_##name(ctx, vm);\
   } \

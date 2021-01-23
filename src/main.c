@@ -35,8 +35,8 @@
 #define WIN_EXPORT
 #include "dome.h"
 // project-specific definitions
-#define external DOME_EXPORTED
-#define internal DOME_NOT_EXPORTED static
+#define external DOME_EXPORT
+#define internal DOME_INTERNAL static
 #define global_variable static
 #define local_persist static
 

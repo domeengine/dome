@@ -389,7 +389,7 @@ PLUGIN_method(playNote, ctx, vm) {
   DOME_log(ctx, "Octave: %i - Note: %i - Frequency: %f\n", octave, pitch, synth.frequency);
 }
 
-DOME_EXPORTED DOME_Result
+DOME_EXPORT DOME_Result
 PLUGIN_onInit(DOME_getAPIFunction DOME_getApi, DOME_Context ctx) {
   api = DOME_getApi(API_DOME, DOME_API_VERSION);
   audio = DOME_getApi(API_AUDIO, DOME_API_VERSION);
@@ -422,7 +422,7 @@ PLUGIN_onInit(DOME_getAPIFunction DOME_getApi, DOME_Context ctx) {
 }
 
 
-DOME_EXPORTED DOME_Result
+DOME_EXPORT DOME_Result
 PLUGIN_preUpdate(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
