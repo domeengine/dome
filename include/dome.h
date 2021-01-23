@@ -142,7 +142,10 @@ typedef struct {
 } AUDIO_API_v0;
 
 typedef void* (*DOME_getAPIFunction)(API_TYPE api, int version);
+
+#if !defined _WIN32 && !defined __CYGWIN__
 DOME_EXPORTED void* DOME_getAPI(API_TYPE api, int version);
+#endif
 
 
 // Helper macros to abstract the api->method

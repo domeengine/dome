@@ -86,6 +86,12 @@ typedef struct {
 static SYNTH synth;
 
 
+inline bool isNoteLetter(char c) {
+  return (c >= 'a' && c <= 'g') || (c >= 'A' && c <= 'G');
+}
+// GNU11 standards are weird about inlines
+bool isNoteLetter(char c);
+
 float w(double frequency) {
   return (2 * M_PI * frequency);
 }
@@ -255,10 +261,6 @@ void SYNTH_finish(CHANNEL_REF ref, WrenVM* vm) {
   }
   synth.pattern = NULL;
   synth.pendingPattern = NULL;
-}
-
-inline bool isNoteLetter(char c) {
-  return (c >= 'a' && c <= 'g') || (c >= 'A' && c <= 'G');
 }
 
 PLUGIN_method(playPattern, ctx, vm) {
