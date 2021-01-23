@@ -451,7 +451,7 @@ ENGINE_resizeBlitBuffer(ENGINE* engine, size_t width, size_t height) {
   return buffer->pixels;
 }
 
-internal unsigned char*
+internal unsigned const char*
 defaultFontLookup(utf8_int32_t codepoint) {
   const local_persist unsigned char empty[8] = { 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F };
   if (codepoint >= 0 && codepoint < 0x7F) {
