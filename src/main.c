@@ -32,6 +32,7 @@
 #include <vendor.h>
 
 // Import plugin-specific definitions
+#define WIN_EXPORT
 #include "dome.h"
 // project-specific definitions
 #define external DOME_EXPORTED

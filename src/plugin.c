@@ -305,7 +305,6 @@ DOME_API_v0 dome_v0 = {
   .log = DOME_printLog
 };
 
-
 external void*
 DOME_getAPI(API_TYPE api, int version) {
   if (api == API_DOME) {
