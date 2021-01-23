@@ -7,4 +7,4 @@ synth.so: synth.c
 	gcc -O3 -std=c11 -shared -o synth.so -fPIC  -I../../include -lm -latomic synth.c
 
 synth.dll: synth.c
-	gcc -O3 -std=gnu11 -DWIN_EXPORT=1 -shared -fPIC  -I../../include synth.c -lm -latomic -Wl,--unresolved-symbols=ignore-in-object-files -o synth.dll
+	gcc -O3 -std=gnu11 -shared -fPIC  -I../../include synth.c -lm -latomic -Wl,--unresolved-symbols=ignore-in-object-files -o synth.dll
