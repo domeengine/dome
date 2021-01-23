@@ -388,9 +388,9 @@ PLUGIN_method(playNote, ctx, vm) {
 }
 
 DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getApi, DOME_Context ctx) {
-  api = DOME_getAPI(API_DOME, DOME_API_VERSION);
-  audio = DOME_getAPI(API_AUDIO, DOME_API_VERSION);
-  wren = DOME_getAPI(API_WREN, WREN_API_VERSION);
+  api = DOME_getApi(API_DOME, DOME_API_VERSION);
+  audio = DOME_getApi(API_AUDIO, DOME_API_VERSION);
+  wren = DOME_getApi(API_WREN, WREN_API_VERSION);
 
   DOME_log(ctx, "init hook triggered\n");
   const DOME_Result result = DOME_registerModule(ctx, "synth", source);
