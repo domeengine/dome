@@ -382,6 +382,7 @@ ENGINE_pget(ENGINE* engine, int64_t x, int64_t y) {
   }
   return 0xFF000000;
 }
+
 inline internal void
 ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 
