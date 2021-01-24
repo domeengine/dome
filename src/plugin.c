@@ -145,7 +145,13 @@ PLUGIN_COLLECTION_runHook(ENGINE* engine, DOME_PLUGIN_HOOK hook) {
 
 internal DOME_Result
 PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
+  bool shouldFree = false;
+  const char* path = resolvePath(name, &shouldFree);
+  printf("%s\n", path);
   void* handle = SDL_LoadObject(name);
+  if (shouldFree) {
+    free((void*)path);
+  }
   if (handle == NULL) {
     ENGINE_printLog(engine, "%s\n", SDL_GetError());
     return DOME_RESULT_FAILURE;
