@@ -170,7 +170,7 @@ The format for the `signature` string is as follows:
    - If this is a field setter, add `=(_)`
    - If this is a method, then parenthesis and a comma seperated list of underscores (`_`) follow, for the number of arguments the method takes. Wren methods can only have up to 16 arguments.
 
-DOME_ForeignFn methods have the signature: `void method(WrenVM* vm)`
+`DOME_ForeignFn` methods have the signature: `void method(WrenVM* vm)`
 
 #### method: registerBindFn
 ```
