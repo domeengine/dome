@@ -523,6 +523,7 @@ int main(int argc, char* args[])
       // Not a tar file, use the given path or main.wren
       strcpy(pathBuf, base);
       strcat(pathBuf, !autoResolve ? fileName : mainFileName);
+      chdir(base);
       engine.argv[1] = strdup(pathBuf);
       strcpy(pathBuf, !autoResolve ? fileName : mainFileName);
     }
