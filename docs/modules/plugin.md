@@ -9,16 +9,16 @@ The `plugin` module is the gateway to loading [native plugins](/plugins/) which 
 
 ### Static Methods
 
-#### `static load(name)`
+#### `static load(name: String): Void`
 
-This will search the current execution context for a plugin of the given `name` and load it.
+This will search the current execution context for a plugin of the given `name` and load it. 
 
 The name of the library must be as follows, for different platforms. Assuming your plugin was named `"test"`:
   * On Windows, the file would be `test.dll`
   * On Mac OS X, the file must be named `test.dylib`
   * On Linux and other platforms, the file must be `test.so`
 
-Where these shared library files can be located varies by operating system, and the system-specific documentation should be consulted. In most cases, keeping them in the working directory where DOME is _invoked from_ is sufficient, but this is not guarenteed.
+The `name` can be treated as a relative file path from the location of your application entry point, but it is recommended to place plugin library files in the same folder as your `main.wren` or `game.egg` file, for the best compatibility across platforms.
 
 Once the plugin library is loaded, DOME will execute its [Init hook](/plugins/#init), if available. If the hook reports a failure, or the library could not be found, `Plugin.load()` will abort the current fiber.
 
