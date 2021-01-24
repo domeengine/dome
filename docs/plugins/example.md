@@ -9,7 +9,7 @@ This example has two parts: A plugin file and a DOME application which loads it:
 This is a basic example of loading a plugin, and making use of an external module
 to access native methods.
 
-```wren
+```c++
 import "plugin" for Plugin
 
 Plugin.load("test")
@@ -79,7 +79,7 @@ void alertMethod(WrenVM* vm) {
   core->log(ctx, "%s\n", text);
 }
 
-DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
+DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
     DOME_Context ctx) {
 
   // Fetch the latest Core API and save it for later use.
@@ -103,21 +103,21 @@ DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
   return DOME_RESULT_SUCCESS;
 }
 
-DOME_Result PLUGIN_preUpdate(DOME_Context ctx) {
+DOME_EXPORT DOME_Result PLUGIN_preUpdate(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
 
-DOME_Result PLUGIN_postUpdate(DOME_Context ctx) {
+DOME_EXPORT DOME_Result PLUGIN_postUpdate(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
-DOME_Result PLUGIN_preDraw(DOME_Context ctx) {
+DOME_EXPORT DOME_Result PLUGIN_preDraw(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
-DOME_Result PLUGIN_postDraw(DOME_Context ctx) {
+DOME_EXPORT DOME_Result PLUGIN_postDraw(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
 
-DOME_Result PLUGIN_onShutdown(DOME_Context ctx) {
+DOME_EXPORT DOME_Result PLUGIN_onShutdown(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
 ```

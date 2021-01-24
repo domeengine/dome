@@ -113,7 +113,7 @@ This hook occurs when the plugin is being unloaded, usually because DOME is in t
 # API Services
 
 The DOME Plugin API is split into different pieces, divided by general purpose and version. This is to allow maximum backwards-compatibility, as new features are added.
-The engine  will endeavour to support previous versions of an API for as long as possible, but no guarentees will be made for compatibility across major versions of DOME.
+The engine will endeavour to support previous versions of an API for as long as possible, but no guarentees will be made for compatibility across major versions of DOME.
 
 APIs are provided as a struct of function pointers, returned from:
 ```
@@ -168,7 +168,10 @@ The format for the `signature` string is as follows:
  * `methodName` which is the name of the field/method being exposed.
    - If this is a field getter, nothing else is needed.
    - If this is a field setter, add `=(_)`
-   - If this is a method, then parenthesis and a comma seperated list of underscores (`_`) follow, for the number of arguments the method takes. Wren methods can only have up to 16 arguments.
+   - If this is a method, then parenthesis and a comma seperated list of underscores (`_`) follow, for the number of arguments the method takes. 
+   - You can also use the setter and getter syntax for the class' subscript operator `[]`, which can be defined with one or more parameters.
+   - Wren methods can have up to 16 arguments, and are overloaded by arity. For example, `Test.do(_)` is considered different to `Test.do(_,_)` and so on.
+   
 
 `DOME_ForeignFn` methods have the signature: `void method(WrenVM* vm)`
 

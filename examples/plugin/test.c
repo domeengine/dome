@@ -38,7 +38,7 @@ void alertMethod(WrenVM* vm) {
   core->log(ctx, "%s\n", text);
 }
 
-DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
+DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
     DOME_Context ctx) {
 
   // Fetch the latest Core API and save it for later use.
@@ -62,21 +62,21 @@ DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
   return DOME_RESULT_SUCCESS;
 }
 
-DOME_Result PLUGIN_preUpdate(DOME_Context ctx) {
+DOME_EXPORT DOME_Result PLUGIN_preUpdate(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
 
-DOME_Result PLUGIN_postUpdate(DOME_Context ctx) {
+DOME_EXPORT DOME_Result PLUGIN_postUpdate(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
-DOME_Result PLUGIN_preDraw(DOME_Context ctx) {
+DOME_EXPORT DOME_Result PLUGIN_preDraw(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
-DOME_Result PLUGIN_postDraw(DOME_Context ctx) {
+DOME_EXPORT DOME_Result PLUGIN_postDraw(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
 
-DOME_Result PLUGIN_onShutdown(DOME_Context ctx) {
+DOME_EXPORT DOME_Result PLUGIN_onShutdown(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
 
