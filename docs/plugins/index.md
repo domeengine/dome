@@ -78,7 +78,8 @@ Returning any result other than `DOME_RESULT_SUCCESS` will cause DOME to abort a
 ### Init
 
 ```
-DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI, DOME_Context ctx)
+DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
+                          DOME_Context ctx)
 ```
 
 DOME calls this function when the plugin is loaded, which gives you a chance to perform any initialisation you need to.
@@ -162,20 +163,26 @@ Various methods return an enum of type `DOME_Result`, which indicates success or
 
 #### method: registerModule
 ```
-DOME_Result registerModule(DOME_Context ctx, const char* name, const char* moduleSource)`
+DOME_Result registerModule(DOME_Context ctx, 
+                           const char* name, 
+                           const char* moduleSource)
 ```
 This call registers module `name` with the source code `moduleSource`. You cannot register modules with the same name as DOME's internal modules. These are reserved.
 Returns `DOME_RESULT_SUCCESS` if the module was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
 
 #### method: lockModule
 ```
-void lockModule(DOME_Context ctx, const char* name)`
+void lockModule(DOME_Context ctx, const char* name)
 ```
 This marks the module `name` as locked, so that further functions cannot modify it. It is recommended to do this after you have registered all the methods for your module, however there is no requirement to.
 
 #### method: registerClass
 ```
-DOME_Result registerClass(DOME_Context ctx, const char* moduleName, const char* className, DOME_ForeignFn allocate, DOME_FinalizerFn finalize)
+DOME_Result registerClass(DOME_Context ctx, 
+                          const char* moduleName, 
+                          const char* className, 
+                          DOME_ForeignFn allocate, 
+                          DOME_FinalizerFn finalize)
 ```
 Register the `allocate` and `finalize` methods for `className` in `moduleName`, so that instances of the foreign class can be allocated, and optionally finalized.
 The `finalize` method is your final chance to deal with the userdata attached to your foreign class. You won't have VM access inside this method.
@@ -185,7 +192,10 @@ Returns `DOME_RESULT_SUCCESS` if the class is registered and `DOME_RESULT_FAILUR
 
 #### method: registerFn
 ```
-DOME_Result registerFn(DOME_Context ctx, const char* name, const char* signature, DOME_ForeignFn method)`
+DOME_Result registerFn(DOME_Context ctx, 
+                       const char* name, 
+                       const char* signature, 
+                       DOME_ForeignFn method)
 ```
 Register `method` as the function to call for the foreign method specified by `signature` in the module `name`. Returns `DOME_RESULT_SUCCESS` if the function was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
 
