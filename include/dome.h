@@ -61,15 +61,25 @@ typedef enum {
 typedef struct WrenVM WrenVM;
 typedef void (*WrenForeignMethodFn)(WrenVM* vm);
 typedef void (*WrenFinalizerFn)(void* data);
-typedef struct {
-  WrenForeignMethodFn allocate;
-  WrenFinalizerFn finalize;
-} WrenForeignClassMethods;
+
+typedef enum
+{
+  WREN_TYPE_BOOL,
+  WREN_TYPE_NUM,
+  WREN_TYPE_FOREIGN,
+  WREN_TYPE_LIST,
+  WREN_TYPE_MAP,
+  WREN_TYPE_NULL,
+  WREN_TYPE_STRING,
+
+  // The object is of a type that isn't accessible by the C API.
+  WREN_TYPE_UNKNOWN
+} WrenType;
 #endif
 
 typedef DOME_Result (*DOME_Plugin_Hook) (DOME_Context context);
-typedef void (*DOME_ForeignFn)(WrenVM* vm);
-typedef void (*DOME_FinalizerFn)(void* userdata);
+typedef WrenForeignMethodFn DOME_ForeignFn;
+typedef WrenFinalizerFn DOME_FinalizerFn;
 
 
 
@@ -93,6 +103,8 @@ typedef struct {
   void (*setSlotString)(WrenVM* vm, int slot, const char* text);
   void (*setSlotBytes)(WrenVM* vm, int slot, const char* data, size_t length);
   void* (*setSlotNewForeign)(WrenVM* vm, int slot, int classSlot, size_t length);
+  void (*setSlotNewList)(WrenVM* vm, int slot);
+  void (*setSlotNewMap)(WrenVM* vm, int slot);
 
   DOME_Context (*getUserData)(WrenVM* vm);
   bool (*getSlotBool)(WrenVM* vm, int slot);
@@ -102,6 +114,19 @@ typedef struct {
   void* (*getSlotForeign)(WrenVM* vm, int slot);
 
   void (*abortFiber)(WrenVM* vm, int slot);
+  int (*getSlotCount)(WrenVM* vm);
+  WrenType (*getSlotType)(WrenVM* vm, int slot);
+
+  int (*getListCount)(WrenVM* vm, int slot);
+  void (*getListElement)(WrenVM* vm, int listSlot, int index, int elementSlot);
+  void (*setListElement)(WrenVM* vm, int listSlot, int index, int elementSlot);
+  void (*insertInList)(WrenVM* vm, int listSlot, int index, int elementSlot);
+
+  int (*getMapCount)(WrenVM* vm, int slot);
+  bool (*getMapContainsKey)(WrenVM* vm, int mapSlot, int keySlot);
+  void (*getMapValue)(WrenVM* vm, int mapSlot, int keySlot, int valueSlot);
+  void (*setMapValue)(WrenVM* vm, int mapSlot, int keySlot, int valueSlot);
+  void (*removeMapValue)(WrenVM* vm, int mapSlot, int keySlot, int removedValueSlot);
 } WREN_API_v0;
 
 typedef struct {

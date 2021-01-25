@@ -290,6 +290,9 @@ WREN_API_v0 wren_v0 = {
   .getUserData = wrenGetUserData,
   .ensureSlots = wrenEnsureSlots,
 
+  .getSlotType = wrenGetSlotType,
+  .getSlotCount = wrenGetSlotCount,
+  .abortFiber = wrenAbortFiber,
 
   .setSlotNull = wrenSetSlotNull,
   .setSlotDouble = wrenSetSlotDouble,
@@ -297,6 +300,8 @@ WREN_API_v0 wren_v0 = {
   .setSlotBytes = wrenSetSlotBytes,
   .setSlotBool = wrenSetSlotBool,
   .setSlotNewForeign = wrenSetSlotNewForeign,
+  .setSlotNewList = wrenSetSlotNewList,
+  .setSlotNewMap = wrenSetSlotNewMap,
 
   .getSlotBool = wrenGetSlotBool,
   .getSlotDouble = wrenGetSlotDouble,
@@ -304,7 +309,16 @@ WREN_API_v0 wren_v0 = {
   .getSlotBytes = wrenGetSlotBytes,
   .getSlotForeign = wrenGetSlotForeign,
 
-  .abortFiber = wrenAbortFiber
+  .getListCount = wrenGetListCount,
+  .getListElement = wrenGetListElement,
+  .setListElement = wrenSetListElement,
+  .insertInList = wrenInsertInList,
+
+  .getMapCount = wrenGetMapCount,
+  .getMapContainsKey = wrenGetMapContainsKey,
+  .getMapValue = wrenGetMapValue,
+  .setMapValue = wrenSetMapValue,
+  .removeMapValue = wrenRemoveMapValue
 };
 
 DOME_API_v0 dome_v0 = {

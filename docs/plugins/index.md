@@ -3,7 +3,7 @@
 Native Plugins
 ============
 
-Advanced developers are invited to build native plugins using a compiled language. This allows for deeper system access than DOME's module API's expose, as well as greater performance. It also makes the features of various shared libraries available, at a small cost.
+Advanced developers are invited to build native plugins using a compiled language like C, C++ and Rust. This allows for deeper system access than DOME's module API's expose, as well as greater performance. It also makes the features of various shared libraries available, at a small cost.
 
 
 # Contents 
@@ -27,9 +27,9 @@ Advanced developers are invited to build native plugins using a compiled languag
        - [function: DOME_FinalizerFn](#function-dome_finalizerfn)
      * Methods
        - [method: registerModule](#method-registermodule)
-       - [method: lockModule](#method-lockmodule)
        - [method: registerClass](#method-registerclass)
        - [method: registerFn](#method-registerfn)
+       - [method: lockModule](#method-lockmodule)
        - [method: getContext](#method-getcontext)
        - [method: log](#method-log)
    - [Wren](#wren)
@@ -51,7 +51,7 @@ Advanced developers are invited to build native plugins using a compiled languag
 In order to start writing your plugins, you will need to include `dome.h` in your project. This file can be found [here](https://github.com/domeengine/dome/blob/main/includes/dome.h) in the `includes` folder of the GitHub repository.
 You will also need to configure your compiler/linker to ignore undefined methods and output a shared library. DOME supports plugins compiled as `.dll` (on Windows), `.so` (on Linux) and `.dylib` (on Mac OS X).
 
-The compiled library has to be available in the shared library path, which varies by operating system convention. Consult your operating system's developer documentation for more details.
+The compiled library has to be available in the shared library path, which varies by operating system convention, however usually it can be placed in the same folder as your application entry point. You should consult your operating system's developer documentation for more details.
 
 You can load the plugin from your DOME application by calling [`Plugin.load(name)`](/modules/plugin)
 
@@ -64,7 +64,7 @@ You can find a well-commented example plugin and application on [this](example) 
 Using plugins with DOME can hugely expand the functions of your application, but there are certain things to be aware of:
 
   1. Standard DOME applications are safely portable, as the engine is compiled for multiple platforms. This does not extend to plugins, which will need to be compiled for your target platforms and supplied with distributions of your application.
-  2. DOME cannot verify the correctness of plugin implementations, which means that a badly implemented plugin could cause DOME to crash unexpectedly.
+  2. DOME cannot verify the correctness of plugin implementations, which means that a plugin which has bugs could cause DOME to crash unexpectedly, or cause other issues with the underlying system.
   3. Your plugin will need to expose symbols with C-style function names. DOME cannot access functions whose names have been mangled.
 
 # Plugin Interfaces
@@ -73,7 +73,7 @@ Using plugins with DOME can hugely expand the functions of your application, but
 
 DOME can call specially named functions implemented by your plugin, at different times during the game loop. For this to work, you must ensure that your compiler does not mangle names.
 
-Returning any result other than `DOME_RESULT_SUCCESS` will cause DOME to abort and shutdown. You should use the [`log(text)`](#method-log) call to print an error before this.
+If a hook returns any result other than `DOME_RESULT_SUCCESS`, DOME will abort and shutdown. You should use the [`log(text)`](#method-log) call to print an error before returning.
 
 ### Init
 
@@ -123,7 +123,7 @@ This hook occurs when the plugin is being unloaded, usually because DOME is in t
 
 # API Services
 
-The DOME Plugin API is split into different pieces, divided by general purpose and version. This is to allow maximum backwards-compatibility, as new features are added.
+The DOME Plugin API is split into different pieces, divided by general purpose and version. This is to allow maximum backwards-compatibility as new features are added.
 The engine will endeavour to support previous versions of an API for as long as possible, but no guarentees will be made for compatibility across major versions of DOME.
 
 APIs are provided as a struct of function pointers, returned from:
@@ -170,12 +170,6 @@ DOME_Result registerModule(DOME_Context ctx,
 This call registers module `name` with the source code `moduleSource`. You cannot register modules with the same name as DOME's internal modules. These are reserved.
 Returns `DOME_RESULT_SUCCESS` if the module was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
 
-#### method: lockModule
-```
-void lockModule(DOME_Context ctx, const char* name)
-```
-This marks the module `name` as locked, so that further functions cannot modify it. It is recommended to do this after you have registered all the methods for your module, however there is no requirement to.
-
 #### method: registerClass
 ```
 DOME_Result registerClass(DOME_Context ctx, 
@@ -209,6 +203,12 @@ The format for the `signature` string is as follows:
    - You can also use the setter and getter syntax for the class' subscript operator `[]`, which can be defined with one or more parameters.
    - Wren methods can have up to 16 arguments, and are overloaded by arity. For example, `Test.do(_)` is considered different to `Test.do(_,_)` and so on.
    
+#### method: lockModule
+```
+void lockModule(DOME_Context ctx, const char* name)
+```
+This marks the module `name` as locked, so that further functions cannot modify it. It is recommended to do this after you have registered all the methods for your module, however there is no requirement to.
+
 
 
 
@@ -240,18 +240,31 @@ WREN_API_v0* wren = (WREN_API_v0*)DOME_getAPI(API_WREN, WREN_API_VERSION);
 ### Methods
 This is a list of provided methods:
 ```
-      void   ensureSlots(WrenVM* vm, int slotCount);
-      void   setSlotNull(WrenVM* vm, int slot);
-      void   setSlotBool(WrenVM* vm, int slot, bool value);
-      void   setSlotDouble(WrenVM* vm, int slot, double value);
-      void   setSlotString(WrenVM* vm, int slot, const char* text);
-      void   setSlotBytesWrenVM* vm, int slot, const char* data, size_t length);
-      void*  setSlotNewForeign(WrenVM* vm, int slot, int classSlot, size_t length);
-      bool   getSlotBool(WrenVM* vm, int slot);
-      double getSlotDouble(WrenVM* vm, int slot);    
-const char*  getSlotString(WrenVM* vm, int slot);   
-const char*  getSlotBytes(WrenVM* vm, int slot, int* length);                   
-      void   abortFiber(WrenVM* vm, int slot);
+      void     ensureSlots(WrenVM* vm, int slotCount);
+      void     setSlotNull(WrenVM* vm, int slot);
+      void     setSlotBool(WrenVM* vm, int slot, bool value);
+      void     setSlotDouble(WrenVM* vm, int slot, double value);
+      void     setSlotString(WrenVM* vm, int slot, const char* text);
+      void     setSlotBytesWrenVM* vm, int slot, const char* data, size_t length);
+      void*    setSlotNewForeign(WrenVM* vm, int slot, int classSlot, size_t length);
+      bool     getSlotBool(WrenVM* vm, int slot);
+      double   getSlotDouble(WrenVM* vm, int slot);    
+const char*    getSlotString(WrenVM* vm, int slot);   
+const char*    getSlotBytes(WrenVM* vm, int slot, int* length);                   
+      void     abortFiber(WrenVM* vm, int slot);
+
+      WrenType getSlotType(WrenVM* vm, int slot);
+
+      int      getListCount(WrenVM* vm, int slot);
+      void     getListElement(WrenVM* vm, int listSlot, int index, int elementSlot);
+      void     setListElement(WrenVM* vm, int listSlot, int index, int elementSlot);
+      void     insertInList(WrenVM* vm, int listSlot, int index, int elementSlot);
+
+      int      getMapCount(WrenVM* vm, int slot);
+      bool     getMapContainsKey(WrenVM* vm, int mapSlot, int keySlot);
+      void     getMapValue(WrenVM* vm, int mapSlot, int keySlot, int valueSlot);
+      void     setMapValue(WrenVM* vm, int mapSlot, int keySlot, int valueSlot);
+      void     removeMapValue(WrenVM* vm, int mapSlot, int keySlot, int removedValueSlot);
 ```
 
 ## Audio
