@@ -230,6 +230,7 @@ You can use C-style specifiers for the `text` string, as used in the `printf` fa
 ## Wren
 
 You have access to a subset of the [Wren slot API](https://wren.io/embedding/slots-and-handles.html) in order to access parameters and return values in foreign methods.
+The methods are incredibly well documented in the [Wren public header](https://github.com/wren-lang/wren/blob/main/src/include/wren.h), so we will not be documenting the functions here.
 
 ### Acquisition
 
