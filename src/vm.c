@@ -5,49 +5,9 @@ VM_bind_foreign_class(WrenVM* vm, const char* moduleName, const char* className)
   methods.allocate = NULL;
   methods.finalize = NULL;
 
-
-  if (STRINGS_EQUAL(moduleName, "image")) {
-    if (STRINGS_EQUAL(className, "ImageData")) {
-      methods.allocate = IMAGE_allocate;
-      methods.finalize = IMAGE_finalize;
-    } else if (STRINGS_EQUAL(className, "DrawCommand")) {
-      methods.allocate = DRAW_COMMAND_allocate;
-      methods.finalize = DRAW_COMMAND_finalize;
-    }
-  } else if (STRINGS_EQUAL(moduleName, "io")) {
-    if (STRINGS_EQUAL(className, "DataBuffer")) {
-      methods.allocate = DBUFFER_allocate;
-      methods.finalize = DBUFFER_finalize;
-    } else if (STRINGS_EQUAL(className, "AsyncOperation")) {
-      methods.allocate = ASYNCOP_allocate;
-      methods.finalize = ASYNCOP_finalize;
-    }
-  } else if (STRINGS_EQUAL(moduleName, "audio")) {
-    if (STRINGS_EQUAL(className, "AudioData")) {
-      methods.allocate = AUDIO_allocate;
-      methods.finalize = AUDIO_finalize;
-    } else if (STRINGS_EQUAL(className, "SystemChannel")) {
-      methods.allocate = AUDIO_CHANNEL_allocate;
-      methods.finalize = AUDIO_CHANNEL_finalize;
-    }
-  } else if (STRINGS_EQUAL(moduleName, "input")) {
-    if (STRINGS_EQUAL(className, "SystemGamePad")) {
-      methods.allocate = GAMEPAD_allocate;
-      methods.finalize = GAMEPAD_finalize;
-    }
-  } else if (STRINGS_EQUAL(moduleName, "font")) {
-    if (STRINGS_EQUAL(className, "FontFile")) {
-      methods.allocate = FONT_allocate;
-      methods.finalize = FONT_finalize;
-    } else if (STRINGS_EQUAL(className, "RasterizedFont")) {
-      methods.allocate = FONT_RASTER_allocate;
-      methods.finalize = FONT_RASTER_finalize;
-    }
-  } else {
-    ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-    MAP moduleMap = engine->moduleMap;
-    MAP_getClassMethods(&moduleMap, moduleName, className, &methods);
-  }
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  MAP moduleMap = engine->moduleMap;
+  MAP_getClassMethods(&moduleMap, moduleName, className, &methods);
 
   return methods;
 }
@@ -243,11 +203,14 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_lockModule(&engine->moduleMap, "graphics");
 
   // Font
+  MAP_addClass(&engine->moduleMap, "font", "FontFile", FONT_allocate, FONT_finalize);
+  MAP_addClass(&engine->moduleMap, "font", "RasterizedFont", FONT_RASTER_allocate, FONT_RASTER_finalize);
   MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.f_print(_,_,_,_)", FONT_RASTER_print);
   MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.antialias=(_)", FONT_RASTER_setAntiAlias);
   MAP_lockModule(&engine->moduleMap, "font");
 
   // Image
+  MAP_addClass(&engine->moduleMap, "image", "ImageData", IMAGE_allocate, IMAGE_finalize);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_loadFromFile(_)", IMAGE_loadFromFile);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_getPNG()", IMAGE_getPNG);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.draw(_,_)", IMAGE_draw);
@@ -255,10 +218,13 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.height", IMAGE_getHeight);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_pget(_,_)", IMAGE_pget);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_pset(_,_,_)", IMAGE_pset);
+  MAP_addClass(&engine->moduleMap, "image", "DrawCommand", DRAW_COMMAND_allocate, DRAW_COMMAND_finalize);
   MAP_addFunction(&engine->moduleMap, "image", "DrawCommand.draw(_,_)", DRAW_COMMAND_draw);
   MAP_lockModule(&engine->moduleMap, "image");
 
   // Audio
+  MAP_addClass(&engine->moduleMap, "audio", "SystemChannel", AUDIO_CHANNEL_allocate, AUDIO_CHANNEL_finalize);
+
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.loop=(_)", AUDIO_CHANNEL_setLoop);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.loop", AUDIO_CHANNEL_getLoop);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.pan=(_)", AUDIO_CHANNEL_setPan);
@@ -274,8 +240,12 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.position", AUDIO_CHANNEL_getPosition);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.soundId", AUDIO_CHANNEL_getSoundId);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.id", AUDIO_CHANNEL_getId);
+
+  // AudioData
+  MAP_addClass(&engine->moduleMap, "audio", "AudioData", AUDIO_allocate, AUDIO_finalize);
   MAP_addFunction(&engine->moduleMap, "audio", "AudioData.length", AUDIO_getLength);
   MAP_addFunction(&engine->moduleMap, "audio", "static AudioEngine.f_stopAllChannels()", AUDIO_ENGINE_wrenStopAll);
+
   MAP_lockModule(&engine->moduleMap, "audio");
 
   // FileSystem
@@ -289,17 +259,20 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.createDirectory(_)", FILESYSTEM_createDirectory);
 
   // Buffer
+  MAP_addClass(&engine->moduleMap, "io", "DataBuffer", DBUFFER_allocate, DBUFFER_finalize);
   MAP_addFunction(&engine->moduleMap, "io", "static DataBuffer.f_capture()", DBUFFER_capture);
   MAP_addFunction(&engine->moduleMap, "io", "DataBuffer.f_data", DBUFFER_getData);
   MAP_addFunction(&engine->moduleMap, "io", "DataBuffer.ready", DBUFFER_getReady);
   MAP_addFunction(&engine->moduleMap, "io", "DataBuffer.f_length", DBUFFER_getLength);
 
   // AsyncOperation
+  MAP_addClass(&engine->moduleMap, "io", "AsyncOperation", ASYNCOP_allocate, ASYNCOP_finalize);
   MAP_addFunction(&engine->moduleMap, "io", "AsyncOperation.result", ASYNCOP_getResult);
   MAP_addFunction(&engine->moduleMap, "io", "AsyncOperation.complete", ASYNCOP_getComplete);
   MAP_lockModule(&engine->moduleMap, "io");
 
   // Input
+  MAP_addClass(&engine->moduleMap, "input", "SystemGamePad", GAMEPAD_allocate, GAMEPAD_finalize);
   MAP_addFunction(&engine->moduleMap, "input", "static Input.f_captureVariables()", INPUT_capture);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.x", MOUSE_getX);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.y", MOUSE_getY);
