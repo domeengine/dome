@@ -1,5 +1,4 @@
-#include <string.h>
-
+#include <stddef.h>
 // You'll need to include the DOME header
 #include "dome.h"
 

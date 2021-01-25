@@ -39,7 +39,8 @@ class Game {
 A plugin can be written in any language that can compile down to a DLL, .so or .dylib file. This example will use C.
 
 ```c
-#include <string.h>
+// Include some basic C definitions
+#include <stddef.h>
 
 // You'll need to include the DOME header
 #include "dome.h"
