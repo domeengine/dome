@@ -46,10 +46,7 @@ VM_bind_foreign_class(WrenVM* vm, const char* moduleName, const char* className)
   } else {
     ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
     MAP moduleMap = engine->moduleMap;
-    MODULE_NODE* module  = MAP_getModule(&moduleMap, moduleName);
-    if (module != NULL && module->foreignClassFn != NULL) {
-      methods = module->foreignClassFn(className);
-    }
+    MAP_getClassMethods(&moduleMap, moduleName, className, &methods);
   }
 
   return methods;

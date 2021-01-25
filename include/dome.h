@@ -69,7 +69,7 @@ typedef struct {
 
 typedef DOME_Result (*DOME_Plugin_Hook) (DOME_Context context);
 typedef void (*DOME_ForeignFn)(WrenVM* vm);
-typedef WrenForeignClassMethods (*DOME_BindClassFn) (const char* className);
+typedef void (*DOME_FinalizerFn)(void* userdata);
 
 
 
@@ -107,7 +107,7 @@ typedef struct {
 typedef struct {
   DOME_Result (*registerModule)(DOME_Context ctx, const char* name, const char* source);
   DOME_Result (*registerFn)(DOME_Context ctx, const char* name, const char* signature, DOME_ForeignFn method);
-  DOME_Result (*registerBindFn)(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn);
+  DOME_Result (*registerClass)(DOME_Context ctx, const char* moduleName, const char* className, DOME_ForeignFn allocate, DOME_FinalizerFn finalize);
   void (*lockModule)(DOME_Context ctx, const char* name);
   DOME_Context (*getContext)(WrenVM* vm);
   void (*log)(DOME_Context ctx, const char* text, ...);
@@ -152,7 +152,7 @@ PUBLIC_EXPORT void* DOME_getAPI(API_TYPE api, int version);
 // Helper macros to abstract the api->method
 
 #define DOME_registerModule(ctx, name, src) api->registerModule(ctx, name, src)
-#define DOME_registerBindFn(ctx, module, fn) api->registerBindFn(ctx, module, fn)
+#define DOME_registerClass(ctx, module, className, allocate, finalize) api->registerClass(ctx, module, className, allocate, finalize)
 #define DOME_registerFn(ctx, module, signature, method) \
   api->registerFn(ctx, module, signature, PLUGIN_method_wrap_##method)
 #define DOME_lockModule(ctx, module) api->lockModule(ctx, module)

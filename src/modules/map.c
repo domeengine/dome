@@ -1,5 +1,11 @@
 #include "modules.inc"
 
+typedef struct CLASS_NODE {
+  const char* name;
+  WrenForeignClassMethods methods;
+  struct CLASS_NODE* next;
+} CLASS_NODE;
+
 typedef struct FUNCTION_NODE {
   const char* signature;
   WrenForeignMethodFn fn;
@@ -10,7 +16,7 @@ typedef struct MODULE_NODE {
   const char* name;
   const char* source;
   bool locked;
-  DOME_BindClassFn foreignClassFn;
+  struct CLASS_NODE* classes;
   struct FUNCTION_NODE* functions;
   struct MODULE_NODE* next;
 } MODULE_NODE;
@@ -33,7 +39,7 @@ MAP_addModule(MAP* map, const char* name, const char* source) {
   newNode->source = source;
   newNode->name = name;
   newNode->functions = NULL;
-  newNode->foreignClassFn = NULL;
+  newNode->classes = NULL;
   newNode->locked = false;
 
   newNode->next = map->head;
@@ -68,18 +74,9 @@ MAP_getSource(MAP* map, const char* moduleName) {
 }
 
 internal bool
-MAP_bindForeignClass(MAP* map, const char* moduleName, DOME_BindClassFn fn) {
-  MODULE_NODE* module = MAP_getModule(map, moduleName);
-  if (module != NULL) {
-    module->foreignClassFn = fn;
-    return true;
-  }
-  return false;
-}
-
-internal bool
 MAP_addFunction(MAP* map, const char* moduleName, const char* signature, WrenForeignMethodFn fn) {
   MODULE_NODE* module = MAP_getModule(map, moduleName);
+  // TODO: Check for duplicate?
   if (module != NULL && !module->locked) {
     FUNCTION_NODE* node = (FUNCTION_NODE*) malloc(sizeof(FUNCTION_NODE));
     node->signature = signature;
@@ -87,6 +84,23 @@ MAP_addFunction(MAP* map, const char* moduleName, const char* signature, WrenFor
 
     node->next = module->functions;
     module->functions = node;
+    return true;
+  }
+  return false;
+}
+
+internal bool
+MAP_addClass(MAP* map, const char* moduleName, const char* className, WrenForeignMethodFn allocate, WrenFinalizerFn finalize) {
+  MODULE_NODE* module = MAP_getModule(map, moduleName);
+  // TODO: Check for duplicate?
+  if (module != NULL && !module->locked) {
+    CLASS_NODE* node = (CLASS_NODE*) malloc(sizeof(CLASS_NODE));
+    node->name = className;
+    node->methods.allocate = allocate;
+    node->methods.finalize = finalize;
+
+    node->next = module->classes;
+    module->classes = node;
     return true;
   }
   return false;
@@ -120,10 +134,40 @@ MAP_getFunction(MAP* map, const char* moduleName, const char* signature) {
   return NULL;
 }
 
+internal bool
+MAP_getClassMethods(MAP* map, const char* moduleName, const char* className, WrenForeignClassMethods* methods) {
+  MODULE_NODE* module = MAP_getModule(map, moduleName);
+  if (module == NULL) {
+    // We don't have the module, but it might be built into Wren (aka Random,Meta)
+    return false;
+  }
+  assert(module != NULL);
+
+  CLASS_NODE* node = module->classes;
+  while (node != NULL) {
+    if (STRINGS_EQUAL(className, node->name)) {
+      *methods = node->methods;
+      return true;
+    } else {
+      node = node->next;
+    }
+  }
+  return false;
+}
+
 
 internal void
 MAP_freeFunctions(FUNCTION_NODE* node) {
   FUNCTION_NODE* nextNode;
+  while (node != NULL) {
+    nextNode = node->next;
+    free(node);
+    node = nextNode;
+  }
+}
+internal void
+MAP_freeClasses(CLASS_NODE* node) {
+  CLASS_NODE* nextNode;
   while (node != NULL) {
     nextNode = node->next;
     free(node);
@@ -137,6 +181,7 @@ MAP_free(MAP* map) {
   MODULE_NODE* nextModule;
   while (module != NULL) {
     MAP_freeFunctions(module->functions);
+    MAP_freeClasses(module->classes);
     nextModule = module->next;
     free(module);
     module = nextModule;

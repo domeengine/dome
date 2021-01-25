@@ -20,21 +20,31 @@ Advanced developers are invited to build native plugins using a compiled languag
    - [Shutdown](#shutdown)
  * API Services
    - [Core](#core)
-     * [enum: DOME_Result](#enum-dome_result)
-     * [method: registerModule](#method-registermodule)
-     * [method: lockModule](#method-lockmodule)
-     * [method: registerFn](#method-registerfn)
-     * [method: registerBindFn](#method-registerbindfn)
-     * [method: getContext](#method-getcontext)
-     * [method: log](#method-log)
+     * Enums
+       - [enum: DOME_Result](#enum-dome_result)
+     * Function Signatures
+       - [function: DOME_ForeignFn](#function-dome_foreignfn)
+       - [function: DOME_FinalizerFn](#function-dome_finalizerfn)
+     * Methods
+       - [method: registerModule](#method-registermodule)
+       - [method: lockModule](#method-lockmodule)
+       - [method: registerClass](#method-registerclass)
+       - [method: registerFn](#method-registerfn)
+       - [method: getContext](#method-getcontext)
+       - [method: log](#method-log)
    - [Wren](#wren)
    - [Audio](#audio)
-     * [method: channelCreate](#method-channelcreate)
-     * [method: getData](#method-getdata)
-     * [method: getState](#method-getstate)
-     * [method: setState](#method-setstate)
-     * [method: stop](#method-stop)
-     * [enum: CHANNEL_STATE](#enum-channel_state)
+     * Enums
+       - [enum: CHANNEL_STATE](#enum-channel_state)
+     * Function Signatures
+       - [function: CHANNEL_mix](#function-channel_mix)
+       - [function: CHANNEL_callback](#function-channel_callback)
+     * Methods
+       - [method: channelCreate](#method-channelcreate)
+       - [method: getData](#method-getdata)
+       - [method: getState](#method-getstate)
+       - [method: setState](#method-setstate)
+       - [method: stop](#method-stop)
 
 
 # Getting Started
@@ -140,6 +150,13 @@ Various methods return an enum of type `DOME_Result`, which indicates success or
  * `DOME_RESULT_FAILURE`
  * `DOME_RESULT_UNKNOWN`
 
+### Function signatures
+
+#### function: DOME_ForeignFn
+`DOME_ForeignFn` methods have the signature: `void method(WrenVM* vm)` to match `WrenForeignMethodFn`.
+
+#### function: DOME_FinalizerFn
+`DOME_FinalizerFn` methods have the signature: `void(void* vm)`, to match the `WrenFinalizerFn`.
 
 ### Methods
 
@@ -155,6 +172,16 @@ Returns `DOME_RESULT_SUCCESS` if the module was successfully registered, and `DO
 void lockModule(DOME_Context ctx, const char* name)`
 ```
 This marks the module `name` as locked, so that further functions cannot modify it. It is recommended to do this after you have registered all the methods for your module, however there is no requirement to.
+
+#### method: registerClass
+```
+DOME_Result registerClass(DOME_Context ctx, const char* moduleName, const char* className, DOME_ForeignFn allocate, DOME_FinalizerFn finalize)
+```
+Register the `allocate` and `finalize` methods for `className` in `moduleName`, so that instances of the foreign class can be allocated, and optionally finalized.
+The `finalize` method is your final chance to deal with the userdata attached to your foreign class. You won't have VM access inside this method.
+
+Returns `DOME_RESULT_SUCCESS` if the class is registered and `DOME_RESULT_FAILURE` otherwise. Failure will occur if `allocate` method is provided. The `finalize` argument can optionally be `NULL`.
+
 
 #### method: registerFn
 ```
@@ -173,14 +200,6 @@ The format for the `signature` string is as follows:
    - Wren methods can have up to 16 arguments, and are overloaded by arity. For example, `Test.do(_)` is considered different to `Test.do(_,_)` and so on.
    
 
-`DOME_ForeignFn` methods have the signature: `void method(WrenVM* vm)`
-
-#### method: registerBindFn
-```
-DOME_Result registerBindFn(DOME_Context ctx, const char* moduleName, DOME_BindClassFn fn)
-```
-Register a method to call when trying to resolve class allocators for the module `moduleName`. Returns `DOME_RESULT_SUCCESS` if the function was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
-A `DOME_BindClassFn` has the signature: `WrenForeignClassMethods method(const char* className)`.
 
 
 #### method: getContext
@@ -235,6 +254,34 @@ This set of APIs gives you access to DOME's audio engine, to provide your own au
 AUDIO_API_v0* wren = (AUDIO_API_v0*)DOME_getAPI(API_AUDIO, AUDIO_API_VERSION);
 ```
 
+### Enums
+
+#### enum: CHANNEL_STATE
+
+Audio channels are enabled and disabled based on a state, which is represented by this enum. Supported states are the following:
+
+```
+enum CHANNEL_STATE {
+  CHANNEL_INITIALIZE,
+  CHANNEL_TO_PLAY,
+  CHANNEL_PLAYING,
+  CHANNEL_STOPPING,
+  CHANNEL_STOPPED
+}
+```
+
+### Function Signatures
+
+#### function: CHANNEL_mix
+`CHANNEL_mix` functions have a signature of `void mix(CHANNEL_REF ref, float* buffer, size_t sampleRequestSize)`. 
+
+  * `ref` is a reference to the channel being mixed. 
+  * `buffer` is an interleaved stereo buffer to write your audio data into. One sample is two values, for left and right, so `buffer` is `2 * sampleRequestSize` in size. 
+
+#### function: CHANNEL_callback
+`CHANNEL_callback` functions have this signature: `void callback(CHANNEL_REF ref, WrenVM* vm)`.
+
+
 ### Methods
 
 #### method: channelCreate
@@ -246,18 +293,16 @@ CHANNEL_REF channelCreate(DOME_Context ctx,
                           void* userdata);
 ```
 
-When you create a new audio channel, you have to supply callbacks for mixing, updating and finalizing the channel. This allows it to play nicely within DOME's expected audio lifecycle.
+When you create a new audio channel, you must supply callbacks for mixing, updating and finalizing the channel. This allows it to play nicely within DOME's expected audio lifecycle.
 
-This creates a channel with the specified callbacks. You can set the `userdata` pointer to any relevant data you like. You are responsible for the management of the memory pointed to by that pointer. This also returns a CHANNEL_REF value, which can be used to manipulate the channel's state during execution.
+This method creates a channel with the specified callbacks and returns its corresponding CHANNEL_REF value, which can be used to manipulate the channel's state during execution. The channel will be created in the state `CHANNEL_INITIALIZE`, which gives you the opportunity to set up the channel configuration before it is played.
 
+The callbacks work like this:
+  - `update` is called once a frame, and can be used for safely modifying the state of the channel data.
+  - `finish` is called once the channel has been set to `STOPPED`, before its memory is released.
 
-* `CHANNEL_mix` functions have a signature of `void mix(CHANNEL_REF ref, float* buffer, size_t sampleRequestSize)`. `ref` is a reference to the channel being mixed. `buffer` is an interleaved stereo buffer to write your audio data into. One sample is two values, for left and right, so `buffer` is `2 * sampleRequestSize` in size. 
-* `CHANNEL_callback` functions have this signature: `void callback(CHANNEL_REF ref, WrenVM* vm)`.
-  + `update` is called once a frame, and can be used for safely modifying the state of the channel data.
-  + `finish` is called once the channel as been set to `STOPPED`, before its memory is released.
-* `userdata` is a pointer set by the plugin developer, which can be used to pass through associated data, and retrieved by [`getData(ref)`](#method-getdata)
+The `userdata` is a pointer set by the plugin developer, which can be used to pass through associated data, and retrieved by [`getData(ref)`](#method-getdata). You are responsible for the management of the memory pointed to by that pointer. 
 
-The channel will be created in the state `CHANNEL_INITIALIZE`, which gives you the opportunity to set up the channel configuration before it is played.
 
 #### method: getData
 ``` 
@@ -283,17 +328,4 @@ void stop(CHANNEL_REF ref)
 ```
 Marks the audio channel as having stopped. This means that DOME will no longer play this channel. It will call the `finish` callback at it's next opportunity.
  
-#### enum: CHANNEL_STATE
-
-Audio channels are enabled and disabled based on a state, which is represented by this enum. Supported states are the following:
-
-```
-enum CHANNEL_STATE {
-  CHANNEL_INITIALIZE,
-  CHANNEL_TO_PLAY,
-  CHANNEL_PLAYING,
-  CHANNEL_STOPPING,
-  CHANNEL_STOPPED
-}
-```
 

@@ -17,17 +17,6 @@ void allocate(WrenVM* vm) {
   void* obj = wren->setSlotNewForeign(vm, 0, 0, CLASS_SIZE);
 }
 
-
-WrenForeignClassMethods bindFn(const char* className) {
-  WrenForeignClassMethods methods;
-  methods.allocate = NULL;
-  methods.finalize = NULL;
-  if (strcmp(className, "ExternalClass") == 0) {
-    methods.allocate = allocate;
-  }
-  return methods;
-}
-
 void alertMethod(WrenVM* vm) {
   // Fetch the method argument
   const char* text = wren->getSlotString(vm, 1);
@@ -54,7 +43,7 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
   // Avoid giving the module a common name.
   core->registerModule(ctx, "external", source);
 
-  core->registerBindFn(ctx, "external", bindFn);
+  core->registerClass(ctx, "external", "ExternalClass", allocate, NULL);
   core->registerFn(ctx, "external", "ExternalClass.alert(_)", alertMethod);
 
   // Returning anything other than SUCCESS here will result in the current fiber
