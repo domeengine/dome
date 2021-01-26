@@ -154,10 +154,10 @@ Various methods return an enum of type `DOME_Result`, which indicates success or
 ### Function signatures
 
 #### function: DOME_ForeignFn
-`DOME_ForeignFn` methods have the signature: `void method(WrenVM* vm)` to match `WrenForeignMethodFn`.
+`DOME_ForeignFn` methods have the signature: `void method(WrenVM* vm)` to match the `WrenForeignMethodFn` type.
 
 #### function: DOME_FinalizerFn
-`DOME_FinalizerFn` methods have the signature: `void(void* vm)`, to match the `WrenFinalizerFn`.
+`DOME_FinalizerFn` methods have the signature: `void finalize(void* vm)`, to match the `WrenFinalizerFn` type.
 
 ### Methods
 
@@ -231,6 +231,8 @@ You can use C-style specifiers for the `text` string, as used in the `printf` fa
 
 You have access to a subset of the [Wren slot API](https://wren.io/embedding/slots-and-handles.html) in order to access parameters and return values in foreign methods.
 The methods are incredibly well documented in the [Wren public header](https://github.com/wren-lang/wren/blob/main/src/include/wren.h), so we will not be documenting the functions here.
+ 
+You do not need to include the `wren.h` header in your application, as `dome.h` includes everything you need.
 
 ### Acquisition
 
