@@ -3,8 +3,10 @@
 Native Plugins
 ============
 
+
 Advanced developers are invited to build native plugins using a compiled language like C, C++ and Rust. This allows for deeper system access than DOME's module API's expose, as well as greater performance. It also makes the features of various shared libraries available, at a small cost.
 
+> Caution: The Native Plugin API is in an experimental phase and we may need to make some breaking changes in the future. Please keep an eye on this page for updates.
 
 # Contents 
 
