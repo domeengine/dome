@@ -66,17 +66,15 @@ ENGINE_openLogFile(ENGINE* engine) {
 }
 
 internal void
-ENGINE_printLog(ENGINE* engine, char* line, ...) {
-  // Args is mutated by each vsnprintf call,
-  // so it needs to be reinitialised.
+ENGINE_printLogVariadic(ENGINE* engine, const char* line, va_list argList) {
   va_list args;
-  va_start(args, line);
+  va_copy(args, argList);
   size_t bufSize = vsnprintf(NULL, 0, line, args) + 1;
   va_end(args);
 
   char buffer[bufSize];
   buffer[0] = '\0';
-  va_start(args, line);
+  va_copy(args, argList);
   vsnprintf(buffer, bufSize, line, args);
   va_end(args);
 
@@ -91,6 +89,16 @@ ENGINE_printLog(ENGINE* engine, char* line, ...) {
     fputs(buffer, engine->debug.logFile);
     fflush(engine->debug.logFile);
   }
+}
+
+internal void
+ENGINE_printLog(ENGINE* engine, char* line, ...) {
+  // Args is mutated by each vsnprintf call,
+  // so it needs to be reinitialised.
+  va_list args;
+  va_start(args, line);
+  ENGINE_printLogVariadic(engine, line, args);
+  va_end(args);
 }
 
 internal ENGINE_WRITE_RESULT
@@ -231,6 +239,9 @@ ENGINE_init(ENGINE* engine) {
   engine->argv = NULL;
   engine->argc = 0;
 
+  // TODO: handle if we can't allocate memory.
+  PLUGIN_COLLECTION_init(engine);
+
   return engine;
 }
 
@@ -311,6 +322,8 @@ ENGINE_free(ENGINE* engine) {
 
   ENGINE_finishAsync(engine);
 
+  PLUGIN_COLLECTION_free(engine);
+
   if (engine->audioEngine) {
     AUDIO_ENGINE_free(engine->audioEngine);
     free(engine->audioEngine);
@@ -369,6 +382,7 @@ ENGINE_pget(ENGINE* engine, int64_t x, int64_t y) {
   }
   return 0xFF000000;
 }
+
 inline internal void
 ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 
@@ -438,9 +452,9 @@ ENGINE_resizeBlitBuffer(ENGINE* engine, size_t width, size_t height) {
   return buffer->pixels;
 }
 
-inline internal unsigned char*
+internal unsigned const char*
 defaultFontLookup(utf8_int32_t codepoint) {
-  local_persist unsigned char empty[8] = { 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F };
+  const local_persist unsigned char empty[8] = { 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F };
   if (codepoint >= 0 && codepoint < 0x7F) {
     return font8x8_basic[codepoint];
   } else if (codepoint >= 0x80 && codepoint <= 0x9F) {

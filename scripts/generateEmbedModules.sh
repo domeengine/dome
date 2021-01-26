@@ -15,6 +15,7 @@ declare -a arr=(
 "vector"
 "image"
 "math"
+"plugin"
 "json"
 "platform"
 )

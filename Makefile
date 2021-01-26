@@ -81,11 +81,11 @@ WARNING_FLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
 else ifneq ($(filter windows,$(TAGS)),)
 WARNING_FLAGS += -Wno-discarded-qualifiers -Wno-clobbered
 else ifneq ($(filter linux,$(TAGS)),)
-	WARNING_FLAGS += -Wno-clobbered
+	WARNING_FLAGS += -Wno-clobbered -Wno-maybe-uninitialized -Wno-attributes
 endif
 
 
-CFLAGS = $(DOME_OPTS) -std=c99 -pedantic $(WARNING_FLAGS)
+CFLAGS = $(DOME_OPTS) -std=c99 -pedantic $(WARNING_FLAGS) -fvisibility=hidden
 ifneq ($(filter macosx,$(TAGS)),)
 CFLAGS += -mmacosx-version-min=10.12
 endif
@@ -137,7 +137,7 @@ else ifneq ($(and $(filter macosx,$(TAGS)), $(filter framework,$(TAGS)), $(filte
 FFLAGS += -F/Library/Frameworks -framework SDL2
 endif
 
-LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG) $(DEPS)
+LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG) $(DEPS) 
 
 
 
@@ -174,7 +174,7 @@ $(OBJS)/main.o: $(SOURCE_FILES) $(INCLUDES) $(WREN_LIB) $(MODULES)/*.inc
 
 $(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(WREN_LIB)
 	@echo "==== Linking DOME ($(TAGS)) ===="
-	$(CC) $(FFLAGS) -o $(TARGET_NAME) $(OBJS)/*.o $(ICON_OBJECT_FILE) $(LDFLAGS) 
+	$(CC) $(CFLAGS) $(FFLAGS) -o $(TARGET_NAME) $(OBJS)/*.o $(ICON_OBJECT_FILE) $(LDFLAGS) 
 	./scripts/set-executable-path.sh $(TARGET_NAME)
 	@echo "DOME built as $(TARGET_NAME)"
 

@@ -56,6 +56,7 @@ class Process {
   }
 }
 
+
 class Window {
   foreign static title=(value)
   foreign static title

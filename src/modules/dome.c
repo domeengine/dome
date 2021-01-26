@@ -33,7 +33,6 @@ STRING_UTILS_toLowercase(WrenVM* vm) {
   free(dest);
 }
 
-
 internal void
 WINDOW_resize(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
@@ -154,3 +153,5 @@ VERSION_getString(WrenVM* vm) {
   }
   wrenSetSlotBytes(vm, 0, version, len);
 }
+
+

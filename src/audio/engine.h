@@ -1,27 +1,3 @@
-typedef uint64_t CHANNEL_ID;
-typedef struct {
-  CHANNEL_ID id;
-  void* engine;
-} CHANNEL_REF;
-
-typedef struct CHANNEL_t CHANNEL;
-typedef enum {
-  CHANNEL_INVALID,
-  CHANNEL_INITIALIZE,
-  CHANNEL_TO_PLAY,
-  CHANNEL_DEVIRTUALIZE,
-  CHANNEL_LOADING,
-  CHANNEL_PLAYING,
-  CHANNEL_STOPPING,
-  CHANNEL_STOPPED,
-  CHANNEL_VIRTUALIZING,
-  CHANNEL_VIRTUAL,
-  CHANNEL_LAST
-} CHANNEL_STATE;
-
-typedef void (*CHANNEL_mix)(CHANNEL_REF ref, float* buffer, size_t requestedSamples);
-typedef void (*CHANNEL_callback)(CHANNEL_REF ref, WrenVM* vm);
-
 typedef enum {
   AUDIO_TYPE_UNKNOWN,
   AUDIO_TYPE_WAV,
