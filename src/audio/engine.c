@@ -35,20 +35,19 @@ void AUDIO_ENGINE_mix(void*  userdata,
   CHANNEL* channel;
   while (TABLE_iterate(&(audioEngine->playing), &iter)) {
     channel = iter.value;
-    if (!(channel->state == CHANNEL_PLAYING
-        || channel->state == CHANNEL_STOPPING
-        || channel->state == CHANNEL_VIRTUALIZING)) {
+    if (!CHANNEL_isPlaying(channel)) {
       continue;
     }
 
     assert(channel != NULL);
     size_t requestServed = 0;
     float* writeCursor = (float*)(stream);
+    CHANNEL_mix mixFn = channel->mix;
 
-    while (channel->enabled && requestServed < totalSamples) {
+    while (CHANNEL_isPlaying(channel) && requestServed < totalSamples) {
       SDL_memset(scratchBuffer, 0, bufferSampleSize * bytesPerSample);
       size_t requestSize = min(bufferSampleSize, totalSamples - requestServed);
-      channel->mix(channel, scratchBuffer, requestSize);
+      mixFn(channel->ref, scratchBuffer, requestSize);
       requestServed += requestSize;
       float* copyCursor = scratchBuffer;
       float* endPoint = copyCursor + bufferSampleSize * channels;
@@ -95,8 +94,11 @@ AUDIO_ENGINE_init(void) {
 }
 
 internal bool
-AUDIO_ENGINE_get(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, CHANNEL** channel) {
+AUDIO_ENGINE_get(AUDIO_ENGINE* engine, CHANNEL_REF* ref, CHANNEL** channel) {
   CHANNEL_ID id = ref->id;
+  if (id == 0) {
+    return false;
+  }
   bool result = TABLE_get(&engine->playing, id, channel);
   if (!result) {
     result = TABLE_get(&engine->pending, id, channel);
@@ -114,7 +116,7 @@ AUDIO_ENGINE_unlock(AUDIO_ENGINE* engine) {
   SDL_UnlockAudioDevice(engine->deviceId);
 }
 
-internal CHANNEL_ID
+internal CHANNEL_REF
 AUDIO_ENGINE_channelInit(
     AUDIO_ENGINE* engine,
     CHANNEL_mix mix,
@@ -123,18 +125,21 @@ AUDIO_ENGINE_channelInit(
     void* userdata) {
 
   CHANNEL_ID id = engine->nextId++;
+  CHANNEL_REF ref = {
+    .id = id,
+    .engine = engine
+  };
   CHANNEL channel = {
     .state = CHANNEL_INITIALIZE,
-    .enabled = true,
     .mix = mix,
     .update = update,
     .finish = finish,
     .userdata = userdata,
-    .id = id
+    .ref = ref
   };
   TABLE_set(&engine->pending, id, channel);
 
-  return id;
+  return ref;
 }
 
 internal void
@@ -147,13 +152,13 @@ AUDIO_ENGINE_update(AUDIO_ENGINE* engine, WrenVM* vm) {
   while (TABLE_iterate(&(engine->playing), &iter)) {
     channel = iter.value;
     if (channel->update != NULL) {
-      channel->update(vm, channel);
+      channel->update(channel->ref, vm);
     }
     if (channel->state == CHANNEL_STOPPED) {
       if (channel->finish != NULL) {
-        channel->finish(vm, channel);
+        channel->finish(channel->ref, vm);
       }
-      TABLE_delete(&engine->playing, channel->id);
+      TABLE_delete(&engine->playing, channel->ref.id);
     }
   }
   AUDIO_ENGINE_unlock(engine);
@@ -162,12 +167,22 @@ AUDIO_ENGINE_update(AUDIO_ENGINE* engine, WrenVM* vm) {
 }
 
 internal void
-AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref) {
+AUDIO_ENGINE_stop(AUDIO_ENGINE* engine, CHANNEL_REF* ref) {
   CHANNEL* channel;
   AUDIO_ENGINE_get(engine, ref, &channel);
   if (channel != NULL) {
     CHANNEL_requestStop(channel);
   }
+}
+
+internal void*
+AUDIO_ENGINE_getData(AUDIO_ENGINE* engine, CHANNEL_REF* ref) {
+  CHANNEL* channel;
+  AUDIO_ENGINE_get(engine, ref, &channel);
+  if (channel != NULL) {
+    return CHANNEL_getData(channel);
+  }
+  return NULL;
 }
 
 internal void

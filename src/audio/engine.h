@@ -1,14 +1,10 @@
 typedef uint64_t CHANNEL_ID;
 typedef struct {
   CHANNEL_ID id;
-} AUDIO_CHANNEL_REF;
+  void* engine;
+} CHANNEL_REF;
 
-typedef enum {
-  AUDIO_TYPE_UNKNOWN,
-  AUDIO_TYPE_WAV,
-  AUDIO_TYPE_OGG
-} AUDIO_TYPE;
-
+typedef struct CHANNEL_t CHANNEL;
 typedef enum {
   CHANNEL_INVALID,
   CHANNEL_INITIALIZE,
@@ -23,21 +19,25 @@ typedef enum {
   CHANNEL_LAST
 } CHANNEL_STATE;
 
-struct CHANNEL_t;
-typedef void (*CHANNEL_mix)(struct CHANNEL_t* channel, float* buffer, size_t requestedSamples);
-typedef void (*CHANNEL_callback)(WrenVM* vm, struct CHANNEL_t* channel);
+typedef void (*CHANNEL_mix)(CHANNEL_REF ref, float* buffer, size_t requestedSamples);
+typedef void (*CHANNEL_callback)(CHANNEL_REF ref, WrenVM* vm);
 
-typedef struct CHANNEL_t {
-  CHANNEL_STATE state;
-  CHANNEL_ID id;
-  volatile bool enabled;
+typedef enum {
+  AUDIO_TYPE_UNKNOWN,
+  AUDIO_TYPE_WAV,
+  AUDIO_TYPE_OGG
+} AUDIO_TYPE;
+
+struct CHANNEL_t {
+  volatile CHANNEL_STATE state;
+  CHANNEL_REF ref;
   bool stopRequested;
   CHANNEL_mix mix;
   CHANNEL_callback update;
   CHANNEL_callback finish;
 
   void* userdata;
-} CHANNEL;
+};
 
 typedef struct {
   SDL_AudioSpec spec;
@@ -71,7 +71,9 @@ typedef struct {
   WrenHandle* audioHandle;
 } AUDIO_CHANNEL;
 
-internal void AUDIO_CHANNEL_mix(CHANNEL* base, float* stream, size_t totalSamples);
-internal void AUDIO_CHANNEL_update(WrenVM* vm, CHANNEL* base);
-internal void AUDIO_CHANNEL_finish(WrenVM* vm, CHANNEL* base);
+internal void AUDIO_CHANNEL_mix(CHANNEL_REF ref, float* stream, size_t totalSamples);
+internal void AUDIO_CHANNEL_update(CHANNEL_REF ref, WrenVM* vm);
+internal void AUDIO_CHANNEL_finish(CHANNEL_REF ref, WrenVM* vm);
 internal void CHANNEL_requestStop(CHANNEL* channel);
+internal void* CHANNEL_getData(CHANNEL* channel);
+internal inline bool CHANNEL_isPlaying(CHANNEL* channel);

@@ -1,40 +1,43 @@
 internal inline void*
 CHANNEL_getData(CHANNEL* channel) {
+  assert(channel != NULL);
   return channel->userdata;
 }
 
 internal inline void
 CHANNEL_setState(CHANNEL* channel, CHANNEL_STATE state) {
+  assert(channel != NULL);
   channel->state = state;
 }
 
 internal inline CHANNEL_STATE
 CHANNEL_getState(CHANNEL* channel) {
+  assert(channel != NULL);
   return channel->state;
 }
 
 internal inline void
 CHANNEL_requestStop(CHANNEL* channel) {
+  assert(channel != NULL);
   channel->stopRequested = true;
 }
 
 internal inline bool
-CHANNEL_hasStopRequested(CHANNEL* channel) {
-  return channel->stopRequested;
-}
-
-internal inline void
-CHANNEL_setEnabled(CHANNEL* channel, bool enabled) {
-  channel->enabled = enabled;
+CHANNEL_isPlaying(CHANNEL* channel) {
+  assert(channel != NULL);
+  return channel->state == CHANNEL_PLAYING
+    || channel->state == CHANNEL_STOPPING
+    || channel->state == CHANNEL_VIRTUALIZING;
 }
 
 internal inline bool
-CHANNEL_getEnabled(CHANNEL* channel) {
-  return channel->enabled;
+CHANNEL_hasStopRequested(CHANNEL* channel) {
+  assert(channel != NULL);
+  return channel->stopRequested;
 }
 
 internal void
-AUDIO_ENGINE_setPosition(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, size_t position) {
+AUDIO_ENGINE_setPosition(AUDIO_ENGINE* engine, CHANNEL_REF* ref, size_t position) {
   CHANNEL* base;
   if (!AUDIO_ENGINE_get(engine, ref, &base)) {
     return;
@@ -44,9 +47,28 @@ AUDIO_ENGINE_setPosition(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, size_t po
   channel->new.resetPosition = true;
 }
 
+internal void
+AUDIO_ENGINE_setState(AUDIO_ENGINE* engine, CHANNEL_REF* ref, CHANNEL_STATE state) {
+  CHANNEL* base;
+  if (!AUDIO_ENGINE_get(engine, ref, &base)) {
+    return;
+  }
+  CHANNEL_setState(base, state);
+}
+
+internal CHANNEL_STATE
+AUDIO_ENGINE_getState(AUDIO_ENGINE* engine, CHANNEL_REF* ref) {
+  CHANNEL* base;
+  if (!AUDIO_ENGINE_get(engine, ref, &base)) {
+    return CHANNEL_STOPPED;
+  }
+  return CHANNEL_getState(base);
+}
+
+
 #define AUDIO_CHANNEL_GETTER(fieldName, method, fieldType, defaultValue) \
   internal fieldType \
-  AUDIO_ENGINE_get##method(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref) { \
+  AUDIO_ENGINE_get##method(AUDIO_ENGINE* engine, CHANNEL_REF* ref) { \
     CHANNEL* base; \
     if (!AUDIO_ENGINE_get(engine, ref, &base)) { \
       return defaultValue; \
@@ -57,7 +79,7 @@ AUDIO_ENGINE_setPosition(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, size_t po
 
 #define AUDIO_CHANNEL_SETTER(fieldName, method, fieldType) \
   internal void \
-  AUDIO_ENGINE_set##method(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, fieldType value) { \
+  AUDIO_ENGINE_set##method(AUDIO_ENGINE* engine, CHANNEL_REF* ref, fieldType value) { \
     CHANNEL* base; \
     if (!AUDIO_ENGINE_get(engine, ref, &base)) { \
       return; \
@@ -67,7 +89,7 @@ AUDIO_ENGINE_setPosition(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, size_t po
   }
 #define AUDIO_CHANNEL_SETTER_WITH_RANGE(fieldName, method, fieldType, min, max) \
   internal void \
-  AUDIO_ENGINE_set##method(AUDIO_ENGINE* engine, AUDIO_CHANNEL_REF* ref, fieldType value) { \
+  AUDIO_ENGINE_set##method(AUDIO_ENGINE* engine, CHANNEL_REF* ref, fieldType value) { \
     CHANNEL* base; \
     if (!AUDIO_ENGINE_get(engine, ref, &base)) { \
       return; \
@@ -91,7 +113,11 @@ AUDIO_CHANNEL_GETTER(new.position, Position, size_t, 0)
 
 
 internal void
-AUDIO_CHANNEL_finish(WrenVM* vm, CHANNEL* base) {
+AUDIO_CHANNEL_finish(CHANNEL_REF ref, WrenVM* vm) {
+  CHANNEL* base;
+  if (!AUDIO_ENGINE_get(ref.engine, &ref, &base)) {
+    return;
+  }
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)CHANNEL_getData(base);
   assert(channel != NULL);
   if (channel->audioHandle != NULL) {
@@ -115,7 +141,11 @@ AUDIO_CHANNEL_commit(AUDIO_CHANNEL* channel) {
 }
 
 internal void
-AUDIO_CHANNEL_update(WrenVM* vm, CHANNEL* base) {
+AUDIO_CHANNEL_update(CHANNEL_REF ref, WrenVM* vm) {
+  CHANNEL* base;
+  if (!AUDIO_ENGINE_get(ref.engine, &ref, &base)) {
+    return;
+  }
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)CHANNEL_getData(base);
   switch (CHANNEL_getState(base)) {
     case CHANNEL_INITIALIZE:
@@ -141,7 +171,7 @@ AUDIO_CHANNEL_update(WrenVM* vm, CHANNEL* base) {
       break;
     case CHANNEL_PLAYING:
       AUDIO_CHANNEL_commit(channel);
-      if (CHANNEL_getEnabled(base) == false || CHANNEL_hasStopRequested(base)) {
+      if (CHANNEL_isPlaying(base) == false || CHANNEL_hasStopRequested(base)) {
         CHANNEL_setState(base, CHANNEL_STOPPING);
       }
       break;
@@ -158,7 +188,6 @@ AUDIO_CHANNEL_update(WrenVM* vm, CHANNEL* base) {
       AUDIO_CHANNEL_commit(channel);
       break;
     case CHANNEL_STOPPED:
-      CHANNEL_setEnabled(base, false);
       AUDIO_CHANNEL_commit(channel);
       break;
     default: break;
@@ -166,7 +195,11 @@ AUDIO_CHANNEL_update(WrenVM* vm, CHANNEL* base) {
 }
 
 internal void
-AUDIO_CHANNEL_mix(CHANNEL* base, float* stream, size_t totalSamples) {
+AUDIO_CHANNEL_mix(CHANNEL_REF ref, float* stream, size_t totalSamples) {
+  CHANNEL* base;
+  if (!AUDIO_ENGINE_get(ref.engine, &ref, &base)) {
+    return;
+  }
   AUDIO_CHANNEL* channel = (AUDIO_CHANNEL*)CHANNEL_getData(base);
   if (channel->audio == NULL) {
     return;
@@ -183,17 +216,20 @@ AUDIO_CHANNEL_mix(CHANNEL* base, float* stream, size_t totalSamples) {
   float actualVolume = channel->actualVolume;
   float actualPan = channel->actualPan;
 
+  bool blendVolume = actualVolume != volume;
+  bool blendPan = actualPan != targetPan;
+
 
   for (size_t i = 0; i < samplesToWrite; i++) {
     // We have to lerp the volume and pan change across the whole sample buffer
     // or we get a clicking sound.
     float f = i / (float)samplesToWrite;
     float currentVolume = actualVolume;
-    if (actualVolume != volume) {
+    if (blendVolume) {
       currentVolume = lerp(actualVolume, volume, f);
     }
     float currentPan = actualPan;
-    if (actualPan != targetPan) {
+    if (blendPan) {
       currentPan = lerp(actualPan, targetPan, f);
     }
     float pan = (currentPan + 1.0f) * M_PI / 4.0f; // Channel pan is [-1,1] real pan needs to be [0,1]
@@ -216,7 +252,9 @@ AUDIO_CHANNEL_mix(CHANNEL* base, float* stream, size_t totalSamples) {
   }
   channel->actualVolume = channel->current.volume;
   channel->actualPan = channel->current.pan;
-  CHANNEL_setEnabled(base, channel->current.loop || channel->current.position < length);
+  if (!channel->current.loop && channel->current.position >= length) {
+    CHANNEL_setState(base, CHANNEL_STOPPED);
+  }
 }
 internal float*
 resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFrequency, size_t* destLength) {
@@ -264,8 +302,8 @@ resample(float* data, size_t srcLength, uint64_t srcFrequency, uint64_t targetFr
   return destData;
 }
 
-internal AUDIO_CHANNEL_REF
-AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, char* soundId) {
+internal CHANNEL_REF
+AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, const char* soundId) {
 
   AUDIO_CHANNEL* data = malloc(sizeof(AUDIO_CHANNEL));
   data->soundId = strdup(soundId);
@@ -275,16 +313,13 @@ AUDIO_CHANNEL_new(AUDIO_ENGINE* engine, char* soundId) {
   data->actualPan = 0.0f;
   data->audio = NULL;
 
-  CHANNEL_ID id = AUDIO_ENGINE_channelInit(
+  CHANNEL_REF ref = AUDIO_ENGINE_channelInit(
     engine,
     AUDIO_CHANNEL_mix,
     AUDIO_CHANNEL_update,
     AUDIO_CHANNEL_finish,
     data
   );
-  AUDIO_CHANNEL_REF ref = {
-    .id = id
-  };
   return ref;
 }
 

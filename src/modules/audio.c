@@ -59,7 +59,7 @@ AUDIO_allocate(WrenVM* vm) {
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* audioEngine = engine->audioEngine;
   if (data->spec.freq != audioEngine->spec.freq) {
-    size_t newLength;
+    size_t newLength = 0;
     void* oldPtr = data->buffer;
     data->buffer = resample(data->buffer, data->length, data->spec.freq, audioEngine->spec.freq, &newLength);
     data->length = newLength;
@@ -103,7 +103,7 @@ AUDIO_getLength(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_stop(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
@@ -129,17 +129,17 @@ AUDIO_ENGINE_releaseHandles(AUDIO_ENGINE* audioEngine, WrenVM* vm) {
   CHANNEL* channel;
   while (TABLE_iterate(&(audioEngine->playing), &iter)) {
     channel = iter.value;
-    channel->enabled = false;
+    channel->state = CHANNEL_STOPPED;
     if (channel->finish != NULL) {
-      channel->finish(vm, channel);
+      channel->finish(channel->ref, vm);
     }
   }
   TABLE_iterInit(&iter);
   while (TABLE_iterate(&(audioEngine->pending), &iter)) {
     channel = iter.value;
-    channel->enabled = false;
+    channel->state = CHANNEL_STOPPED;
     if (channel->finish != NULL) {
-      channel->finish(vm, channel);
+      channel->finish(channel->ref, vm);
     }
   }
 }
@@ -148,7 +148,7 @@ AUDIO_ENGINE_releaseHandles(AUDIO_ENGINE* audioEngine, WrenVM* vm) {
 internal void
 AUDIO_CHANNEL_allocate(WrenVM* vm) {
   wrenEnsureSlots(vm, 2);
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(AUDIO_CHANNEL_REF));
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(CHANNEL_REF));
   ASSERT_SLOT_TYPE(vm, 1, STRING, "sound id");
 
   ENGINE* engine = wrenGetUserData(vm);
@@ -160,7 +160,7 @@ AUDIO_CHANNEL_allocate(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_setAudio(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
@@ -181,7 +181,7 @@ AUDIO_CHANNEL_setAudio(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_setState(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
   ASSERT_SLOT_TYPE(vm, 1, NUM, "state");
 
   ENGINE* engine = wrenGetUserData(vm);
@@ -200,7 +200,7 @@ AUDIO_CHANNEL_setState(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_getState(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
@@ -215,7 +215,7 @@ AUDIO_CHANNEL_getState(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_getId(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   wrenEnsureSlots(vm, 1);
   wrenSetSlotDouble(vm, 0, ref->id);
@@ -223,7 +223,7 @@ AUDIO_CHANNEL_getId(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_getSoundId(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
@@ -239,7 +239,7 @@ AUDIO_CHANNEL_getSoundId(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_getLength(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
@@ -255,7 +255,7 @@ AUDIO_CHANNEL_getLength(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_getPosition(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
@@ -264,24 +264,8 @@ AUDIO_CHANNEL_getPosition(WrenVM* vm) {
 }
 
 internal void
-AUDIO_CHANNEL_getEnabled(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
-
-  ENGINE* engine = wrenGetUserData(vm);
-  AUDIO_ENGINE* data = engine->audioEngine;
-
-  CHANNEL* base;
-  if (!AUDIO_ENGINE_get(data, ref, &base)) {
-    wrenSetSlotBool(vm, 0, false);
-    return;
-  }
-  wrenEnsureSlots(vm, 1);
-  wrenSetSlotBool(vm, 0, CHANNEL_getEnabled(base));
-}
-
-internal void
 AUDIO_CHANNEL_setLoop(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
@@ -292,7 +276,7 @@ AUDIO_CHANNEL_setLoop(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_getLoop(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
@@ -302,7 +286,7 @@ AUDIO_CHANNEL_getLoop(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_setPosition(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
@@ -312,7 +296,7 @@ AUDIO_CHANNEL_setPosition(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_setVolume(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
@@ -322,7 +306,7 @@ AUDIO_CHANNEL_setVolume(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_getVolume(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
@@ -332,7 +316,7 @@ AUDIO_CHANNEL_getVolume(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_setPan(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;
@@ -343,7 +327,7 @@ AUDIO_CHANNEL_setPan(WrenVM* vm) {
 
 internal void
 AUDIO_CHANNEL_getPan(WrenVM* vm) {
-  AUDIO_CHANNEL_REF* ref = (AUDIO_CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
+  CHANNEL_REF* ref = (CHANNEL_REF*)wrenGetSlotForeign(vm, 0);
 
   ENGINE* engine = wrenGetUserData(vm);
   AUDIO_ENGINE* data = engine->audioEngine;

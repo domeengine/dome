@@ -26,11 +26,15 @@ hashBits(uint64_t hash)
 
 global_variable const CHANNEL TOMBSTONE  = {
   .state = CHANNEL_LAST,
-  .id = NIL_KEY
+  .ref = {
+    .id = NIL_KEY
+  }
 };
 global_variable const CHANNEL EMPTY_CHANNEL  = {
   .state = CHANNEL_INVALID,
-  .id = NIL_KEY
+  .ref = {
+    .id = NIL_KEY
+  }
 };
 
 typedef struct {
@@ -139,9 +143,10 @@ TABLE_resize(TABLE* table, uint32_t capacity) {
     if (entry->key == NIL_KEY) {
       continue;
     }
-    ENTRY* dest;
+    ENTRY* dest = NULL;
     bool found = TABLE_findEntry(entries, capacity, entry->key, &dest);
     if (!found) {
+      assert(dest != NULL);
       dest->key = entry->key;
       dest->value = entry->value;
       table->count++;
