@@ -224,7 +224,6 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // Audio
   MAP_addClass(&engine->moduleMap, "audio", "SystemChannel", AUDIO_CHANNEL_allocate, AUDIO_CHANNEL_finalize);
-
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.loop=(_)", AUDIO_CHANNEL_setLoop);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.loop", AUDIO_CHANNEL_getLoop);
   MAP_addFunction(&engine->moduleMap, "audio", "SystemChannel.pan=(_)", AUDIO_CHANNEL_setPan);
