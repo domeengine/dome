@@ -36,7 +36,6 @@ Minimalism: DOME is a minimal, but all-in-one toolkit. This means that it should
 
 Usage-First: Any new API is designed "usage-first", and then an implementation is built around that. This allows for a more "comfortable" and developer-friendly API, because it's how we would _want_ to use it. Once the API is designed, we do what we can to build an implementation to fit that design, adjusting when technical reasons require it.
 
-
 ## Coding Conventions and Style Guides
 
 Code won't be merged into DOME if it doesn't match the existing code style. Here are some of the more obvious style decisions in the codebase.
@@ -81,13 +80,3 @@ class GraphVisitor {
 ```
 * Spaces around control-flow constructs, in similarity to C-styles.
 * Braces around control-flow blocks.
-
-## Contributors
-
-People who have contributed code or documentation to the project:
-* Aviv Beeri, aka springogeek [https://github.com/avivbeeri]
-* scholar-mage [https://github.com/scholar-mage]
-* Francisco Requena, aka frarees [https://github.com/frarees]
-* Camilo Castro, aka clsource [https://github.com/clsource]
-* Siddhant Rao [https://siddhantrao23.github.io]
-* Chayim Refael Friedman [https://github.com/ChayimFriedman2]
