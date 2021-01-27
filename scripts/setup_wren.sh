@@ -24,7 +24,6 @@ fi
 # Undo external makefile flags just in case
 unset config
 MAKEFLAGS="--no-print-directory"
-echo $config
 # build the debug version of wren
 make clean
 CFLAGS=-fvisibility=hidden

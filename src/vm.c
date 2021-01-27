@@ -311,6 +311,12 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "plugin", "static Plugin.f_load(_)", PLUGIN_load);
   MAP_lockModule(&engine->moduleMap, "plugin");
 
+  // Random
+  MAP_addClass(&engine->moduleMap, "random", "Squirrel3", RANDOM_allocate, RANDOM_finalize);
+  MAP_addFunction(&engine->moduleMap, "random", "static Squirrel3.noise(_,_)", RANDOM_noise);
+  MAP_addFunction(&engine->moduleMap, "random", "Squirrel3.float()", RANDOM_float);
+  MAP_lockModule(&engine->moduleMap, "random");
+
   return vm;
 }
 

@@ -18,6 +18,7 @@ declare -a arr=(
 "plugin"
 "json"
 "platform"
+"random"
 )
  
 declare -a opts=(
