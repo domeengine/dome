@@ -63,21 +63,19 @@ class MyClass {
   // override toString to provide a serializable representation
   // of the object. This serialization will be called by the
   // Json.encode() method.
-  toString {Json.encode(toMap)}
-  toMap {{
-    "is": isTrue
-  }}
+  toString { Json.encode(toMap) }
+  toMap { { "is": isTrue } }
 
-  isTrue {_isTrue}
+  isTrue { _isTrue }
 
   construct new(isTrue) {
-  _isTrue = isTrue
- }
+    _isTrue = isTrue
+  }
 }
 
 var obj = MyClass.new(true)
 
-// prints: {"is":true}
+// prints: { "is":true }
 System.print(Json.encode(obj))
 ```
 
@@ -96,6 +94,10 @@ This will encode solidus character (`/`). When converting a `Map` object to a `S
 #### `static abortOnError: Num`
 
 By default _DOME_ aborts when there is a _JSON parsing error_ (triggers a `Fiber.abort()` on parse error). Turn off this option if you want to capture the _JsonError_ object.
+
+#### `static checkCircular: Num`
+
+By default _DOME_ checks, when encoding, if your JSON contains circles, and aborts if it does. Turn off this option to not perform this check. This can speed up serializing, but will trigger an infinite recursion if the JSON indeed contains circles.
 
 ### Example
 

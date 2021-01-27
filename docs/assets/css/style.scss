@@ -8,7 +8,7 @@ body {
   color: #ffffff;
 }
 
-header h1 {
+header {
   text-align: center;
 }
 
@@ -25,6 +25,16 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+.invert {
+  height: 43px;
+  &:hover {
+    -webkit-filter: invert(15%);
+    filter: invert(15%);
+  }
+}
+.button {
+  text-align: center;
+}
 .view {
   text-align: center;
   a {
@@ -94,6 +104,14 @@ pre, code {
 pre code {
   padding: 5px 5px;
   display: inline-block;
+}
+
+a code {
+  text-decoration: underline;
+ 
+  &:hover {
+    text-decoration: none;
+  }
 }
 
 .highlight,
@@ -169,3 +187,4 @@ pre code {
 .highlight .vg { color: #e270ef } /* Name.Variable.Global */
 .highlight .vi { color: #e270ef } /* Name.Variable.Instance */
 .highlight .il { color: #e270ef } /* Literal.Number.Integer.Long */
+

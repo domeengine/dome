@@ -1,6 +1,7 @@
 #define _DEFAULT_SOURCE
 #define NOMINMAX
 
+
 #ifndef DOME_VERSION
 #define DOME_VERSION "0.0.0 - CUSTOM"
 #endif
@@ -20,6 +21,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <libgen.h>
+#include <time.h>
 #include <math.h>
 #ifndef M_PI
   #define M_PI 3.14159265358979323846
@@ -29,9 +31,15 @@
 #include <SDL.h>
 #include <vendor.h>
 
-#define internal static
+// Import plugin-specific definitions
+#define WIN_EXPORT
+#include "dome.h"
+// project-specific definitions
+#define external DOME_EXPORT
+#define internal DOME_INTERNAL static
 #define global_variable static
 #define local_persist static
+
 
 #define INIT_TO_ZERO(Type, name)\
   Type name;\
@@ -61,7 +69,6 @@
 
 // Used in the io variable, but we need to catch it here
 global_variable WrenHandle* bufferClass = NULL;
-global_variable WrenHandle* audioEngineClass = NULL;
 global_variable WrenHandle* keyboardClass = NULL;
 global_variable WrenHandle* mouseClass = NULL;
 global_variable WrenHandle* gamepadClass = NULL;
@@ -76,16 +83,28 @@ global_variable bool DEBUG_MODE = false;
 global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 global_variable size_t GIF_SCALE = 1;
 
+
+
 // Game code
 #include "math.c"
 #include "strings.c"
-#include "audio_types.c"
+
 #include "modules/map.c"
+
+#include "plugin.h"
 #include "engine.h"
-#include "debug.c"
 #include "util/font8x8.h"
 #include "io.c"
+
+#include "audio/engine.h"
+#include "audio/hashmap.c"
+#include "audio/engine.c"
+#include "audio/channel.c"
+#include "audio/api.c"
+#include "debug.c"
+
 #include "engine.c"
+#include "plugin.c"
 
 #include "modules/dome.c"
 #include "modules/font.c"
@@ -97,6 +116,8 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/json.c"
 #include "modules/platform.c"
 #include "modules/random.c"
+#include "modules/plugin.c"
+
 
 // Comes last to register modules
 #include "vm.c"
@@ -239,6 +260,9 @@ LOOP_processInput(LOOP_STATE* state) {
 
 internal int
 LOOP_render(LOOP_STATE* state) {
+  if (PLUGIN_COLLECTION_runHook(state->engine, DOME_PLUGIN_HOOK_PRE_DRAW) != DOME_RESULT_SUCCESS) {
+    return EXIT_FAILURE;
+  };
   WrenInterpretResult interpreterResult;
   wrenEnsureSlots(state->vm, 8);
   wrenSetSlotHandle(state->vm, 0, state->gameClass);
@@ -247,6 +271,9 @@ LOOP_render(LOOP_STATE* state) {
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     return EXIT_FAILURE;
   }
+  if (PLUGIN_COLLECTION_runHook(state->engine, DOME_PLUGIN_HOOK_POST_DRAW) != DOME_RESULT_SUCCESS) {
+    return EXIT_FAILURE;
+  };
 
 
   return EXIT_SUCCESS;
@@ -276,23 +303,21 @@ internal int
 LOOP_update(LOOP_STATE* state) {
   WrenInterpretResult interpreterResult;
 
+  if (PLUGIN_COLLECTION_runHook(state->engine, DOME_PLUGIN_HOOK_PRE_UPDATE) != DOME_RESULT_SUCCESS) {
+    return EXIT_FAILURE;
+  };
+
   wrenEnsureSlots(state->vm, 8);
   wrenSetSlotHandle(state->vm, 0, state->gameClass);
   interpreterResult = wrenCall(state->vm, state->updateMethod);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     return EXIT_FAILURE;
   }
+  if (PLUGIN_COLLECTION_runHook(state->engine, DOME_PLUGIN_HOOK_POST_UPDATE) != DOME_RESULT_SUCCESS) {
+    return EXIT_FAILURE;
+  };
   // updateAudio()
-  if (audioEngineClass != NULL) {
-    wrenEnsureSlots(state->vm, 3);
-    wrenSetSlotHandle(state->vm, 0, audioEngineClass);
-    AUDIO_ENGINE_lock(state->engine->audioEngine);
-    interpreterResult = wrenCall(state->vm, state->updateMethod);
-    AUDIO_ENGINE_unlock(state->engine->audioEngine);
-    if (interpreterResult != WREN_RESULT_SUCCESS) {
-      return EXIT_FAILURE;
-    }
-  }
+  AUDIO_ENGINE_update(state->engine->audioEngine, state->vm);
   return EXIT_SUCCESS;
 }
 
@@ -493,6 +518,7 @@ int main(int argc, char* args[])
       }
     }
 
+    chdir(base);
     if (engine.tar != NULL) {
       // It is a tar file, we need to look for a "main.wren" entry point.
       strcpy(pathBuf, mainFileName);
@@ -531,6 +557,8 @@ int main(int argc, char* args[])
   // Load user game file
   SDL_Thread* recordThread = NULL;
 
+  WrenHandle* initMethod = NULL;
+
   interpreterResult = wrenInterpret(vm, "main", gameFile);
   free(gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
@@ -541,28 +569,29 @@ int main(int argc, char* args[])
 
 
   wrenEnsureSlots(vm, 3);
-  WrenHandle* initMethod = NULL;
   initMethod = wrenMakeCallHandle(vm, "init()");
   wrenGetVariable(vm, "main", "Game", 0);
   loop.gameClass = wrenGetSlotHandle(vm, 0);
   loop.updateMethod = wrenMakeCallHandle(vm, "update()");
   loop.drawMethod = wrenMakeCallHandle(vm, "draw(_)");
 
+  SDL_SetRenderDrawColor(engine.renderer, 0x00, 0x00, 0x00, 0xFF);
+
   // Initiate game loop
 
   wrenSetSlotHandle(vm, 0, loop.gameClass);
   interpreterResult = wrenCall(vm, initMethod);
-  wrenReleaseHandle(vm, initMethod);
-  initMethod = NULL;
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
     goto vm_cleanup;
   }
+  // Release this handle if it finished successfully
+  wrenReleaseHandle(vm, initMethod);
+  initMethod = NULL;
   engine.initialized = true;
 
   SDL_SetWindowPosition(engine.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_ShowWindow(engine.window);
-  SDL_SetRenderDrawColor(engine.renderer, 0x00, 0x00, 0x00, 0xFF);
 
   // Resizing from init must happen before we begin recording
   if (engine.record.makeGif) {
@@ -674,6 +703,9 @@ vm_cleanup:
     }
   }
 
+  // Free resources
+  ENGINE_reportError(&engine);
+
   if (initMethod != NULL) {
     wrenReleaseHandle(vm, initMethod);
   }
@@ -684,17 +716,13 @@ vm_cleanup:
     wrenReleaseHandle(vm, bufferClass);
   }
 
-  if (audioEngineClass != NULL) {
-    wrenReleaseHandle(vm, audioEngineClass);
-  }
-
   INPUT_release(vm);
 
-cleanup:
-  // Free resources
-  ENGINE_reportError(&engine);
-  BASEPATH_free();
   AUDIO_ENGINE_halt(engine.audioEngine);
+  AUDIO_ENGINE_releaseHandles(engine.audioEngine, vm);
+
+cleanup:
+  BASEPATH_free();
   VM_free(vm);
   result = engine.exit_status;
   ENGINE_free(&engine);
@@ -705,4 +733,3 @@ cleanup:
 
   return result;
 }
-

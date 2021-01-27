@@ -4,9 +4,10 @@ class JsonOptions {
   static nil { 0 }
   static escapeSlashes { 1 }
   static abortOnError { 2 }
+  static checkCircular { 4 }
 
-  static shouldAbort(options) {
-    return ((options & JsonOptions.abortOnError) != JsonOptions.nil)
+  static contains(options, option) {
+    return ((options & option) != JsonOptions.nil)
   }
 }
 
@@ -79,7 +80,7 @@ class JsonStream {
 
     if (event == isError) {
       _error = JsonError.new(lineno, pos, error_message, true)
-      if (JsonOptions.shouldAbort(_options)) {
+      if (JsonOptions.contains(_options, JsonOptions.abortOnError)) {
         end()
         Fiber.abort("JSON error - line %(lineno) pos %(pos): %(error_message)")
       }
@@ -134,6 +135,66 @@ class JsonStream {
   }
 }
 
+class JsonEncoder {
+  construct new(options) {
+    _options = options
+    _circularStack = JsonOptions.contains(options, JsonOptions.checkCircular) ? [] : null
+  }
+
+  isCircle(value) { _circularStack == null || !_circularStack.any { |v| Object.same(value, v) } }
+
+  push(value) {
+    if (_circularStack != null) {
+      _circularStack.add(value)
+    }
+  }
+  pop() {
+    if (_circularStack != null) {
+      _circularStack.removeAt(-1)
+    }
+  }
+
+  encode(value) {
+    if (isCircle(value)) {
+      Fiber.abort("Circular JSON")
+    }
+
+    // Loosely based on https://github.com/brandly/wren-json/blob/master/json.wren
+    if (value is Num || value is Bool || value is Null) {
+      return value.toString
+    }
+
+    if (value is String) {
+      // Escape special characters
+      var substrings = []
+      for (char in value) {
+        substrings.add(JsonStream.escapechar(char, _options))
+      }
+
+      // Compile error if you use normal escaping sequence
+      // so we have to use bytes to string method for the single " char
+      return String.fromByte(0x22) + substrings.join("") + String.fromByte(0x22)
+    }
+
+    if (value is List) {
+      push(value)
+      var substrings = value.map { |item| encode(item) }
+      pop()
+      return "[" + substrings.join(",") + "]"
+    }
+
+    if (value is Map) {
+      push(value)
+      var substrings = value.keys.map { |key| "%(encode(key)):%(encode(value[key]))" }
+      pop()
+      return "{" + substrings.join(",") + "}"
+    }
+
+    // Default behaviour is to invoke the toString method
+    return value.toString
+  }
+}
+
 class Json {
 
   static load(path, options) {
@@ -155,39 +216,7 @@ class Json {
     return Json.save(path, object, JsonOptions.abortOnError)
   }
 
-  static encode(value, options) {
-    // Loosely based on https://github.com/brandly/wren-json/blob/master/json.wren
-    if (value is Num || value is Bool || value is Null) {
-      return value.toString
-    }
-
-    if (value is String) {
-      // Escape special characters
-      var substrings = []
-      for (char in value) {
-        substrings.add(JsonStream.escapechar(char, options))
-      }
-
-      // Compile error if you use normal escaping sequence
-      // so we have to use bytes to string method for the single " char
-      return String.fromByte(0x22) + substrings.join("") + String.fromByte(0x22)
-    }
-
-    if (value is List) {
-      var substrings = value.map { |item| Json.encode(item) }
-      return "[" + substrings.join(",") + "]"
-    }
-
-    if (value is Map) {
-      var substrings = value.keys.map { |key|
-        return Json.encode(key, options) + ":" + Json.encode(value[key], options)
-      }
-      return "{" + substrings.join(",") + "}"
-    }
-
-    // Default behaviour is to invoke the toString method
-    return value.toString
-  }
+  static encode(value, options) { JsonEncoder.new(options).encode(value) }
 
   static encode(value) {
     return Json.encode(value, JsonOptions.abortOnError)

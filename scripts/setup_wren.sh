@@ -26,9 +26,10 @@ unset config
 MAKEFLAGS="--no-print-directory"
 # build the debug version of wren
 make clean
-make ${@:2} verbose=1 config=debug_$1 wren && cp $WREN_DIR/lib/libwren_d.a $LIB_DIR/libwrend.a
+CFLAGS=-fvisibility=hidden
+make ${@:2} CFLAGS=${CFLAGS} verbose=1 config=debug_$1 wren && cp $WREN_DIR/lib/libwren_d.a $LIB_DIR/libwrend.a
 # build the release version of wren
 make clean
-make ${@:2} verbose=1 config=release_$1 wren && cp $WREN_DIR/lib/libwren.a $LIB_DIR/libwren.a
+make ${@:2} CFLAGS=${CFLAGS} verbose=1 config=release_$1 wren && cp $WREN_DIR/lib/libwren.a $LIB_DIR/libwren.a
 # Copy the wren.h to our includes
 cp $WREN_DIR/src/include/wren.h $INCLUDE_DIR/wren.h

@@ -101,14 +101,7 @@ foreign class ImageData is Drawable {
   }
 
   foreign f_pget(x, y)
-  pget(x, y) {
-    var c = f_pget(x, y)
-    var r = c & 255
-    var g = (c & 255 << 8) >> 8
-    var b = (c & 255 << 16) >> 16
-    var a = (c & 255 << 24) >> 24
-    return Color.rgb(r, g, b, a)
-  }
+  pget(x, y) { Color.fromNum(f_pget(x, y)) }
 }
 
 import "color" for Color

@@ -33,7 +33,6 @@ STRING_UTILS_toLowercase(WrenVM* vm) {
   free(dest);
 }
 
-
 internal void
 WINDOW_resize(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
@@ -122,6 +121,25 @@ WINDOW_getFps(WrenVM* vm) {
 }
 
 internal void
+WINDOW_setColor(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "color");
+  uint32_t color = (uint32_t)wrenGetSlotDouble(vm, 1);
+  uint8_t r, g, b;
+  getColorComponents(color, &r, &g, &b);
+  SDL_SetRenderDrawColor(engine->renderer, r, g, b, 0xFF);
+}
+
+internal void
+WINDOW_getColor(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  uint8_t r, g, b, a;
+  SDL_GetRenderDrawColor(engine->renderer, &r, &g, &b, &a);
+  uint32_t color = (b << 16) | (g << 8) | r;
+  wrenSetSlotDouble(vm, 0, color);
+}
+
+internal void
 VERSION_getString(WrenVM* vm) {
   size_t len = 0;
   char* version = DOME_VERSION;
@@ -135,3 +153,5 @@ VERSION_getString(WrenVM* vm) {
   }
   wrenSetSlotBytes(vm, 0, version, len);
 }
+
+
