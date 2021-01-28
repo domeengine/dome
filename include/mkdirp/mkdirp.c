@@ -36,7 +36,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define PATH_SEPARATOR   '/'
 #endif
 
-char *
+const char*
 path_normalize(const char *path) {
   if (!path) return NULL;
 

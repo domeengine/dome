@@ -3,6 +3,7 @@ SOURCE=src
 LIBS=lib
 OBJS=obj
 INCLUDES=include
+SOURCE_FILES = $(shell find src -type f)
 UTILS = $(SOURCE)/util
 MODULES=$(SOURCE)/modules
 SCRIPTS=scripts
@@ -80,11 +81,11 @@ WARNING_FLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
 else ifneq ($(filter windows,$(TAGS)),)
 WARNING_FLAGS += -Wno-discarded-qualifiers -Wno-clobbered
 else ifneq ($(filter linux,$(TAGS)),)
-	WARNING_FLAGS += -Wno-clobbered
+	WARNING_FLAGS += -Wno-clobbered -Wno-maybe-uninitialized -Wno-attributes
 endif
 
 
-CFLAGS = $(DOME_OPTS) -std=c99 -pedantic $(WARNING_FLAGS)
+CFLAGS = $(DOME_OPTS) -std=c99 -pedantic $(WARNING_FLAGS) -fvisibility=hidden
 ifneq ($(filter macosx,$(TAGS)),)
 CFLAGS += -mmacosx-version-min=10.12
 endif
@@ -136,7 +137,7 @@ else ifneq ($(and $(filter macosx,$(TAGS)), $(filter framework,$(TAGS)), $(filte
 FFLAGS += -F/Library/Frameworks -framework SDL2
 endif
 
-LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG) $(DEPS)
+LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG) $(DEPS) 
 
 
 
@@ -148,7 +149,7 @@ PROJECTS := dome.bin
 all: $(PROJECTS)
 
 WREN_LIB ?= $(LIBS)/libwren.a
-WREN_PARAMS ?= $(ARCH) WREN_OPT_RANDOM=1 WREN_OPT_META=1   
+WREN_PARAMS ?= $(ARCH) WREN_OPT_RANDOM=0 WREN_OPT_META=1   
 $(LIBS)/wren/lib/libwren.a:
 	@echo "==== Cloning Wren ===="
 	git submodule update --init -- $(LIBS)/wren
@@ -166,14 +167,14 @@ $(OBJS)/vendor.o: $(INCLUDES)/vendor.c
 	@echo "==== Building vendor module ===="
 	$(CC) $(CFLAGS) -c $(INCLUDES)/vendor.c -o $(OBJS)/vendor.o $(IFLAGS)
 
-$(OBJS)/main.o: $(SOURCE)/*.h $(SOURCE)/*.c $(MODULES)/*.c $(MODULES)/*.inc $(INCLUDES) $(WREN_LIB)
+$(OBJS)/main.o: $(SOURCE_FILES) $(INCLUDES) $(WREN_LIB) $(MODULES)/*.inc
 	@mkdir -p $(OBJS)
 	@echo "==== Building core ($(TAGS)) module ===="
 	$(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(OBJS)/main.o $(IFLAGS) 
 
 $(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(WREN_LIB)
 	@echo "==== Linking DOME ($(TAGS)) ===="
-	$(CC) $(FFLAGS) -o $(TARGET_NAME) $(OBJS)/*.o $(ICON_OBJECT_FILE) $(LDFLAGS) 
+	$(CC) $(CFLAGS) $(FFLAGS) -o $(TARGET_NAME) $(OBJS)/*.o $(ICON_OBJECT_FILE) $(LDFLAGS) 
 	./scripts/set-executable-path.sh $(TARGET_NAME)
 	@echo "DOME built as $(TARGET_NAME)"
 

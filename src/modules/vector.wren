@@ -38,13 +38,13 @@ class Vector {
 
   unit {
     if (length == 0) {
-      return Vector.new()
+      return type.new()
     }
-    return Vector.new(x / length, y / length, z / length, w / length)
+    return type.new(x / length, y / length, z / length, w / length)
   }
 
   perp {
-    return Vector.new(-y, x)
+    return type.new(-y, x)
   }
 
   dot(other) {
@@ -53,7 +53,7 @@ class Vector {
   }
 
   cross(other) {
-    return Vector.new(
+    return type.new(
       y * other.z - z * other.y,
       z * other.x - x * other.z,
       x * other.y - y * other.x
@@ -62,17 +62,17 @@ class Vector {
 
   + (other) {
     if (!(other is Vector)) Fiber.abort("Vectors can only be subtracted from other points.")
-    return Vector.new(x + other.x, y + other.y, z + other.z, w + other.w)
+    return type.new(x + other.x, y + other.y, z + other.z, w + other.w)
   }
   - (other) {
     if (!(other is Vector)) Fiber.abort("Vectors can only be subtracted from other points.")
-    return Vector.new(x - other.x, y - other.y, z - other.z, w - other.w)
+    return type.new(x - other.x, y - other.y, z - other.z, w - other.w)
   }
 
   / (other) {
     if (other is Num) {
       // Scale by other
-      return Vector.new(x / other, y / other, z / other, w / other)
+      return type.new(x / other, y / other, z / other, w / other)
     } else {
       Fiber.abort("Vectors can only be divided by scalar values.")
     }
@@ -81,14 +81,14 @@ class Vector {
   * (other) {
     if (other is Num) {
       // Scale by other
-      return Vector.new(x * other, y * other, z * other, w * other)
+      return type.new(x * other, y * other, z * other, w * other)
     } else {
       Fiber.abort("Vectors can only be multiplied by scalar values.")
     }
   }
 
   - {
-    return Vector.new(-x, -y, -z, -w)
+    return type.new(-x, -y, -z, -w)
   }
 
   ==(other) {

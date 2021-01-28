@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [assigned, opened, synchronize, reopened]
   release:
-    types: [created]
+    types: [published]
 
 jobs:
   build-linux:
@@ -110,7 +110,7 @@ jobs:
           main.wren
 
   release-artifacts:
-    if: ${{ github.event.action == 'created' }}
+    if: ${{ github.event.action == 'published' }}
     needs: [ build-linux, build-mac, build-windows ]
     runs-on: ubuntu-latest
     name: Upload Release Artifacts
@@ -179,7 +179,7 @@ jobs:
           asset_content_type: application/zip
   notify-discord:
     runs-on: ubuntu-latest
-    if: ${{ github.event.action == 'created' }}
+    if: ${{ github.event.action == 'published' }}
     needs: [ release-artifacts ]
     steps:
     - name: Discord notification

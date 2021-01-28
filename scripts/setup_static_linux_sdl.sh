@@ -17,14 +17,21 @@ fi
 
 make
 
+# These two are essential
+cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2.a $LIB_DIR
+cp $DIRECTORY/${FOLDER}/sdl2-config $LIB_DIR/sdl2-config
+
 if [ -f "$DIRECTORY/$FOLDER/build/.libs/libSDL2main.a" ]; then
   cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2main.a $LIB_DIR
+fi
+if [ -f "$DIRECTORY/$FOLDER/build/.libs/libSDL2main.so" ]; then
   cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2main.so $LIB_DIR
 fi
 
-cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2.a $LIB_DIR
+if [ -f "$DIRECTORY/$FOLDER/build/.libs/libSDL2.so" ]; then
 cp $DIRECTORY/${FOLDER}/build/.libs/libSDL2.so $LIB_DIR
-cp $DIRECTORY/${FOLDER}/sdl2-config $LIB_DIR/sdl2-config
+fi
+
 chmod +x $LIB_DIR/sdl2-config
 
 cp -r $DIRECTORY/include $INCLUDE_DIR/SDL2

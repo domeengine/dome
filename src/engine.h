@@ -51,7 +51,7 @@ typedef struct {
   DOME_RECT clip;
 } CANVAS;
 
-typedef struct {
+typedef struct ENGINE_t {
   ENGINE_RECORDER record;
   SDL_Window* window;
   SDL_Renderer *renderer;
@@ -61,6 +61,8 @@ typedef struct {
   PIXEL_BUFFER blitBuffer;
   ABC_FIFO fifo;
   MAP moduleMap;
+  // PLUGIN_MAP pluginMap;
+  PLUGIN_COLLECTION plugins;
   mtar_t* tar;
   bool running;
   char** argv;

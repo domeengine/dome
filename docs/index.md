@@ -18,9 +18,11 @@ Check out the documentation:
   * [io](modules/io)
   * [json](modules/json)
   * [math](modules/math)
+  * [plugin](modules/plugin)
 * Guides
   * [Import Resolution](guides/module-imports)
   * [Game Loop Behaviour](guides/game-loop)
   * [Distributing your game](guides/distribution)
+* [Native Plugins](plugins/)
 * Examples
   * [DOMEjam](https://itch.io/jam/domejam)
