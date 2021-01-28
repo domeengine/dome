@@ -27,7 +27,7 @@ jobs:
           github_token: ${{ github.token }}
       - id: get-id
         run: |
-          id=$(echo ${{github.event.client_payload.value}} | cut -f 2 -d v)
+          id=$(echo ${{steps.fetch-latest-release.outputs.tag_name}} | cut -f 2 -d v)
           echo "::set-output name=id::$id"
       - run: echo "${{steps.get-id.outputs.id}}"
       - uses: dsaltares/fetch-gh-release-asset@master
