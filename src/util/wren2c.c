@@ -1,90 +1,55 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
-char* WREN2C_hash(char *key)
-{
-    // https://en.wikipedia.org/wiki/Jenkins_hash_function
-    // http://www.burtleburtle.net/bob/hash/doobs.html
-    int len = strlen(key);
-    uint32_t hash, i;
-    for(hash = i = 0; i < len; ++i)
-    {
-        hash += key[i];
-        hash += (hash << 10);
-        hash ^= (hash >> 6);
+internal 
+void WREN2C_randomString(char *dest) {
+    // https://stackoverflow.com/a/15768317
+    char charset[] = "0123456789"
+                     "abcdefghijklmnopqrstuvwxyz"
+                     "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    srand(time(0));
+
+    size_t length = 10;
+    while (length-- > 0) {
+        size_t index = (double) rand() / RAND_MAX * (sizeof charset - 1);
+        *dest++ = charset[index];
     }
-    hash += (hash << 3);
-    hash ^= (hash >> 11);
-    hash += (hash << 15);
-
-    char out[10];
-    sprintf(out, "%d", hash);
-
-    return out;
-}
-
-char* WREN2C_readEntireFile(char* path, size_t* lengthPtr) {
-  FILE* file = fopen(path, "r");
-  if (file == NULL) {
-    return NULL;
-  }
-  char* source = NULL;
-  if (fseek(file, 0L, SEEK_END) == 0) {
-    /* Get the size of the file. */
-    long bufsize = ftell(file);
-    /* Allocate our buffer to that size. */
-    source = malloc(sizeof(char) * (bufsize + 1));
-
-    /* Go back to the start of the file. */
-    if (fseek(file, 0L, SEEK_SET) != 0) { /* Error */ }
-
-    /* Read the entire file into memory. */
-    size_t newLen = fread(source, sizeof(char), bufsize, file);
-    if ( ferror( file ) != 0 ) {
-      fputs("Error reading file", stderr);
-    } else {
-      if (lengthPtr != NULL) {
-        *lengthPtr = newLen;
-      }
-      source[newLen++] = '\0'; /* Just to be safe. */
-    }
-  }
-  fclose(file);
-  return source;
+    *dest = '\0';
 }
 
 
+internal 
 void WREN2C_encodeAndDump(ENGINE* engine, int argc, char* args[]) {
   
-  char* fileName = args[1];
+  char* fileName = args[2];
+  char* fileOut = strcat(strdup(fileName), ".inc");
 
-  char* name;
-  sprintf(name, "%s.inc", fileName);
+  char randName[] = "";
+  WREN2C_randomString(randName);
 
-  char* fileOut = strdup(name); 
+  char* moduleName = randName;
 
-  sprintf(name, "wrenModule_%s", WREN2C_hash(fileName));  
-  char* moduleName = strdup(name);
-
-  if (argc == 2) {
-    moduleName = args[2];
+  // Specify custom module name
+  if (argc == 4) {
+    moduleName = args[3];
   }
 
-  if (argc == 3) {
-    fileOut = args[3];
+  // Specify custom fileOut name
+  if (argc == 5) {
+    fileOut = args[4];
   }
 
   size_t length;
+
+  // readEntireFile is located in io.c
   char* fileToConvert = readEntireFile(fileName, &length);
 
   FILE *fp;
   fp = fopen(fileOut, "w+");
   fputs("// Generated automatically using ./dome --wren2c ", fp);
-  fputs(fileName);
-  fputs(" Do not modify\n");
+  fputs(fileName, fp);
+  fputs(" Do not modify\n", fp);
 
-  fputs("static const char ", fp);
+  fputs("const char wrenModule_", fp);
   fputs(moduleName, fp);
 
   fputs("[", fp);
@@ -101,8 +66,6 @@ void WREN2C_encodeAndDump(ENGINE* engine, int argc, char* args[]) {
       fputs("'", fp);
       if (*ptr == '\'') {
         fputs("\\\'", fp);
-      else if (*ptr == '"') {
-        fputs("\\\"", fp);
       } else {
         fwrite(ptr, sizeof(char), 1, fp);
       }
@@ -115,5 +78,4 @@ void WREN2C_encodeAndDump(ENGINE* engine, int argc, char* args[]) {
 
   fclose(fp);
   free(fileToConvert);
-  free(name);
 }

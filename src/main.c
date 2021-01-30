@@ -94,8 +94,8 @@ global_variable size_t GIF_SCALE = 1;
 #include "plugin.h"
 #include "engine.h"
 #include "util/font8x8.h"
-#include "util/wren2c.c"
 #include "io.c"
+#include "util/wren2c.c"
 
 #include "audio/engine.h"
 #include "audio/hashmap.c"
@@ -446,6 +446,7 @@ int main(int argc, char* args[])
         printVersion(&engine);
         goto cleanup;
       case 'w':
+        WREN2C_encodeAndDump(&engine, argc, args);
         goto cleanup;
       case '?':
         fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
