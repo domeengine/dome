@@ -49,16 +49,18 @@ C-code should conform to the following:
 * Structs which represent "objects" are usually declared in all capitals.
 * Methods associated with structs are named with the format `NAME_methodName()`
 * Braces are required for control-flow blocks: `while`, `for` and `if` must be followed by a `{` and `}` to mark out the statements which are predicated on that control flow. This is to prevent copy-paste errors, as well as poor semi-colon placement.
-```
+
+```c
 if (condition) { // This brace is on the same line as the ending parenthesis.
-  ...
+  //...
 }
 ```
 
 * A space must be placed after these keywords, and before parenthesis of their conditions.
-```
+
+```c
 while (condition) {
-  ...
+  //...
 }
 ```
 
@@ -68,8 +70,11 @@ Wren code should conform to the following:
 
 * Classes are named with TitleCase, each word being capitalised, including the first.
 * Variables, methods and properties all require camelCase, even when they are intended to be constants (follows Wren convention e.g. Num.pi).
-  * Constants and variables which do not belong to a class may have the first letter of their identifier capitalised as appropriate. (This is necessary for Wren's scoping rules to work.)
-```
+* Constants and variables which do not belong to a class may have the first letter of their identifier capitalised as appropriate. (This is necessary for Wren's scoping rules to work.)
+
+```js
+var TheAnswerConstant = 42
+
 var degreeOfSeparation = 6
 
 class GraphVisitor {
@@ -78,5 +83,30 @@ class GraphVisitor {
   static someMethod(withInput) { ... }
 }
 ```
+
 * Spaces around control-flow constructs, in similarity to C-styles.
 * Braces around control-flow blocks.
+
+### Directory Structure
+
+This repository follows this directory structure.
+
+```scala
+$ tree -L 1 .
+.
+├── assets
+├── docs
+├── examples
+├── include
+├── lib
+├── scripts
+└── src
+```
+
+- `assets`: Resource files for building _DOME_ executable. (Icons).
+- `docs`: Documentation, both in _Markdown_ and _html_.
+- `examples`: Simple examples. For more elaborate ones please go to the https://github.com/domeengine/dome-examples repository.
+- `include`: Libraries and external code required for building _DOME_ (simple c and headers).
+- `lib`: Libraries and external code required for building _DOME_ (Git submodules).
+- `scripts`: Useful tools and scripts that aids building _DOME_.
+- `src`: Main _DOME_ source code.
