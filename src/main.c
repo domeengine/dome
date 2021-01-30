@@ -94,6 +94,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "plugin.h"
 #include "engine.h"
 #include "util/font8x8.h"
+#include "util/wren2c.c"
 #include "io.c"
 
 #include "audio/engine.h"
@@ -359,6 +360,7 @@ printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
   ENGINE_printLog(engine, "  -r --record=<gif>   Record video to <gif>.\n");
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
+  ENGINE_printLog(engine, "  -w --wren2c         Converts a Wren file to a C string.\n");
 }
 
 int main(int argc, char* args[])
@@ -387,6 +389,7 @@ int main(int argc, char* args[])
     {"version", 'v', OPTPARSE_NONE},
     {"record", 'r', OPTPARSE_OPTIONAL},
     {"scale", 's', OPTPARSE_REQUIRED},
+    {"wren2c", 'w', OPTPARSE_REQUIRED},
     {0}
   };
 
@@ -441,6 +444,8 @@ int main(int argc, char* args[])
       case 'v':
         printTitle(&engine);
         printVersion(&engine);
+        goto cleanup;
+      case 'w':
         goto cleanup;
       case '?':
         fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
