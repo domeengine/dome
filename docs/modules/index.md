@@ -15,6 +15,7 @@ The modules you can import are here:
 * [json](json)
 * [math](math)
 * [plugin](plugin)
+* [random](random)
 
 For example, the `graphics` module can be imported to access the `Canvas` and `Color` classes, like this:
 
@@ -26,6 +27,3 @@ import "graphics" for Canvas, Color
 Canvas.cls()
 Canvas.print("Hello world", 20, 20, Color.white)
 ```
-
-
-
