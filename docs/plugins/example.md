@@ -49,7 +49,7 @@ static DOME_API_v0* core;
 static WREN_API_v0* wren;
 
 static const char* source =  ""
-"class ExternalClass {\n" // Source file for an external module
+"foreign class ExternalClass {\n" // Source file for an external module
   "construct init() {} \n"
   "foreign alert(text) \n"
 "} \n";
