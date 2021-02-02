@@ -139,6 +139,7 @@ typedef struct {
   double elapsed;
   bool windowBlurred;
   uint8_t attempts;
+  bool tickRender;
 } LOOP_STATE;
 
 internal void
@@ -373,22 +374,28 @@ printUsage(ENGINE* engine) {
 }
 
 void DOME_loop(void* data) {
-  LOOP_STATE* loop = data;
-  loop->currentTime = SDL_GetPerformanceCounter();
-  loop->elapsed = 1000 * (loop->currentTime - loop->previousTime) / (double) SDL_GetPerformanceFrequency();
-  loop->previousTime = loop->currentTime;
-  loop->lag += loop->elapsed;
-  if (loop->lag >= loop->MS_PER_FRAME) {
-    LOOP_STATE* loop = data;
-    LOOP_processInput(loop);
-    if (loop->windowBlurred) {
+  LOOP_STATE loop = *((LOOP_STATE*)data);
+  loop.currentTime = SDL_GetPerformanceCounter();
+  loop.elapsed = 1000 * (loop.currentTime - loop.previousTime) / (double) SDL_GetPerformanceFrequency();
+  loop.previousTime = loop.currentTime;
+  loop.lag += loop.elapsed;
+
+  if (loop.lag >= loop.MS_PER_FRAME) {
+    LOOP_processInput(&loop);
+    if (loop.windowBlurred) {
+      loop.lag = 0;
+      loop.tickRender = true;
       return;
     }
-    LOOP_update(loop);
-    LOOP_render(loop);
-    LOOP_flip(loop);
-    loop->lag = mid(0, loop->lag - loop->MS_PER_FRAME, loop->MS_PER_FRAME);
+    LOOP_update(&loop);
+    if (loop.tickRender) {
+      LOOP_render(&loop);
+      LOOP_flip(&loop);
+    }
+    loop.tickRender = !loop.tickRender;
+    loop.lag = mid(0, loop.lag - loop.MS_PER_FRAME, loop.MS_PER_FRAME);
   }
+  *((LOOP_STATE*)data) = loop;
 }
 
 int main(int argc, char* args[])
