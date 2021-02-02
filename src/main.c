@@ -83,11 +83,7 @@ global_variable bool DEBUG_MODE = true;
 #else
 global_variable bool DEBUG_MODE = false;
 #endif
-#ifdef __EMSCRIPTEN__
-global_variable size_t AUDIO_BUFFER_SIZE = 512;
-#else
 global_variable size_t AUDIO_BUFFER_SIZE = 2048;
-#endif
 global_variable size_t GIF_SCALE = 1;
 
 
@@ -182,13 +178,11 @@ LOOP_processInput(LOOP_STATE* state) {
             break;
           }
           if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
-            printf("lost\n");
 #ifdef __EMSCRIPTEN__
             AUDIO_ENGINE_pause(engine->audioEngine);
 #endif
             state->windowBlurred = true;
           } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-            printf("gained\n");
 #ifdef __EMSCRIPTEN__
             AUDIO_ENGINE_resume(engine->audioEngine);
 #endif
@@ -378,14 +372,12 @@ printUsage(ENGINE* engine) {
 
 void DOME_loop(void* data) {
   LOOP_STATE* loop = data;
-  int result = EXIT_SUCCESS;
-  result = LOOP_processInput(loop);
+  LOOP_processInput(loop);
   if (loop->windowBlurred) {
     return;
   }
-  result = LOOP_update(loop);
-  result = LOOP_render(loop);
-  loop->lag = mid(0, loop->lag - loop->MS_PER_FRAME, loop->MS_PER_FRAME);
+  LOOP_update(loop);
+  LOOP_render(loop);
   LOOP_flip(loop);
 }
 
@@ -636,8 +628,7 @@ int main(int argc, char* args[])
   loop.windowBlurred = false;
   uint64_t previousTime = SDL_GetPerformanceCounter();
   #ifdef __EMSCRIPTEN__
-  emscripten_set_main_loop_arg(DOME_loop, &loop, 60, true);
-  goto vm_cleanup;
+  emscripten_set_main_loop_arg(DOME_loop, &loop, 0, true);
   #endif
   while (engine.running) {
 
