@@ -185,9 +185,9 @@ $(OBJS)/wren.o: $(OBJS)
 	./scripts/setup_wren_web.sh
 
 dome.html: $(SOURCE)/main.c $(MODULES)/*.inc $(INCLUDES)/vendor.c $(OBJS)/wren.o
-	emcc -c include/vendor.c -o $(OBJS)/vendor.o -s USE_SDL=2 -Iinclude
-	emcc -c src/main.c -o $(OBJS)/main.o -s USE_SDL=2 -Iinclude $(DOME_OPTS)
-	emcc $(OBJS)/*.o -o dome.html -s USE_SDL=2 --preload-file game.egg -s ALLOW_MEMORY_GROWTH=1
+	emcc -O3 -c include/vendor.c -o $(OBJS)/vendor.o -s USE_SDL=2 -Iinclude
+	emcc -O3 -c src/main.c -o $(OBJS)/main.o -s USE_SDL=2 -Iinclude $(DOME_OPTS)
+	emcc -O3 $(OBJS)/*.o -o dome.html -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1 -s ASYNCIFY=1 #--preload-file game.egg
 
 dome.bin: $(TARGET_NAME)
 

@@ -376,6 +376,9 @@ void DOME_loop(void* data) {
 
 int main(int argc, char* args[])
 {
+#ifdef __EMSCRIPTEN__
+  emscripten_wget("http://localhost:8000/game.egg", "/game.egg");
+#endif
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   size_t gameFileLength;
@@ -516,6 +519,7 @@ int main(int argc, char* args[])
     // If a filename is given in the path, use it, or assume its 'game.egg'
     strcpy(pathBuf, base);
     strcat(pathBuf, !autoResolve ? fileName : defaultEggName);
+    chdir(base);
 
     if (doesFileExist(pathBuf)) {
       // the current path exists, let's see if it's a TAR file.
@@ -531,7 +535,6 @@ int main(int argc, char* args[])
       }
     }
 
-    chdir(base);
     if (engine.tar != NULL) {
       // It is a tar file, we need to look for a "main.wren" entry point.
       strcpy(pathBuf, mainFileName);
