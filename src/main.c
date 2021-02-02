@@ -83,7 +83,11 @@ global_variable bool DEBUG_MODE = true;
 #else
 global_variable bool DEBUG_MODE = false;
 #endif
+#ifdef __EMSCRIPTEN__
+global_variable size_t AUDIO_BUFFER_SIZE = 512;
+#else
 global_variable size_t AUDIO_BUFFER_SIZE = 2048;
+#endif
 global_variable size_t GIF_SCALE = 1;
 
 

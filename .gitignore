@@ -15,7 +15,7 @@ include/SDL2/*
 lib/SDL2*
 lib/libSDL2*
 
-lib/wren.c
+lib/wren_all.c
 
 *.o
 *.swp
