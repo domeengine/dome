@@ -134,6 +134,8 @@ typedef struct {
   double MS_PER_FRAME;
   double FPS;
   double lag;
+  uint64_t previousTime;
+  uint64_t currentTime;
   double elapsed;
   bool windowBlurred;
   uint8_t attempts;
@@ -372,13 +374,21 @@ printUsage(ENGINE* engine) {
 
 void DOME_loop(void* data) {
   LOOP_STATE* loop = data;
-  LOOP_processInput(loop);
-  if (loop->windowBlurred) {
-    return;
+  loop->currentTime = SDL_GetPerformanceCounter();
+  loop->elapsed = 1000 * (loop->currentTime - loop->previousTime) / (double) SDL_GetPerformanceFrequency();
+  loop->previousTime = loop->currentTime;
+  loop->lag += loop->elapsed;
+  if (loop->lag >= loop->MS_PER_FRAME) {
+    LOOP_STATE* loop = data;
+    LOOP_processInput(loop);
+    if (loop->windowBlurred) {
+      return;
+    }
+    LOOP_update(loop);
+    LOOP_render(loop);
+    LOOP_flip(loop);
+    loop->lag = mid(0, loop->lag - loop->MS_PER_FRAME, loop->MS_PER_FRAME);
   }
-  LOOP_update(loop);
-  LOOP_render(loop);
-  LOOP_flip(loop);
 }
 
 int main(int argc, char* args[])
@@ -626,7 +636,7 @@ int main(int argc, char* args[])
     goto vm_cleanup;
   }
   loop.windowBlurred = false;
-  uint64_t previousTime = SDL_GetPerformanceCounter();
+  loop.previousTime = SDL_GetPerformanceCounter();
   #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop_arg(DOME_loop, &loop, 0, true);
   #endif
@@ -640,9 +650,9 @@ int main(int argc, char* args[])
       }
     }
 
-    uint64_t currentTime = SDL_GetPerformanceCounter();
-    loop.elapsed = 1000 * (currentTime - previousTime) / (double) SDL_GetPerformanceFrequency();
-    previousTime = currentTime;
+    loop.currentTime = SDL_GetPerformanceCounter();
+    loop.elapsed = 1000 * (loop.currentTime - loop.previousTime) / (double) SDL_GetPerformanceFrequency();
+    loop.previousTime = loop.currentTime;
 
 
     // If we aren't focused, we skip the update loop and let the CPU sleep

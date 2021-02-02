@@ -22,7 +22,11 @@
   </head>
   <body>
     <div class="emscripten_border">
-      <canvas class="emscripten" id="canvas" height=0 oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+      <canvas class="emscripten" id="canvas" height=0 
+        oncontextmenu="event.preventDefault()" 
+        onkeydown="event.preventDefault()" 
+        onkeyup="event.preventDefault()" 
+        tabindex=0></canvas>
     </div>
     <div class="emscripten">
       <input type="button" value="Fullscreen" onclick="Module['canvas'].requestFullscreen()">
