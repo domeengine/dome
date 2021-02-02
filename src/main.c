@@ -2,6 +2,9 @@
 #define NOMINMAX
 
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 #ifndef DOME_VERSION
 #define DOME_VERSION "0.0.0 - CUSTOM"
 #endif
@@ -361,6 +364,16 @@ printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
 }
 
+void DOME_loop(void* data) {
+  LOOP_STATE* loop = data;
+  int result = EXIT_SUCCESS;
+  result = LOOP_processInput(loop);
+  result = LOOP_update(loop);
+  result = LOOP_render(loop);
+  loop->lag = mid(0, loop->lag - loop->MS_PER_FRAME, loop->MS_PER_FRAME);
+  LOOP_flip(loop);
+}
+
 int main(int argc, char* args[])
 {
   int result = EXIT_SUCCESS;
@@ -604,6 +617,10 @@ int main(int argc, char* args[])
   }
   loop.windowBlurred = false;
   uint64_t previousTime = SDL_GetPerformanceCounter();
+  #ifdef __EMSCRIPTEN__
+  emscripten_set_main_loop_arg(DOME_loop, &loop, 60, true);
+  goto vm_cleanup;
+  #endif
   while (engine.running) {
 
     // processInput()
