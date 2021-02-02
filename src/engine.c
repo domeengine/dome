@@ -157,6 +157,9 @@ ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr) {
     strcat(pathBuf, path);
   }
 
+#ifdef __EMSCRIPTEN__
+  emscripten_wget(pathBuf, pathBuf);
+#endif
   if (!doesFileExist(pathBuf)) {
     return NULL;
   }

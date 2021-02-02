@@ -175,11 +175,19 @@ LOOP_processInput(LOOP_STATE* state) {
           if (event.window.event == SDL_WINDOWEVENT_RESIZED ||
               event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
             SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
-          } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+            break;
+          }
+          if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+            printf("lost\n");
+#ifdef __EMSCRIPTEN__
             AUDIO_ENGINE_pause(engine->audioEngine);
+#endif
             state->windowBlurred = true;
           } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+            printf("gained\n");
+#ifdef __EMSCRIPTEN__
             AUDIO_ENGINE_resume(engine->audioEngine);
+#endif
             state->windowBlurred = false;
           }
         } break;
@@ -368,6 +376,9 @@ void DOME_loop(void* data) {
   LOOP_STATE* loop = data;
   int result = EXIT_SUCCESS;
   result = LOOP_processInput(loop);
+  if (loop->windowBlurred) {
+    return;
+  }
   result = LOOP_update(loop);
   result = LOOP_render(loop);
   loop->lag = mid(0, loop->lag - loop->MS_PER_FRAME, loop->MS_PER_FRAME);
@@ -377,7 +388,7 @@ void DOME_loop(void* data) {
 int main(int argc, char* args[])
 {
 #ifdef __EMSCRIPTEN__
-  emscripten_wget("http://localhost:8000/game.egg", "/game.egg");
+  emscripten_wget("game.egg", "game.egg");
 #endif
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
