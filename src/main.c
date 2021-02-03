@@ -400,14 +400,14 @@ void DOME_loop(void* data) {
 
 int main(int argc, char* args[])
 {
-#ifdef __EMSCRIPTEN__
-  emscripten_wget("game.egg", "game.egg");
-#endif
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   size_t gameFileLength;
   char* gameFile;
   INIT_TO_ZERO(ENGINE, engine);
+#ifdef __EMSCRIPTEN__
+  emscripten_wget("game.egg", "game.egg");
+#endif
   engine.record.gifName = "test.gif";
   engine.record.makeGif = false;
   INIT_TO_ZERO(LOOP_STATE, loop);

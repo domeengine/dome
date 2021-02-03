@@ -9,10 +9,12 @@
       .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
       textarea.emscripten { font-family: monospace; width: 80%; display: none; }
       div.emscripten { text-align: center; }
-      div.emscripten_border { border: 1px solid black; }
+      div.emscripten_border { border: 0px none; }
       /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
       canvas.emscripten { 
-        border: 0px none; background-color: black; 
+        margin: 0 auto;
+        border: 0px none; 
+        background-color: black; 
         outline: none;
         -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
         image-rendering: -moz-crisp-edges;
