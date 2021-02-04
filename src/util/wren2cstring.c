@@ -1,3 +1,9 @@
+#ifndef wren2cstring_c
+#define wren2cstring_c
+
+#define WREN2CSTRING_INSIDE_DOME 1
+#define WREN2CSTRING_OUTSIDE_DOME 0
+
 //Using standard IO only
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,27 +40,27 @@ char* WREN2CSTRING_readEntireFile(char* path, size_t* lengthPtr)
   return source;
 }
 
-int WREN2CSTRING_encodeAndDump(int argc, char* args[])
+int WREN2CSTRING_encodeAndDump(int argc, char* args[], int inDOME)
 {
-  if (argc < 2) {
+  if (argc < inDOME + 2) {
     return EXIT_FAILURE;
   }
 
   size_t length;
-  char* fileName = args[1];
+  char* fileName = args[inDOME + 1];
   char* fileToConvert = WREN2CSTRING_readEntireFile(fileName, &length);
 
   // TODO: Maybe use the filename as a default identifier
   char* moduleName = "wren_module_test";
 
-  if(argc > 2) {
+  if(argc > inDOME + 2) {
     // TODO: Maybe sanitize moduleName to be valid C identifier?
-    moduleName = args[2];
+    moduleName = args[inDOME + 2];
   }
   
   FILE *fp;
-  if(argc > 3) {
-    fp = fopen(args[3], "w+");
+  if(argc > inDOME + 3) {
+    fp = fopen(args[inDOME + 3], "w+");
   } else {
     // Example: main.wren.inc
     fp = fopen(strcat(strdup(fileName), ".inc"), "w+");
@@ -95,3 +101,4 @@ int WREN2CSTRING_encodeAndDump(int argc, char* args[])
 
   return EXIT_SUCCESS;
 }
+#endif

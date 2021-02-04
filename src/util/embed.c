@@ -8,7 +8,7 @@ int main(int argc, char* args[])
     return EXIT_FAILURE;
   }
   
-  return WREN2CSTRING_encodeAndDump(argc, args);
+  return WREN2CSTRING_encodeAndDump(argc, args, WREN2CSTRING_OUTSIDE_DOME);
 }
 
 
