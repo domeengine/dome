@@ -415,6 +415,10 @@ int main(int argc, char* args[])
   loop.MS_PER_FRAME = ceil(1000.0 / loop.FPS);
 
   ENGINE_init(&engine);
+  setbuf(stdout, NULL);
+  setvbuf(stdout, NULL, _IONBF, 0);
+  setbuf(stderr, NULL);
+  setvbuf(stderr, NULL, _IONBF, 0);
   loop.engine = &engine;
 
   struct optparse_long longopts[] = {
