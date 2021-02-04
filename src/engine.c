@@ -870,10 +870,10 @@ ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, u
 
 internal void
 ENGINE_rect(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint32_t c) {
-  ENGINE_line(engine, x, y, x, y+h-1, c, 1);
-  ENGINE_line(engine, x, y, x+w-1, y, c, 1);
-  ENGINE_line(engine, x, y+h-1, x+w-1, y+h-1, c, 1);
-  ENGINE_line(engine, x+w-1, y, x+w-1, y+h-1, c, 1);
+  ENGINE_line(engine, x, y, x, y+h, c, 1);
+  ENGINE_line(engine, x, y, x+w, y, c, 1);
+  ENGINE_line(engine, x, y+h, x+w, y+h, c, 1);
+  ENGINE_line(engine, x+w, y, x+w, y+h, c, 1);
 }
 
 internal void
@@ -886,20 +886,20 @@ ENGINE_rectfill(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint
     int64_t y2 = y + h;
 
     if (alpha == 0xFF) {
-      size_t lineWidth = w; // x2 - x1;
+      size_t lineWidth = w+1; // x2 - x1;
       uint32_t buf[lineWidth];
       for (size_t i = 0; i < lineWidth; i++) {
         buf[i] = c;
       }
-      for (int64_t j = y1; j < y2; j++) {
+      for (int64_t j = y1; j <= y2; j++) {
         ENGINE_blitLine(engine, x, j, lineWidth, buf);
       }
     } else {
       int64_t x1 = x;
       int64_t x2 = x + w;
 
-      for (int64_t j = y1; j < y2; j++) {
-        for (int64_t i = x1; i < x2; i++) {
+      for (int64_t j = y1; j <= y2; j++) {
+        for (int64_t i = x1; i <= x2; i++) {
           ENGINE_pset(engine, i, j, c);
         }
       }
