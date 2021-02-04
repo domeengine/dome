@@ -1,15 +1,12 @@
-#ifndef wren2cstring_c
-#define wren2cstring_c
-
-#define WREN2CSTRING_INSIDE_DOME 1
-#define WREN2CSTRING_OUTSIDE_DOME 0
+#ifndef WREN2CINC_c
+#define WREN2CINC_c
 
 //Using standard IO only
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-char* WREN2CSTRING_readEntireFile(char* path, size_t* lengthPtr)
+char* WREN2CINC_readEntireFile(char* path, size_t* lengthPtr)
 {
   FILE* file = fopen(path, "r");
   if (file == NULL) {
@@ -40,27 +37,27 @@ char* WREN2CSTRING_readEntireFile(char* path, size_t* lengthPtr)
   return source;
 }
 
-int WREN2CSTRING_encodeAndDump(int argc, char* args[], int inDOME)
+int WREN2CINC_encodeAndDump(int argc, char* args[])
 {
-  if (argc < inDOME + 2) {
+  if (argc < 2) {
     return EXIT_FAILURE;
   }
 
   size_t length;
-  char* fileName = args[inDOME + 1];
-  char* fileToConvert = WREN2CSTRING_readEntireFile(fileName, &length);
+  char* fileName = args[1];
+  char* fileToConvert = WREN2CINC_readEntireFile(fileName, &length);
 
   // TODO: Maybe use the filename as a default identifier
   char* moduleName = "wren_module_test";
 
-  if(argc > inDOME + 2) {
+  if(argc > 2) {
     // TODO: Maybe sanitize moduleName to be valid C identifier?
-    moduleName = args[inDOME + 2];
+    moduleName = args[2];
   }
   
   FILE *fp;
-  if(argc > inDOME + 3) {
-    fp = fopen(args[inDOME + 3], "w+");
+  if(argc > 3) {
+    fp = fopen(args[3], "w+");
   } else {
     // Example: main.wren.inc
     fp = fopen(strcat(strdup(fileName), ".inc"), "w+");
@@ -101,4 +98,25 @@ int WREN2CSTRING_encodeAndDump(int argc, char* args[], int inDOME)
 
   return EXIT_SUCCESS;
 }
+
+int WREN2CINC_encodeAndDumpInDOME(int argc, char* args[])
+{
+  // Function to be used inside DOME that adapts argc and args
+  // Removing the first arg.
+  int count = argc - 1;
+
+  if (count < 2) {
+    return EXIT_FAILURE;
+  }
+
+  char* argv[count];
+  int index;
+
+  for(index = 0; index < count; index++) {
+    argv[index] = args[index + 1];
+  }
+
+  return WREN2CINC_encodeAndDump(count, argv);
+}
+
 #endif
