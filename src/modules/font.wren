@@ -12,7 +12,7 @@ class Font {
 
   static default { null }
 
-  static load(name, path, size) {
+  load(name, path, size) {
     if (!__fontFiles.containsKey(path)) {
       __fontFiles[path] = FontFile.parse(FileSystem.load(path))
     }
@@ -20,7 +20,7 @@ class Font {
     return __rasterizedFonts[name]
   }
 
-  static unload(name) {
+  unload(name) {
     __rasterizedFonts.remove[name]
     // TODO: Check if we are using the font and unload that too?
   }
