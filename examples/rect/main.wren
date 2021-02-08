@@ -16,8 +16,8 @@ class Game {
       Canvas.rectfill(0, 0, __size, __size, Color.green)
       Canvas.rect(0, 0, __size, __size, Color.red)
       Canvas.pset(0, 0, Color.blue)
-      Canvas.pset(__size, 0, Color.blue)
-      Canvas.pset(0, __size, Color.blue)
-      Canvas.pset(__size, __size, Color.blue)
+      Canvas.pset(__size - 1, 0, Color.blue)
+      Canvas.pset(0, __size - 1, Color.blue)
+      Canvas.pset(__size - 1, __size - 1, Color.blue)
     }
 }
