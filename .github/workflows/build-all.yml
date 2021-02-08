@@ -4,6 +4,8 @@ on:
     types: [assigned, opened, synchronize, reopened]
   release:
     types: [published]
+  push:
+    branches: [ develop ]
 
 jobs:
   build-linux:
@@ -83,7 +85,7 @@ jobs:
     - uses: msys2/setup-msys2@v2
       with:
         msystem: ${{ matrix.msystem }}
-        update: true
+        release: true
         install: git make mercurial subversion
 
     - run: pacman --noconfirm -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-SDL2
