@@ -117,7 +117,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/platform.c"
 #include "modules/random.c"
 #include "modules/plugin.c"
-#include "util/wren2cinc.c"
+#include "util/wrenembed.c"
 
 
 // Comes last to register modules
@@ -349,7 +349,7 @@ printUsage(ENGINE* engine) {
 
   ENGINE_printLog(engine, "  dome [options]\n");
   ENGINE_printLog(engine, "  dome [options] [--] entry_path [arguments]\n");
-  ENGINE_printLog(engine, "  dome -w | --wren2cinc [--] sourceFile [moduleName] [destinationFile]\n");
+  ENGINE_printLog(engine, "  dome -e | --embed [--] sourceFile [moduleName] [destinationFile]\n");
   ENGINE_printLog(engine, "  dome -h | --help\n");
   ENGINE_printLog(engine, "  dome -v | --version\n");
   ENGINE_printLog(engine, "\nOptions: \n");
@@ -358,10 +358,10 @@ printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "  -c --console        Opens a console window for development.\n");
 #endif
   ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
+  ENGINE_printLog(engine, "  -e --embed          Converts a Wren source file to a C include file.\n");
   ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
   ENGINE_printLog(engine, "  -r --record=<gif>   Record video to <gif>.\n");
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
-  ENGINE_printLog(engine, "  -w --wren2cinc      Converts a Wren source file to a C include file.\n");
 }
 
 int main(int argc, char* args[])
@@ -390,11 +390,11 @@ int main(int argc, char* args[])
     {"console", 'c', OPTPARSE_NONE},
     #endif
     {"debug", 'd', OPTPARSE_NONE},
+    {"embed", 'e', OPTPARSE_REQUIRED},
     {"help", 'h', OPTPARSE_NONE},
-    {"version", 'v', OPTPARSE_NONE},
     {"record", 'r', OPTPARSE_OPTIONAL},
     {"scale", 's', OPTPARSE_REQUIRED},
-    {"wren2cinc", 'w', OPTPARSE_REQUIRED},
+    {"version", 'v', OPTPARSE_NONE},
     {0}
   };
 
@@ -433,6 +433,9 @@ int main(int argc, char* args[])
         DEBUG_MODE = true;
         ENGINE_printLog(&engine, "Debug Mode enabled\n");
         break;
+      case 'e':
+        WRENEMBED_encodeAndDumpInDOME(argc, args);
+        goto cleanup;
       case 'h':
         printTitle(&engine);
         printUsage(&engine);
@@ -449,9 +452,6 @@ int main(int argc, char* args[])
       case 'v':
         printTitle(&engine);
         printVersion(&engine);
-        goto cleanup;
-      case 'w':
-        WREN2CINC_encodeAndDumpInDOME(argc, args);
         goto cleanup;
       case '?':
         fprintf(stderr, "%s: %s\n", args[0], options.errmsg);

@@ -1,4 +1,4 @@
-#include "wren2cinc.c"
+#include "wrenembed.c"
 
 int main(int argc, char* args[])
 {
@@ -8,7 +8,7 @@ int main(int argc, char* args[])
     return EXIT_FAILURE;
   }
   
-  return WREN2CINC_encodeAndDump(argc, args);
+  return WRENEMBED_encodeAndDump(argc, args);
 }
 
 
