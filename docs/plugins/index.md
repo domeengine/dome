@@ -272,6 +272,22 @@ const char*    getSlotBytes(WrenVM* vm, int slot, int* length);
       void     removeMapValue(WrenVM* vm, int mapSlot, int keySlot, int removedValueSlot);
 ```
 
+### Embed
+
+If your plugin requires using _Wren_ files, you can _embed_ them using the built in command `--embed`.
+This command converts a _Wren_ source file to a _C_ include file.
+
+```sh
+$ dome -e | --embed [--] sourceFile [moduleName] [destinationFile]
+```
+
+Example:
+
+```sh
+$ dome -e external.wren source external.wren.inc
+```
+
+
 ## Audio
 
 This set of APIs gives you access to DOME's audio engine, to provide your own audio channel implementations. You can use this to synthesize sounds, or play custom audio formats.
@@ -355,5 +371,3 @@ This allows you to specify the channel's [state](#enum-channel_state). DOME will
 void stop(CHANNEL_REF ref)
 ```
 Marks the audio channel as having stopped. This means that DOME will no longer play this channel. It will call the `finish` callback at it's next opportunity.
- 
-
