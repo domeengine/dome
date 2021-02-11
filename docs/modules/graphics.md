@@ -60,6 +60,7 @@ Offset all following draw operations by (_x, y_). Calling this without arguments
 
 #### `static print(str, x: Number, y: Number, c: Color) `
 Print the text _str_ with the top-left corner at (_x, y_) in color _c_, using the currently set default font. See `Canvas.font` for more information.
+If a newline `\n` is in the string, the text will broken over multiple lines with a spacing of `fontHeight / 4`. _The spacing is currently not customizable, but will be later_
 
 #### `static print(str, x: Number, y: Number, c: Color, fontName: String) `
 Print the text _str_ with the top-left corner at (_x, y_) in color _c_, in the specified font.
