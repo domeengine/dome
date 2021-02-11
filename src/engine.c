@@ -485,19 +485,28 @@ defaultFontLookup(utf8_int32_t codepoint) {
 
 internal void
 ENGINE_print(ENGINE* engine, char* text, int64_t x, int64_t y, uint32_t c) {
+  int newlines = 0;
   int fontWidth = 8;
   int fontHeight = 8;
+  int spacing = (fontHeight / 4);
   int cursor = 0;
   utf8_int32_t codepoint;
   void* v = utf8codepoint(text, &codepoint);
   size_t len = utf8len(text);
   for (size_t pos = 0; pos < len; pos++) {
+    if (text[pos] == '\n') {
+      newlines++;
+      cursor = 0;
+      v = utf8codepoint(v, &codepoint);
+      continue;
+    }
+
     uint8_t* glyph = (uint8_t*)defaultFontLookup(codepoint);
     for (int j = 0; j < fontHeight; j++) {
       for (int i = 0; i < fontWidth; i++) {
         uint8_t v = (glyph[j] >> i) & 1;
         if (v != 0) {
-          ENGINE_pset(engine, x + cursor + i, y + j, c);
+          ENGINE_pset(engine, x + cursor + i, y + (fontHeight * newlines) + j + (spacing * newlines), c);
         }
       }
     }
