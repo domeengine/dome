@@ -363,6 +363,13 @@ printUsage(ENGINE* engine) {
 
 int main(int argc, char* args[])
 {
+  // configuring the buffer has to be first
+
+  setbuf(stdout, NULL);
+  setvbuf(stdout, NULL, _IONBF, 0);
+  setbuf(stderr, NULL);
+  setvbuf(stderr, NULL, _IONBF, 0);
+
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   size_t gameFileLength;
@@ -375,10 +382,6 @@ int main(int argc, char* args[])
   loop.MS_PER_FRAME = ceil(1000.0 / loop.FPS);
 
   ENGINE_init(&engine);
-  setbuf(stdout, NULL);
-  setvbuf(stdout, NULL, _IONBF, 0);
-  setbuf(stderr, NULL);
-  setvbuf(stderr, NULL, _IONBF, 0);
   loop.engine = &engine;
 
   struct optparse_long longopts[] = {
