@@ -7,7 +7,6 @@ typedef struct {
   FONT* font;
   float scale;
   int height;
-  int spacing;
 
   bool antialias;
   int32_t offsetY;
@@ -52,8 +51,7 @@ FONT_RASTER_allocate(WrenVM* vm) {
 
   int ascent, descent, linegap;
   stbtt_GetFontVMetrics(&font->info, &ascent, &descent, &linegap);
-  raster->height = (ascent - descent) * (raster->scale);
-  raster->spacing = linegap * (raster->scale);
+  raster->height = (ascent - descent + linegap) * (raster->scale);
 
   int32_t x0, x1, y0, y1;
   stbtt_GetFontBoundingBox(&font->info, &x0, &x1, &y0, &y1);
@@ -91,7 +89,6 @@ FONT_RASTER_print(WrenVM* vm) {
 
   int fontHeight = raster->height;
   int newlines = 0;
-  //int spacing = raster->spacing;
 
   float scale = raster->scale;
   int32_t offsetY = raster->offsetY;
