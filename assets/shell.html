@@ -5,14 +5,16 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>DOME</title>
     <style>
-      body { background-color: black; color: white; }
+      body { background-color: black; color: white; margin: 0; padding: 0; }
       .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
       textarea.emscripten { font-family: monospace; width: 80%; display: none; }
       div.emscripten { text-align: center; }
-      div.emscripten_border { border: 0px none; }
+      div.emscripten_border { border: 1px solid white; }
       /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
       canvas.emscripten { 
-        margin: 0 auto;
+        margin: 0;
+        width: 100%;
+        height: auto;
         border: 0px none; 
         background-color: black; 
         outline: none;
@@ -23,6 +25,9 @@
         image-rendering: crisp-edges;
       }
     </style>
+    <script type='text/javascript'>
+      window.onload = function () { window.focus(); } window.onclick = function () { window.focus(); }
+    </script>
   </head>
   <body>
     <div class="emscripten_border">
@@ -31,9 +36,6 @@
         onkeydown="event.preventDefault()" 
         onkeyup="event.preventDefault()" 
         tabindex=0></canvas>
-    </div>
-    <div class="emscripten">
-      <input type="button" value="Fullscreen" onclick="Module['canvas'].requestFullscreen()">
     </div>
     
     <textarea class="emscripten" id="output" rows="8"></textarea>

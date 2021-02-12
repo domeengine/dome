@@ -1029,6 +1029,10 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
   ENGINE_rectfill(engine, 0, 0, engine->canvas.width, engine->canvas.height, color);
   SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
 
+#ifdef __EMSCRIPTEN__
+  SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
+#endif
+
   return true;
 }
 
