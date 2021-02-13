@@ -88,7 +88,6 @@ FONT_RASTER_print(WrenVM* vm) {
   int w, h;
 
   int fontHeight = raster->height;
-  int newlines = 0;
 
   float scale = raster->scale;
   int32_t offsetY = raster->offsetY;
@@ -101,9 +100,9 @@ FONT_RASTER_print(WrenVM* vm) {
   void* v = utf8codepoint(text, &codepoint);
   for (int charIndex = 0; charIndex < len; charIndex++) {
     if (text[charIndex] == '\n') {
-      newlines++;
-      v = utf8codepoint(v, &codepoint);
       posX = x;
+      baseY += fontHeight;
+      v = utf8codepoint(v, &codepoint);
       continue;
     }
     int ax;
@@ -124,7 +123,7 @@ FONT_RASTER_print(WrenVM* vm) {
         } else {
           outColor = bitmap[j * w + i] > 0 ? color : 0;
         }
-        ENGINE_pset(engine, posX + i, posY + (fontHeight * newlines) + j, outColor);
+        ENGINE_pset(engine, posX + i, posY + j, outColor);
       }
     }
     posX += ax * scale;
