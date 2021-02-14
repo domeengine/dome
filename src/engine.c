@@ -896,7 +896,7 @@ ENGINE_rectfill(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint
 
     if (alpha == 0xFF) {
       size_t lineWidth = w; // x2 - x1;
-      uint32_t buf[lineWidth];
+      uint32_t buf[lineWidth + 1];
       for (size_t i = 0; i <= lineWidth; i++) {
         buf[i] = c;
       }
