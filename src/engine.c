@@ -188,14 +188,10 @@ ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
     SDL_DestroyRenderer(engine->renderer);
   }
 
-#ifdef __EMSCRIPTEN__
-  int flags = 0;
-#else
   int flags = SDL_RENDERER_ACCELERATED;
   if (vsync) {
     flags |= SDL_RENDERER_PRESENTVSYNC;
   }
-#endif
   engine->renderer = SDL_CreateRenderer(engine->window, -1, flags);
   if (engine->renderer == NULL) {
     return false;
