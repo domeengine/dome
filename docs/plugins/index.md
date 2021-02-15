@@ -169,7 +169,8 @@ DOME_Result registerModule(DOME_Context ctx,
                            const char* name, 
                            const char* moduleSource)
 ```
-This call registers module `name` with the source code `moduleSource`. You cannot register modules with the same name as DOME's internal modules. These are reserved.
+This call registers module `name` with the source code `moduleSource`. You cannot register modules with the same name as DOME's internal modules. These are reserved. 
+DOME creates a copy of the `name` and `moduleSource`, so you are able to free the pointers if necessary.
 Returns `DOME_RESULT_SUCCESS` if the module was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
 
 #### method: registerClass
@@ -182,6 +183,7 @@ DOME_Result registerClass(DOME_Context ctx,
 ```
 Register the `allocate` and `finalize` methods for `className` in `moduleName`, so that instances of the foreign class can be allocated, and optionally finalized.
 The `finalize` method is your final chance to deal with the userdata attached to your foreign class. You won't have VM access inside this method.
+DOME creates a copy of the `className`, so you are able to free the pointer if necessary.
 
 Returns `DOME_RESULT_SUCCESS` if the class is registered and `DOME_RESULT_FAILURE` otherwise. Failure will occur if `allocate` method is provided. The `finalize` argument can optionally be `NULL`.
 
@@ -193,7 +195,9 @@ DOME_Result registerFn(DOME_Context ctx,
                        const char* signature, 
                        DOME_ForeignFn method)
 ```
-Register `method` as the function to call for the foreign method specified by `signature` in the module `name`. Returns `DOME_RESULT_SUCCESS` if the function was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
+Register `method` as the function to call for the foreign method specified by `signature` in the module `name`. 
+DOME creates a copy of the `signature`, so you are able to free the pointer if necessary.
+Returns `DOME_RESULT_SUCCESS` if the function was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
 
 The format for the `signature` string is as follows:
  * `static` if the method is a static class method, followed by a space, otherwise both are omitted.
