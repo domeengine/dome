@@ -43,6 +43,7 @@ AUDIO_API_getData(CHANNEL_REF ref) {
 
 AUDIO_API_v0 audio_v0 = {
   .channelCreate = AUDIO_API_channelCreate,
+  .getState = AUDIO_API_getState,
   .setState = AUDIO_API_setState,
   .stop = AUDIO_API_stop,
   .getData = AUDIO_API_getData
