@@ -310,6 +310,8 @@ enum CHANNEL_STATE {
   * `ref` is a reference to the channel being mixed. 
   * `buffer` is an interleaved stereo buffer to write your audio data into. One sample is two values, for left and right, so `buffer` is `2 * sampleRequestSize` in size. 
 
+This callback is called on DOME's Audio Engine mixer thread. It is essential that you avoid any slow operations (memory allocation, network) or you risk interruptions to the audio playback.
+
 #### function: CHANNEL_callback
 `CHANNEL_callback` functions have this signature: `void callback(CHANNEL_REF ref, WrenVM* vm)`.
 
@@ -330,10 +332,10 @@ When you create a new audio channel, you must supply callbacks for mixing, updat
 This method creates a channel with the specified callbacks and returns its corresponding CHANNEL_REF value, which can be used to manipulate the channel's state during execution. The channel will be created in the state `CHANNEL_INITIALIZE`, which gives you the opportunity to set up the channel configuration before it is played.
 
 The callbacks work like this:
-  - `update` is called once a frame, and can be used for safely modifying the state of the channel data.
-  - `finish` is called once the channel has been set to `STOPPED`, before its memory is released.
+  - `update` is called once a frame, and can be used for safely modifying the state of the channel data. This callback holds a lock over the mixer thread, so avoid holding it for too long.
+  - `finish` is called once the channel has been set to `STOPPED`, before its memory is released. It is safe to expect that the channel will not be played again.
 
-The `userdata` is a pointer set by the plugin developer, which can be used to pass through associated data, and retrieved by [`getData(ref)`](#method-getdata). You are responsible for the management of the memory pointed to by that pointer. 
+The `userdata` is a pointer set by the plugin developer, which can be used to pass through associated data, and retrieved by [`getData(ref)`](#method-getdata). You are responsible for the management of the memory pointed to by that pointer and should avoid modifying the contents of the memory outside of the provided callbacks.
 
 
 #### method: getData
