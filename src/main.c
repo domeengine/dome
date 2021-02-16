@@ -498,7 +498,7 @@ int main(int argc, char* args[])
         char* dirc = strdup(pathBuf);
         char* basec = strdup(pathBuf);
         // This sets the filename used.
-        fileName = basename(dirc);
+        fileName = strdup(basename(dirc));
         BASEPATH_set(dirname(basec));
         free(dirc);
         free(basec);
@@ -535,6 +535,10 @@ int main(int argc, char* args[])
       strcat(pathBuf, !autoResolve ? fileName : mainFileName);
       engine.argv[1] = strdup(pathBuf);
       strcpy(pathBuf, !autoResolve ? fileName : mainFileName);
+    }
+
+    if (fileName != NULL) {
+      free(fileName);
     }
 
     // The basepath is incorporated later, so we pass the basename version to this method.
