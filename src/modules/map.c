@@ -36,8 +36,8 @@ MAP_addModule(MAP* map, const char* name, const char* source) {
 
   MODULE_NODE* newNode = malloc(sizeof(MODULE_NODE));
 
-  newNode->source = source;
-  newNode->name = name;
+  newNode->source = strdup(source);
+  newNode->name = strdup(name);
   newNode->functions = NULL;
   newNode->classes = NULL;
   newNode->locked = false;
@@ -79,7 +79,7 @@ MAP_addFunction(MAP* map, const char* moduleName, const char* signature, WrenFor
   // TODO: Check for duplicate?
   if (module != NULL && !module->locked) {
     FUNCTION_NODE* node = (FUNCTION_NODE*) malloc(sizeof(FUNCTION_NODE));
-    node->signature = signature;
+    node->signature = strdup(signature);
     node->fn = fn;
 
     node->next = module->functions;
@@ -95,7 +95,7 @@ MAP_addClass(MAP* map, const char* moduleName, const char* className, WrenForeig
   // TODO: Check for duplicate?
   if (module != NULL && !module->locked) {
     CLASS_NODE* node = (CLASS_NODE*) malloc(sizeof(CLASS_NODE));
-    node->name = className;
+    node->name = strdup(className);
     node->methods.allocate = allocate;
     node->methods.finalize = finalize;
 
@@ -161,6 +161,7 @@ MAP_freeFunctions(FUNCTION_NODE* node) {
   FUNCTION_NODE* nextNode;
   while (node != NULL) {
     nextNode = node->next;
+    free(node->signature);
     free(node);
     node = nextNode;
   }
@@ -170,6 +171,7 @@ MAP_freeClasses(CLASS_NODE* node) {
   CLASS_NODE* nextNode;
   while (node != NULL) {
     nextNode = node->next;
+    free(node->name);
     free(node);
     node = nextNode;
   }
@@ -183,6 +185,8 @@ MAP_free(MAP* map) {
     MAP_freeFunctions(module->functions);
     MAP_freeClasses(module->classes);
     nextModule = module->next;
+    free(module->name);
+    free(module->source);
     free(module);
     module = nextModule;
   }

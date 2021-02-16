@@ -363,6 +363,13 @@ printUsage(ENGINE* engine) {
 
 int main(int argc, char* args[])
 {
+  // configuring the buffer has to be first
+
+  setbuf(stdout, NULL);
+  setvbuf(stdout, NULL, _IONBF, 0);
+  setbuf(stderr, NULL);
+  setvbuf(stderr, NULL, _IONBF, 0);
+
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   size_t gameFileLength;
@@ -491,7 +498,7 @@ int main(int argc, char* args[])
         char* dirc = strdup(pathBuf);
         char* basec = strdup(pathBuf);
         // This sets the filename used.
-        fileName = basename(dirc);
+        fileName = strdup(basename(dirc));
         BASEPATH_set(dirname(basec));
         free(dirc);
         free(basec);
@@ -528,6 +535,10 @@ int main(int argc, char* args[])
       strcat(pathBuf, !autoResolve ? fileName : mainFileName);
       engine.argv[1] = strdup(pathBuf);
       strcpy(pathBuf, !autoResolve ? fileName : mainFileName);
+    }
+
+    if (fileName != NULL) {
+      free(fileName);
     }
 
     // The basepath is incorporated later, so we pass the basename version to this method.

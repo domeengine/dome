@@ -19,6 +19,7 @@ Check out the documentation:
   * [json](modules/json)
   * [math](modules/math)
   * [plugin](modules/plugin)
+  * [random](modules/random)
 * Guides
   * [Import Resolution](guides/module-imports)
   * [Game Loop Behaviour](guides/game-loop)

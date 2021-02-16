@@ -169,7 +169,8 @@ DOME_Result registerModule(DOME_Context ctx,
                            const char* name, 
                            const char* moduleSource)
 ```
-This call registers module `name` with the source code `moduleSource`. You cannot register modules with the same name as DOME's internal modules. These are reserved.
+This call registers module `name` with the source code `moduleSource`. You cannot register modules with the same name as DOME's internal modules. These are reserved. 
+DOME creates a copy of the `name` and `moduleSource`, so you are able to free the pointers if necessary.
 Returns `DOME_RESULT_SUCCESS` if the module was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
 
 #### method: registerClass
@@ -182,6 +183,7 @@ DOME_Result registerClass(DOME_Context ctx,
 ```
 Register the `allocate` and `finalize` methods for `className` in `moduleName`, so that instances of the foreign class can be allocated, and optionally finalized.
 The `finalize` method is your final chance to deal with the userdata attached to your foreign class. You won't have VM access inside this method.
+DOME creates a copy of the `className`, so you are able to free the pointer if necessary.
 
 Returns `DOME_RESULT_SUCCESS` if the class is registered and `DOME_RESULT_FAILURE` otherwise. Failure will occur if `allocate` method is provided. The `finalize` argument can optionally be `NULL`.
 
@@ -193,7 +195,9 @@ DOME_Result registerFn(DOME_Context ctx,
                        const char* signature, 
                        DOME_ForeignFn method)
 ```
-Register `method` as the function to call for the foreign method specified by `signature` in the module `name`. Returns `DOME_RESULT_SUCCESS` if the function was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
+Register `method` as the function to call for the foreign method specified by `signature` in the module `name`. 
+DOME creates a copy of the `signature`, so you are able to free the pointer if necessary.
+Returns `DOME_RESULT_SUCCESS` if the function was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
 
 The format for the `signature` string is as follows:
  * `static` if the method is a static class method, followed by a space, otherwise both are omitted.
@@ -306,6 +310,8 @@ enum CHANNEL_STATE {
   * `ref` is a reference to the channel being mixed. 
   * `buffer` is an interleaved stereo buffer to write your audio data into. One sample is two values, for left and right, so `buffer` is `2 * sampleRequestSize` in size. 
 
+This callback is called on DOME's Audio Engine mixer thread. It is essential that you avoid any slow operations (memory allocation, network) or you risk interruptions to the audio playback.
+
 #### function: CHANNEL_callback
 `CHANNEL_callback` functions have this signature: `void callback(CHANNEL_REF ref, WrenVM* vm)`.
 
@@ -326,10 +332,10 @@ When you create a new audio channel, you must supply callbacks for mixing, updat
 This method creates a channel with the specified callbacks and returns its corresponding CHANNEL_REF value, which can be used to manipulate the channel's state during execution. The channel will be created in the state `CHANNEL_INITIALIZE`, which gives you the opportunity to set up the channel configuration before it is played.
 
 The callbacks work like this:
-  - `update` is called once a frame, and can be used for safely modifying the state of the channel data.
-  - `finish` is called once the channel has been set to `STOPPED`, before its memory is released.
+  - `update` is called once a frame, and can be used for safely modifying the state of the channel data. This callback holds a lock over the mixer thread, so avoid holding it for too long.
+  - `finish` is called once the channel has been set to `STOPPED`, before its memory is released. It is safe to expect that the channel will not be played again.
 
-The `userdata` is a pointer set by the plugin developer, which can be used to pass through associated data, and retrieved by [`getData(ref)`](#method-getdata). You are responsible for the management of the memory pointed to by that pointer. 
+The `userdata` is a pointer set by the plugin developer, which can be used to pass through associated data, and retrieved by [`getData(ref)`](#method-getdata). You are responsible for the management of the memory pointed to by that pointer and should avoid modifying the contents of the memory outside of the provided callbacks.
 
 
 #### method: getData
