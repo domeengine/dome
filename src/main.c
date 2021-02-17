@@ -349,7 +349,7 @@ printUsage(ENGINE* engine) {
 
   ENGINE_printLog(engine, "  dome [options]\n");
   ENGINE_printLog(engine, "  dome [options] [--] entry_path [arguments]\n");
-  ENGINE_printLog(engine, "  dome -e | --embed [--] sourceFile [moduleName] [destinationFile]\n");
+  ENGINE_printLog(engine, "  dome -e | --embed sourceFile [moduleName] [destinationFile]\n");
   ENGINE_printLog(engine, "  dome -h | --help\n");
   ENGINE_printLog(engine, "  dome -v | --version\n");
   ENGINE_printLog(engine, "\nOptions: \n");

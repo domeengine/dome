@@ -30,18 +30,20 @@ char* WRENEMBED_readEntireFile(char* path, size_t* lengthPtr)
 
     // Read the entire file into memory.
     size_t newLen = fread(source, sizeof(char), bufsize, file);
-    if ( ferror( file ) != 0 ) {
-      fputs("Error reading file", stderr);
-    } else {
-      
-      if (lengthPtr != NULL) {
-        *lengthPtr = newLen;
-      }
-
-      // Add NULL, Just to be safe.
-      source[newLen++] = '\0';
+    
+    if (ferror(file) != 0) {
+      fclose(file);
+      return NULL;
     }
+    
+    if (lengthPtr != NULL) {
+      *lengthPtr = newLen;
+    }
+
+    // Add NULL, Just to be safe.
+    source[newLen++] = '\0';
   }
+
   fclose(file);
   return source;
 }
@@ -49,7 +51,7 @@ char* WRENEMBED_readEntireFile(char* path, size_t* lengthPtr)
 int WRENEMBED_encodeAndDump(int argc, char* args[])
 {
   if (argc < 2) {
-    fputs("Not enough arguments", stderr);
+    fputs("Not enough arguments\n", stderr);
     return EXIT_FAILURE;
   }
 
@@ -58,7 +60,7 @@ int WRENEMBED_encodeAndDump(int argc, char* args[])
   char* fileToConvert = WRENEMBED_readEntireFile(fileName, &length);
 
   if (fileToConvert == NULL) {
-    fputs("Error reading file", stderr);
+    fputs("Error reading file\n", stderr);
     return EXIT_FAILURE;
   }
 
@@ -114,6 +116,10 @@ int WRENEMBED_encodeAndDump(int argc, char* args[])
   return EXIT_SUCCESS;
 }
 
+void WRENEMBED_usage() {
+  fputs("dome -e | --embed sourceFile [moduleName] [destinationFile]\n", stderr);
+}
+
 int WRENEMBED_encodeAndDumpInDOME(int argc, char* args[])
 {
   // Function to be used inside DOME that adapts argc and args
@@ -121,7 +127,8 @@ int WRENEMBED_encodeAndDumpInDOME(int argc, char* args[])
   int count = argc - 1;
 
   if (count < 2) {
-    fputs("Not enough arguments", stderr);
+    fputs("Not enough arguments\n", stderr);
+    WRENEMBED_usage();
     return EXIT_FAILURE;
   }
 
@@ -132,7 +139,11 @@ int WRENEMBED_encodeAndDumpInDOME(int argc, char* args[])
     argv[index] = args[index + 1];
   }
 
-  return WRENEMBED_encodeAndDump(count, argv);
+  int exit = WRENEMBED_encodeAndDump(count, argv);
+  if (exit == EXIT_FAILURE) {
+    WRENEMBED_usage();
+  }
+  return exit;
 }
 
 #endif
