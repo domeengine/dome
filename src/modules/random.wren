@@ -1,6 +1,6 @@
 import "platform" for Platform
 
-class Squirrel3 {
+foreign class Squirrel3 {
   static noise(x) { noise(x, 0) }
   foreign static noise(x, seed)
 

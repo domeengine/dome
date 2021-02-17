@@ -1,10 +1,11 @@
-#ifndef WRENEMBED_c
-#define WRENEMBED_c
 // Converts a Wren source file to a C include file
 // Using standard IO only
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef WRENEMBED_c
+#define WRENEMBED_c
 
 char* WRENEMBED_readEntireFile(char* path, size_t* lengthPtr)
 {
@@ -30,9 +31,7 @@ char* WRENEMBED_readEntireFile(char* path, size_t* lengthPtr)
     // Read the entire file into memory.
     size_t newLen = fread(source, sizeof(char), bufsize, file);
     if ( ferror( file ) != 0 ) {
-      
       fputs("Error reading file", stderr);
-    
     } else {
       
       if (lengthPtr != NULL) {
@@ -50,12 +49,18 @@ char* WRENEMBED_readEntireFile(char* path, size_t* lengthPtr)
 int WRENEMBED_encodeAndDump(int argc, char* args[])
 {
   if (argc < 2) {
+    fputs("Not enough arguments", stderr);
     return EXIT_FAILURE;
   }
 
   size_t length;
   char* fileName = args[1];
   char* fileToConvert = WRENEMBED_readEntireFile(fileName, &length);
+
+  if (fileToConvert == NULL) {
+    fputs("Error reading file", stderr);
+    return EXIT_FAILURE;
+  }
 
   // TODO: Maybe use the filename as a default identifier
   char* moduleName = "wren_module_test";
@@ -116,6 +121,7 @@ int WRENEMBED_encodeAndDumpInDOME(int argc, char* args[])
   int count = argc - 1;
 
   if (count < 2) {
+    fputs("Not enough arguments", stderr);
     return EXIT_FAILURE;
   }
 

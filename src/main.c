@@ -366,6 +366,13 @@ printUsage(ENGINE* engine) {
 
 int main(int argc, char* args[])
 {
+  // configuring the buffer has to be first
+
+  setbuf(stdout, NULL);
+  setvbuf(stdout, NULL, _IONBF, 0);
+  setbuf(stderr, NULL);
+  setvbuf(stderr, NULL, _IONBF, 0);
+
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   size_t gameFileLength;
@@ -378,10 +385,6 @@ int main(int argc, char* args[])
   loop.MS_PER_FRAME = ceil(1000.0 / loop.FPS);
 
   ENGINE_init(&engine);
-  setbuf(stdout, NULL);
-  setvbuf(stdout, NULL, _IONBF, 0);
-  setbuf(stderr, NULL);
-  setvbuf(stderr, NULL, _IONBF, 0);
   loop.engine = &engine;
 
   struct optparse_long longopts[] = {
@@ -390,7 +393,7 @@ int main(int argc, char* args[])
     {"console", 'c', OPTPARSE_NONE},
     #endif
     {"debug", 'd', OPTPARSE_NONE},
-    {"embed", 'e', OPTPARSE_REQUIRED},
+    {"embed", 'e', OPTPARSE_NONE},
     {"help", 'h', OPTPARSE_NONE},
     {"record", 'r', OPTPARSE_OPTIONAL},
     {"scale", 's', OPTPARSE_REQUIRED},
@@ -502,7 +505,7 @@ int main(int argc, char* args[])
         char* dirc = strdup(pathBuf);
         char* basec = strdup(pathBuf);
         // This sets the filename used.
-        fileName = basename(dirc);
+        fileName = strdup(basename(dirc));
         BASEPATH_set(dirname(basec));
         free(dirc);
         free(basec);
@@ -539,6 +542,10 @@ int main(int argc, char* args[])
       strcat(pathBuf, !autoResolve ? fileName : mainFileName);
       engine.argv[1] = strdup(pathBuf);
       strcpy(pathBuf, !autoResolve ? fileName : mainFileName);
+    }
+
+    if (fileName != NULL) {
+      free(fileName);
     }
 
     // The basepath is incorporated later, so we pass the basename version to this method.

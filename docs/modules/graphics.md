@@ -60,9 +60,13 @@ Offset all following draw operations by (_x, y_). Calling this without arguments
 
 #### `static print(str, x: Number, y: Number, c: Color) `
 Print the text _str_ with the top-left corner at (_x, y_) in color _c_, using the currently set default font. See `Canvas.font` for more information.
+The text will be split across multiple lines if a newline (`\n`) character is encountered.
+The vertical line spacing defaults to `fontHeight / 4`, where fontHeight is the maximum height of a font character in pixels, but this will be configurable in future versions of DOME.
 
 #### `static print(str, x: Number, y: Number, c: Color, fontName: String) `
 Print the text _str_ with the top-left corner at (_x, y_) in color _c_, in the specified font.
+The text will be split across multiple lines if a newline (`\n`) character is encountered.
+The vertical line spacing is calculated for each font, but this will be configurable in future versions of DOME.
 
 #### `static pset(x: Number, y: Number, c: Color) `
 Set the pixel at (_x, y_) to the color _c_.

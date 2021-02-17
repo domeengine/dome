@@ -1,4 +1,5 @@
 #include "wrenembed.c"
+#include <string.h>
 
 int main(int argc, char* args[])
 {

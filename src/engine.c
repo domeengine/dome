@@ -487,11 +487,19 @@ internal void
 ENGINE_print(ENGINE* engine, char* text, int64_t x, int64_t y, uint32_t c) {
   int fontWidth = 8;
   int fontHeight = 8;
+  int spacing = (fontHeight / 4);
   int cursor = 0;
   utf8_int32_t codepoint;
   void* v = utf8codepoint(text, &codepoint);
   size_t len = utf8len(text);
   for (size_t pos = 0; pos < len; pos++) {
+    if (text[pos] == '\n') {
+      cursor = 0;
+      y += fontHeight + spacing;
+      v = utf8codepoint(v, &codepoint);
+      continue;
+    }
+
     uint8_t* glyph = (uint8_t*)defaultFontLookup(codepoint);
     for (int j = 0; j < fontHeight; j++) {
       for (int i = 0; i < fontWidth; i++) {
@@ -870,10 +878,12 @@ ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, u
 
 internal void
 ENGINE_rect(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint32_t c) {
-  ENGINE_line(engine, x, y, x, y+h-1, c, 1);
-  ENGINE_line(engine, x, y, x+w-1, y, c, 1);
-  ENGINE_line(engine, x, y+h-1, x+w-1, y+h-1, c, 1);
-  ENGINE_line(engine, x+w-1, y, x+w-1, y+h-1, c, 1);
+  w = w - 1;
+  h = h - 1;
+  ENGINE_line(engine, x, y, x, y+h, c, 1);
+  ENGINE_line(engine, x, y, x+w, y, c, 1);
+  ENGINE_line(engine, x, y+h, x+w, y+h, c, 1);
+  ENGINE_line(engine, x+w, y, x+w, y+h, c, 1);
 }
 
 internal void
@@ -883,23 +893,23 @@ ENGINE_rectfill(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint
     return;
   } else {
     int64_t y1 = y;
-    int64_t y2 = y + h;
+    int64_t y2 = y + h - 1;
 
     if (alpha == 0xFF) {
       size_t lineWidth = w; // x2 - x1;
-      uint32_t buf[lineWidth];
-      for (size_t i = 0; i < lineWidth; i++) {
+      uint32_t buf[lineWidth + 1];
+      for (size_t i = 0; i <= lineWidth; i++) {
         buf[i] = c;
       }
-      for (int64_t j = y1; j < y2; j++) {
+      for (int64_t j = y1; j <= y2; j++) {
         ENGINE_blitLine(engine, x, j, lineWidth, buf);
       }
     } else {
       int64_t x1 = x;
-      int64_t x2 = x + w;
+      int64_t x2 = x + w - 1;
 
-      for (int64_t j = y1; j < y2; j++) {
-        for (int64_t i = x1; i < x2; i++) {
+      for (int64_t j = y1; j <= y2; j++) {
+        for (int64_t i = x1; i <= x2; i++) {
           ENGINE_pset(engine, i, j, c);
         }
       }
