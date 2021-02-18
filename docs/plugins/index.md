@@ -274,6 +274,9 @@ const char*    getSlotBytes(WrenVM* vm, int slot, int* length);
       void     getMapValue(WrenVM* vm, int mapSlot, int keySlot, int valueSlot);
       void     setMapValue(WrenVM* vm, int mapSlot, int keySlot, int valueSlot);
       void     removeMapValue(WrenVM* vm, int mapSlot, int keySlot, int removedValueSlot);
+
+      void     getVariable(WrenVM* vm, const char* module, const char* name, int slot);
+   WrenHandle* getSlotHandle(WrenVM* vm, int slot);
 ```
 
 ## Audio
