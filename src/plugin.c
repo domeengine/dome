@@ -322,7 +322,8 @@ WREN_API_v0 wren_v0 = {
 
   .getVariable = wrenGetVariable,
   .getSlotHandle = wrenGetSlotHandle,
-  .setSlotHandle = wrenSetSlotHandle
+  .setSlotHandle = wrenSetSlotHandle,
+  .releaseHandle = wrenReleaseHandle
 };
 
 DOME_API_v0 dome_v0 = {

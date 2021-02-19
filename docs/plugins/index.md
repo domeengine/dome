@@ -278,6 +278,7 @@ const char*    getSlotBytes(WrenVM* vm, int slot, int* length);
       void     getVariable(WrenVM* vm, const char* module, const char* name, int slot);
    WrenHandle* getSlotHandle(WrenVM* vm, int slot);
       void     setSlotHandle(WrenVM* vm, int slot, WrenHandle* handle);
+      void     releaseHandle(WrenVM* vm, WrenHandle* handle);
 ```
 
 ## Audio

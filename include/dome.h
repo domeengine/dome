@@ -132,6 +132,7 @@ typedef struct {
   void (*getVariable)(WrenVM* vm, const char* module, const char* name, int slot);
   WrenHandle* (*getSlotHandle)(WrenVM* vm, int slot);
   void (*setSlotHandle)(WrenVM* vm, int slot, WrenHandle* handle);
+  void (*releaseHandle)(WrenVM* vm, WrenHandle* handle);
 } WREN_API_v0;
 
 typedef struct {
