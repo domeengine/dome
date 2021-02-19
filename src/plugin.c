@@ -321,7 +321,8 @@ WREN_API_v0 wren_v0 = {
   .removeMapValue = wrenRemoveMapValue,
 
   .getVariable = wrenGetVariable,
-  .getSlotHandle = wrenGetSlotHandle
+  .getSlotHandle = wrenGetSlotHandle,
+  .setSlotHandle = wrenSetSlotHandle
 };
 
 DOME_API_v0 dome_v0 = {
