@@ -12,11 +12,14 @@ Next, create a new file in your workspace directory named `main.wren`. DOME look
 Open `main.wren` in your favourite text editor and enter the following:
 
 ```
-class Game {
-  static init() {}
-  static update() {}
-  static draw(alpha) {}
+class Main {
+  construct new() {}
+  init() {}
+  update() {}
+  draw(alpha) {}
 }
+
+var Game = Main.new()
 ```
 
 Save the file and navigate to your workspace in the terminal. Run `./dome` and you should see a black box appear.

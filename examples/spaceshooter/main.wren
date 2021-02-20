@@ -22,30 +22,31 @@ class Box {
 // ------- GAME CODE -------
 // -------------------------
 
-class Game {
-  static init() {
-    Window.title = "Example Game"
-    __state = MainGame
-    __state.init()
+class Main {
+  construct new() {}
 
-    __settingsFile = FileSystem.load("config.txt")
-    System.print(__settingsFile)
+  init() {
+    Window.title = "Example Game"
+    _state = MainGame
+    _state.init()
+
+    _settingsFile = FileSystem.load("config.txt")
+    System.print(_settingsFile)
   }
 
-  static update() {
-
+  update() {
     Mouse.hidden = Mouse.isButtonPressed("right")
     Mouse.relative = Keyboard.isKeyDown("r")
 
-    __state.update()
-    if (__state.next) {
-      __state = __state.next
-      __state.init()
+    _state.update()
+    if (_state.next) {
+      _state = _state.next
+      _state.init()
     }
   }
 
-  static draw(dt) {
-    __state.draw(dt)
+  draw(dt) {
+    _state.draw(dt)
     var pos = Mouse.pos
     if (Mouse.isButtonPressed("right")) {
       Canvas.pset(pos.x, pos.y, Color.orange)
@@ -75,7 +76,6 @@ class Explosion {
 }
 
 class Star {
-
   construct new() {
     _x = OurRandom.int(Canvas.width)
     _y = OurRandom.int(Canvas.height)
@@ -99,12 +99,12 @@ class Star {
 }
 
 class Bullet {
-
   construct fire(x, y) {
     _x = x
     _y = y
     _alive = true
   }
+
   x { _x }
   y { _y }
   h { 2 }
@@ -404,3 +404,5 @@ class GameOverState {
     Canvas.print("Game Over", 160-27, 120-3, Color.white)
   }
 }
+
+var Game = Main.new()
