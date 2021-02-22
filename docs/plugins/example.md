@@ -19,18 +19,21 @@ Plugin.load("test")
 import "external" for ExternalClass
 
 
-class Game {
-    static init() {
-      // and allocators for foreign classes
-      var obj = ExternalClass.init()
+class Main {
+  construct new() {}
+  init() {
+    // and allocators for foreign classes
+    var obj = ExternalClass.init()
 
-      // and finally, they can register foreign methods implemented
-      // in the plugin native language.
-      obj.alert("Some words")
-    }
-    static update() {}
-    static draw(dt) {}
+    // and finally, they can register foreign methods implemented
+    // in the plugin native language.
+    obj.alert("Some words")
+  }
+  update() {}
+  draw(dt) {}
 }
+
+var Game = Main.new()
 ```
 
 
@@ -114,11 +117,11 @@ DOME_EXPORT DOME_Result PLUGIN_onShutdown(DOME_Context ctx) {
 
 ## Compiling your plugin
 
-Compiling plugins is a little tricky, as each platform has slightly different requirements. 
+Compiling plugins is a little tricky, as each platform has slightly different requirements.
 This section attempts to demonstrate ways of doing this on the common platforms.
 Place the resulting compiled library file in the directory with your `main.wren` or `game.egg` and it should be detected by DOME.
 
-The `dome.h` file which provides the developer API is located in `../../include`, so we make sure this is added to the include folder list. 
+The `dome.h` file which provides the developer API is located in `../../include`, so we make sure this is added to the include folder list.
 You can adjust this to suit your development environment as necessary.
 
 ### Mac OS X
@@ -126,13 +129,13 @@ You can adjust this to suit your development environment as necessary.
 > gcc -dynamiclib -o pluginName.dylib -I../../include plugin.c -undefined dynamic_lookup
 ```
 
-We tell it we are building a `dynamiclib`, and that we want to treat `undefined` functions as fine using `dynamic_lookup`, so that methods can be acquired and linked at runtime. 
+We tell it we are building a `dynamiclib`, and that we want to treat `undefined` functions as fine using `dynamic_lookup`, so that methods can be acquired and linked at runtime.
 
 ### Windows
 ```
 > gcc -O3 -std=gnu11 -shared -fPIC  -I../../include pluginName.c -Wl,--unresolved-symbols=ignore-in-object-files -o pluginName.dll
 ```
-This example uses MSYS/MinGW for compiling the library on Windows, but there's no reason you couldn't use Visual Studio to compile a plugin instead. 
+This example uses MSYS/MinGW for compiling the library on Windows, but there's no reason you couldn't use Visual Studio to compile a plugin instead.
 
 ### Linux:
 ```

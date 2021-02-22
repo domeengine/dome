@@ -1,8 +1,10 @@
 import "random" for Random
 import "dome" for Process
 
-class Game {
-  static init() {
+class Main {
+  construct new() {}
+
+  init() {
     for (n in 0...100) {
       var start = System.clock
       var RNG = Random.new()
@@ -18,8 +20,10 @@ class Game {
     }
     Process.exit()
   }
-  static update() {}
-  static draw(d) {}
 
-
+  update() {}
+  draw(d) {}
 }
+
+var Game = Main.new()
+

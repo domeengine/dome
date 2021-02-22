@@ -1,5 +1,9 @@
-class Game {
-    static init() {}
-    static update() {}
-    static draw(dt) {}
+class Main {
+  construct new() {}
+  init() {}
+  update() {}
+  draw(dt) {}
 }
+
+var Game = Main.new()
+
