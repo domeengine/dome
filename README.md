@@ -39,7 +39,7 @@ Run `./dome [gamefile.wren]` to run your game. If your initial file is called `m
 
 ## Basics
 
-Your game's entry point must contain a `Game` class which contains at least `init()`, `update()` and `draw(_)` methods.
+Your game's entry point must contain a `Game` variable which contains at least `init()`, `update()` and `draw(_)` methods.
 
 ```wren
 import "input" for Keyboard
