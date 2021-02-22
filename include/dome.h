@@ -59,6 +59,7 @@ typedef enum {
 #ifndef wren_h
 // If the wren header is not in use, we forward declare some types we need.
 typedef struct WrenVM WrenVM;
+typedef struct WrenHandle WrenHandle;
 typedef void (*WrenForeignMethodFn)(WrenVM* vm);
 typedef void (*WrenFinalizerFn)(void* data);
 
@@ -127,6 +128,11 @@ typedef struct {
   void (*getMapValue)(WrenVM* vm, int mapSlot, int keySlot, int valueSlot);
   void (*setMapValue)(WrenVM* vm, int mapSlot, int keySlot, int valueSlot);
   void (*removeMapValue)(WrenVM* vm, int mapSlot, int keySlot, int removedValueSlot);
+
+  void (*getVariable)(WrenVM* vm, const char* module, const char* name, int slot);
+  WrenHandle* (*getSlotHandle)(WrenVM* vm, int slot);
+  void (*setSlotHandle)(WrenVM* vm, int slot, WrenHandle* handle);
+  void (*releaseHandle)(WrenVM* vm, WrenHandle* handle);
 } WREN_API_v0;
 
 typedef struct {
