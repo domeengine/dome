@@ -150,9 +150,6 @@ all: $(PROJECTS)
 
 WREN_LIB ?= $(LIBS)/libwren.a
 WREN_PARAMS ?= $(ARCH) WREN_OPT_RANDOM=0 WREN_OPT_META=1   
-$(LIBS)/SDL:
-	@echo "==== Cloning libSDL2 ===="
-	git submodule update --init -- $(LIBS)/SDL
 $(LIBS)/wren/lib/libwren.a:
 	@echo "==== Cloning Wren ===="
 	git submodule update --init -- $(LIBS)/wren
@@ -175,7 +172,7 @@ $(OBJS)/main.o: $(SOURCE_FILES) $(INCLUDES) $(WREN_LIB) $(MODULES)/*.inc
 	@echo "==== Building core ($(TAGS)) module ===="
 	$(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(OBJS)/main.o $(IFLAGS) 
 
-$(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(WREN_LIB) $(LIBS)/SDL
+$(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(WREN_LIB)
 	@echo "==== Linking DOME ($(TAGS)) ===="
 	$(CC) $(CFLAGS) $(FFLAGS) -o $(TARGET_NAME) $(OBJS)/*.o $(ICON_OBJECT_FILE) $(LDFLAGS) 
 	./scripts/set-executable-path.sh $(TARGET_NAME)
