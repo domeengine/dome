@@ -1,5 +1,6 @@
 #!/bin/bash
 source ./scripts/vars.sh
+git submodule update --init -- $DIRECTORY
 
 if ! [ -d "$DIRECTORY/$FOLDER" ]; then
   cd $DIRECTORY

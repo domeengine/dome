@@ -13,6 +13,7 @@ src/modules/*.inc
 include/wren.h
 include/SDL2/*
 lib/SDL2*
+lib/SDL/special
 lib/SDL*
 lib/libSDL2*
 
