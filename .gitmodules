@@ -1,3 +1,7 @@
 [submodule "wren"]
 	path = lib/wren
 	url = https://github.com/wren-lang/wren.git
+[submodule "lib/SDL"]
+	path = lib/SDL
+	url = https://github.com/libsdl-org/SDL
+	ignore = untracked
