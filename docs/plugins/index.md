@@ -79,7 +79,7 @@ If a hook returns any result other than `DOME_RESULT_SUCCESS`, DOME will abort a
 
 ### Init
 
-```
+```c
 DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
                           DOME_Context ctx)
 ```
@@ -90,33 +90,33 @@ You can also signal to DOME that there was a problem by returning `DOME_RESULT_F
 This is also the best opportunity to acquire the available APIs, thanks to the `DOME_getAPI` function pointer, which is explained in the [API Services](#api-services) section. The structs returned from this call should be stored for use throughout the lifetime of your plugin.
 
 ### Pre-Update
-```
+```c
 DOME_Result PLUGIN_preUpdate(DOME_Context ctx)
 ```
 This hook is called before the Game.update step of the game loop.
 
 ### Post-Update
-```
+```c
 DOME_Result PLUGIN_postUpdate(DOME_Context ctx)
 ```
 This hook is called after the Game.update step of the game loop.
 
 ### Pre-Draw
-```
+```c
 DOME_Result PLUGIN_preDraw(DOME_Context ctx)
 ```
 
 This hook is called before the Game.draw step of the game loop.
 
 ### Post-Draw
-```
+```c
 DOME_Result PLUGIN_postDraw(DOME_Context ctx)
 ```
 This hook is called after the Game.draw step of the game loop.
 
 
 ### Shutdown
-```
+```c
 DOME_Result PLUGIN_onShutdown(DOME_Context ctx)
 ```
 This hook occurs when the plugin is being unloaded, usually because DOME is in the process of quitting. This is your last opportunity to free any resources your plugin is holding on to, and cleaning up any other background processes.
@@ -129,7 +129,7 @@ The DOME Plugin API is split into different pieces, divided by general purpose a
 The engine will endeavour to support previous versions of an API for as long as possible, but no guarentees will be made for compatibility across major versions of DOME.
 
 APIs are provided as a struct of function pointers, returned from:
-```
+```c
 void* DOME_getAPI(API_TYPE type, int API_VERSION)
 ```
 
@@ -139,7 +139,7 @@ This API allows your plugin to register modules and provides some basic utilitie
 
 ### Acquisition
 
-```
+```c
 DOME_API_v0* core = (DOME_API_v0*)DOME_getAPI(API_DOME, DOME_API_VERSION);
 ```
 
@@ -164,7 +164,7 @@ Various methods return an enum of type `DOME_Result`, which indicates success or
 ### Methods
 
 #### method: registerModule
-```
+```c
 DOME_Result registerModule(DOME_Context ctx, 
                            const char* name, 
                            const char* moduleSource)
@@ -174,7 +174,7 @@ DOME creates a copy of the `name` and `moduleSource`, so you are able to free th
 Returns `DOME_RESULT_SUCCESS` if the module was successfully registered, and `DOME_RESULT_FAILURE` otherwise.
 
 #### method: registerClass
-```
+```c
 DOME_Result registerClass(DOME_Context ctx, 
                           const char* moduleName, 
                           const char* className, 
@@ -189,7 +189,7 @@ Returns `DOME_RESULT_SUCCESS` if the class is registered and `DOME_RESULT_FAILUR
 
 
 #### method: registerFn
-```
+```c
 DOME_Result registerFn(DOME_Context ctx, 
                        const char* name, 
                        const char* signature, 
@@ -210,7 +210,7 @@ The format for the `signature` string is as follows:
    - Wren methods can have up to 16 arguments, and are overloaded by arity. For example, `Test.do(_)` is considered different to `Test.do(_,_)` and so on.
    
 #### method: lockModule
-```
+```c
 void lockModule(DOME_Context ctx, const char* name)
 ```
 This marks the module `name` as locked, so that further functions cannot modify it. It is recommended to do this after you have registered all the methods for your module, however there is no requirement to.
@@ -219,13 +219,13 @@ This marks the module `name` as locked, so that further functions cannot modify 
 
 
 #### method: getContext
-```
+```c
 DOME_Context getContext(WrenVM* vm)
 ```
 This allows foreign functions called by the Wren VM to access the current DOME context, to call various APIs.
 
 #### method: log
-```
+```c
 void log(DOME_Context ctx, const char* text, ...)
 ```
 
@@ -242,13 +242,13 @@ You do not need to include the `wren.h` header in your application, as `dome.h` 
 
 ### Acquisition
 
-```
+```c
 WREN_API_v0* wren = (WREN_API_v0*)DOME_getAPI(API_WREN, WREN_API_VERSION);
 ```
 
 ### Methods
 This is a list of provided methods:
-```
+```c
       void     ensureSlots(WrenVM* vm, int slotCount);
       void     setSlotNull(WrenVM* vm, int slot);
       void     setSlotBool(WrenVM* vm, int slot, bool value);
@@ -281,13 +281,29 @@ const char*    getSlotBytes(WrenVM* vm, int slot, int* length);
       void     releaseHandle(WrenVM* vm, WrenHandle* handle);
 ```
 
+### Embed
+
+If your plugin requires using _Wren_ files, you can _embed_ them using the built in command `--embed`.
+This command converts a _Wren_ source file to a _C_ include file.
+
+```sh
+$ dome -e | --embed [--] sourceFile [moduleName] [destinationFile]
+```
+
+Example:
+
+```sh
+$ dome -e external.wren source external.wren.inc
+```
+
+
 ## Audio
 
 This set of APIs gives you access to DOME's audio engine, to provide your own audio channel implementations. You can use this to synthesize sounds, or play custom audio formats.
 
 ### Acquisition
 
-```
+```c
 AUDIO_API_v0* wren = (AUDIO_API_v0*)DOME_getAPI(API_AUDIO, AUDIO_API_VERSION);
 ```
 
@@ -297,7 +313,7 @@ AUDIO_API_v0* wren = (AUDIO_API_v0*)DOME_getAPI(API_AUDIO, AUDIO_API_VERSION);
 
 Audio channels are enabled and disabled based on a state, which is represented by this enum. Supported states are the following:
 
-```
+```c
 enum CHANNEL_STATE {
   CHANNEL_INITIALIZE,
   CHANNEL_TO_PLAY,
@@ -324,7 +340,7 @@ This callback is called on DOME's Audio Engine mixer thread. It is essential tha
 ### Methods
 
 #### method: channelCreate
-```
+```c
 CHANNEL_REF channelCreate(DOME_Context ctx,
                           CHANNEL_mix mix, 
                           CHANNEL_callback update, 
@@ -344,27 +360,25 @@ The `userdata` is a pointer set by the plugin developer, which can be used to pa
 
 
 #### method: getData
-``` 
+```c
 void* getData(CHANNEL_REF ref)
 ```
 Fetch the `userdata` pointer for the given channel `ref`.
 
 #### method: getState
-``` 
+```c
 CHANNEL_STATE getState(CHANNEL_REF ref)
 ```
 Get the current [state](#enum-channel_state) of the channel specified by `ref`.
 
 #### method: setState
-``` 
+```c 
 void setState(CHANNEL_REF ref, CHANNEL_STATE state)
 ```
 This allows you to specify the channel's [state](#enum-channel_state). DOME will only mix in channels in the following states: `CHANNEL_PLAYING` and `CHANNEL_STOPPING`.
 
 #### method: stop
-``` 
+```c
 void stop(CHANNEL_REF ref)
 ```
 Marks the audio channel as having stopped. This means that DOME will no longer play this channel. It will call the `finish` callback at it's next opportunity.
- 
-
