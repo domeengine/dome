@@ -35,6 +35,7 @@ Advanced developers are invited to build native plugins using a compiled languag
        - [method: getContext](#method-getcontext)
        - [method: log](#method-log)
    - [Wren](#wren)
+     * [Module Embedding](#module-embedding)
    - [Audio](#audio)
      * Enums
        - [enum: CHANNEL_STATE](#enum-channel_state)
@@ -281,13 +282,12 @@ const char*    getSlotBytes(WrenVM* vm, int slot, int* length);
       void     releaseHandle(WrenVM* vm, WrenHandle* handle);
 ```
 
-### Embed
+### Module Embedding
 
-If your plugin requires using _Wren_ files, you can _embed_ them using the built in command `--embed`.
-This command converts a _Wren_ source file to a _C_ include file.
+If your plugin registers a Wren module, you can embed the source of that module in your plugin by using DOME's built-in `--embed` command, which will convert it into a C include file.
 
 ```sh
-$ dome -e | --embed [--] sourceFile [moduleName] [destinationFile]
+$ dome -e | --embed   sourceFile [moduleVariableName] [destinationFile]
 ```
 
 Example:
@@ -296,6 +296,7 @@ Example:
 $ dome -e external.wren source external.wren.inc
 ```
 
+This command will use `external.wren` to generate `external.wren.inc`, which contains the variable `sourceModule` for including in C/C++ source code.
 
 ## Audio
 
