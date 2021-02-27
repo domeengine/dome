@@ -6,6 +6,7 @@ typedef struct {
 typedef struct {
   FONT* font;
   float scale;
+  int height;
 
   bool antialias;
   int32_t offsetY;
@@ -48,6 +49,10 @@ FONT_RASTER_allocate(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 2, NUM, "font size");
   raster->scale = stbtt_ScaleForMappingEmToPixels(&font->info, wrenGetSlotDouble(vm, 2));
 
+  int ascent, descent, linegap;
+  stbtt_GetFontVMetrics(&font->info, &ascent, &descent, &linegap);
+  raster->height = (ascent - descent + linegap) * (raster->scale);
+
   int32_t x0, x1, y0, y1;
   stbtt_GetFontBoundingBox(&font->info, &x0, &x1, &y0, &y1);
   raster->offsetY = (-y0) * raster->scale;
@@ -82,6 +87,8 @@ FONT_RASTER_print(WrenVM* vm) {
   unsigned char *bitmap;
   int w, h;
 
+  int fontHeight = raster->height;
+
   float scale = raster->scale;
   int32_t offsetY = raster->offsetY;
 
@@ -92,6 +99,12 @@ FONT_RASTER_print(WrenVM* vm) {
   utf8_int32_t codepoint;
   void* v = utf8codepoint(text, &codepoint);
   for (int charIndex = 0; charIndex < len; charIndex++) {
+    if (text[charIndex] == '\n') {
+      posX = x;
+      baseY += fontHeight;
+      v = utf8codepoint(v, &codepoint);
+      continue;
+    }
     int ax;
     int lsb;
     int oY, oX;

@@ -59,11 +59,11 @@ typedef enum {
 #ifndef wren_h
 // If the wren header is not in use, we forward declare some types we need.
 typedef struct WrenVM WrenVM;
+typedef struct WrenHandle WrenHandle;
 typedef void (*WrenForeignMethodFn)(WrenVM* vm);
 typedef void (*WrenFinalizerFn)(void* data);
 
-typedef enum
-{
+typedef enum {
   WREN_TYPE_BOOL,
   WREN_TYPE_NUM,
   WREN_TYPE_FOREIGN,
@@ -75,6 +75,14 @@ typedef enum
   // The object is of a type that isn't accessible by the C API.
   WREN_TYPE_UNKNOWN
 } WrenType;
+
+typedef enum
+{
+  WREN_RESULT_SUCCESS,
+  WREN_RESULT_COMPILE_ERROR,
+  WREN_RESULT_RUNTIME_ERROR
+} WrenInterpretResult;
+
 #endif
 
 typedef DOME_Result (*DOME_Plugin_Hook) (DOME_Context context);
@@ -127,6 +135,17 @@ typedef struct {
   void (*getMapValue)(WrenVM* vm, int mapSlot, int keySlot, int valueSlot);
   void (*setMapValue)(WrenVM* vm, int mapSlot, int keySlot, int valueSlot);
   void (*removeMapValue)(WrenVM* vm, int mapSlot, int keySlot, int removedValueSlot);
+
+  void (*getVariable)(WrenVM* vm, const char* module, const char* name, int slot);
+  WrenHandle* (*getSlotHandle)(WrenVM* vm, int slot);
+  void (*setSlotHandle)(WrenVM* vm, int slot, WrenHandle* handle);
+  void (*releaseHandle)(WrenVM* vm, WrenHandle* handle);
+
+  bool (*hasVariable)(WrenVM* vm, const char* module, const char* name);
+  bool (*hasModule)(WrenVM* vm, const char* module);
+
+  WrenInterpretResult (*call)(WrenVM* vm, WrenHandle* method);
+  WrenInterpretResult (*interpret)(WrenVM* vm, const char* module, const char* source);
 } WREN_API_v0;
 
 typedef struct {
