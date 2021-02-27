@@ -55,7 +55,7 @@ class Game {
     _h = 5
   }
 
-  static update() {
+  update() {
     if (Keyboard.isKeyDown("left")) {
       _x = _x - 1
     }
