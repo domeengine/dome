@@ -8,3 +8,4 @@ We'd like to thank the following people for their contributions.
   * Camilo Castro, aka clsource [https://github.com/clsource]
   * Siddhant Rao [https://siddhantrao23.github.io]
   * Chayim Refael Friedman [https://github.com/ChayimFriedman2]
+  * Benjamin Stigsen [https://github.com/benstigsen]

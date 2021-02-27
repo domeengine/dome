@@ -1,10 +1,6 @@
 #!/bin/bash
 source ./scripts/vars.sh
-
-if ! [ -d "$DIRECTORY" ]; then
-  cd $LIB_DIR
-  curl -L https://libsdl.org/release/SDL2-${VERSION}.tar.gz | tar -xvz
-fi
+git submodule update --init -- $DIRECTORY
 
 if ! [ -d "$DIRECTORY/$FOLDER" ]; then
   cd $DIRECTORY

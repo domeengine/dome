@@ -120,6 +120,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/platform.c"
 #include "modules/random.c"
 #include "modules/plugin.c"
+#include "util/wrenembed.c"
 
 
 // Comes last to register modules
@@ -360,6 +361,7 @@ printUsage(ENGINE* engine) {
 
   ENGINE_printLog(engine, "  dome [options]\n");
   ENGINE_printLog(engine, "  dome [options] [--] entry_path [arguments]\n");
+  ENGINE_printLog(engine, "  dome -e | --embed sourceFile [moduleName] [destinationFile]\n");
   ENGINE_printLog(engine, "  dome -h | --help\n");
   ENGINE_printLog(engine, "  dome -v | --version\n");
   ENGINE_printLog(engine, "\nOptions: \n");
@@ -368,6 +370,7 @@ printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "  -c --console        Opens a console window for development.\n");
 #endif
   ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
+  ENGINE_printLog(engine, "  -e --embed          Converts a Wren source file to a C include file.\n");
   ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
   ENGINE_printLog(engine, "  -r --record=<gif>   Record video to <gif>.\n");
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
@@ -430,10 +433,11 @@ int main(int argc, char* args[])
     {"console", 'c', OPTPARSE_NONE},
     #endif
     {"debug", 'd', OPTPARSE_NONE},
+    {"embed", 'e', OPTPARSE_NONE},
     {"help", 'h', OPTPARSE_NONE},
-    {"version", 'v', OPTPARSE_NONE},
     {"record", 'r', OPTPARSE_OPTIONAL},
     {"scale", 's', OPTPARSE_REQUIRED},
+    {"version", 'v', OPTPARSE_NONE},
     {0}
   };
 
@@ -472,6 +476,9 @@ int main(int argc, char* args[])
         DEBUG_MODE = true;
         ENGINE_printLog(&engine, "Debug Mode enabled\n");
         break;
+      case 'e':
+        WRENEMBED_encodeAndDumpInDOME(argc, args);
+        goto cleanup;
       case 'h':
         printTitle(&engine);
         printUsage(&engine);
@@ -538,7 +545,7 @@ int main(int argc, char* args[])
         char* dirc = strdup(pathBuf);
         char* basec = strdup(pathBuf);
         // This sets the filename used.
-        fileName = basename(dirc);
+        fileName = strdup(basename(dirc));
         BASEPATH_set(dirname(basec));
         free(dirc);
         free(basec);
@@ -575,6 +582,10 @@ int main(int argc, char* args[])
       strcat(pathBuf, !autoResolve ? fileName : mainFileName);
       engine.argv[1] = strdup(pathBuf);
       strcpy(pathBuf, !autoResolve ? fileName : mainFileName);
+    }
+
+    if (fileName != NULL) {
+      free(fileName);
     }
 
     // The basepath is incorporated later, so we pass the basename version to this method.

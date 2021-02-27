@@ -490,11 +490,19 @@ internal void
 ENGINE_print(ENGINE* engine, char* text, int64_t x, int64_t y, uint32_t c) {
   int fontWidth = 8;
   int fontHeight = 8;
+  int spacing = (fontHeight / 4);
   int cursor = 0;
   utf8_int32_t codepoint;
   void* v = utf8codepoint(text, &codepoint);
   size_t len = utf8len(text);
   for (size_t pos = 0; pos < len; pos++) {
+    if (text[pos] == '\n') {
+      cursor = 0;
+      y += fontHeight + spacing;
+      v = utf8codepoint(v, &codepoint);
+      continue;
+    }
+
     uint8_t* glyph = (uint8_t*)defaultFontLookup(codepoint);
     for (int j = 0; j < fontHeight; j++) {
       for (int i = 0; i < fontWidth; i++) {

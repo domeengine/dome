@@ -7,15 +7,20 @@ Plugin.load("test")
 import "external" for ExternalClass
 
 
-class Game {
-    static init() {
-      // and allocators for foreign classes
-      var obj = ExternalClass.init()
+class Main {
+  construct new() {}
 
-      // and finally, they can register foreign methods implemented
-      // in the plugin native language.
-      obj.alert("Some words")
-    }
-    static update() {}
-    static draw(dt) {}
+  init() {
+    // and allocators for foreign classes
+    var obj = ExternalClass.init()
+
+    // and finally, they can register foreign methods implemented
+    // in the plugin native language.
+    obj.alert("Some words")
+  }
+
+  update() {}
+  draw(dt) {}
 }
+
+var Game = Main.new()

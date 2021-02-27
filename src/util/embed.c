@@ -1,15 +1,15 @@
+#include "wrenembed.c"
 #include <string.h>
-#include "wren2cstring.c"
 
 int main(int argc, char* args[])
 {
   if (argc < 2) {
-    printf("./embed [WrenFile] [VariableName?] [OutputFile?]\n");
+    printf("./embed sourceFile [moduleName] [destinationFile]\n");
     printf("Not enough arguments.\n");
     return EXIT_FAILURE;
   }
-
-  return WREN2CSTRING_encodeAndDump(argc, args);
+  
+  return WRENEMBED_encodeAndDump(argc, args);
 }
 
 

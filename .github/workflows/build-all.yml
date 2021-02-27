@@ -86,6 +86,7 @@ jobs:
       with:
         msystem: ${{ matrix.msystem }}
         release: true
+        update: true
         install: git make mercurial subversion
 
     - run: pacman --noconfirm -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-SDL2
