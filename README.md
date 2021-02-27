@@ -45,7 +45,7 @@ Your game's entry point must contain a `Game` variable which contains at least `
 import "input" for Keyboard
 import "graphics" for Canvas, Color
 
-class Game {
+class Main {
   construct new() {}
 
   init() {
