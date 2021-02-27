@@ -261,25 +261,33 @@ This is a list of provided methods:
       double   getSlotDouble(WrenVM* vm, int slot);    
 const char*    getSlotString(WrenVM* vm, int slot);   
 const char*    getSlotBytes(WrenVM* vm, int slot, int* length);                   
-      void     abortFiber(WrenVM* vm, int slot);
 
       WrenType getSlotType(WrenVM* vm, int slot);
 
+      void     setSlotNewList(WrenVM* vm, int slot);
       int      getListCount(WrenVM* vm, int slot);
       void     getListElement(WrenVM* vm, int listSlot, int index, int elementSlot);
       void     setListElement(WrenVM* vm, int listSlot, int index, int elementSlot);
       void     insertInList(WrenVM* vm, int listSlot, int index, int elementSlot);
 
+      void     setSlotNewMap(WrenVM* vm, int slot);
       int      getMapCount(WrenVM* vm, int slot);
       bool     getMapContainsKey(WrenVM* vm, int mapSlot, int keySlot);
       void     getMapValue(WrenVM* vm, int mapSlot, int keySlot, int valueSlot);
       void     setMapValue(WrenVM* vm, int mapSlot, int keySlot, int valueSlot);
       void     removeMapValue(WrenVM* vm, int mapSlot, int keySlot, int removedValueSlot);
 
+
+WrenInterpretResult interpret(WrenVM* vm, const char* module, const char* source);
+WrenInterpretResult call(WrenVM* vm, WrenHandle* method);
+
+      bool     hasModule(WrenVM* vm, const char* module);
+      bool     hasVariable(WrenVM* vm, const char* module, const char* name);
       void     getVariable(WrenVM* vm, const char* module, const char* name, int slot);
    WrenHandle* getSlotHandle(WrenVM* vm, int slot);
       void     setSlotHandle(WrenVM* vm, int slot, WrenHandle* handle);
       void     releaseHandle(WrenVM* vm, WrenHandle* handle);
+      void     abortFiber(WrenVM* vm, int slot);
 ```
 
 ### Module Embedding
