@@ -135,3 +135,63 @@ FONT_RASTER_print(WrenVM* vm) {
     posX += kern * scale;
   }
 }
+
+internal void
+FONT_RASTER_getArea(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "text");
+  FONT_RASTER* raster = wrenGetSlotForeign(vm, 0);
+  const char* text = wrenGetSlotString(vm, 1);
+
+  stbtt_fontinfo info = raster->font->info;
+  unsigned char *bitmap;
+  int w, h;
+
+  int fontHeight = raster->height;
+
+  float scale = raster->scale;
+  int32_t offsetY = raster->offsetY;
+
+  int32_t maxX = 0;
+  int32_t maxY = 0;
+
+  int32_t posX = 0;
+  int32_t baseY = -offsetY;
+  int len = utf8len(text);
+  utf8_int32_t codepoint;
+  void* v = utf8codepoint(text, &codepoint);
+  for (int charIndex = 0; charIndex < len; charIndex++) {
+    if (text[charIndex] == '\n') {
+      maxX = max(maxX, posX);
+      posX = 0;
+      baseY += fontHeight;
+      v = utf8codepoint(v, &codepoint);
+      continue;
+    }
+    int ax;
+    int lsb;
+    int oY, oX;
+    stbtt_GetCodepointHMetrics(&info, codepoint, &ax, &lsb);
+    bitmap = stbtt_GetCodepointBitmap(&info, 0, scale, codepoint, &w, &h, &oX, &oY);
+
+    posX += oX;
+    posX += ax * scale;
+    maxY = max(maxY, baseY + oY + h);
+    /* add kerning */
+    int kern;
+    long oldCodepoint = codepoint;
+    v = utf8codepoint(v, &codepoint);
+    kern = stbtt_GetCodepointKernAdvance(&info, oldCodepoint, codepoint);
+    posX += kern * scale;
+  }
+
+  // Account for the final line being shorter.
+  maxX = max(maxX, posX);
+
+
+  wrenEnsureSlots(vm, 2);
+  wrenSetSlotNewList(vm, 0);
+  wrenSetSlotDouble(vm, 1, maxX);
+  wrenInsertInList(vm, 0, 0, 1);
+  wrenSetSlotDouble(vm, 1, maxY);
+  wrenInsertInList(vm, 0, 1, 1);
+}

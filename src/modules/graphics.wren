@@ -133,6 +133,13 @@ class Canvas {
     }
   }
 
+  static getPrintArea(str) {
+    if (__defaultFont != null) {
+      return Font[__defaultFont].getArea(str)
+    }
+    return str.count * 8
+  }
+
   foreign static f_cls(color)
   static cls() {
     cls(Color.black)
