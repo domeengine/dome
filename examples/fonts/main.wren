@@ -5,13 +5,13 @@ class Main {
   construct new() {}
 
   init() {
+    _defaultPos = Canvas.getPrintArea("Hello world")
+
     Font.load("memory", "memory.ttf", 50)
     Font.load("memory_small", "memory.ttf", 16)
     Font["memory"].antialias = true
     _pos = Font["memory_small"].getArea("Hello\nworld")
     Canvas.font = "memory"
-    System.print(_pos)
-
   }
 
   update() {}
@@ -25,6 +25,9 @@ class Main {
     var pos = Canvas.getPrintArea("DOME Installed\nSuccessfully.")
     Canvas.rect(10, 80, pos.x, pos.y, Color.red)
     Canvas.print("DOME Installed\nSuccessfully.", 10, 80, Color.white)
+
+    Canvas.rect(10, 160, _defaultPos.x, _defaultPos.y, Color.red)
+    Canvas.print("Hello\nworld", 10, 160, Color.white, Font.default)
   }
 }
 
