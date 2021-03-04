@@ -20,6 +20,9 @@ global_variable const char* controllerButtonMap[] = {
 };
 global_variable bool inputCaptured = false;
 global_variable WrenHandle* commitMethod = NULL;
+global_variable WrenHandle* gpadAddedMethod = NULL;
+global_variable WrenHandle* gpadLookupMethod = NULL;
+global_variable WrenHandle* gpadRemoveMethod = NULL;
 
 internal void
 INPUT_capture(WrenVM* vm) {
@@ -37,6 +40,9 @@ INPUT_capture(WrenVM* vm) {
 
     updateInputMethod = wrenMakeCallHandle(vm, "update(_,_)");
     commitMethod = wrenMakeCallHandle(vm, "commit()");
+    gpadAddedMethod = wrenMakeCallHandle(vm, "addGamePad(_)");
+    gpadLookupMethod = wrenMakeCallHandle(vm, "[_]");
+    gpadRemoveMethod = wrenMakeCallHandle(vm, "removeGamePad(_)");
     inputCaptured = true;
   }
 }
@@ -83,6 +89,9 @@ INPUT_release(WrenVM* vm) {
     wrenReleaseHandle(vm, gamepadClass);
     wrenReleaseHandle(vm, updateInputMethod);
     wrenReleaseHandle(vm, commitMethod);
+    wrenReleaseHandle(vm, gpadAddedMethod);
+    wrenReleaseHandle(vm, gpadLookupMethod);
+    wrenReleaseHandle(vm, gpadRemoveMethod);
     inputCaptured = false;
   }
 }
@@ -323,24 +332,20 @@ GAMEPAD_getGamePadIds(WrenVM* vm) {
 internal void
 GAMEPAD_eventAdded(WrenVM* vm, int joystickId) {
   if (inputCaptured) {
-    WrenHandle* addedMethod = wrenMakeCallHandle(vm, "addGamePad(_)");
     wrenEnsureSlots(vm, 2);
     wrenSetSlotDouble(vm, 1, joystickId);
     wrenSetSlotHandle(vm, 0, gamepadClass);
-    wrenCall(vm, addedMethod);
-    wrenReleaseHandle(vm, addedMethod);
+    wrenCall(vm, gpadAddedMethod);
   }
 }
 
 internal WrenInterpretResult
 GAMEPAD_eventButtonPressed(WrenVM* vm, int joystickId, const char* buttonName, bool state) {
   if (inputCaptured) {
-    WrenHandle* lookupMethod = wrenMakeCallHandle(vm, "[_]");
     wrenEnsureSlots(vm, 3);
     wrenSetSlotDouble(vm, 1, joystickId);
     wrenSetSlotHandle(vm, 0, gamepadClass);
-    WrenInterpretResult result = wrenCall(vm, lookupMethod);
-    wrenReleaseHandle(vm, lookupMethod);
+    WrenInterpretResult result = wrenCall(vm, gpadLookupMethod);
     if (result != WREN_RESULT_SUCCESS) {
       return result;
     }
@@ -357,12 +362,10 @@ GAMEPAD_eventButtonPressed(WrenVM* vm, int joystickId, const char* buttonName, b
 internal void
 GAMEPAD_eventRemoved(WrenVM* vm, int instanceId) {
   if (inputCaptured) {
-    WrenHandle* removeMethod = wrenMakeCallHandle(vm, "removeGamePad(_)");
     wrenEnsureSlots(vm, 2);
     wrenSetSlotDouble(vm, 1, instanceId);
     wrenSetSlotHandle(vm, 0, gamepadClass);
-    wrenCall(vm, removeMethod);
-    wrenReleaseHandle(vm, removeMethod);
+    wrenCall(vm, gpadRemoveMethod);
   }
 }
 
