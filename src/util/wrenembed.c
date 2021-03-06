@@ -13,13 +13,13 @@ char* WRENEMBED_readEntireFile(char* path, size_t* lengthPtr)
   if (file == NULL) {
     return NULL;
   }
-  
+
   char* source = NULL;
   if (fseek(file, 0L, SEEK_END) == 0) {
-    
+
     // Get the size of the file.
     long bufsize = ftell(file);
-    
+
     // Allocate our buffer to that size.
     source = malloc(sizeof(char) * (bufsize + 1));
 
@@ -30,12 +30,12 @@ char* WRENEMBED_readEntireFile(char* path, size_t* lengthPtr)
 
     // Read the entire file into memory.
     size_t newLen = fread(source, sizeof(char), bufsize, file);
-    
+
     if (ferror(file) != 0) {
       fclose(file);
       return NULL;
     }
-    
+
     if (lengthPtr != NULL) {
       *lengthPtr = newLen;
     }
@@ -71,7 +71,7 @@ int WRENEMBED_encodeAndDump(int argc, char* args[])
     // TODO: Maybe sanitize moduleName to be valid C identifier?
     moduleName = args[2];
   }
-  
+
   FILE *fp;
   if(argc > 3) {
     fp = fopen(args[3], "w+");
@@ -99,6 +99,8 @@ int WRENEMBED_encodeAndDump(int argc, char* args[])
       // TODO: Properly test the encoding with different source files
       if (*ptr == '\'') {
         fputs("\\\'", fp);
+      } else if (*ptr == '\\') {
+        fputs("\\\\", fp);
       } else {
         fwrite(ptr, sizeof(char), 1, fp);
       }
