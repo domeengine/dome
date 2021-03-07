@@ -206,6 +206,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addClass(&engine->moduleMap, "font", "FontFile", FONT_allocate, FONT_finalize);
   MAP_addClass(&engine->moduleMap, "font", "RasterizedFont", FONT_RASTER_allocate, FONT_RASTER_finalize);
   MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.f_print(_,_,_,_)", FONT_RASTER_print);
+  MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.f_getArea(_)", FONT_RASTER_getArea);
   MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.antialias=(_)", FONT_RASTER_setAntiAlias);
   MAP_lockModule(&engine->moduleMap, "font");
 

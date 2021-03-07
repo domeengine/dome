@@ -114,6 +114,12 @@ class Canvas {
   static print(str, x, y, c, font) {
     if (Font[font] != null) {
       Font[font].print(str, x, y, c)
+    } else if (font == Font.default) {
+      var color = Color.white
+      if (c is Color) {
+        color = c
+      }
+      f_print(str, x, y, color.toNum)
     } else {
       Fiber.abort("Font %(font) is not loaded")
     }
@@ -131,6 +137,16 @@ class Canvas {
     } else {
       f_print(str, x, y, color.toNum)
     }
+  }
+
+  static getPrintArea(str) {
+    if (__defaultFont != Font.default) {
+      return Font[__defaultFont].getArea(str)
+    }
+    var lines = str.split("\n")
+    var maxX = lines.map {|line| line.count }.reduce(0) {|acc, value| acc > value ? acc : value }
+    var vSpacing = 8 / 4
+    return Vector.new(maxX * 8, lines.count * (vSpacing + 8) - vSpacing - 1)
   }
 
   foreign static f_cls(color)
