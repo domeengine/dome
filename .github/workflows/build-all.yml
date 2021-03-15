@@ -180,22 +180,3 @@ jobs:
           asset_path: ./dome-macosx-x64.zip
           asset_name: dome-${{github.event.release.tag_name}}-macosx-x64.zip
           asset_content_type: application/zip
-  notify-discord:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.action == 'published' }}
-    needs: [ release-artifacts ]
-    steps:
-    - name: Discord notification
-      env:
-        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        DISCORD_EMBEDS: >
-          [{ 
-             "title": "New Release: '${{github.event.release.name}}' is now available for download!", 
-             "url": "${{github.event.release.html_url}}",
-             "author": {
-               "name": "${{github.event.release.author.login}}",
-               "url": "${{github.event.release.author.html_url}}",
-               "icon_url": "${{github.event.release.author.avatar_url}}"
-             }
-          }]
-      uses: Ilshidur/action-discord@0.3.0
