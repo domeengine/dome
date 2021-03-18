@@ -37,7 +37,12 @@ endif
 
 # 0 or 1
 STATIC ?= 0
-TAGS = $(ARCH) $(SYSTEM) $(MODE) $(FRAMEWORK)
+TAGS = $(ARCH) $(SYSTEM) $(MODE) $(FRAMEWORK) $(SYMBOLS)
+
+ifneq ($(filter debug,$(TAGS)),)
+TAGS += symbols
+endif
+
 OBJS := $(OBJS)/$(ARCH)
 
 ifeq ($(STATIC), 1)
@@ -93,11 +98,15 @@ endif
 ifneq ($(filter release,$(TAGS)),)
 CFLAGS += -O3
 else ifneq ($(filter debug,$(TAGS)),)
-CFLAGS += -g -O0 
+CFLAGS += -O0 
 ifneq ($(filter macosx,$(TAGS)),)
 CFLAGS += -fsanitize=address
 FFLAGS += -fsanitize=address
 endif
+endif
+
+ifneq ($(filter symbols,$(TAGS)),)
+CFLAGS += -g 
 endif
 
 # Include Configuration
