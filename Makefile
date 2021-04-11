@@ -146,10 +146,11 @@ else ifneq ($(and $(filter macosx,$(TAGS)), $(filter framework,$(TAGS)), $(filte
 FFLAGS += -F/Library/Frameworks -framework SDL2
 endif
 
-LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG) $(DEPS) 
+LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG)
 ifneq ($(filter linux,$(TAGS)),)
 	LDFLAGS += -Wl,--wrap=log,--wrap=log2,--wrap=exp,--wrap=pow
 endif
+LDFLAGS += $(DEPS)
 
 
 
