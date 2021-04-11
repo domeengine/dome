@@ -146,8 +146,11 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
 
 internal void
 DRAW_COMMAND_allocate(WrenVM* vm) {
+  wrenEnsureSlots(vm, 4);
   ASSERT_SLOT_TYPE(vm, 1, FOREIGN, "image");
-  ASSERT_SLOT_TYPE(vm, 2, LIST, "parameters");
+  ASSERT_SLOT_TYPE(vm, 2, MAP, "parameters");
+  bool contains;
+
 
   DRAW_COMMAND* command = (DRAW_COMMAND*)wrenSetSlotNewForeign(vm,
       0, 0, sizeof(DRAW_COMMAND));
@@ -155,59 +158,120 @@ DRAW_COMMAND_allocate(WrenVM* vm) {
   IMAGE* image = wrenGetSlotForeign(vm, 1);
   *command = DRAW_COMMAND_init(image);
 
-  wrenGetListElement(vm, 2, 0, 1);
-  ASSERT_SLOT_TYPE(vm, 1, NUM, "angle");
-  command->angle = wrenGetSlotDouble(vm, 1);
+  wrenSetSlotString(vm, 3, "angle");
+  contains = wrenGetMapContainsKey(vm, 2, 3);
+  if (contains) {
+    wrenGetMapValue(vm, 2, 3, 3);
+    ASSERT_SLOT_TYPE(vm, 3, NUM, "angle");
+    command->angle = wrenGetSlotDouble(vm, 3);
+  } else {
+    command->angle = 0;
+  }
 
-  wrenGetListElement(vm, 2, 1, 1);
-  ASSERT_SLOT_TYPE(vm, 1, NUM, "scale.x");
-  command->scale.x = wrenGetSlotDouble(vm, 1);
+  wrenSetSlotString(vm, 3, "scaleX");
+  contains = wrenGetMapContainsKey(vm, 2, 3);
+  if (contains) {
+    wrenGetMapValue(vm, 2, 3, 3);
+    ASSERT_SLOT_TYPE(vm, 3, NUM, "scale.x");
+    command->scale.x = wrenGetSlotDouble(vm, 3);
+  } else {
+    command->scale.x = 1;
+  }
 
-  wrenGetListElement(vm, 2, 2, 1);
-  ASSERT_SLOT_TYPE(vm, 1, NUM, "scale.y");
-  command->scale.y = wrenGetSlotDouble(vm, 1);
+  wrenSetSlotString(vm, 3, "scaleY");
+  contains = wrenGetMapContainsKey(vm, 2, 3);
+  if (contains) {
+    wrenGetMapValue(vm, 2, 3, 3);
+    ASSERT_SLOT_TYPE(vm, 3, NUM, "scale.y");
+    command->scale.y = wrenGetSlotDouble(vm, 3);
+  } else {
+    command->scale.y = 1;
+  }
 
-  if (wrenGetListCount(vm, 2) > 3) {
-    wrenGetListElement(vm, 2, 3, 1);
-    ASSERT_SLOT_TYPE(vm, 1, NUM, "source X");
-    command->src.x = wrenGetSlotDouble(vm, 1);
 
-    wrenGetListElement(vm, 2, 4, 1);
-    ASSERT_SLOT_TYPE(vm, 1, NUM, "source Y");
-    command->src.y = wrenGetSlotDouble(vm, 1);
 
-    wrenGetListElement(vm, 2, 5, 1);
-    ASSERT_SLOT_TYPE(vm, 1, NUM, "source width");
-    command->srcW = wrenGetSlotDouble(vm, 1);
+  wrenSetSlotString(vm, 3, "srcX");
+  contains = wrenGetMapContainsKey(vm, 2, 3);
+  if (contains) {
+    wrenGetMapValue(vm, 2, 3, 3);
+    ASSERT_SLOT_TYPE(vm, 3, NUM, "source X");
+    command->src.x = wrenGetSlotDouble(vm, 3);
+  } else {
+    command->src.x = 0;
+  }
 
-    wrenGetListElement(vm, 2, 6, 1);
-    ASSERT_SLOT_TYPE(vm, 1, NUM, "source height");
-    command->srcH = wrenGetSlotDouble(vm, 1);
+  wrenSetSlotString(vm, 3, "srcY");
+  contains = wrenGetMapContainsKey(vm, 2, 3);
+  if (contains) {
+    wrenGetMapValue(vm, 2, 3, 3);
+    ASSERT_SLOT_TYPE(vm, 3, NUM, "source Y");
+    command->src.y = wrenGetSlotDouble(vm, 3);
+  } else {
+    command->src.y = 0;
+  }
 
-    wrenGetListElement(vm, 2, 7, 1);
-    ASSERT_SLOT_TYPE(vm, 1, STRING, "color mode");
-    const char* mode = wrenGetSlotString(vm, 1);
+  wrenSetSlotString(vm, 3, "srcW");
+  contains = wrenGetMapContainsKey(vm, 2, 3);
+  if (contains) {
+    wrenGetMapValue(vm, 2, 3, 3);
+    ASSERT_SLOT_TYPE(vm, 3, NUM, "source width");
+    command->srcW = wrenGetSlotDouble(vm, 3);
+  } else {
+    command->srcW = image->width;
+  }
+
+  wrenSetSlotString(vm, 3, "srcH");
+  contains = wrenGetMapContainsKey(vm, 2, 3);
+  if (contains) {
+    wrenGetMapValue(vm, 2, 3, 3);
+    ASSERT_SLOT_TYPE(vm, 3, NUM, "source height");
+    command->srcH = wrenGetSlotDouble(vm, 3);
+  } else {
+    command->srcH = image->height;
+  }
+
+  wrenSetSlotString(vm, 3, "mode");
+  contains = wrenGetMapContainsKey(vm, 2, 3);
+  command->mode = COLOR_MODE_RGBA;
+  if (contains) {
+    wrenGetMapValue(vm, 2, 3, 3);
+    ASSERT_SLOT_TYPE(vm, 3, STRING, "color mode");
+    const char* mode = wrenGetSlotString(vm, 3);
     if (STRINGS_EQUAL(mode, "MONO")) {
       command->mode = COLOR_MODE_MONO;
-    } else {
-      command->mode = COLOR_MODE_RGBA;
     }
+  }
 
-    wrenGetListElement(vm, 2, 8, 1);
-    ASSERT_SLOT_TYPE(vm, 1, NUM, "foreground color");
-    command->foregroundColor = wrenGetSlotDouble(vm, 1);
+  wrenSetSlotString(vm, 3, "foreground");
+  contains = wrenGetMapContainsKey(vm, 2, 3);
+  if (contains) {
+    wrenGetMapValue(vm, 2, 3, 3);
+    ASSERT_SLOT_TYPE(vm, 3, NUM, "foreground color");
+    command->foregroundColor = wrenGetSlotDouble(vm, 3);
+  }
+  wrenSetSlotString(vm, 3, "background");
+  contains = wrenGetMapContainsKey(vm, 2, 3);
+  if (contains) {
+    wrenGetMapValue(vm, 2, 3, 3);
+    ASSERT_SLOT_TYPE(vm, 3, NUM, "background color");
+    command->backgroundColor = wrenGetSlotDouble(vm, 3);
+  }
+  wrenSetSlotString(vm, 3, "opacity");
+  contains = wrenGetMapContainsKey(vm, 2, 3);
+  if (contains) {
+    wrenGetMapValue(vm, 2, 3, 3);
+    ASSERT_SLOT_TYPE(vm, 3, NUM, "opacity");
+    command->opacity = wrenGetSlotDouble(vm, 3);
+  } else {
+    command->opacity = 1;
+  }
 
-    wrenGetListElement(vm, 2, 9, 1);
-    ASSERT_SLOT_TYPE(vm, 1, NUM, "background color");
-    command->backgroundColor = wrenGetSlotDouble(vm, 1);
-
-    wrenGetListElement(vm, 2, 10, 1);
-    ASSERT_SLOT_TYPE(vm, 1, NUM, "opacity");
-    command->opacity = wrenGetSlotDouble(vm, 1);
-
-    wrenGetListElement(vm, 2, 11, 1);
-    ASSERT_SLOT_TYPE(vm, 1, NUM, "tint color");
-    command->tintColor = wrenGetSlotDouble(vm, 1);
+  wrenSetSlotString(vm, 3, "tint");
+  contains = wrenGetMapContainsKey(vm, 2, 3);
+  if (contains) {
+    wrenGetMapValue(vm, 2, 3, 3);
+    ASSERT_SLOT_TYPE(vm, 3, NUM, "tint color");
+    command->tintColor = wrenGetSlotDouble(vm, 3);
   }
 }
 
