@@ -7,8 +7,6 @@
 
 #include <stdbool.h>
 
-#include <glibc_compat.c>
-
 #include <jo_gif.h>
 
 #define OPTPARSE_IMPLEMENTATION
