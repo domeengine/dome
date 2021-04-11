@@ -20,6 +20,9 @@ asm (".symver pow, pow@GLIBC_2.2.5");
 asm (".symver exp, exp@GLIBC_2.2.5");
 asm (".symver log, log@GLIBC_2.2.5");
 asm (".symver log2, log2@GLIBC_2.2.5");
+asm (".symver logf, logf@GLIBC_2.2.5");
+asm (".symver powf, powf@GLIBC_2.2.5");
+asm (".symver expf, expf@GLIBC_2.2.5");
 #undef asm
 
 // I couldn't figure out what has changed in pow, exp, log in glibc 2.29.
@@ -40,8 +43,24 @@ double __wrap_log(double x)
 {
     return log(x);
 }
+
 double __wrap_log2(double x)
 {
     return log2(x);
+}
+
+double __wrap_logf(double x)
+{
+    return logf(x);
+}
+
+double __wrap_powf(double x)
+{
+    return powf(x);
+}
+
+double __wrap_expf(double x)
+{
+    return expf(x);
 }
 #endif

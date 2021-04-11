@@ -149,7 +149,7 @@ endif
 LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG)
 ifneq ($(filter linux,$(TAGS)),)
 	COMPAT_DEP = $(OBJS)/glibc_compat.o
-	LDFLAGS += -Wl,--wrap=log,--wrap=log2,--wrap=exp,--wrap=pow
+	LDFLAGS += -Wl,--wrap=log,--wrap=log2,--wrap=exp,--wrap=pow,--wrap=expf,--wrap=powf,--wrap=logf
 endif
 LDFLAGS += $(DEPS)
 
