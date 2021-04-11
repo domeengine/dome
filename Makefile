@@ -86,7 +86,6 @@ WARNING_FLAGS += -Wno-incompatible-pointer-types-discards-qualifiers
 else ifneq ($(filter windows,$(TAGS)),)
 WARNING_FLAGS += -Wno-discarded-qualifiers -Wno-clobbered
 else ifneq ($(filter linux,$(TAGS)),)
-	LDFLAGS += -Wl,--wrap=log,--wrap=log2,--wrap=exp,--wrap=pow
 	WARNING_FLAGS += -Wno-clobbered -Wno-maybe-uninitialized -Wno-attributes
 endif
 
@@ -148,6 +147,9 @@ FFLAGS += -F/Library/Frameworks -framework SDL2
 endif
 
 LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG) $(DEPS) 
+ifneq ($(filter linux,$(TAGS)),)
+	LDFLAGS += -Wl,--wrap=log,--wrap=log2,--wrap=exp,--wrap=pow
+endif
 
 
 
