@@ -54,9 +54,9 @@ double __wrap_logf(double x)
     return logf(x);
 }
 
-double __wrap_powf(double x)
+double __wrap_powf(double x, double y)
 {
-    return powf(x);
+    return powf(x, y);
 }
 
 double __wrap_expf(double x)
