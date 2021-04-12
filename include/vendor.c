@@ -6,6 +6,7 @@
 #endif
 
 #include <stdbool.h>
+
 #include <jo_gif.h>
 
 #define OPTPARSE_IMPLEMENTATION
@@ -38,3 +39,5 @@
 #include <SDL.h>
 #define ABC_FIFO_IMPL
 #include <ABC_fifo.h>
+
+
