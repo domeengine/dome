@@ -3,24 +3,14 @@ class Drawable {
 }
 
 foreign class DrawCommand is Drawable {
-  construct new(image, params) {}
+  construct new(image, params, empty) {}
 
   static parse(image, map) {
-    var list = [
-      map["angle"] || 0,
-      map["scaleX"] || 1,
-      map["scaleY"] || 1,
-      map["srcX"] || 0,
-      map["srcY"] || 0,
-      map["srcW"] || image.width,
-      map["srcH"] || image.height,
-      map["mode"] || "RGBA",
-      (map["foreground"] || Color.white).toNum,
-      (map["background"] || Color.black).toNum,
-      map["opacity"] || 1,
-      (map["tint"] || Color.none).toNum
-    ]
-    return DrawCommand.new(image, list)
+    map["foreground"] = (map["foreground"] || Color.white).toNum
+    map["background"] = (map["background"] || Color.black).toNum
+    map["tint"] = (map["tint"] || Color.none).toNum
+    System.print(map)
+    return DrawCommand.new(image, map, null)
   }
 
   foreign draw(x, y)
