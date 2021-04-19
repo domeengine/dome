@@ -1,10 +1,15 @@
 import "graphics" for Canvas, Color
 import "input" for Keyboard
+import "dome" for Window
+var X = 50
+var Y = 50
 
 class Game {
     static init() {
       __text = ""
+      // Window.resize(Canvas.width, Canvas.height)
       Keyboard.handleText = true
+      Keyboard.textRegion(X, Y, 8, 8)
     }
 
     static update() {
@@ -22,6 +27,7 @@ class Game {
 
     static draw(dt) {
       Canvas.cls()
+      Canvas.rect(X, Y, 8, 8, Color.red)
       Canvas.print("DOME Installed Successfully.", 10, 10, Color.white)
       Canvas.print(__text, 10, 20, Color.white)
     }

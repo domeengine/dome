@@ -70,6 +70,7 @@ typedef struct ENGINE_t {
 
   // Input State
   bool handleText;
+  DOME_RECT textRegion;
   ENGINE_MOUSE_STATE mouse;
 
   int exit_status;

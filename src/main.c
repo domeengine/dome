@@ -174,6 +174,7 @@ LOOP_processInput(LOOP_STATE* state) {
           if (event.window.event == SDL_WINDOWEVENT_RESIZED ||
               event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
             SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
+            ENGINE_updateTextRegion(engine);
           } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
             AUDIO_ENGINE_pause(engine->audioEngine);
             state->windowBlurred = true;

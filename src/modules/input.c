@@ -153,10 +153,33 @@ KEYBOARD_setHandleText(WrenVM* vm) {
   }
 }
 
+
 internal void
 KEYBOARD_getHandleText(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   wrenSetSlotBool(vm, 0, engine->handleText);
+}
+
+internal void
+KEYBOARD_setTextRegion(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  int32_t x = wrenGetSlotDouble(vm, 1);
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+  int32_t y = wrenGetSlotDouble(vm, 2);
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "w");
+  int32_t w = wrenGetSlotDouble(vm, 3);
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "h");
+  int32_t h = wrenGetSlotDouble(vm, 4);
+
+  DOME_RECT region = {
+    .x = x,
+    .y = y,
+    .w = w,
+    .h = h
+  };
+  engine->textRegion = region;
+  ENGINE_updateTextRegion(engine);
 }
 
 internal void MOUSE_getX(WrenVM* vm) {

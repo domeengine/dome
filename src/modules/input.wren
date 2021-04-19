@@ -67,6 +67,7 @@ class Keyboard {
   }
 
   static text { __text }
+  foreign static textRegion(x, y, w, h)
   foreign static handleText
   foreign static handleText=(v)
 
