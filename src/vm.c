@@ -274,6 +274,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Input
   MAP_addClass(&engine->moduleMap, "input", "SystemGamePad", GAMEPAD_allocate, GAMEPAD_finalize);
   MAP_addFunction(&engine->moduleMap, "input", "static Input.f_captureVariables()", INPUT_capture);
+  MAP_addFunction(&engine->moduleMap, "input", "static Keyboard.handleText", KEYBOARD_getHandleText);
+  MAP_addFunction(&engine->moduleMap, "input", "static Keyboard.handleText=(_)", KEYBOARD_setHandleText);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.x", MOUSE_getX);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.y", MOUSE_getY);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.scrollX", MOUSE_getScrollX);

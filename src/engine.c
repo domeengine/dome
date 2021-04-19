@@ -205,6 +205,7 @@ ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
 
 internal ENGINE*
 ENGINE_init(ENGINE* engine) {
+  engine->handleText = true;
   engine->window = NULL;
   engine->renderer = NULL;
   engine->texture = NULL;
@@ -290,6 +291,7 @@ ENGINE_start(ENGINE* engine) {
     result = EXIT_FAILURE;
     goto engine_init_end;
   }
+  SDL_StopTextInput();
 
   ENGINE_EVENT_TYPE = SDL_RegisterEvents(1);
 

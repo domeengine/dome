@@ -61,14 +61,17 @@ typedef struct ENGINE_t {
   PIXEL_BUFFER blitBuffer;
   ABC_FIFO fifo;
   MAP moduleMap;
-  // PLUGIN_MAP pluginMap;
   PLUGIN_COLLECTION plugins;
   mtar_t* tar;
   bool running;
   char** argv;
   size_t argc;
   bool lockstep;
+
+  // Input State
+  bool handleText;
   ENGINE_MOUSE_STATE mouse;
+
   int exit_status;
   struct AUDIO_ENGINE_t* audioEngine;
   bool initialized;

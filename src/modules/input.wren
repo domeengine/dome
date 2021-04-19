@@ -66,6 +66,10 @@ class Keyboard {
     return pressed
   }
 
+  static text { __text }
+  foreign static handleText
+  foreign static handleText=(v)
+
   // PRIVATE, called by game loop
   static update(keyName, state) {
     if (!__keys.containsKey(keyName)) {
@@ -76,6 +80,13 @@ class Keyboard {
 
   static commit() {
     __keys.values.each {|key| key.commit() }
+  }
+
+  static clearText() {
+    __text = ""
+  }
+  static addText(text) {
+    __text = __text + text
   }
 }
 
