@@ -977,6 +977,9 @@ ENGINE_getMouseButton(int button) {
 
 internal void
 ENGINE_updateTextRegion(ENGINE* engine) {
+  if (!engine->handleText) {
+    return;
+  }
   DOME_RECT region = engine->textRegion;
   SDL_Rect viewport = engine->viewport;
 
@@ -995,6 +998,10 @@ ENGINE_updateTextRegion(ENGINE* engine) {
     .w = round(region.w / factor),
     .h = round(region.h / factor)
   };
+
+  // TextInputRect is sensitive to current state, so we force a refresh.
+  SDL_StopTextInput();
+  SDL_StartTextInput();
   SDL_SetTextInputRect(&rect);
 }
 
