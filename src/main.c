@@ -180,6 +180,7 @@ LOOP_processInput(LOOP_STATE* state) {
             state->windowBlurred = true;
           } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
             AUDIO_ENGINE_resume(engine->audioEngine);
+            ENGINE_updateTextRegion(engine);
             state->windowBlurred = false;
           }
         } break;
@@ -200,10 +201,17 @@ LOOP_processInput(LOOP_STATE* state) {
             }
           }
         } break;
+      case SDL_TEXTEDITING:
+        {
+          if (utf8len(event.edit.text) > 0) {
+            printf("C: %s, length: %i, start: %i\n", event.edit.text, event.edit.length, event.edit.start);
+            INPUT_setCompositionText(vm, event.edit.text, event.edit.start, event.edit.length);
+          }
+        } break;
       case SDL_TEXTINPUT:
         {
-          // TODO: handle backspace
           if (utf8len(event.text.text) > 0) {
+            printf("I: %s\n", event.text.text);
             INPUT_addText(vm, event.text.text);
           }
         } break;

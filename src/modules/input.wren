@@ -68,6 +68,7 @@ class Keyboard {
 
   static text { __text }
   static compositionText { __compositionText }
+  static compositionRange { __compositionRange }
 
   foreign static textRegion(x, y, w, h)
   foreign static handleText
@@ -87,15 +88,16 @@ class Keyboard {
 
   static clearText() {
     __text = ""
-    __compositionText = null
   }
 
   static addText(text) {
     __text = __text + text
+    __compositionText = null
   }
 
-  static setComposition(text) {
+  static setComposition(text, start, length) {
     __compositionText = text
+    __compositionRange = (start)...(start+length)
   }
 }
 

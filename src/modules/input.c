@@ -25,6 +25,7 @@ global_variable WrenHandle* gamePadLookupMethod = NULL;
 global_variable WrenHandle* gamePadRemoveMethod = NULL;
 global_variable WrenHandle* keyboardClearTextMethod = NULL;
 global_variable WrenHandle* keyboardAddTextMethod = NULL;
+global_variable WrenHandle* keyboardSetCompositionTextMethod = NULL;
 
 internal void
 INPUT_capture(WrenVM* vm) {
@@ -34,6 +35,7 @@ INPUT_capture(WrenVM* vm) {
     wrenGetVariable(vm, "input", "Keyboard", 0);
     keyboardClearTextMethod = wrenMakeCallHandle(vm, "clearText()");
     keyboardAddTextMethod = wrenMakeCallHandle(vm, "addText(_)");
+    keyboardSetCompositionTextMethod = wrenMakeCallHandle(vm, "setComposition(_,_,_)");
     keyboardClass = wrenGetSlotHandle(vm, 0);
 
     wrenGetVariable(vm, "input", "Mouse", 0);
@@ -98,6 +100,7 @@ INPUT_release(WrenVM* vm) {
     wrenReleaseHandle(vm, gamePadRemoveMethod);
     wrenReleaseHandle(vm, keyboardClearTextMethod);
     wrenReleaseHandle(vm, keyboardAddTextMethod);
+    wrenReleaseHandle(vm, keyboardSetCompositionTextMethod);
     inputCaptured = false;
   }
 }
@@ -120,6 +123,16 @@ INPUT_addText(WrenVM* vm, char* text) {
   wrenSetSlotHandle(vm, 0, keyboardClass);
   wrenSetSlotString(vm, 1, text);
   return wrenCall(vm, keyboardAddTextMethod);
+}
+
+internal WrenInterpretResult
+INPUT_setCompositionText(WrenVM* vm, char* text, int start, int length) {
+  wrenEnsureSlots(vm, 4);
+  wrenSetSlotHandle(vm, 0, keyboardClass);
+  wrenSetSlotString(vm, 1, text);
+  wrenSetSlotDouble(vm, 2, start);
+  wrenSetSlotDouble(vm, 3, length);
+  return wrenCall(vm, keyboardSetCompositionTextMethod);
 }
 
 internal WrenInterpretResult
