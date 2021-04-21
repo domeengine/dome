@@ -44,6 +44,18 @@ This counts the number of ticks that an input has been engaged for. If the input
 #### `static allPressed: Map<string, DigitalInput>`
 This returns a map containing the key names and corresponding `DigitalInput` objects, for all keys which are currently "down".
 
+#### `static handleText: Boolean`
+Indicates where the text input features of DOME are enabled. 
+
+#### `static text: String`
+When `handleText` is `true`, this method returns text entered since the previous frame.
+
+#### `static compositionText: String`
+When text input is enabled, this method returns the text of the currently selected composition received from the user's IME.
+
+#### `static compositionRange: Range`
+Provides a range object indicating which portion of the compositionText is being modified by the IME.
+
 ### Static Methods
 
 #### `static [name]: DigitalInput`
@@ -52,6 +64,9 @@ This returns a digital input of a valid name. See `Keyboard.isKeyDown` for a lis
 #### `static isButtonPressed(key: String): Boolean`
 #### `static isKeyDown(key: String): Boolean`
 Returns true if the named key is pressed. The key uses the SDL key name, which can be referenced [here](https://wiki.libsdl.org/SDL_Keycode).
+
+#### `textRegion(x: Number, y: Number, width: Number, height: Number): void`
+Use this when `handleText` is `true` to hint to the OS at where the user is expecting entered text to be displayed. The OS can display the IME in a suitable location based on this hint.
 
 ## Mouse
 
