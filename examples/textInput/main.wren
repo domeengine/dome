@@ -27,7 +27,7 @@ class Game {
     static draw(dt) {
       Canvas.cls()
       Canvas.rect(X, Y, 8, 8, Color.red)
-      Canvas.print("DOME Installed Successfully.", 10, 10, Color.white)
+      Canvas.print("Enter Text:", 10, 10, Color.white)
       Canvas.print(__text, 10, 20, Color.white)
       if (Keyboard.compositionText) {
         var left = 10 + 8 * __text.count
