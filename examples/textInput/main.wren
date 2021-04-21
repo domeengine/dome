@@ -1,19 +1,24 @@
 import "graphics" for Canvas, Color
 import "input" for Keyboard
 import "dome" for Window
-var X = 50
-var Y = 50
+
+var X = 10
+var Y = 28
 
 class Game {
     static init() {
       __text = ""
-      // Window.resize(Canvas.width, Canvas.height)
       Keyboard.handleText = true
       Keyboard.textRegion(X, Y, 8, 8)
     }
 
     static update() {
-      __text = __text + Keyboard.text
+      var change = false
+      if (Keyboard.text.count > 0) {
+        __text = __text + Keyboard.text
+        change = true
+      }
+
       if (!Keyboard.compositionText && Keyboard["backspace"].justPressed && __text.count > 0) {
         var codePoints = __text.codePoints
         codePoints = codePoints.take(codePoints.count - 1)
@@ -21,6 +26,10 @@ class Game {
         for (point in codePoints) {
           __text = __text + String.fromCodePoint(point)
         }
+        change = true
+      }
+      if (change) {
+        Keyboard.textRegion(__text.count * 8, Y, 8, 8)
       }
     }
 
@@ -33,8 +42,12 @@ class Game {
         var left = 10 + 8 * __text.count
         Canvas.print(Keyboard.compositionText, left, 20, Color.red)
         var range = Keyboard.compositionRange
-        var length = range.max - range.min == 0 ? 1 : range.max - range.min
-        Canvas.line(left + 8 * range.min, 30, left + 8 * (range.min + length), 30, Color.red)
+        var length = range.max - range.min
+        if (length > 0) {
+          Canvas.line(left + 8 * range.min, 30, left + 8 * (range.min + length), 30, Color.red)
+        } else {
+          Canvas.line(left, 30, left + 8 * (Keyboard.compositionText.count), 30, Color.red)
+        }
       }
     }
 }

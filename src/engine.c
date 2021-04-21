@@ -990,7 +990,6 @@ ENGINE_updateTextRegion(ENGINE* engine) {
   float factor = fmax((engine->canvas.width / (float)winX), engine->canvas.height / (float)winY);
   float nx = (region.x + viewport.x) / factor;
   float ny = (region.y + viewport.y) / factor;
-  printf("%f, %f\n", nx, ny);
 
   SDL_Rect rect = {
     .x = nx,
