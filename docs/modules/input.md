@@ -44,17 +44,17 @@ This counts the number of ticks that an input has been engaged for. If the input
 #### `static allPressed: Map<string, DigitalInput>`
 This returns a map containing the key names and corresponding `DigitalInput` objects, for all keys which are currently "down".
 
-#### `static handleText: Boolean`
-Indicates where the text input features of DOME are enabled. 
-
-#### `static text: String`
-When `handleText` is `true`, this method returns text entered since the previous frame.
-
 #### `static compositionText: String`
-When text input is enabled, this method returns the text of the currently selected composition received from the user's IME.
+When `handleText` is true, this method returns the text of the currently selected composition received from the user's IME, if they are using one. Otherwise, this value is `null`.
 
 #### `static compositionRange: Range`
-Provides a range object indicating which portion of the compositionText is being modified by the IME.
+When `handleText` is true, this provides a range object indicating which portion of the compositionText is being modified by the IME.
+
+#### `static handleText: Boolean`
+Indicates whether the text input features of DOME are enabled or not.
+
+#### `static text: String`
+When `handleText` is `true`, this method returns text entered since the previous frame. You should store this value if you need it to persist across frames.
 
 ### Static Methods
 
@@ -66,7 +66,8 @@ This returns a digital input of a valid name. See `Keyboard.isKeyDown` for a lis
 Returns true if the named key is pressed. The key uses the SDL key name, which can be referenced [here](https://wiki.libsdl.org/SDL_Keycode).
 
 #### `textRegion(x: Number, y: Number, width: Number, height: Number): void`
-Use this when `handleText` is `true` to hint to the OS at where the user is expecting entered text to be displayed. The OS can display the IME in a suitable location based on this hint.
+Use this to hint to the OS at where the user is expecting entered text to be displayed. The OS may use this to display the IME in a suitable location.
+This must be set while `handleText` is true, or the effect may be inconsistent.
 
 ## Mouse
 
