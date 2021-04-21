@@ -204,14 +204,12 @@ LOOP_processInput(LOOP_STATE* state) {
       case SDL_TEXTEDITING:
         {
           if (utf8len(event.edit.text) > 0) {
-            printf("C: %s, length: %i, start: %i\n", event.edit.text, event.edit.length, event.edit.start);
             INPUT_setCompositionText(vm, event.edit.text, event.edit.start, event.edit.length);
           }
         } break;
       case SDL_TEXTINPUT:
         {
           if (utf8len(event.text.text) > 0) {
-            printf("I: %s\n", event.text.text);
             INPUT_addText(vm, event.text.text);
           }
         } break;
