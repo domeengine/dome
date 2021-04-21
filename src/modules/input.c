@@ -113,12 +113,18 @@ typedef enum {
 
 internal WrenInterpretResult
 INPUT_clearText(WrenVM* vm) {
+  if (!inputCaptured) {
+    return WREN_RESULT_SUCCESS;
+  }
   wrenSetSlotHandle(vm, 0, keyboardClass);
   return wrenCall(vm, keyboardClearTextMethod);
 }
 
 internal WrenInterpretResult
 INPUT_addText(WrenVM* vm, char* text) {
+  if (!inputCaptured) {
+    return WREN_RESULT_SUCCESS;
+  }
   wrenEnsureSlots(vm, 2);
   wrenSetSlotHandle(vm, 0, keyboardClass);
   wrenSetSlotString(vm, 1, text);
@@ -127,6 +133,9 @@ INPUT_addText(WrenVM* vm, char* text) {
 
 internal WrenInterpretResult
 INPUT_setCompositionText(WrenVM* vm, char* text, int start, int length) {
+  if (!inputCaptured) {
+    return WREN_RESULT_SUCCESS;
+  }
   wrenEnsureSlots(vm, 4);
   wrenSetSlotHandle(vm, 0, keyboardClass);
   wrenSetSlotString(vm, 1, text);
