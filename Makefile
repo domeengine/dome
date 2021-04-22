@@ -197,6 +197,20 @@ $(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(COMPAT_DEP) $(WREN_LIB)
 	./scripts/set-executable-path.sh $(TARGET_NAME)
 	@echo "DOME built as $(TARGET_NAME)"
 
+$(OBJS):
+	mkdir -p $(OBJS)
+
+$(OBJS)/wren.o: $(OBJS)	
+	git submodule update --init -- $(LIBS)/wren
+	./scripts/setup_wren_web.sh
+
+# EMCC_FLAGS=--profiling -g 
+EMCC_FLAGS=""
+dome.html: $(SOURCE)/main.c $(MODULES)/*.inc $(INCLUDES)/vendor.c $(OBJS)/wren.o
+	emcc -O3 -c include/vendor.c -o $(OBJS)/vendor.o -s USE_SDL=2 -Iinclude $(EMCC_FLAGS)
+	emcc -O3 -c src/main.c -o $(OBJS)/main.o -s USE_SDL=2 -Iinclude $(DOME_OPTS) $(EMCC_FLAGS)
+	emcc -O1 $(OBJS)/*.o -o dome.html -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1 -s ASYNCIFY=1 --shell-file assets/shell.html -s SINGLE_FILE=1 $(EMCC_FLAGS)
+
 dome.bin: $(TARGET_NAME)
 
 clean: 

@@ -157,6 +157,9 @@ ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr) {
     strcat(pathBuf, path);
   }
 
+#ifdef __EMSCRIPTEN__
+  emscripten_wget(pathBuf, pathBuf);
+#endif
   if (!doesFileExist(pathBuf)) {
     return NULL;
   }
@@ -1062,6 +1065,10 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
   ENGINE_rectfill(engine, 0, 0, engine->canvas.width, engine->canvas.height, color);
   SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
   ENGINE_updateTextRegion(engine);
+
+#ifdef __EMSCRIPTEN__
+  SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
+#endif
 
   return true;
 }

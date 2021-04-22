@@ -79,3 +79,11 @@ Doing this results in a self contained and easy to distribute application bundle
 
 To run your game on linux, make sure SDL2 is installed, then run the dome executable with a `game.egg` file in the same directory.
 
+### Web
+
+DOME has an experimental web engine, which you can use to play your game in a browser. 
+To do this, you need to host the `dome.html` file and your `game.egg` file in the same directory on a server.
+
+You may find that the performance of your game suffers when running in the browser, in which case it may not be suitable for playing in browsers.
+DOME's web engine does not currently support playing at full screen.
+

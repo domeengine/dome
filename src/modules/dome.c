@@ -38,6 +38,8 @@ WINDOW_resize(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASSERT_SLOT_TYPE(vm, 1, NUM, "width");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "height");
+
+#ifndef __EMSCRIPTEN__
   uint32_t width = wrenGetSlotDouble(vm, 1);
   uint32_t height = wrenGetSlotDouble(vm, 2);
   SDL_SetWindowSize(engine->window, width, height);
@@ -47,6 +49,9 @@ WINDOW_resize(WrenVM* vm) {
   int32_t newWidth, newHeight;
   SDL_GetRendererOutputSize(engine->renderer, &newWidth, &newHeight);
   SDL_SetWindowSize(engine->window, newWidth, newHeight);
+#else
+  SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
+#endif
   ENGINE_updateTextRegion(engine);
 }
 
