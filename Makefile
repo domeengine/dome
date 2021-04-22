@@ -198,7 +198,7 @@ $(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(COMPAT_DEP) $(WREN_LIB)
 	@echo "DOME built as $(TARGET_NAME)"
 
 $(OBJS):
-	mkdir $(OBJS)
+	mkdir -p $(OBJS)
 
 $(OBJS)/wren.o: $(OBJS)	
 	./scripts/setup_wren_web.sh
