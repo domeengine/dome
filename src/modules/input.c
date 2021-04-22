@@ -20,6 +20,12 @@ global_variable const char* controllerButtonMap[] = {
 };
 global_variable bool inputCaptured = false;
 global_variable WrenHandle* commitMethod = NULL;
+global_variable WrenHandle* gamePadAddMethod = NULL;
+global_variable WrenHandle* gamePadLookupMethod = NULL;
+global_variable WrenHandle* gamePadRemoveMethod = NULL;
+global_variable WrenHandle* keyboardClearTextMethod = NULL;
+global_variable WrenHandle* keyboardAddTextMethod = NULL;
+global_variable WrenHandle* keyboardSetCompositionTextMethod = NULL;
 
 internal void
 INPUT_capture(WrenVM* vm) {
@@ -27,6 +33,9 @@ INPUT_capture(WrenVM* vm) {
 
   if (!inputCaptured) {
     wrenGetVariable(vm, "input", "Keyboard", 0);
+    keyboardClearTextMethod = wrenMakeCallHandle(vm, "clearText()");
+    keyboardAddTextMethod = wrenMakeCallHandle(vm, "addText(_)");
+    keyboardSetCompositionTextMethod = wrenMakeCallHandle(vm, "setComposition(_,_,_)");
     keyboardClass = wrenGetSlotHandle(vm, 0);
 
     wrenGetVariable(vm, "input", "Mouse", 0);
@@ -37,6 +46,9 @@ INPUT_capture(WrenVM* vm) {
 
     updateInputMethod = wrenMakeCallHandle(vm, "update(_,_)");
     commitMethod = wrenMakeCallHandle(vm, "commit()");
+    gamePadAddMethod = wrenMakeCallHandle(vm, "addGamePad(_)");
+    gamePadLookupMethod = wrenMakeCallHandle(vm, "[_]");
+    gamePadRemoveMethod = wrenMakeCallHandle(vm, "removeGamePad(_)");
     inputCaptured = true;
   }
 }
@@ -83,6 +95,12 @@ INPUT_release(WrenVM* vm) {
     wrenReleaseHandle(vm, gamepadClass);
     wrenReleaseHandle(vm, updateInputMethod);
     wrenReleaseHandle(vm, commitMethod);
+    wrenReleaseHandle(vm, gamePadAddMethod);
+    wrenReleaseHandle(vm, gamePadLookupMethod);
+    wrenReleaseHandle(vm, gamePadRemoveMethod);
+    wrenReleaseHandle(vm, keyboardClearTextMethod);
+    wrenReleaseHandle(vm, keyboardAddTextMethod);
+    wrenReleaseHandle(vm, keyboardSetCompositionTextMethod);
     inputCaptured = false;
   }
 }
@@ -92,6 +110,39 @@ typedef enum {
   DOME_INPUT_MOUSE,
   DOME_INPUT_CONTROLLER
 } DOME_INPUT_TYPE;
+
+internal WrenInterpretResult
+INPUT_clearText(WrenVM* vm) {
+  if (!inputCaptured) {
+    return WREN_RESULT_SUCCESS;
+  }
+  wrenSetSlotHandle(vm, 0, keyboardClass);
+  return wrenCall(vm, keyboardClearTextMethod);
+}
+
+internal WrenInterpretResult
+INPUT_addText(WrenVM* vm, char* text) {
+  if (!inputCaptured) {
+    return WREN_RESULT_SUCCESS;
+  }
+  wrenEnsureSlots(vm, 2);
+  wrenSetSlotHandle(vm, 0, keyboardClass);
+  wrenSetSlotString(vm, 1, text);
+  return wrenCall(vm, keyboardAddTextMethod);
+}
+
+internal WrenInterpretResult
+INPUT_setCompositionText(WrenVM* vm, char* text, int start, int length) {
+  if (!inputCaptured) {
+    return WREN_RESULT_SUCCESS;
+  }
+  wrenEnsureSlots(vm, 4);
+  wrenSetSlotHandle(vm, 0, keyboardClass);
+  wrenSetSlotString(vm, 1, text);
+  wrenSetSlotDouble(vm, 2, start);
+  wrenSetSlotDouble(vm, 3, length);
+  return wrenCall(vm, keyboardSetCompositionTextMethod);
+}
 
 internal WrenInterpretResult
 INPUT_update(WrenVM* vm, DOME_INPUT_TYPE type, const char* inputName, bool state) {
@@ -109,6 +160,48 @@ INPUT_update(WrenVM* vm, DOME_INPUT_TYPE type, const char* inputName, bool state
     return wrenCall(vm, updateInputMethod);
   }
   return WREN_RESULT_SUCCESS;
+}
+
+internal void
+KEYBOARD_setHandleText(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, BOOL, "handleText");
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  bool handleText = wrenGetSlotBool(vm, 1);
+  engine->handleText = handleText;
+  if (handleText) {
+    SDL_StartTextInput();
+  } else {
+    SDL_StopTextInput();
+  }
+}
+
+
+internal void
+KEYBOARD_getHandleText(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotBool(vm, 0, engine->handleText);
+}
+
+internal void
+KEYBOARD_setTextRegion(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
+  int32_t x = wrenGetSlotDouble(vm, 1);
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
+  int32_t y = wrenGetSlotDouble(vm, 2);
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "w");
+  int32_t w = wrenGetSlotDouble(vm, 3);
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "h");
+  int32_t h = wrenGetSlotDouble(vm, 4);
+
+  DOME_RECT region = {
+    .x = x,
+    .y = y,
+    .w = w,
+    .h = h
+  };
+  engine->textRegion = region;
+  ENGINE_updateTextRegion(engine);
 }
 
 internal void MOUSE_getX(WrenVM* vm) {
@@ -323,24 +416,20 @@ GAMEPAD_getGamePadIds(WrenVM* vm) {
 internal void
 GAMEPAD_eventAdded(WrenVM* vm, int joystickId) {
   if (inputCaptured) {
-    WrenHandle* addedMethod = wrenMakeCallHandle(vm, "addGamePad(_)");
     wrenEnsureSlots(vm, 2);
     wrenSetSlotDouble(vm, 1, joystickId);
     wrenSetSlotHandle(vm, 0, gamepadClass);
-    wrenCall(vm, addedMethod);
-    wrenReleaseHandle(vm, addedMethod);
+    wrenCall(vm, gamePadAddMethod);
   }
 }
 
 internal WrenInterpretResult
 GAMEPAD_eventButtonPressed(WrenVM* vm, int joystickId, const char* buttonName, bool state) {
   if (inputCaptured) {
-    WrenHandle* lookupMethod = wrenMakeCallHandle(vm, "[_]");
     wrenEnsureSlots(vm, 3);
     wrenSetSlotDouble(vm, 1, joystickId);
     wrenSetSlotHandle(vm, 0, gamepadClass);
-    WrenInterpretResult result = wrenCall(vm, lookupMethod);
-    wrenReleaseHandle(vm, lookupMethod);
+    WrenInterpretResult result = wrenCall(vm, gamePadLookupMethod);
     if (result != WREN_RESULT_SUCCESS) {
       return result;
     }
@@ -357,12 +446,10 @@ GAMEPAD_eventButtonPressed(WrenVM* vm, int joystickId, const char* buttonName, b
 internal void
 GAMEPAD_eventRemoved(WrenVM* vm, int instanceId) {
   if (inputCaptured) {
-    WrenHandle* removeMethod = wrenMakeCallHandle(vm, "removeGamePad(_)");
     wrenEnsureSlots(vm, 2);
     wrenSetSlotDouble(vm, 1, instanceId);
     wrenSetSlotHandle(vm, 0, gamepadClass);
-    wrenCall(vm, removeMethod);
-    wrenReleaseHandle(vm, removeMethod);
+    wrenCall(vm, gamePadRemoveMethod);
   }
 }
 
@@ -372,4 +459,26 @@ GAMEPAD_stringFromButton(SDL_GameControllerButton button) {
     return controllerButtonMap[button];
   }
   return NULL;
+}
+
+internal void
+CLIPBOARD_getContent(WrenVM* vm) {
+  char* text = SDL_GetClipboardText();
+  if (text == NULL) {
+    VM_ABORT(vm, SDL_GetError());
+    return;
+  }
+  wrenSetSlotString(vm, 0, text);
+  SDL_free(text);
+}
+
+internal void
+CLIPBOARD_setContent(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "text");
+  char* text = wrenGetSlotString(vm, 1);
+  int result = SDL_SetClipboardText(text);
+  if (result < 0) {
+    VM_ABORT(vm, SDL_GetError());
+    return;
+  }
 }

@@ -8,6 +8,21 @@ on:
     branches: [ develop ]
 
 jobs:
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: mymindstorm/setup-emsdk@v7
+    - name: Verify
+      run: emcc -v
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+    - run: git fetch --prune --unshallow
+    - run: make MODE=release dome.html ARCH=web
+    - uses: actions/upload-artifact@v2
+      with:
+        name: dome-web
+        path: |
+          dome.html
   build-linux:
 
     runs-on: ubuntu-latest
@@ -114,7 +129,7 @@ jobs:
 
   release-artifacts:
     if: ${{ github.event.action == 'published' }}
-    needs: [ build-linux, build-mac, build-windows ]
+    needs: [ build-linux, build-mac, build-windows, build-web ]
     runs-on: ubuntu-latest
     name: Upload Release Artifacts
     steps:
@@ -134,6 +149,9 @@ jobs:
       - uses: montudor/action-zip@v0.1.0
         with:
           args: zip -qq -r dome-macosx-x64.zip dome-macosx-x64
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-web.zip dome-web
       - run: ls -la
       - name: Upload Linux Shared
         uses: actions/upload-release-asset@v1
@@ -180,22 +198,12 @@ jobs:
           asset_path: ./dome-macosx-x64.zip
           asset_name: dome-${{github.event.release.tag_name}}-macosx-x64.zip
           asset_content_type: application/zip
-  notify-discord:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.action == 'published' }}
-    needs: [ release-artifacts ]
-    steps:
-    - name: Discord notification
-      env:
-        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        DISCORD_EMBEDS: >
-          [{ 
-             "title": "New Release: '${{github.event.release.name}}' is now available for download!", 
-             "url": "${{github.event.release.html_url}}",
-             "author": {
-               "name": "${{github.event.release.author.login}}",
-               "url": "${{github.event.release.author.html_url}}",
-               "icon_url": "${{github.event.release.author.avatar_url}}"
-             }
-          }]
-      uses: Ilshidur/action-discord@0.3.0
+      - name: Upload Web Engine
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-web.zip
+          asset_name: dome-${{github.event.release.tag_name}}-web.zip
+          asset_content_type: application/zip

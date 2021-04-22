@@ -9,3 +9,4 @@ We'd like to thank the following people for their contributions.
   * Siddhant Rao [https://siddhantrao23.github.io]
   * Chayim Refael Friedman [https://github.com/ChayimFriedman2]
   * Benjamin Stigsen [https://github.com/benstigsen]
+  * Alexandru Badiu, aka voidberg [https://github.com/voidberg]

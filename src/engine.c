@@ -157,6 +157,9 @@ ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr) {
     strcat(pathBuf, path);
   }
 
+#ifdef __EMSCRIPTEN__
+  emscripten_wget(pathBuf, pathBuf);
+#endif
   if (!doesFileExist(pathBuf)) {
     return NULL;
   }
@@ -205,6 +208,7 @@ ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
 
 internal ENGINE*
 ENGINE_init(ENGINE* engine) {
+  engine->handleText = true;
   engine->window = NULL;
   engine->renderer = NULL;
   engine->texture = NULL;
@@ -290,6 +294,7 @@ ENGINE_start(ENGINE* engine) {
     result = EXIT_FAILURE;
     goto engine_init_end;
   }
+  SDL_StopTextInput();
 
   ENGINE_EVENT_TYPE = SDL_RegisterEvents(1);
 
@@ -318,6 +323,7 @@ ENGINE_free(ENGINE* engine) {
   if (engine == NULL) {
     return;
   }
+  SDL_StopTextInput();
 
 
   ENGINE_finishAsync(engine);
@@ -973,6 +979,35 @@ ENGINE_getMouseButton(int button) {
 }
 
 internal void
+ENGINE_updateTextRegion(ENGINE* engine) {
+  if (!engine->handleText) {
+    return;
+  }
+  DOME_RECT region = engine->textRegion;
+  SDL_Rect viewport = engine->viewport;
+
+  int winX;
+  int winY;
+  SDL_GetWindowSize(engine->window, &winX, &winY);
+
+  float factor = fmax((engine->canvas.width / (float)winX), engine->canvas.height / (float)winY);
+  float nx = (region.x + viewport.x) / factor;
+  float ny = (region.y + viewport.y) / factor;
+
+  SDL_Rect rect = {
+    .x = nx,
+    .y = ny,
+    .w = round(region.w / factor),
+    .h = round(region.h / factor)
+  };
+
+  // TextInputRect is sensitive to current state, so we force a refresh.
+  SDL_StopTextInput();
+  SDL_StartTextInput();
+  SDL_SetTextInputRect(&rect);
+}
+
+internal void
 ENGINE_drawDebug(ENGINE* engine) {
   char buffer[20];
   ENGINE_DEBUG* debug = &engine->debug;
@@ -1029,6 +1064,11 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
   }
   ENGINE_rectfill(engine, 0, 0, engine->canvas.width, engine->canvas.height, color);
   SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
+  ENGINE_updateTextRegion(engine);
+
+#ifdef __EMSCRIPTEN__
+  SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
+#endif
 
   return true;
 }

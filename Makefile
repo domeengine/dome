@@ -37,7 +37,12 @@ endif
 
 # 0 or 1
 STATIC ?= 0
-TAGS = $(ARCH) $(SYSTEM) $(MODE) $(FRAMEWORK)
+TAGS = $(ARCH) $(SYSTEM) $(MODE) $(FRAMEWORK) $(SYMBOLS)
+
+ifneq ($(filter debug,$(TAGS)),)
+TAGS += symbols
+endif
+
 OBJS := $(OBJS)/$(ARCH)
 
 ifeq ($(STATIC), 1)
@@ -93,11 +98,15 @@ endif
 ifneq ($(filter release,$(TAGS)),)
 CFLAGS += -O3
 else ifneq ($(filter debug,$(TAGS)),)
-CFLAGS += -g -O0 
+CFLAGS += -O0 
 ifneq ($(filter macosx,$(TAGS)),)
 CFLAGS += -fsanitize=address
 FFLAGS += -fsanitize=address
 endif
+endif
+
+ifneq ($(filter symbols,$(TAGS)),)
+CFLAGS += -g 
 endif
 
 # Include Configuration
@@ -137,7 +146,12 @@ else ifneq ($(and $(filter macosx,$(TAGS)), $(filter framework,$(TAGS)), $(filte
 FFLAGS += -F/Library/Frameworks -framework SDL2
 endif
 
-LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG) $(DEPS) 
+LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG)
+ifneq ($(filter linux,$(TAGS)),)
+	COMPAT_DEP = $(OBJS)/glibc_compat.o
+	LDFLAGS += -Wl,--wrap=log,--wrap=log2,--wrap=exp,--wrap=pow,--wrap=expf,--wrap=powf,--wrap=logf
+endif
+LDFLAGS += $(DEPS)
 
 
 
@@ -162,6 +176,11 @@ $(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
 	@echo "==== Building DOME modules  ===="
 	./scripts/generateEmbedModules.sh
 
+$(OBJS)/glibc_compat.o: $(INCLUDES)/glibc_compat.c
+	@mkdir -p $(OBJS)
+	@echo "==== Building glibc_compat module ===="
+	$(CC) $(CFLAGS) -c $(INCLUDES)/glibc_compat.c -o $(OBJS)/glibc_compat.o $(IFLAGS)
+
 $(OBJS)/vendor.o: $(INCLUDES)/vendor.c
 	@mkdir -p $(OBJS)
 	@echo "==== Building vendor module ===="
@@ -172,11 +191,25 @@ $(OBJS)/main.o: $(SOURCE_FILES) $(INCLUDES) $(WREN_LIB) $(MODULES)/*.inc
 	@echo "==== Building core ($(TAGS)) module ===="
 	$(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(OBJS)/main.o $(IFLAGS) 
 
-$(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(WREN_LIB)
+$(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(COMPAT_DEP) $(WREN_LIB)
 	@echo "==== Linking DOME ($(TAGS)) ===="
 	$(CC) $(CFLAGS) $(FFLAGS) -o $(TARGET_NAME) $(OBJS)/*.o $(ICON_OBJECT_FILE) $(LDFLAGS) 
 	./scripts/set-executable-path.sh $(TARGET_NAME)
 	@echo "DOME built as $(TARGET_NAME)"
+
+$(OBJS):
+	mkdir -p $(OBJS)
+
+$(OBJS)/wren.o: $(OBJS)	
+	git submodule update --init -- $(LIBS)/wren
+	./scripts/setup_wren_web.sh
+
+# EMCC_FLAGS=--profiling -g 
+EMCC_FLAGS=""
+dome.html: $(SOURCE)/main.c $(MODULES)/*.inc $(INCLUDES)/vendor.c $(OBJS)/wren.o
+	emcc -O3 -c include/vendor.c -o $(OBJS)/vendor.o -s USE_SDL=2 -Iinclude $(EMCC_FLAGS)
+	emcc -O3 -c src/main.c -o $(OBJS)/main.o -s USE_SDL=2 -Iinclude $(DOME_OPTS) $(EMCC_FLAGS)
+	emcc -O1 $(OBJS)/*.o -o dome.html -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1 -s ASYNCIFY=1 --shell-file assets/shell.html -s SINGLE_FILE=1 $(EMCC_FLAGS)
 
 dome.bin: $(TARGET_NAME)
 

@@ -50,6 +50,9 @@ Draw an ellipse between (_x0, y0_) and (_x1, y1_) in the color _c_.
 #### `static ellipsefill(x0: Number, y0: Number, x1: Number, y1: Number, c: Color) `
 Draw a filled ellipse between (_x0, y0_) and (_x1, y1_) in the color _c_.
 
+#### `static getPrintArea(text: String): Vector`
+Return a [Vector](./math#vector) representing the maximum height and width needed to draw `text` in the current default font.
+
 #### `static line(x0: Number, y0: Number, x1: Number, y1: Number, c: Color) `
 #### `static line(x0: Number, y0: Number, x1: Number, y1: Number, c: Color, size: Number) `
 Draw a line `size` pixels wide between (_x0, y0_) and (_x1, y1_) in the color _c_. By default, `size` is 1.
@@ -171,6 +174,9 @@ Load the font file at `path`, rasterize it to the pixel height of `size`, and ma
 You can retrieve a specific font using the index operator, for example `Font["NewFont"]`.
 
 ### Instance Methods
+#### `getArea(text: String): Vector`
+Calculate the maximum size that this font will take to print `text` to the display. Returns as a [`Vector`](./math#vector) of `(width, height)`.
+
 #### `print(text: String, x: Number, y: Number, color: Color): Void`
 Print the `text` on the canvas at `(x, y)`, in the given `color`.
 

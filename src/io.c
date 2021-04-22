@@ -19,6 +19,9 @@ BASEPATH_set(char* path) {
 
 internal char*
 BASEPATH_get(void) {
+#ifdef __EMSCRIPTEN__
+  return "";
+#endif
   if (basePath == NULL) {
     if (STRINGS_EQUAL(SDL_GetPlatform(), "Mac OS X")) {
       basePath = SDL_GetBasePath();

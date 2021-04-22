@@ -17,6 +17,8 @@ lib/SDL/special
 lib/SDL*
 lib/libSDL2*
 
+lib/wren_all.c
+
 *.o
 *.swp
 *.dSYM
@@ -28,3 +30,10 @@ docs/.sass-cache/
 docs/.jekyll-cache/
 docs/.jekyll-metadata
 Gemfile.lock
+
+dome.data
+dome.html
+dome.js
+dome.wasm
+
+game.egg

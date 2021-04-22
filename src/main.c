@@ -2,6 +2,9 @@
 #define NOMINMAX
 
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 #ifndef DOME_VERSION
 #define DOME_VERSION "0.0.0 - CUSTOM"
 #endif
@@ -132,9 +135,12 @@ typedef struct {
   double MS_PER_FRAME;
   double FPS;
   double lag;
+  uint64_t previousTime;
+  uint64_t currentTime;
   double elapsed;
   bool windowBlurred;
   uint8_t attempts;
+  bool tickRender;
 } LOOP_STATE;
 
 internal void
@@ -162,6 +168,7 @@ LOOP_processInput(LOOP_STATE* state) {
   engine->mouse.scrollX = 0;
   engine->mouse.scrollY = 0;
   SDL_Event event;
+  INPUT_clearText(vm);
   while(SDL_PollEvent(&event)) {
     switch (event.type)
     {
@@ -173,11 +180,18 @@ LOOP_processInput(LOOP_STATE* state) {
           if (event.window.event == SDL_WINDOWEVENT_RESIZED ||
               event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
             SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
-          } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+            break;
+          }
+          if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+#ifdef __EMSCRIPTEN__
             AUDIO_ENGINE_pause(engine->audioEngine);
+#endif
             state->windowBlurred = true;
           } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+#ifdef __EMSCRIPTEN__
             AUDIO_ENGINE_resume(engine->audioEngine);
+#endif
+            ENGINE_updateTextRegion(engine);
             state->windowBlurred = false;
           }
         } break;
@@ -198,6 +212,19 @@ LOOP_processInput(LOOP_STATE* state) {
             }
           }
         } break;
+      case SDL_TEXTEDITING:
+        {
+          if (utf8len(event.edit.text) > 0) {
+            INPUT_setCompositionText(vm, event.edit.text, event.edit.start, event.edit.length);
+          }
+        } break;
+      case SDL_TEXTINPUT:
+        {
+          if (utf8len(event.text.text) > 0) {
+            INPUT_addText(vm, event.text.text);
+          }
+        } break;
+
       case SDL_CONTROLLERDEVICEADDED:
         {
           GAMEPAD_eventAdded(vm, event.cdevice.which);
@@ -364,6 +391,31 @@ printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
 }
 
+void DOME_loop(void* data) {
+  LOOP_STATE loop = *((LOOP_STATE*)data);
+  loop.currentTime = SDL_GetPerformanceCounter();
+  loop.elapsed = 1000 * (loop.currentTime - loop.previousTime) / (double) SDL_GetPerformanceFrequency();
+  loop.previousTime = loop.currentTime;
+  loop.lag += loop.elapsed;
+
+  if (loop.lag >= loop.MS_PER_FRAME) {
+    LOOP_processInput(&loop);
+    if (loop.windowBlurred) {
+      loop.lag = 0;
+      loop.tickRender = true;
+      return;
+    }
+    LOOP_update(&loop);
+    if (loop.tickRender) {
+      LOOP_render(&loop);
+      LOOP_flip(&loop);
+    }
+    loop.tickRender = !loop.tickRender;
+    loop.lag = mid(0, loop.lag - loop.MS_PER_FRAME, loop.MS_PER_FRAME);
+  }
+  *((LOOP_STATE*)data) = loop;
+}
+
 int main(int argc, char* args[])
 {
   // configuring the buffer has to be first
@@ -378,6 +430,9 @@ int main(int argc, char* args[])
   size_t gameFileLength;
   char* gameFile;
   INIT_TO_ZERO(ENGINE, engine);
+#ifdef __EMSCRIPTEN__
+  emscripten_wget("game.egg", "game.egg");
+#endif
   engine.record.gifName = "test.gif";
   engine.record.makeGif = false;
   INIT_TO_ZERO(LOOP_STATE, loop);
@@ -517,6 +572,7 @@ int main(int argc, char* args[])
     // If a filename is given in the path, use it, or assume its 'game.egg'
     strcpy(pathBuf, base);
     strcat(pathBuf, !autoResolve ? fileName : defaultEggName);
+    chdir(base);
 
     if (doesFileExist(pathBuf)) {
       // the current path exists, let's see if it's a TAR file.
@@ -532,7 +588,6 @@ int main(int argc, char* args[])
       }
     }
 
-    chdir(base);
     if (engine.tar != NULL) {
       // It is a tar file, we need to look for a "main.wren" entry point.
       strcpy(pathBuf, mainFileName);
@@ -621,7 +676,10 @@ int main(int argc, char* args[])
     goto vm_cleanup;
   }
   loop.windowBlurred = false;
-  uint64_t previousTime = SDL_GetPerformanceCounter();
+  loop.previousTime = SDL_GetPerformanceCounter();
+  #ifdef __EMSCRIPTEN__
+  emscripten_set_main_loop_arg(DOME_loop, &loop, 0, true);
+  #endif
   while (engine.running) {
 
     // processInput()
@@ -632,9 +690,9 @@ int main(int argc, char* args[])
       }
     }
 
-    uint64_t currentTime = SDL_GetPerformanceCounter();
-    loop.elapsed = 1000 * (currentTime - previousTime) / (double) SDL_GetPerformanceFrequency();
-    previousTime = currentTime;
+    loop.currentTime = SDL_GetPerformanceCounter();
+    loop.elapsed = 1000 * (loop.currentTime - loop.previousTime) / (double) SDL_GetPerformanceFrequency();
+    loop.previousTime = loop.currentTime;
 
 
     // If we aren't focused, we skip the update loop and let the CPU sleep
@@ -706,7 +764,6 @@ int main(int argc, char* args[])
   }
 
 vm_cleanup:
-
   if (recordThread != NULL) {
     SDL_WaitThread(recordThread, NULL);
   }

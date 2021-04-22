@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>DOME</title>
+    <style>
+      * { 
+        margin: 0;
+        padding: 0; 
+      }
+
+      html, body { 
+        background-color: black;
+        color: white;
+        max-width: 100vw;
+        max-height: 100vh;
+      }
+
+      textarea.emscripten { font-family: monospace; width: 80%; display: none; }
+      div.emscripten { text-align: center; }
+      div.emscripten_border {
+        border: 1px solid white; 
+        margin: 0 auto;
+      }
+      /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+      canvas.emscripten { 
+        margin: 0;
+        width: auto;
+        height: 100%;
+        border: 0px none; 
+        background-color: black; 
+        outline: none;
+        -webkit-tap-highlight-color: rgba(255, 255, 255, 0); /* mobile webkit */
+        image-rendering: -moz-crisp-edges;
+        image-rendering: -webkit-crisp-edges;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+      }
+    </style>
+    <script type='text/javascript'>
+      window.onload = function () { window.focus(); } window.onclick = function () { window.focus(); }
+    </script>
+  </head>
+  <body>
+    <div class="emscripten_border">
+      <canvas class="emscripten" id="canvas" height="100%"
+        oncontextmenu="event.preventDefault()" 
+        onkeydown="event.preventDefault()" 
+        onkeyup="event.preventDefault()" 
+        tabindex=0></canvas>
+    </div>
+    
+    <textarea class="emscripten" id="output" rows="8"></textarea>
+
+    <script type='text/javascript'>
+      var Module = {
+        preRun: [],
+        postRun: [],
+        print: (function() {
+          var element = document.getElementById('output');
+          if (element) element.value = ''; // clear browser cache
+          return function(text) {
+            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+            // These replacements are necessary if you render to raw HTML
+            //text = text.replace(/&/g, "&amp;");
+            //text = text.replace(/</g, "&lt;");
+            //text = text.replace(/>/g, "&gt;");
+            //text = text.replace('\n', '<br>', 'g');
+            console.log(text);
+            if (element) {
+              element.value += text + "\n";
+              element.scrollTop = element.scrollHeight; // focus on bottom
+            }
+          };
+        })(),
+        printErr: function(text) {
+          if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+          console.error(text);
+        },
+        canvas: (function() {
+          var canvas = document.getElementById('canvas');
+
+          // As a default initial behavior, pop up an alert when webgl context is lost. To make your
+          // application robust, you may want to override this behavior before shipping!
+          // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+          canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+
+          return canvas;
+        })(),
+        setStatus: function(text) {
+          if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+          if (text === Module.setStatus.last.text) return;
+          var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+          var now = Date.now();
+          if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
+          Module.setStatus.last.time = now;
+          Module.setStatus.last.text = text;
+        },
+        totalDependencies: 0,
+        monitorRunDependencies: function(left) {
+          this.totalDependencies = Math.max(this.totalDependencies, left);
+          Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+        }
+      };
+      Module.setStatus('Downloading...');
+      window.onerror = function() {
+      };
+    </script>
+    {{{ SCRIPT }}}
+    <script text="text/javascript">
+      window.addEventListener("blur", function() {
+        pauseAudio(1);
+      }, false);
+      window.addEventListener("focus", function() {
+        pauseAudio(0);
+      }, false);
+
+      // FIX (Chrome, ...?), project.js -> ASM_CONSTS
+      // https://github.com/emscripten-ports/SDL2/blob/master/src/audio/emscripten/SDL_emscriptenaudio.c
+      function pauseAudio(on) {
+        if (typeof Module === 'undefined'
+          || typeof Module.SDL2 === 'undefined'
+          || typeof Module.SDL2.audio === 'undefined'
+          || typeof Module.SDL2.audioContext === 'undefined')
+          return;
+        if (on) {
+          Module.SDL2.audio.scriptProcessorNode.disconnect();
+        }
+        else {
+          Module.SDL2.audio.scriptProcessorNode['connect'](Module.SDL2.audioContext['destination']);
+        }
+      }
+    </script>
+  </body>
+</html>

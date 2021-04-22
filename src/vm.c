@@ -206,6 +206,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addClass(&engine->moduleMap, "font", "FontFile", FONT_allocate, FONT_finalize);
   MAP_addClass(&engine->moduleMap, "font", "RasterizedFont", FONT_RASTER_allocate, FONT_RASTER_finalize);
   MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.f_print(_,_,_,_)", FONT_RASTER_print);
+  MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.f_getArea(_)", FONT_RASTER_getArea);
   MAP_addFunction(&engine->moduleMap, "font", "RasterizedFont.antialias=(_)", FONT_RASTER_setAntiAlias);
   MAP_lockModule(&engine->moduleMap, "font");
 
@@ -273,6 +274,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Input
   MAP_addClass(&engine->moduleMap, "input", "SystemGamePad", GAMEPAD_allocate, GAMEPAD_finalize);
   MAP_addFunction(&engine->moduleMap, "input", "static Input.f_captureVariables()", INPUT_capture);
+  MAP_addFunction(&engine->moduleMap, "input", "static Keyboard.handleText", KEYBOARD_getHandleText);
+  MAP_addFunction(&engine->moduleMap, "input", "static Keyboard.handleText=(_)", KEYBOARD_setHandleText);
+  MAP_addFunction(&engine->moduleMap, "input", "static Keyboard.textRegion(_,_,_,_)", KEYBOARD_setTextRegion);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.x", MOUSE_getX);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.y", MOUSE_getY);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.scrollX", MOUSE_getScrollX);
@@ -289,6 +293,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.attached", GAMEPAD_isAttached);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.name", GAMEPAD_getName);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.id", GAMEPAD_getId);
+  MAP_addFunction(&engine->moduleMap, "input", "static Clipboard.content", CLIPBOARD_getContent);
+  MAP_addFunction(&engine->moduleMap, "input", "static Clipboard.content=(_)", CLIPBOARD_setContent);
   MAP_lockModule(&engine->moduleMap, "input");
 
   // Json
