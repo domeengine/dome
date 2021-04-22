@@ -260,7 +260,11 @@ class GamePad {
     __pads[instanceId].close()
     __pads.remove(instanceId)
   }
+}
 
+class Clipboard {
+  foreign static content
+  foreign static content=(v)
 }
 
 // Module Setup
