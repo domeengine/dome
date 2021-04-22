@@ -8,6 +8,7 @@ The `input` module allows you to retrieve the state of input devices such as the
 It contains the following classes:
 
 * [DigitalInput](#digitalinput)
+* [Clipboard](#clipboard)
 * [Keyboard](#keyboard)
 * [Mouse](#mouse)
 * [GamePad](#gamepad)
@@ -36,6 +37,17 @@ This gives you the value of "down" on the previous tick, since input was last pr
 
 #### `static repeats: Number`
 This counts the number of ticks that an input has been engaged for. If the input isn't engaged, this should be zero.
+
+
+## Clipboard
+
+This class gives easy access to your operating system's clipboard for copy/paste operations.
+
+### Static Fields
+
+#### `static content: String`
+Returns the current content of the clipboard. Set this field to put a new value into the user's clipboard.
+
 
 ## Keyboard
 

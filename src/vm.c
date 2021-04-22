@@ -293,6 +293,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.attached", GAMEPAD_isAttached);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.name", GAMEPAD_getName);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.id", GAMEPAD_getId);
+  MAP_addFunction(&engine->moduleMap, "input", "static Clipboard.content", CLIPBOARD_getContent);
+  MAP_addFunction(&engine->moduleMap, "input", "static Clipboard.content=(_)", CLIPBOARD_setContent);
   MAP_lockModule(&engine->moduleMap, "input");
 
   // Json

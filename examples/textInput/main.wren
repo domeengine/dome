@@ -1,5 +1,5 @@
 import "graphics" for Canvas, Color
-import "input" for Keyboard
+import "input" for Keyboard, Clipboard
 import "dome" for Window
 
 var X = 10
@@ -30,6 +30,13 @@ class Game {
       }
       if (change) {
         Keyboard.textRegion(__text.count * 8, Y, 8, 8)
+      }
+
+      if ((Keyboard["left ctrl"].down || Keyboard["right ctrl"].down) && Keyboard["c"].justPressed) {
+        Clipboard.content = __text
+      }
+      if ((Keyboard["left ctrl"].down || Keyboard["right ctrl"].down) && Keyboard["v"].justPressed) {
+        __text = __text + Clipboard.content
       }
     }
 

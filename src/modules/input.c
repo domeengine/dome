@@ -460,3 +460,25 @@ GAMEPAD_stringFromButton(SDL_GameControllerButton button) {
   }
   return NULL;
 }
+
+internal void
+CLIPBOARD_getContent(WrenVM* vm) {
+  char* text = SDL_GetClipboardText();
+  if (text == NULL) {
+    VM_ABORT(vm, SDL_GetError());
+    return;
+  }
+  wrenSetSlotString(vm, 0, text);
+  SDL_free(text);
+}
+
+internal void
+CLIPBOARD_setContent(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "text");
+  char* text = wrenGetSlotString(vm, 1);
+  int result = SDL_SetClipboardText(text);
+  if (result < 0) {
+    VM_ABORT(vm, SDL_GetError());
+    return;
+  }
+}
