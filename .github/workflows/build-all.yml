@@ -129,7 +129,7 @@ jobs:
 
   release-artifacts:
     if: ${{ github.event.action == 'published' }}
-    needs: [ build-linux, build-mac, build-windows ]
+    needs: [ build-linux, build-mac, build-windows, build-web ]
     runs-on: ubuntu-latest
     name: Upload Release Artifacts
     steps:
@@ -149,6 +149,9 @@ jobs:
       - uses: montudor/action-zip@v0.1.0
         with:
           args: zip -qq -r dome-macosx-x64.zip dome-macosx-x64
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-web.zip dome-web
       - run: ls -la
       - name: Upload Linux Shared
         uses: actions/upload-release-asset@v1
@@ -194,4 +197,13 @@ jobs:
           upload_url: ${{ github.event.release.upload_url }} 
           asset_path: ./dome-macosx-x64.zip
           asset_name: dome-${{github.event.release.tag_name}}-macosx-x64.zip
+          asset_content_type: application/zip
+      - name: Upload Web Engine
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-web.zip
+          asset_name: dome-${{github.event.release.tag_name}}-web.zip
           asset_content_type: application/zip
