@@ -201,6 +201,7 @@ $(OBJS):
 	mkdir -p $(OBJS)
 
 $(OBJS)/wren.o: $(OBJS)	
+	git submodule update --init -- $(LIBS)/wren
 	./scripts/setup_wren_web.sh
 
 # EMCC_FLAGS=--profiling -g 
