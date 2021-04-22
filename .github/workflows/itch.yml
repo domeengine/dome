@@ -47,7 +47,6 @@ jobs:
 
   notify-discord:
     runs-on: ubuntu-latest
-    needs: [ release-artifacts ]
     steps:
     - id: fetch-latest-release
       uses: thebritican/fetch-latest-release@v2.0.0
