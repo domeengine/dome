@@ -66,6 +66,14 @@ class Keyboard {
     return pressed
   }
 
+  static text { __text }
+  static compositionText { __compositionText }
+  static compositionRange { __compositionRange }
+
+  foreign static textRegion(x, y, w, h)
+  foreign static handleText
+  foreign static handleText=(v)
+
   // PRIVATE, called by game loop
   static update(keyName, state) {
     if (!__keys.containsKey(keyName)) {
@@ -76,6 +84,20 @@ class Keyboard {
 
   static commit() {
     __keys.values.each {|key| key.commit() }
+  }
+
+  static clearText() {
+    __text = ""
+  }
+
+  static addText(text) {
+    __text = __text + text
+    __compositionText = null
+  }
+
+  static setComposition(text, start, length) {
+    __compositionText = text
+    __compositionRange = (start)...(start+length)
   }
 }
 

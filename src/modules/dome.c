@@ -52,6 +52,7 @@ WINDOW_resize(WrenVM* vm) {
 #else
   SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
 #endif
+  ENGINE_updateTextRegion(engine);
 }
 
 internal void
