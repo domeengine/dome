@@ -47,6 +47,7 @@ WINDOW_resize(WrenVM* vm) {
   int32_t newWidth, newHeight;
   SDL_GetRendererOutputSize(engine->renderer, &newWidth, &newHeight);
   SDL_SetWindowSize(engine->window, newWidth, newHeight);
+  ENGINE_updateTextRegion(engine);
 }
 
 internal void
