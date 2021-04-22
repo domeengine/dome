@@ -466,7 +466,7 @@ CLIPBOARD_getContent(WrenVM* vm) {
   char* text = SDL_GetClipboardText();
   if (text == NULL) {
     VM_ABORT(vm, SDL_GetError());
-      return;
+    return;
   }
   wrenSetSlotString(vm, 0, text);
   SDL_free(text);
