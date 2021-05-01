@@ -14,7 +14,7 @@ class Canvas {
     }
   }
   
-  static font {__defaultFont}
+  static font { __defaultFont }
 
   foreign static f_resize(width, height, color)
   static offset() { offset(0, 0) }
