@@ -18,12 +18,12 @@ It contains the following classes:
 The `Canvas` class is the core api for graphical display.
 
 ### Fields
+#### `static font: String`
+This is the name of the default font used for `Canvas.print(str, x, y, color)`. You can set this to `Font.default` to return to the DOME built-in font.
 #### `static height: Number`
 This is the height of the canvas/viewport, in pixels.
 #### `static width: Number`
 This is the width of the canvas/viewport, in pixels.
-#### `static font: String`
-This is the name of the canvas font as a string.
 
 ### Methods
 #### `static circle(x: Number, y: Number, r: Number, c: Color) `
@@ -89,10 +89,6 @@ Draw a filled rectangle with the top-left corner at (_x, y_), with a width of _w
 Resize the canvas to the given `width` and `height`, and reset the color of the canvas to `c`.
 If `c` isn't provided, we default to black.
 Resizing the canvas resets the "clipping region" to encompass the whole canvas, as if `Canvas.clip()` was called.
-
-### Instance Field
-#### `font: String`
-This sets the name of the default font used for `Canvas.print(str, x, y, color)`. You can set this to `Font.default` to return to the DOME built-in font.
 
 ## Color
 
