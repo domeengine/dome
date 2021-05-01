@@ -13,6 +13,8 @@ class Canvas {
       Fiber.abort("Default font must be a font name")
     }
   }
+  
+  static font {__defaultFont}
 
   foreign static f_resize(width, height, color)
   static offset() { offset(0, 0) }
