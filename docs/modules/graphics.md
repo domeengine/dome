@@ -22,6 +22,8 @@ The `Canvas` class is the core api for graphical display.
 This is the height of the canvas/viewport, in pixels.
 #### `static width: Number`
 This is the width of the canvas/viewport, in pixels.
+#### `static font: String`
+This is the name of the canvas font as a string.
 
 ### Methods
 #### `static circle(x: Number, y: Number, r: Number, c: Color) `
