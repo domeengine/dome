@@ -9,7 +9,6 @@ foreign class DrawCommand is Drawable {
     map["foreground"] = (map["foreground"] || Color.white).toNum
     map["background"] = (map["background"] || Color.black).toNum
     map["tint"] = (map["tint"] || Color.none).toNum
-    System.print(map)
     return DrawCommand.new(image, map, null)
   }
 
