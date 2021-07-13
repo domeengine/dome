@@ -10,3 +10,4 @@ We'd like to thank the following people for their contributions.
   * Chayim Refael Friedman [https://github.com/ChayimFriedman2]
   * Benjamin Stigsen [https://github.com/benstigsen]
   * Alexandru Badiu, aka voidberg [https://github.com/voidberg]
+  * Aayush Kashyap [https://github.com/TheKing0x9]

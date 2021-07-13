@@ -38,6 +38,9 @@ Returns the arctan of `n`.
 #### `ceil(n: Number): Number`
 Rounds `n` up to the next largest integer value.
 
+#### `clamp(number : Number, min : Number, max : Number) : Number`
+Clamps `number` between `min` and `max`.
+
 #### `cos(n: Number): Number`
 Returns the cosine of `n`.
 
