@@ -60,21 +60,13 @@ class Math {
   static max(a, b) {
     assertNum(a)
     assertNum(b)
-    if (a > b) {
-      return a
-    } else {
-      return b
-    }
+    return a.max(b)
   }
 
   static min(a, b) {
     assertNum(a)
     assertNum(b)
-    if (a < b) {
-      return a
-    } else {
-      return b
-    }
+    return a.min(b)
   }
 
   static sign(a) {
@@ -97,11 +89,14 @@ class Math {
       a = b
       b = swap
     }
-    if (b < c) {
-      return b
-    } else {
-      return c
-    }
+    return b.min(c)
+  }
+  
+  static clamp(number, min, max) {
+    assertNum(number)
+    assertNum(min)
+    assertNum(max)
+    return number.clamp(min, max)
   }
 
   static lerp(low, value, high) {
