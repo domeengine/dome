@@ -205,10 +205,25 @@ CANVAS_getWidth(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   wrenSetSlotDouble(vm, 0, engine->canvas.width);
 }
+
 internal void
 CANVAS_getHeight(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   wrenSetSlotDouble(vm, 0, engine->canvas.height);
+}
+
+internal void
+CANVAS_getOffsetX(WrenVM* vm) {
+  wrenEnsureSlots(vm, 1);
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotDouble(vm, 0, engine->canvas.offsetX);
+}
+
+internal void
+CANVAS_getOffsetY(WrenVM* vm) {
+  wrenEnsureSlots(vm, 1);
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotDouble(vm, 0, engine->canvas.offsetY);
 }
 
 internal void

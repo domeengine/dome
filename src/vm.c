@@ -200,6 +200,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_resize(_,_,_)", CANVAS_resize);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.width", CANVAS_getWidth);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.height", CANVAS_getHeight);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.offsetX", CANVAS_getOffsetX);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.offsetY", CANVAS_getOffsetY);
   MAP_lockModule(&engine->moduleMap, "graphics");
 
   // Font
