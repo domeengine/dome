@@ -25,7 +25,7 @@ This is the height of the canvas/viewport, in pixels.
 #### `static width: Number`
 This is the width of the canvas/viewport, in pixels.
 #### `static offset : Vector`
-A vector of representing the Canvas offset. You can both get and set this value
+A vector representing the Canvas offset. You can both get and set this value
 
 ### Methods
 #### `static circle(x: Number, y: Number, r: Number, c: Color) `
