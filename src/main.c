@@ -120,6 +120,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/platform.c"
 #include "modules/random.c"
 #include "modules/plugin.c"
+#include "modules/squirrel5.c"
 #include "util/wrenembed.c"
 
 
