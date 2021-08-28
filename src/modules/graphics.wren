@@ -162,12 +162,19 @@ class Canvas {
     }
     f_cls(color.toNum)
   }
+  
   foreign static width
   foreign static height
 
   static draw(object, x, y) {
     object.draw(x, y)
   }
+  
+  foreign static offsetX
+  foreign static offsetY
+  
+  static offset { Vector.new (offsetX, offsetY) }
+  static offset=(v) { offset(v.x, v.y) }
 }
 
 
