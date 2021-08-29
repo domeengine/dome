@@ -4,10 +4,7 @@ const uint32_t SQ5_BIT_NOISE3 = 0x6C736F4B;
 const uint32_t SQ5_BIT_NOISE4 = 0xB79F3ABB;
 const uint32_t SQ5_BIT_NOISE5 = 0x1b56c4f5;
 
-// switch to limits.h in the future probably?
-
-uint32_t Squirrel5Hash( uint32_t position, uint32_t seed )
-{
+uint32_t squirrel5Hash( uint32_t position, uint32_t seed ) {
 	uint32_t mangledBits = position;
 	mangledBits *= SQ5_BIT_NOISE1;
 	mangledBits += seed;
@@ -23,10 +20,10 @@ uint32_t Squirrel5Hash( uint32_t position, uint32_t seed )
 	return mangledBits;
 }
 
-void Squirrel5_noise(WrenVM* vm) {
+void SQUIRREL5_noise(WrenVM* vm) {
   uint32_t position = wrenGetSlotDouble(vm, 1);
   uint32_t seed = wrenGetSlotDouble(vm, 2);
-  wrenSetSlotDouble(vm, 0, Squirrel5Hash(position, seed));
+  wrenSetSlotDouble(vm, 0, squirrel5Hash(position, seed));
 }
 
 typedef struct {
@@ -34,18 +31,19 @@ typedef struct {
   uint32_t state;
 } Squirrel5;
 
-void Squirrel5_allocate(WrenVM* vm) {
+void SQUIRREL5_allocate(WrenVM* vm) {
   Squirrel5* rng = wrenSetSlotNewForeign(vm, 0, 0, sizeof(Squirrel5));
   uint32_t seed = wrenGetSlotDouble(vm, 1);
   rng->seed = seed;
   rng->state = 0;
 }
 
-void Squirrel5_finalize(void* data) {}
+void SQUIRREL5_finalize(void* data) {}
 
-void Squirrel5_float(WrenVM* vm) {
+void SQUIRREL5_float(WrenVM* vm) {
   Squirrel5* rng = wrenGetSlotForeign(vm, 0);
-  double result = Squirrel5Hash(rng->state++, rng->seed);
+  double result = squirrel5Hash(rng->state++, rng->seed);
+  /* cap comes from random.c and equals 0xFFFFFFFF */
   wrenSetSlotDouble(vm, 0, result / CAP);
 }
 

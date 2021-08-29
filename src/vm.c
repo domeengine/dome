@@ -325,9 +325,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "random", "Squirrel3.float()", RANDOM_float);
   MAP_lockModule(&engine->moduleMap, "random");
 
-  MAP_addClass(&engine->moduleMap, "squirrel5", "Squirrel5", Squirrel5_allocate, Squirrel5_finalize);
-  MAP_addFunction(&engine->moduleMap, "squirrel5", "static Squirrel5.noise(_,_)", Squirrel5_noise);
-  MAP_addFunction(&engine->moduleMap, "squirrel5", "Squirrel5.float()", Squirrel5_float);
+  MAP_addClass(&engine->moduleMap, "squirrel5", "Squirrel5", SQUIRREL5_allocate, SQUIRREL5_finalize);
+  MAP_addFunction(&engine->moduleMap, "squirrel5", "static Squirrel5.noise(_,_)", SQUIRREL5_noise);
+  MAP_addFunction(&engine->moduleMap, "squirrel5", "Squirrel5.float()", SQUIRREL5_float);
   MAP_lockModule(&engine->moduleMap, "squirrel5");
 
   return vm;
