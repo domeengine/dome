@@ -38,7 +38,7 @@ JSON_STREAM_value(WrenVM * vm) {
 internal void
 JSON_STREAM_error_message(WrenVM * vm) {
   const char * error = json_get_error(jsonStream);
-  if(error) {
+  if (error) {
     wrenSetSlotString(vm, 0, error);
     return;
   }

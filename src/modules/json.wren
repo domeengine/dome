@@ -141,7 +141,12 @@ class JsonEncoder {
     _circularStack = JsonOptions.contains(options, JsonOptions.checkCircular) ? [] : null
   }
 
-  isCircle(value) { _circularStack == null || !_circularStack.any { |v| Object.same(value, v) } }
+  isCircle(value) {
+    if (_circularStack == null) {
+      return false
+    }
+    return _circularStack.any { |v| Object.same(value, v) }
+  }
 
   push(value) {
     if (_circularStack != null) {
@@ -178,14 +183,22 @@ class JsonEncoder {
 
     if (value is List) {
       push(value)
-      var substrings = value.map { |item| encode(item) }
+      var substrings = []
+      for (item in value) {
+        substrings.add(encode(item))
+      }
       pop()
       return "[" + substrings.join(",") + "]"
     }
 
     if (value is Map) {
       push(value)
-      var substrings = value.keys.map { |key| "%(encode(key)):%(encode(value[key]))" }
+      var substrings = []
+      for (key in value.keys) {
+        var keyValue = this.encode(value[key])
+        var encodedKey = this.encode(key)
+        substrings.add("%(encodedKey):%(keyValue)")
+      }
       pop()
       return "{" + substrings.join(",") + "}"
     }
