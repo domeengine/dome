@@ -19,9 +19,8 @@ declare -a arr=(
 "json"
 "platform"
 "random"
-"squirrel5"
 )
- 
+
 declare -a opts=(
 )
 
