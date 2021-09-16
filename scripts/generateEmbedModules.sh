@@ -20,7 +20,7 @@ declare -a arr=(
 "platform"
 "random"
 )
- 
+
 declare -a opts=(
 )
 
