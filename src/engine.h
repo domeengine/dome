@@ -27,6 +27,7 @@ typedef struct {
   size_t errorBufLen;
   size_t errorBufMax;
   char* errorBuf;
+  bool errorDialogue;
 } ENGINE_DEBUG;
 
 typedef struct {

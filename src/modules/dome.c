@@ -22,6 +22,21 @@ PROCESS_getArguments(WrenVM* vm) {
 }
 
 internal void
+PROCESS_getErrorDialogue(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  bool errorDialogueEnabled = engine->debug.errorDialogue;
+  wrenSetSlotBool(vm, 0, errorDialogueEnabled);
+}
+
+internal void
+PROCESS_setErrorDialogue(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, BOOL, "value");
+  bool errorDialogueEnabled = wrenGetSlotBool(vm, 1);
+  engine->debug.errorDialogue = errorDialogueEnabled;
+}
+
+internal void
 STRING_UTILS_toLowercase(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "string");
   int length;
