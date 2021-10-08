@@ -225,6 +225,7 @@ ENGINE_init(ENGINE* engine) {
   engine->debug.errorBufMax = 0;
   engine->debug.errorBuf = NULL;
   engine->debug.errorBufLen = 0;
+  engine->debug.errorDialogue = true;
 
   // Initialise the canvas offset.
   engine->canvas.pixels = NULL;
@@ -1084,9 +1085,11 @@ internal void
 ENGINE_reportError(ENGINE* engine) {
   if (engine->debug.errorBuf != NULL) {
     ENGINE_printLog(engine, engine->debug.errorBuf);
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+    if (engine->debug.errorDialogue) {
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                              "DOME - Error",
                              engine->debug.errorBuf,
                              NULL);
+    }
   }
 }
