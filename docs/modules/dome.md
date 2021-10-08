@@ -29,8 +29,7 @@ Returns the integer number of seconds since the unix epoch (1st January 1970).
 
 #### `static errorDialogue : Boolean`
 
-Allows you to enable/disable error message boxes in case of an error. You can both get and set
-this value.
+Allows you to enable/disable error message boxes. You can both get and set this value.
 
 #### `static args: String[]`
 Returns a string list of all non-option command line arguments used to invoke DOME's execution. The first two elements of the returned list will be:
