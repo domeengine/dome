@@ -27,7 +27,7 @@ Returns the integer number of seconds since the unix epoch (1st January 1970).
 
 ### Static Fields
 
-#### `static errorDialogue : Boolean`
+#### `static errorDialog : Boolean`
 
 Allows you to enable/disable error message boxes and is enabled by default. You can both get and set this value.
 

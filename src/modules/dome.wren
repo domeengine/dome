@@ -46,8 +46,8 @@ class Version {
 class Process {
   foreign static args
   foreign static f_exit(n)
-  foreign static errorDialogue=(value)
-  foreign static errorDialogue
+  foreign static errorDialog=(value)
+  foreign static errorDialog
   static exit(n) {
     f_exit(n)
     Fiber.suspend()
