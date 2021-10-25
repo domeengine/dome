@@ -416,6 +416,58 @@ void DOME_loop(void* data) {
   *((LOOP_STATE*)data) = loop;
 }
 
+
+int fuse(int argc, char* args[])
+{
+  if (argc < 2) {
+    fputs("Not enough arguments\n", stderr);
+    return EXIT_FAILURE;
+  }
+
+  char* fileName = args[2];
+  char* binaryPath = getExecutablePath();
+  if (binaryPath != NULL) {
+    // Check if end of file has marker
+
+    FILE* binary = fopen(binaryPath, "ab");
+    int result = fseek (binary, -sizeof(DOME_EGG_HEADER), SEEK_END);
+    DOME_EGG_HEADER header;
+    result = fread(&header, sizeof(DOME_EGG_HEADER), 1, binary);
+    fclose(binary);
+
+    if (result == 1) {
+      if (strncmp("DOME", header.magic2, 4) == 0) {
+        printf("This copy of DOME is already fused to an EGG file. Please use a fresh instance.");
+        return EXIT_FAILURE;
+      }
+    }
+    printf("Fusing...");
+    binary = fopen(binaryPath, "ab");
+    FILE* egg = fopen(fileName, "rb");
+    if (egg == NULL) {
+      printf("Error: %s\n", strerror(errno));
+      return EXIT_FAILURE;
+    }
+    int c;
+    uint64_t size = 0;
+    while((c = fgetc(egg)) != EOF) {
+      fputc(c, binary);
+      size++;
+      printf("%c", c);
+    }
+
+    strncpy(header.magic1, "DOME", 4);
+    strncpy(header.magic2, "DOME", 4);
+    header.version = 1;
+    header.offset = size;
+    fwrite(&header, sizeof(DOME_EGG_HEADER), 1, binary);
+    fclose(binary);
+    fclose(egg);
+  }
+  free(binaryPath);
+  return EXIT_SUCCESS;
+}
+
 int main(int argc, char* args[])
 {
   // configuring the buffer has to be first
@@ -452,6 +504,7 @@ int main(int argc, char* args[])
     {"help", 'h', OPTPARSE_NONE},
     {"record", 'r', OPTPARSE_OPTIONAL},
     {"scale", 's', OPTPARSE_REQUIRED},
+    {"fuse", 'f', OPTPARSE_REQUIRED},
     {"version", 'v', OPTPARSE_NONE},
     {0}
   };
@@ -493,6 +546,9 @@ int main(int argc, char* args[])
         break;
       case 'e':
         WRENEMBED_encodeAndDumpInDOME(argc, args);
+        goto cleanup;
+      case 'f':
+        fuse(argc, args);
         goto cleanup;
       case 'h':
         printTitle(&engine);
@@ -592,20 +648,17 @@ int main(int argc, char* args[])
       if (binaryPath != NULL) {
         // Check if end of file has marker
         FILE* self = fopen(binaryPath, "rb");
-        int result = fseek (self, -4, SEEK_END);
-        if (result != 0) {
-          printf("ERROR 1\n");
-        }
-        char header[5];
-        result = fread(header, sizeof(char) * 4, 1, self);
-        if (result != 1) {
-          printf("ERROR 2\n");
-        }
-        header[4] = '\n';
-        if (strncmp("DOME", header, 4) == 0) {
-          printf("Header found!\n");
-        } else {
-          printf("'%s'\n", header);
+        int result = fseek (self, -sizeof(DOME_EGG_HEADER), SEEK_END);
+        if (result == 0) {
+          DOME_EGG_HEADER header;
+          result = fread(&header, sizeof(DOME_EGG_HEADER), 1, self);
+          if (result == 1) {
+            if (strncmp("DOME", header.magic2, 4) == 0) {
+              printf("Header found!\n");
+            } else {
+              printf("'%s'\n", header.magic2);
+            }
+          }
         }
         fclose(self);
       }
