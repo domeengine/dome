@@ -657,6 +657,7 @@ int main(int argc, char* args[])
               printf("Header found!\n");
               engine.tar = malloc(sizeof(mtar_t));
               fuse_open(engine.tar, self, header.offset);
+              engine.argv[1] = NULL;
             }
           }
         } else {
