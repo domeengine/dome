@@ -110,6 +110,22 @@ isDirectory(const char *path) {
    return S_ISDIR(statbuf.st_mode) == 1;
 }
 
+internal char*
+getExecutablePath() {
+  // TODO: This is the mac-centric version. We need a Windows and Linux version too
+  char* path = malloc(sizeof(char) * 32);
+  uint32_t size = sizeof(path);
+  int result = _NSGetExecutablePath(path, &size);
+  if (result != 0) {
+    path = realloc(path, size);
+    result = _NSGetExecutablePath(path, &size);
+    if (result != 0) {
+      path = NULL;
+    }
+  }
+  return path;
+}
+
 internal inline bool
 doesFileExist(char* path) {
   return access(path, F_OK) != -1;

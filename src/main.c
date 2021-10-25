@@ -586,6 +586,30 @@ int main(int argc, char* args[])
         free(engine.tar);
         engine.tar = NULL;
       }
+    } else {
+      printf("DOME didn't find a base file here\n");
+      char* binaryPath = getExecutablePath();
+      if (binaryPath != NULL) {
+        // Check if end of file has marker
+        FILE* self = fopen(binaryPath, "rb");
+        int result = fseek (self, -4, SEEK_END);
+        if (result != 0) {
+          printf("ERROR 1\n");
+        }
+        char header[5];
+        result = fread(header, sizeof(char) * 4, 1, self);
+        if (result != 1) {
+          printf("ERROR 2\n");
+        }
+        header[4] = '\n';
+        if (strncmp("DOME", header, 4) == 0) {
+          printf("Header found!\n");
+        } else {
+          printf("'%s'\n", header);
+        }
+        fclose(self);
+      }
+      free(binaryPath);
     }
 
     if (engine.tar != NULL) {
