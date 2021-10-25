@@ -98,6 +98,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "engine.h"
 #include "util/font8x8.h"
 #include "io.c"
+#include "fuse.c"
 
 #include "audio/engine.h"
 #include "audio/hashmap.c"
@@ -449,11 +450,10 @@ int fuse(int argc, char* args[])
       return EXIT_FAILURE;
     }
     int c;
-    uint64_t size = 0;
+    uint64_t size = sizeof(DOME_EGG_HEADER);
     while((c = fgetc(egg)) != EOF) {
       fputc(c, binary);
       size++;
-      printf("%c", c);
     }
 
     strncpy(header.magic1, "DOME", 4);
@@ -655,12 +655,13 @@ int main(int argc, char* args[])
           if (result == 1) {
             if (strncmp("DOME", header.magic2, 4) == 0) {
               printf("Header found!\n");
-            } else {
-              printf("'%s'\n", header.magic2);
+              engine.tar = malloc(sizeof(mtar_t));
+              fuse_open(engine.tar, self, header.offset);
             }
           }
+        } else {
+          fclose(self);
         }
-        fclose(self);
       }
       free(binaryPath);
     }
