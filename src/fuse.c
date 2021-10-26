@@ -22,14 +22,12 @@ getExecutablePath() {
 
 int fuse(int argc, char* args[])
 {
-  if (argc < 2) {
+  if (argc < 3) {
     fputs("Not enough arguments\n", stderr);
     return EXIT_FAILURE;
   }
-  printf("%i\n", argc);
 
   char* fileName = args[2];
-  // TODO: Derive output from input name
 #if defined _WIN32 || __MINGW32__
   char* outputFileName = "game.exe";
 #else
@@ -39,18 +37,23 @@ int fuse(int argc, char* args[])
     outputFileName = args[3];
   }
   char* binaryPath = getExecutablePath();
-  DOME_EGG_HEADER header;
   if (binaryPath != NULL) {
-    printf("Fusing...");
     FILE* binary = fopen(binaryPath, "rb");
     FILE* binaryOut = fopen(outputFileName, "wb");
-    FILE* egg = fopen(fileName, "rb");
-    if (egg == NULL) {
+    if (binary == NULL || binaryOut == NULL) {
       printf("Error: %s\n", strerror(errno));
       return EXIT_FAILURE;
     }
+
+    mtar_t tar;
+    int tarResult = mtar_open(&tar, fileName, "rb");
+    FILE* egg = tar.stream;
+    if (tarResult != MTAR_ESUCCESS) {
+      printf("Could not fuse: %s is not a valid EGG file.", fileName);
+      return EXIT_FAILURE;
+    }
+
     int c;
-    fseek(binary, 0, SEEK_SET);
     while((c = fgetc(binary)) != EOF) {
       fputc(c, binaryOut);
     }
@@ -60,6 +63,7 @@ int fuse(int argc, char* args[])
       size++;
     }
 
+    DOME_EGG_HEADER header;
     memcpy(header.magic1, "DOME", 4);
     memcpy(header.magic2, "DOME", 4);
     header.version = 1;
@@ -67,8 +71,10 @@ int fuse(int argc, char* args[])
     fwrite(&header, sizeof(DOME_EGG_HEADER), 1, binaryOut);
     fclose(binaryOut);
     fclose(binary);
-    fclose(egg);
+    mtar_close(&tar);
     chmod(outputFileName, 0777);
+
+    printf("Fused '%s' into DOME successfully as '%s'", fileName, outputFileName);
   }
   free(binaryPath);
   return EXIT_SUCCESS;

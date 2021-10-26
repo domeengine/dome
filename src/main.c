@@ -602,7 +602,6 @@ int main(int argc, char* args[])
     } else {
 #ifndef __EMSCRIPTEN__
       char* binaryPath = getExecutablePath();
-      printf("%s\n", binaryPath);
       if (binaryPath != NULL) {
         // Check if end of file has marker
         FILE* self = fopen(binaryPath, "rb");
@@ -611,11 +610,15 @@ int main(int argc, char* args[])
           DOME_EGG_HEADER header;
           result = fread(&header, sizeof(DOME_EGG_HEADER), 1, self);
           if (result == 1) {
-            if (strncmp("DOME", header.magic2, 4) == 0) {
-              printf("Loading fused file!\n");
-              engine.tar = malloc(sizeof(mtar_t));
-              fuse_open(engine.tar, self, header.offset);
-              engine.argv[1] = NULL;
+            if (strncmp("DOME", header.magic1, 4) == 0 && strncmp("DOME", header.magic2, 4) == 0) {
+              if (header.version == 1) {
+                engine.tar = malloc(sizeof(mtar_t));
+                fuse_open(engine.tar, self, header.offset);
+                engine.argv[1] = NULL;
+              } else {
+                printf("DOME is in fused mode, but the data is corrupt.");
+                fclose(self);
+              }
             }
           }
         } else {
