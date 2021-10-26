@@ -161,7 +161,7 @@ MAP_freeFunctions(FUNCTION_NODE* node) {
   FUNCTION_NODE* nextNode;
   while (node != NULL) {
     nextNode = node->next;
-    free(node->signature);
+    free((char*) node->signature);
     free(node);
     node = nextNode;
   }
@@ -171,7 +171,7 @@ MAP_freeClasses(CLASS_NODE* node) {
   CLASS_NODE* nextNode;
   while (node != NULL) {
     nextNode = node->next;
-    free(node->name);
+    free((char*) node->name);
     free(node);
     node = nextNode;
   }
@@ -185,8 +185,8 @@ MAP_free(MAP* map) {
     MAP_freeFunctions(module->functions);
     MAP_freeClasses(module->classes);
     nextModule = module->next;
-    free(module->name);
-    free(module->source);
+    free((char*) module->name);
+    free((char*) module->source);
     free(module);
     module = nextModule;
   }
