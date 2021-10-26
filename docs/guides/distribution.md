@@ -22,6 +22,16 @@ Install NEST, and then navigate to your main game directory, before running the 
 > nest -z -o game.egg -- [files | directories]
 ```
 
+### Fused Mode
+
+Once you have a `.egg` file, you can embed it inside a DOME executable using the "fuse" feature. Run DOME from the command line like this:
+
+```
+> dome -f game.egg [destination file]
+```
+
+This creates a standalone executable which requires no other files to run. If you set a destination file, the resulting binary will be placed there. Otherwise, it'll be placed in the current working directory, as a file named `game` (or `game.exe` on Windows).
+
 ## Cross-Platform Distribution
 _(You can ignore this section if you are using pre-compiled DOME binaries.)_
 
@@ -86,4 +96,6 @@ To do this, you need to host the `dome.html` file and your `game.egg` file in th
 
 You may find that the performance of your game suffers when running in the browser, in which case it may not be suitable for playing in browsers.
 DOME's web engine does not currently support playing at full screen.
+
+
 
