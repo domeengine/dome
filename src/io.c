@@ -122,15 +122,13 @@ isDirectory(const char *path) {
 
 internal char*
 getExecutablePath() {
-  // TODO: This is the mac-centric version. We need a Windows and Linux version too
-  char* path = malloc(sizeof(char) * 32);
-  uint32_t size = sizeof(path);
-  int result = _NSGetExecutablePath(path, &size);
-  if (result != 0) {
-    path = realloc(path, size);
-    result = _NSGetExecutablePath(path, &size);
-    if (result != 0) {
-      path = NULL;
+  size_t size = wai_getExecutablePath(NULL, 0, NULL);
+  char* path = NULL;
+  if (size > 0) {
+    path = malloc(size + 1);
+    if (path != NULL) {
+      wai_getExecutablePath(path, size + 1, NULL);
+      path[size] = '\n';
     }
   }
   return path;

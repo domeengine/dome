@@ -91,8 +91,11 @@ endif
 
 
 CFLAGS = $(DOME_OPTS) -std=c99 -pedantic $(WARNING_FLAGS) -fvisibility=hidden
-ifneq ($(filter macosx,$(TAGS)),)
+ifneq ($(filter linux,$(TAGS)),)
+CFLAGS += -D_XOPEN_SOURCE=500
+else ifneq ($(filter macosx,$(TAGS)),)
 CFLAGS += -mmacosx-version-min=10.12
+CFLAGS += -D_DARWIN_C_SOURCE
 endif
 
 ifneq ($(filter release,$(TAGS)),)

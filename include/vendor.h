@@ -5,6 +5,7 @@
 #include <microtar/microtar.h>
 #include <json/pdjson.h>
 #include <mkdirp/mkdirp.h>
+#include <whereami/whereami.h>
 
 #define JO_GIF_HEADER_FILE_ONLY
 #include <jo_gif.h>
