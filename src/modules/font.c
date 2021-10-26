@@ -170,7 +170,7 @@ FONT_RASTER_getArea(WrenVM* vm) {
     int lsb;
     int oY, oX;
     stbtt_GetCodepointHMetrics(&info, codepoint, &ax, &lsb);
-    unsigned char* bitmap = stbtt_GetCodepointBitmap(&info, 0, scale, codepoint, &w, &h, &oX, &oY);
+    stbtt_GetCodepointBitmap(&info, 0, scale, codepoint, &w, &h, &oX, &oY);
 
     posX += oX;
     posX += ax * scale;
