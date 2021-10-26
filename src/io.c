@@ -120,20 +120,6 @@ isDirectory(const char *path) {
    return S_ISDIR(statbuf.st_mode) == 1;
 }
 
-internal char*
-getExecutablePath() {
-  size_t size = wai_getExecutablePath(NULL, 0, NULL);
-  char* path = NULL;
-  if (size > 0) {
-    path = malloc(size + 1);
-    if (path != NULL) {
-      wai_getExecutablePath(path, size + 1, NULL);
-      path[size] = '\n';
-    }
-  }
-  return path;
-}
-
 internal inline bool
 doesFileExist(char* path) {
   return access(path, F_OK) != -1;

@@ -16,8 +16,10 @@
 #include <json/pdjson.c>
 #include <mkdirp/mkdirp.c>
 
+#ifndef __EMSCRIPTEN__
 #include <whereami/whereami.h>
 #include <whereami/whereami.c>
+#endif
 
 // Set up STB_IMAGE
 #define STBI_FAILURE_USERMSG

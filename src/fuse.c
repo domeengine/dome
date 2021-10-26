@@ -1,8 +1,74 @@
+#ifndef __EMSCRIPTEN__
+
 typedef struct {
   FILE* fd;
   size_t offset;
 } FUSE_STREAM;
 
+
+internal char*
+getExecutablePath() {
+  char* path = NULL;
+  size_t size = wai_getExecutablePath(NULL, 0, NULL);
+  if (size > 0) {
+    path = malloc(size + 1);
+    if (path != NULL) {
+      wai_getExecutablePath(path, size, NULL);
+      path[size] = '\0';
+    }
+  }
+  return path;
+}
+
+int fuse(int argc, char* args[])
+{
+  if (argc < 2) {
+    fputs("Not enough arguments\n", stderr);
+    return EXIT_FAILURE;
+  }
+
+  char* fileName = args[2];
+  char* binaryPath = getExecutablePath();
+  if (binaryPath != NULL) {
+    // Check if end of file has marker
+
+    FILE* binary = fopen(binaryPath, "ab");
+    int result = fseek (binary, -sizeof(DOME_EGG_HEADER), SEEK_END);
+    DOME_EGG_HEADER header;
+    result = fread(&header, sizeof(DOME_EGG_HEADER), 1, binary);
+    fclose(binary);
+
+    if (result == 1) {
+      if (strncmp("DOME", header.magic2, 4) == 0) {
+        printf("This copy of DOME is already fused to an EGG file. Please use a fresh instance.");
+        return EXIT_FAILURE;
+      }
+    }
+    printf("Fusing...");
+    binary = fopen(binaryPath, "ab");
+    FILE* egg = fopen(fileName, "rb");
+    if (egg == NULL) {
+      printf("Error: %s\n", strerror(errno));
+      return EXIT_FAILURE;
+    }
+    int c;
+    uint64_t size = sizeof(DOME_EGG_HEADER);
+    while((c = fgetc(egg)) != EOF) {
+      fputc(c, binary);
+      size++;
+    }
+
+    strncpy(header.magic1, "DOME", 4);
+    strncpy(header.magic2, "DOME", 4);
+    header.version = 1;
+    header.offset = size;
+    fwrite(&header, sizeof(DOME_EGG_HEADER), 1, binary);
+    fclose(binary);
+    fclose(egg);
+  }
+  free(binaryPath);
+  return EXIT_SUCCESS;
+}
 
 int FUSE_read(mtar_t* tar, void *data, unsigned size) {
   FUSE_STREAM* stream = tar->stream;
@@ -43,3 +109,5 @@ int fuse_open(mtar_t* tar, FILE* fd, size_t offset) {
 
   return MTAR_ESUCCESS;
 }
+
+#endif
