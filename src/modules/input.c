@@ -475,7 +475,7 @@ CLIPBOARD_getContent(WrenVM* vm) {
 internal void
 CLIPBOARD_setContent(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "text");
-  char* text = wrenGetSlotString(vm, 1);
+  const char* text = wrenGetSlotString(vm, 1);
   int result = SDL_SetClipboardText(text);
   if (result < 0) {
     VM_ABORT(vm, SDL_GetError());
