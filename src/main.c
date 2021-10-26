@@ -605,7 +605,7 @@ int main(int argc, char* args[])
       if (binaryPath != NULL) {
         // Check if end of file has marker
         FILE* self = fopen(binaryPath, "rb");
-        int result = fseek (self, -sizeof(DOME_EGG_HEADER), SEEK_END);
+        int result = fseek (self, -((long int)sizeof(DOME_EGG_HEADER)), SEEK_END);
         if (result == 0) {
           DOME_EGG_HEADER header;
           result = fread(&header, sizeof(DOME_EGG_HEADER), 1, self);
