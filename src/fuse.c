@@ -30,7 +30,11 @@ int fuse(int argc, char* args[])
 
   char* fileName = args[2];
   // TODO: Derive output from input name
+#ifdef WIN32
+  char* outputFileName = "game.exe";
+#else
   char* outputFileName = "game";
+#endif
   if (argc == 4) {
     outputFileName = args[3];
   }
