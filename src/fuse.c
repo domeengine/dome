@@ -33,7 +33,7 @@ int fuse(int argc, char* args[])
     // Check if end of file has marker
 
     FILE* binary = fopen(binaryPath, "ab");
-    int result = fseek (binary, -sizeof(DOME_EGG_HEADER), SEEK_END);
+    int result = fseek (binary, -((long int)sizeof(DOME_EGG_HEADER)), SEEK_END);
     DOME_EGG_HEADER header;
     result = fread(&header, sizeof(DOME_EGG_HEADER), 1, binary);
     fclose(binary);
@@ -58,8 +58,8 @@ int fuse(int argc, char* args[])
       size++;
     }
 
-    strncpy(header.magic1, "DOME", 4);
-    strncpy(header.magic2, "DOME", 4);
+    memcpy(header.magic1, "DOME", 4);
+    memcpy(header.magic2, "DOME", 4);
     header.version = 1;
     header.offset = size;
     fwrite(&header, sizeof(DOME_EGG_HEADER), 1, binary);
