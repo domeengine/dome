@@ -14,7 +14,6 @@
 #include <windows.h>
 #endif
 #include <stdio.h>
-#include <fcntl.h>
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
