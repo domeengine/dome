@@ -39,8 +39,7 @@ int fuse(int argc, char* args[])
   if (binaryPath != NULL) {
     printf("Fusing...");
     FILE* binary = fopen(binaryPath, "rb");
-    int fd = open(outputFileName, O_RDWR | O_CREAT, 0777);
-    FILE* binaryOut = fdopen(fd, "w");
+    FILE* binaryOut = fopen(outputFileName, "wb");
     FILE* egg = fopen(fileName, "rb");
     if (egg == NULL) {
       printf("Error: %s\n", strerror(errno));
@@ -65,6 +64,7 @@ int fuse(int argc, char* args[])
     fclose(binaryOut);
     fclose(binary);
     fclose(egg);
+    chmod(outputFileName, 0777);
   }
   free(binaryPath);
   return EXIT_SUCCESS;
