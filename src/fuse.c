@@ -26,35 +26,34 @@ int fuse(int argc, char* args[])
     fputs("Not enough arguments\n", stderr);
     return EXIT_FAILURE;
   }
+  printf("%i\n", argc);
 
   char* fileName = args[2];
+  // TODO: Derive output from input name
+  char* outputFileName = "game";
+  if (argc == 4) {
+    outputFileName = args[3];
+  }
   char* binaryPath = getExecutablePath();
+  DOME_EGG_HEADER header;
   if (binaryPath != NULL) {
-    // Check if end of file has marker
-
-    FILE* binary = fopen(binaryPath, "ab");
-    int result = fseek (binary, -((long int)sizeof(DOME_EGG_HEADER)), SEEK_END);
-    DOME_EGG_HEADER header;
-    result = fread(&header, sizeof(DOME_EGG_HEADER), 1, binary);
-    fclose(binary);
-
-    if (result == 1) {
-      if (strncmp("DOME", header.magic2, 4) == 0) {
-        printf("This copy of DOME is already fused to an EGG file. Please use a fresh instance.");
-        return EXIT_FAILURE;
-      }
-    }
     printf("Fusing...");
-    binary = fopen(binaryPath, "ab");
+    FILE* binary = fopen(binaryPath, "rb");
+    int fd = open(outputFileName, O_RDWR | O_CREAT, 0777);
+    FILE* binaryOut = fdopen(fd, "w");
     FILE* egg = fopen(fileName, "rb");
     if (egg == NULL) {
       printf("Error: %s\n", strerror(errno));
       return EXIT_FAILURE;
     }
     int c;
+    fseek(binary, 0, SEEK_SET);
+    while((c = fgetc(binary)) != EOF) {
+      fputc(c, binaryOut);
+    }
     uint64_t size = sizeof(DOME_EGG_HEADER);
     while((c = fgetc(egg)) != EOF) {
-      fputc(c, binary);
+      fputc(c, binaryOut);
       size++;
     }
 
@@ -62,7 +61,8 @@ int fuse(int argc, char* args[])
     memcpy(header.magic2, "DOME", 4);
     header.version = 1;
     header.offset = size;
-    fwrite(&header, sizeof(DOME_EGG_HEADER), 1, binary);
+    fwrite(&header, sizeof(DOME_EGG_HEADER), 1, binaryOut);
+    fclose(binaryOut);
     fclose(binary);
     fclose(egg);
   }
