@@ -7,7 +7,7 @@ typedef struct {
 
 
 internal char*
-getExecutablePath() {
+FUSE_getExecutablePath() {
   char* path = NULL;
   size_t size = wai_getExecutablePath(NULL, 0, NULL);
   if (size > 0) {
@@ -20,7 +20,7 @@ getExecutablePath() {
   return path;
 }
 
-int fuse(int argc, char* args[])
+int FUSE_perform(int argc, char* args[])
 {
   if (argc < 3) {
     fputs("Not enough arguments\n", stderr);
@@ -36,7 +36,7 @@ int fuse(int argc, char* args[])
   if (argc == 4) {
     outputFileName = args[3];
   }
-  char* binaryPath = getExecutablePath();
+  char* binaryPath = FUSE_getExecutablePath();
   if (binaryPath != NULL) {
     FILE* binary = fopen(binaryPath, "rb");
     FILE* binaryOut = fopen(outputFileName, "wb");
@@ -103,7 +103,7 @@ int FUSE_close(mtar_t* tar) {
   return MTAR_ESUCCESS;
 }
 
-int fuse_open(mtar_t* tar, FILE* fd, size_t offset) {
+int FUSE_open(mtar_t* tar, FILE* fd, size_t offset) {
   FUSE_STREAM* stream = malloc(sizeof(FUSE_STREAM));
   if (stream == NULL) {
     return MTAR_EFAILURE;

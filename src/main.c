@@ -504,7 +504,7 @@ int main(int argc, char* args[])
         goto cleanup;
 #ifndef __EMSCRIPTEN__
       case 'f':
-        fuse(argc, args);
+        FUSE_perform(argc, args);
         goto cleanup;
 #endif
       case 'h':
@@ -601,7 +601,7 @@ int main(int argc, char* args[])
       }
     } else {
 #ifndef __EMSCRIPTEN__
-      char* binaryPath = getExecutablePath();
+      char* binaryPath = FUSE_getExecutablePath();
       if (binaryPath != NULL) {
         // Check if end of file has marker
         FILE* self = fopen(binaryPath, "rb");
@@ -613,7 +613,7 @@ int main(int argc, char* args[])
             if (strncmp("DOME", header.magic1, 4) == 0 && strncmp("DOME", header.magic2, 4) == 0) {
               if (header.version == 1) {
                 engine.tar = malloc(sizeof(mtar_t));
-                fuse_open(engine.tar, self, header.offset);
+                FUSE_open(engine.tar, self, header.offset);
                 engine.argv[1] = NULL;
               } else {
                 printf("DOME is in fused mode, but the data is corrupt.");
