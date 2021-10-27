@@ -82,16 +82,17 @@ var Game = Main.new()
 
 ## Modules
 
-DOME provides the following modules/methods/classes:
+DOME provides the following features, as more:
 
 - Graphics
   - Canvas
     - Rect
     - Point
     - Circle
+    - Ellipses
     - Lines
   - Color
-  - ImageData
+  - ImageData (aka Bitmap)
     - Draw sprites loaded from files (png)
 - Input
   - Keyboard
@@ -100,6 +101,7 @@ DOME provides the following modules/methods/classes:
 - Filesystem
   - File reading and writing
 - Audio (stereo and mono OGG and WAV files only)
+- Native Plugins (allowing access to all kinds of functionality!)
 
 ## TODO
 
@@ -107,9 +109,9 @@ You can follow my progress on implementing DOME on [my twitter](https://twitter.
 
 - Graphics
   - Triangles
+  - Potential 3D rendering mode?
 - IO
   - Asynchronous Operations
-  - Audio and Graphics also
 - Network Access
   - UDP
   - HTTP client (maybe)
