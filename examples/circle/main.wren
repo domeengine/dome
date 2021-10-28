@@ -1,7 +1,7 @@
 import "graphics" for Canvas, Color
 import "input" for Keyboard
 
-var T = Color.rgb(255, 255, 255)
+var T = Color.rgb(255, 255, 255, 128)
 
 class Main {
   construct new() {}
