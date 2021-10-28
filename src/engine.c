@@ -392,14 +392,15 @@ ENGINE_pget(ENGINE* engine, int64_t x, int64_t y) {
 
 inline internal void
 ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
+  CANVAS canvas = engine->canvas;
 
   // Account for canvas offset
-  x += engine->canvas.offsetX;
-  y += engine->canvas.offsetY;
+  x += canvas.offsetX;
+  y += canvas.offsetY;
 
   // Draw pixel at (x,y)
-  int32_t width = engine->canvas.width;
-  DOME_RECT zone = engine->canvas.clip;
+  int32_t width = canvas.width;
+  DOME_RECT zone = canvas.clip;
 
   uint8_t newA = ((0xFF000000 & c) >> 24);
 
@@ -407,7 +408,7 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
     return;
   } else if (zone.x <= x && x < zone.x + zone.w && zone.y <= y && y < zone.y + zone.h) {
     if (newA < 0xFF) {
-      uint32_t current = ((uint32_t*)(engine->canvas.pixels))[width * y + x];
+      uint32_t current = ((uint32_t*)(canvas.pixels))[width * y + x];
       double normA = newA / (double)UINT8_MAX;
       double diffA = 1 - normA;
 
@@ -425,7 +426,7 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 
     // This is a very hot line, so we use pointer arithmetic for
     // speed!
-    *(((uint32_t*)engine->canvas.pixels) + (width * y + x)) = c;
+    *(((uint32_t*)canvas.pixels) + (width * y + x)) = c;
   }
 }
 
