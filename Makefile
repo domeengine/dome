@@ -74,6 +74,9 @@ ifdef DOME_OPT_VERSION
 else
   DOME_OPTS += -DDOME_VERSION=\"$(shell git describe --tags)\"
 endif
+ifneq ($(filter windows,$(TAGS)),)
+  DOME_OPTS += -D__USE_MINGW_ANSI_STDIO=1
+endif
 
 SDL_CONFIG ?= $(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || (which "$(LIBS)/sdl2-config" 1>/dev/null && echo "$(LIBS)/sdl2-config" || echo ""))
 
@@ -91,8 +94,11 @@ endif
 
 
 CFLAGS = $(DOME_OPTS) -std=c99 -pedantic $(WARNING_FLAGS) -fvisibility=hidden
-ifneq ($(filter macosx,$(TAGS)),)
+ifneq ($(filter linux,$(TAGS)),)
+CFLAGS += -D_XOPEN_SOURCE=500
+else ifneq ($(filter macosx,$(TAGS)),)
 CFLAGS += -mmacosx-version-min=10.12
+CFLAGS += -D_DARWIN_C_SOURCE
 endif
 
 ifneq ($(filter release,$(TAGS)),)

@@ -98,6 +98,7 @@ global_variable size_t GIF_SCALE = 1;
 #include "engine.h"
 #include "util/font8x8.h"
 #include "io.c"
+#include "fuse.c"
 
 #include "audio/engine.h"
 #include "audio/hashmap.c"
@@ -377,6 +378,7 @@ printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "  dome [options]\n");
   ENGINE_printLog(engine, "  dome [options] [--] entry_path [arguments]\n");
   ENGINE_printLog(engine, "  dome -e | --embed sourceFile [moduleName] [destinationFile]\n");
+  ENGINE_printLog(engine, "  dome -f | --fuse sourceFile [destinationFile]\n");
   ENGINE_printLog(engine, "  dome -h | --help\n");
   ENGINE_printLog(engine, "  dome -v | --version\n");
   ENGINE_printLog(engine, "\nOptions: \n");
@@ -386,6 +388,7 @@ printUsage(ENGINE* engine) {
 #endif
   ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
   ENGINE_printLog(engine, "  -e --embed          Converts a Wren source file to a C include file.\n");
+  ENGINE_printLog(engine, "  -f --fuse           Creates a standalone copy of the DOME binary with <sourceFile> fused to it.\n");
   ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
   ENGINE_printLog(engine, "  -r --record=<gif>   Record video to <gif>.\n");
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
@@ -415,6 +418,8 @@ void DOME_loop(void* data) {
   }
   *((LOOP_STATE*)data) = loop;
 }
+
+
 
 int main(int argc, char* args[])
 {
@@ -452,6 +457,9 @@ int main(int argc, char* args[])
     {"help", 'h', OPTPARSE_NONE},
     {"record", 'r', OPTPARSE_OPTIONAL},
     {"scale", 's', OPTPARSE_REQUIRED},
+#ifndef __EMSCRIPTEN__
+    {"fuse", 'f', OPTPARSE_REQUIRED},
+#endif
     {"version", 'v', OPTPARSE_NONE},
     {0}
   };
@@ -494,6 +502,11 @@ int main(int argc, char* args[])
       case 'e':
         WRENEMBED_encodeAndDumpInDOME(argc, args);
         goto cleanup;
+#ifndef __EMSCRIPTEN__
+      case 'f':
+        FUSE_perform(argc, args);
+        goto cleanup;
+#endif
       case 'h':
         printTitle(&engine);
         printUsage(&engine);
@@ -586,6 +599,34 @@ int main(int argc, char* args[])
         free(engine.tar);
         engine.tar = NULL;
       }
+    } else {
+#ifndef __EMSCRIPTEN__
+      char* binaryPath = FUSE_getExecutablePath();
+      if (binaryPath != NULL) {
+        // Check if end of file has marker
+        FILE* self = fopen(binaryPath, "rb");
+        int result = fseek (self, -((long int)sizeof(DOME_FUSED_HEADER)), SEEK_END);
+        if (result == 0) {
+          DOME_FUSED_HEADER header;
+          result = fread(&header, sizeof(DOME_FUSED_HEADER), 1, self);
+          if (result == 1) {
+            if (memcmp("DOME", header.magic1, 4) == 0 && memcmp("DOME", header.magic2, 4) == 0) {
+              if (header.version == 1) {
+                engine.tar = malloc(sizeof(mtar_t));
+                FUSE_open(engine.tar, self, header.offset);
+                engine.argv[1] = NULL;
+              } else {
+                printf("DOME is in fused mode, but the data is corrupt.");
+                fclose(self);
+              }
+            }
+          }
+        } else {
+          fclose(self);
+        }
+      }
+      free(binaryPath);
+#endif
     }
 
     if (engine.tar != NULL) {

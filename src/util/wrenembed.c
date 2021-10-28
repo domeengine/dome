@@ -84,7 +84,7 @@ int WRENEMBED_encodeAndDump(int argc, char* args[])
   fputs("const char ", fp);
   fputs(moduleName, fp);
   fputs("[", fp);
-  fprintf(fp, "%li", length + 1);
+  fprintf(fp, "%zu", length + 1);
   fputs("] = {", fp);
 
   // Encode chars

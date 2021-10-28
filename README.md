@@ -82,16 +82,17 @@ var Game = Main.new()
 
 ## Modules
 
-DOME provides the following modules/methods/classes:
+DOME provides the following features, as more:
 
 - Graphics
   - Canvas
     - Rect
     - Point
     - Circle
+    - Ellipses
     - Lines
   - Color
-  - ImageData
+  - ImageData (aka Bitmap)
     - Draw sprites loaded from files (png)
 - Input
   - Keyboard
@@ -100,6 +101,7 @@ DOME provides the following modules/methods/classes:
 - Filesystem
   - File reading and writing
 - Audio (stereo and mono OGG and WAV files only)
+- Native Plugins (allowing access to all kinds of functionality!)
 
 ## TODO
 
@@ -107,9 +109,9 @@ You can follow my progress on implementing DOME on [my twitter](https://twitter.
 
 - Graphics
   - Triangles
+  - Potential 3D rendering mode?
 - IO
   - Asynchronous Operations
-  - Audio and Graphics also
 - Network Access
   - UDP
   - HTTP client (maybe)
@@ -132,6 +134,7 @@ DOME currently depends on a few libraries to achieve it's functions.
 - tinydir
 - [ABC_fifo](https://github.com/avivbeeri/abc) (A SPMC threadpool/task dispatching FIFO I wrote for this project)
 - mkdirp
+- whereami
 
 Apart from SDL2, all other dependancies are baked in or linked statically. DOME aspires to be both minimalist and cross platform, so it depends on as few external components as possible.
 
@@ -149,6 +152,7 @@ Apart from SDL2, all other dependancies are baked in or linked statically. DOME 
 - cxong for [tinydir](https://github.com/cxong/tinydir)
 - Jon Olick for [jo_gif](https://www.jonolick.com/home/gif-writer)
 - Stephen Mathieson for [mkdirp](https://github.com/stephenmathieson/mkdirp.c)
+- Gregory Pakosz for [whereami](https://github.com/gpakosz/whereami)
 
 
 ### Example Game Resources

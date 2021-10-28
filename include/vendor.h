@@ -6,6 +6,10 @@
 #include <json/pdjson.h>
 #include <mkdirp/mkdirp.h>
 
+#ifndef __EMSCRIPTEN__
+#include <whereami/whereami.h>
+#endif
+
 #define JO_GIF_HEADER_FILE_ONLY
 #include <jo_gif.h>
 

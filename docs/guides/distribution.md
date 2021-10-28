@@ -22,6 +22,16 @@ Install NEST, and then navigate to your main game directory, before running the 
 > nest -z -o game.egg -- [files | directories]
 ```
 
+### Fused Mode
+
+Depending on your needs, you might want to only distribute your application to your users as a single file. This is possible using DOME's "fuse" mode. Once you have a `.egg` file as described in the previous section, you can embed it inside a DOME executable using the "fuse" tool. Run DOME from the commandline like this:
+
+```
+> dome -f game.egg [destination file]
+```
+
+This creates a standalone executable which requires no other files to run. If you set a destination file, the resulting binary will be placed there. Otherwise, it'll be placed in the current working directory, as a file named `game` (or `game.exe` on Windows). This will only produce a binary for the current platform. You'll need to do this on each platform you want to distribute to.
+
 ## Cross-Platform Distribution
 _(You can ignore this section if you are using pre-compiled DOME binaries.)_
 
