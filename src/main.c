@@ -605,12 +605,12 @@ int main(int argc, char* args[])
       if (binaryPath != NULL) {
         // Check if end of file has marker
         FILE* self = fopen(binaryPath, "rb");
-        int result = fseek (self, -((long int)sizeof(DOME_EGG_HEADER)), SEEK_END);
+        int result = fseek (self, -((long int)sizeof(DOME_FUSED_HEADER)), SEEK_END);
         if (result == 0) {
-          DOME_EGG_HEADER header;
-          result = fread(&header, sizeof(DOME_EGG_HEADER), 1, self);
+          DOME_FUSED_HEADER header;
+          result = fread(&header, sizeof(DOME_FUSED_HEADER), 1, self);
           if (result == 1) {
-            if (strncmp("DOME", header.magic1, 4) == 0 && strncmp("DOME", header.magic2, 4) == 0) {
+            if (memcmp("DOME", header.magic1, 4) == 0 && memcmp("DOME", header.magic2, 4) == 0) {
               if (header.version == 1) {
                 engine.tar = malloc(sizeof(mtar_t));
                 FUSE_open(engine.tar, self, header.offset);

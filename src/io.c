@@ -1,15 +1,5 @@
 internal void FILESYSTEM_loadEventHandler(void* task);
 
-// This is an EOF header, so it is bottom-up
-#pragma pack(push, 1)
-typedef struct {
-  char magic1[4];
-  uint8_t version;
-  uint64_t offset;
-  char magic2[4];
-} DOME_EGG_HEADER;
-#pragma pack(pop)
-
 global_variable char* basePath = NULL;
 
 internal void

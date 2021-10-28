@@ -1,5 +1,15 @@
 #ifndef __EMSCRIPTEN__
 
+// This header is placed at the end of the file
+#pragma pack(push, 1)
+typedef struct {
+  uint8_t magic1[4];
+  uint8_t version;
+  uint64_t offset;
+  uint8_t magic2[4];
+} DOME_FUSED_HEADER;
+#pragma pack(pop)
+
 typedef struct {
   FILE* fd;
   size_t offset;
@@ -20,10 +30,9 @@ FUSE_getExecutablePath() {
   return path;
 }
 
-int FUSE_perform(int argc, char* args[])
-{
+int FUSE_perform(int argc, char* args[]) {
   if (argc < 3) {
-    fputs("Not enough arguments\n", stderr);
+    fprintf(stderr, "Not enough arguments\n");
     return EXIT_FAILURE;
   }
 
@@ -38,10 +47,12 @@ int FUSE_perform(int argc, char* args[])
   }
   char* binaryPath = FUSE_getExecutablePath();
   if (binaryPath != NULL) {
-    FILE* binary = fopen(binaryPath, "rb");
+    FILE* binaryIn = fopen(binaryPath, "rb");
+    free(binaryPath);
+    binaryPath = NULL;
     FILE* binaryOut = fopen(outputFileName, "wb");
-    if (binary == NULL || binaryOut == NULL) {
-      printf("Error: %s\n", strerror(errno));
+    if (binaryIn == NULL || binaryOut == NULL) {
+      perror("Error loading DOME binary");
       return EXIT_FAILURE;
     }
 
@@ -49,30 +60,37 @@ int FUSE_perform(int argc, char* args[])
     int tarResult = mtar_open(&tar, fileName, "rb");
     FILE* egg = tar.stream;
     if (tarResult != MTAR_ESUCCESS) {
-      printf("Could not fuse: %s is not a valid EGG file.", fileName);
+      fprintf(stderr, "Could not fuse: %s is not a valid EGG file.\n", fileName);
       return EXIT_FAILURE;
     }
 
     int c;
-    while((c = fgetc(binary)) != EOF) {
+    while((c = fgetc(binaryIn)) != EOF) {
       fputc(c, binaryOut);
     }
-    uint64_t size = sizeof(DOME_EGG_HEADER);
+    fclose(binaryIn);
+    uint64_t size = sizeof(DOME_FUSED_HEADER);
     while((c = fgetc(egg)) != EOF) {
       fputc(c, binaryOut);
       size++;
     }
+    mtar_close(&tar);
 
-    DOME_EGG_HEADER header;
+    DOME_FUSED_HEADER header;
     memcpy(header.magic1, "DOME", 4);
     memcpy(header.magic2, "DOME", 4);
     header.version = 1;
     header.offset = size;
-    fwrite(&header, sizeof(DOME_EGG_HEADER), 1, binaryOut);
+    fwrite(&header, sizeof(DOME_FUSED_HEADER), 1, binaryOut);
     fclose(binaryOut);
-    fclose(binary);
-    mtar_close(&tar);
-    chmod(outputFileName, 0777);
+
+    // Set permissions
+    // All owner permissions, everyone else reads and executes
+    int result = chmod(outputFileName, 0755);
+    if (result != 0) {
+      perror("Couldn't set permissions on the fused file");
+      return EXIT_FAILURE;
+    }
 
     printf("Fused '%s' into DOME successfully as '%s'", fileName, outputFileName);
   }
