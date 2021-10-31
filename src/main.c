@@ -84,7 +84,6 @@ global_variable bool DEBUG_MODE = true;
 global_variable bool DEBUG_MODE = false;
 #endif
 global_variable size_t AUDIO_BUFFER_SIZE = 2048;
-global_variable size_t GIF_SCALE = 1;
 
 
 
@@ -317,11 +316,6 @@ LOOP_flip(LOOP_STATE* state) {
   }
   // Flip Buffer to Screen
   SDL_UpdateTexture(state->engine->texture, 0, state->engine->canvas.pixels, state->engine->canvas.width * 4);
-  // Flip buffer for recording
-  if (state->engine->record.makeGif) {
-    size_t imageSize = state->engine->canvas.width * state->engine->canvas.height * 4;
-    memcpy(state->engine->record.gifPixels, state->engine->canvas.pixels, imageSize);
-  }
   // clear screen
   SDL_RenderClear(state->engine->renderer);
   SDL_RenderCopy(state->engine->renderer, state->engine->texture, NULL, NULL);
@@ -390,7 +384,6 @@ printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "  -e --embed          Converts a Wren source file to a C include file.\n");
   ENGINE_printLog(engine, "  -f --fuse           Creates a standalone copy of the DOME binary with <sourceFile> fused to it.\n");
   ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
-  ENGINE_printLog(engine, "  -r --record=<gif>   Record video to <gif>.\n");
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
 }
 
@@ -438,8 +431,6 @@ int main(int argc, char* args[])
 #ifdef __EMSCRIPTEN__
   emscripten_wget("game.egg", "game.egg");
 #endif
-  engine.record.gifName = "test.gif";
-  engine.record.makeGif = false;
   INIT_TO_ZERO(LOOP_STATE, loop);
   loop.FPS = 60;
   loop.MS_PER_FRAME = ceil(1000.0 / loop.FPS);
@@ -448,36 +439,32 @@ int main(int argc, char* args[])
   loop.engine = &engine;
 
   struct optparse_long longopts[] = {
-    {"buffer", 'b', OPTPARSE_REQUIRED},
+    {"help", 'h', OPTPARSE_NONE},
+    {"version", 'v', OPTPARSE_NONE},
     #ifdef __MINGW32__
     {"console", 'c', OPTPARSE_NONE},
     #endif
+    {"buffer", 'b', OPTPARSE_REQUIRED},
     {"debug", 'd', OPTPARSE_NONE},
     {"embed", 'e', OPTPARSE_NONE},
-    {"help", 'h', OPTPARSE_NONE},
-    {"record", 'r', OPTPARSE_OPTIONAL},
-    {"scale", 's', OPTPARSE_REQUIRED},
 #ifndef __EMSCRIPTEN__
     {"fuse", 'f', OPTPARSE_REQUIRED},
 #endif
-    {"version", 'v', OPTPARSE_NONE},
     {0}
   };
 
   int option;
   struct optparse options;
   optparse_init(&options, args);
+
+  // options.permute = 0;
+  char* otherArg = NULL;
+  if  ((otherArg = optparse_arg(&options)) != NULL) {
+    printf("%s\n", otherArg);
+  }
+  optparse_init(&options, args);
   while ((option = optparse_long(&options, longopts, NULL)) != -1) {
     switch (option) {
-      case 's':
-        {
-          int scale = atoi(options.optarg);
-          if (scale <= 0) {
-            // If it wasn't valid, set to a meaningful default.
-            GIF_SCALE = 1;
-          }
-          GIF_SCALE = scale;
-        } break;
       case 'b':
         {
           int shift = atoi(options.optarg);
@@ -511,15 +498,6 @@ int main(int argc, char* args[])
         printTitle(&engine);
         printUsage(&engine);
         goto cleanup;
-      case 'r':
-        engine.record.makeGif = true;
-        if (options.optarg != NULL) {
-          engine.record.gifName = options.optarg;
-        } else {
-          engine.record.gifName = "dome.gif";
-        }
-        ENGINE_printLog(&engine, "GIF Recording is enabled: Saving to %s\n", engine.record.gifName);
-        break;
       case 'v':
         printTitle(&engine);
         printVersion(&engine);
@@ -545,7 +523,6 @@ int main(int argc, char* args[])
     engine.argv[0] = args[0];
     engine.argv[1] = NULL;
     int domeArgCount = 1;
-    char* otherArg = NULL;
     while ((otherArg = optparse_arg(&options))) {
       engine.argv[domeArgCount] = otherArg;
       domeArgCount++;
@@ -669,8 +646,6 @@ int main(int argc, char* args[])
   loop.vm = vm;
 
   // Load user game file
-  SDL_Thread* recordThread = NULL;
-
   WrenHandle* initMethod = NULL;
 
   interpreterResult = wrenInterpret(vm, "main", gameFile);
@@ -707,10 +682,6 @@ int main(int argc, char* args[])
   SDL_SetWindowPosition(engine.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_ShowWindow(engine.window);
 
-  // Resizing from init must happen before we begin recording
-  if (engine.record.makeGif) {
-    recordThread = SDL_CreateThread(ENGINE_record, "DOMErecorder", &engine);
-  }
   loop.lag = loop.MS_PER_FRAME;
   result = LOOP_processInput(&loop);
   if (result != EXIT_SUCCESS) {
@@ -805,9 +776,6 @@ int main(int argc, char* args[])
   }
 
 vm_cleanup:
-  if (recordThread != NULL) {
-    SDL_WaitThread(recordThread, NULL);
-  }
   // Finish processing async threads so we can release resources
   ENGINE_finishAsync(&engine);
   SDL_Event event;
