@@ -33,7 +33,7 @@ void FUSE_usage(ENGINE* engine) {
   ENGINE_printLog(engine, "  dome fuse <source file> [<output file>] \n");
   ENGINE_printLog(engine, "  dome fuse [options] \n");
   ENGINE_printLog(engine, "\nOptions: \n");
-  ENGINE_printLog(engine, "  -h --help    Show this help message.");
+  ENGINE_printLog(engine, "  -h --help    Show this help message.\n");
   ENGINE_printLog(engine, "\n");
 }
 

@@ -108,7 +108,7 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "engine.c"
 #include "plugin.c"
 
-#include "fuse.c"
+#include "tools/fuse.c"
 
 #include "modules/dome.c"
 #include "modules/font.c"
