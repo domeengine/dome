@@ -97,7 +97,6 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "engine.h"
 #include "util/font8x8.h"
 #include "io.c"
-#include "fuse.c"
 
 #include "audio/engine.h"
 #include "audio/hashmap.c"
@@ -108,6 +107,8 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 
 #include "engine.c"
 #include "plugin.c"
+
+#include "fuse.c"
 
 #include "modules/dome.c"
 #include "modules/font.c"
@@ -458,7 +459,6 @@ int main(int argc, char* args[])
   struct optparse options;
   optparse_init(&options, args);
   options.permute = 0;
-  int subcommandIndex = -1;
   if (argc > 1) {
     while ((option = optparse_long(&options, longopts, NULL)) != -1) {
       switch (option) {
@@ -488,7 +488,7 @@ int main(int argc, char* args[])
                   goto cleanup;
 #ifndef __EMSCRIPTEN__
         case 'f':
-                  result = FUSE_perform(args);
+                  result = FUSE_perform(&engine, args);
                   goto cleanup;
 #endif
         case 'h':
@@ -508,7 +508,7 @@ int main(int argc, char* args[])
 
     static const struct {
       char name[8];
-      int (*cmd)(char **);
+      int (*cmd)(ENGINE*, char **);
     } cmds[] = {
       {"fuse",  FUSE_perform },
       // {"embed",  EMBED_perform },
@@ -519,7 +519,7 @@ int main(int argc, char* args[])
     // If we match a subcommand, execute it
     for (int i = 0; i < ncmds; i++) {
       if (!strcmp(cmds[i].name, subargv[0])) {
-        result = cmds[i].cmd(subargv);
+        result = cmds[i].cmd(&engine, subargv);
         goto cleanup;
       }
     }

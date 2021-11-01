@@ -35,7 +35,7 @@ void FUSE_usage() {
 
 }
 
-int FUSE_perform(char **argv) {
+int FUSE_perform(ENGINE* engine, char **argv) {
   struct optparse options;
   int option;
   optparse_init(&options, argv);
@@ -51,7 +51,7 @@ int FUSE_perform(char **argv) {
         FUSE_usage();
         return EXIT_SUCCESS;
       case '?':
-        fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);
+        ENGINE_printLog(engine, "%s: %s\n", argv[0], options.errmsg);
         return EXIT_FAILURE;
     }
   }
@@ -59,7 +59,7 @@ int FUSE_perform(char **argv) {
 
   char* fileName = optparse_arg(&options);
   if (fileName == NULL) {
-    fprintf(stderr, "Not enough arguments\n");
+    ENGINE_printLog(engine, "Not enough arguments\n");
     FUSE_usage();
     return EXIT_FAILURE;
   }
@@ -79,7 +79,7 @@ int FUSE_perform(char **argv) {
     binaryPath = NULL;
     FILE* binaryOut = fopen(outputFileName, "wb");
     if (binaryIn == NULL || binaryOut == NULL) {
-      perror("Error loading DOME binary");
+      ENGINE_printLog(engine, "Error loading DOME binary: %s \n", strerror(errno));
       return EXIT_FAILURE;
     }
 
@@ -87,7 +87,7 @@ int FUSE_perform(char **argv) {
     int tarResult = mtar_open(&tar, fileName, "rb");
     FILE* egg = tar.stream;
     if (tarResult != MTAR_ESUCCESS) {
-      fprintf(stderr, "Could not fuse: %s is not a valid EGG file.\n", fileName);
+      ENGINE_printLog(engine, "Could not fuse: %s is not a valid EGG file.\n", fileName);
       return EXIT_FAILURE;
     }
 
@@ -115,7 +115,7 @@ int FUSE_perform(char **argv) {
     // All owner permissions, everyone else reads and executes
     int result = chmod(outputFileName, 0755);
     if (result != 0) {
-      perror("Couldn't set permissions on the fused file");
+      ENGINE_printLog(engine, "Couldn't set permissions on the fused file: %s\n", strerror(errno));
       return EXIT_FAILURE;
     }
 
