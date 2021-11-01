@@ -95,7 +95,7 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 
 #include "plugin.h"
 #include "engine.h"
-#include "util/font8x8.h"
+#include "font/font8x8.h"
 #include "io.c"
 
 #include "audio/engine.h"
@@ -109,6 +109,7 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "plugin.c"
 
 #include "tools/fuse.c"
+#include "tools/wrenembed.c"
 
 #include "modules/dome.c"
 #include "modules/font.c"
@@ -121,7 +122,6 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "modules/platform.c"
 #include "modules/random.c"
 #include "modules/plugin.c"
-#include "util/wrenembed.c"
 
 
 // Comes last to register modules

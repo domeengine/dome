@@ -1,5 +1,5 @@
 #!/bin/bash
-cd src/util
+cd src/tools
 
 gcc embed.c -o embed -std=gnu99
 

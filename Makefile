@@ -4,7 +4,7 @@ LIBS=lib
 OBJS=obj
 INCLUDES=include
 SOURCE_FILES = $(shell find src -type f)
-UTILS = $(SOURCE)/util
+TOOLS = $(SOURCE)/tools
 MODULES=$(SOURCE)/modules
 SCRIPTS=scripts
 
@@ -178,7 +178,7 @@ $(WREN_LIB): $(LIBS)/wren
 	@echo "==== Building Wren ===="
 	./scripts/setup_wren.sh $(WREN_PARAMS)
 
-$(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
+$(MODULES)/*.inc: $(TOOLS)/embed.c $(MODULES)/*.wren
 	@echo "==== Building DOME modules  ===="
 	./scripts/generateEmbedModules.sh
 
