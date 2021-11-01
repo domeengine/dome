@@ -110,6 +110,7 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 
 #include "tools/fuse.c"
 #include "tools/embed.c"
+#include "tools/nest.c"
 
 #include "modules/dome.c"
 #include "modules/font.c"
@@ -499,7 +500,7 @@ int main(int argc, char* args[])
     } cmds[] = {
       {"fuse",  FUSE_perform },
       {"embed",  EMBED_perform },
-      // {"nest", NEST_perform },
+      {"nest", NEST_perform }
     };
     int ncmds = sizeof(cmds) / sizeof(*cmds);
     subargv = args + options.optind;

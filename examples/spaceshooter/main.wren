@@ -45,8 +45,8 @@ class Main {
     }
   }
 
-  draw(dt) {
-    _state.draw(dt)
+  draw(alpha) {
+    _state.draw(alpha)
     var pos = Mouse.pos
     if (Mouse.isButtonPressed("right")) {
       Canvas.pset(pos.x, pos.y, Color.orange)
@@ -77,7 +77,7 @@ class Explosion {
 
 class Star {
   construct new() {
-    _x = OurRandom.int(Canvas.width)
+    _x = OurRandom.int(Canvas.wialphah)
     _y = OurRandom.int(Canvas.height)
     _s = OurRandom.float()
   }
@@ -88,13 +88,13 @@ class Star {
   update() {
     _y = _y + 0.25 + _s
     if (_y > Canvas.height) {
-      _x = OurRandom.int(Canvas.width)
+      _x = OurRandom.int(Canvas.wialphah)
       _y = 0
     }
   }
 
-  draw(dt) {
-    Canvas.pset(_x, _y + dt*(0.25+_s), Color.lightgray)
+  draw(alpha) {
+    Canvas.pset(_x, _y + alpha*(0.25+_s), Color.lightgray)
   }
 }
 
@@ -119,9 +119,9 @@ class Bullet {
     _y = _y - 3
   }
 
-  draw(dt) {
+  draw(alpha) {
     var color = Color.white
-    var y = _y + 3*dt
+    var y = _y + 3*alpha
     Canvas.rectfill(_x, y, 2, 2, Color.white)
     Canvas.rectfill(_x, y+2, 2, 4, Color.darkgray)
   }
@@ -149,9 +149,9 @@ class Enemy {
     _y = _y + 1
   }
 
-  draw(dt) {
+  draw(alpha) {
     if (alive) {
-      Canvas.draw(_image, x, y+dt)
+      Canvas.draw(_image, x, y+alpha)
     }
   }
 }
@@ -159,7 +159,7 @@ class Enemy {
 
 class Ship {
   construct new() {
-    _x = Canvas.width / 2
+    _x = Canvas.wialphah / 2
     _y = Canvas.height - 20
     _imm = false
     _health = 3
@@ -225,7 +225,7 @@ class MainGame {
     }
 
     for (i in 0...5) {
-      __enemies.add(Enemy.new(OurRandom.int(Canvas.width), -OurRandom.int(30)))
+      __enemies.add(Enemy.new(OurRandom.int(Canvas.wialphah), -OurRandom.int(30)))
     }
     __lastFire = 0
     __heart = ImageData.loadFromFile("res/heart-full.png")
@@ -256,7 +256,7 @@ class MainGame {
     }
     if (!__resized && Keyboard.isKeyDown("c")) {
       __resized = true
-      if (Canvas.width != 64) {
+      if (Canvas.wialphah != 64) {
         Canvas.resize(64, 64)
         Window.resize(64 * 2, 64 * 2)
       } else {
@@ -335,7 +335,7 @@ class MainGame {
     __enemies = __enemies.where {|enemy|
       var isAlive = enemy.alive && enemy.y < Canvas.height
       if (!isAlive) {
-        __enemies.add(Enemy.new(OurRandom.int(Canvas.width), 0))
+        __enemies.add(Enemy.new(OurRandom.int(Canvas.wialphah), 0))
       }
       return isAlive
     }.toList
@@ -359,11 +359,11 @@ class MainGame {
       box1.y2 > box2.y1
   }
 
-  static draw(dt) {
+  static draw(alpha) {
     Canvas.cls()
-    __stars.each {|star| star.draw(dt) }
-    __enemies.each {|enemy| enemy.draw(dt) }
-    __bullets.each {|bullet| bullet.draw(dt) }
+    __stars.each {|star| star.draw(alpha) }
+    __enemies.each {|enemy| enemy.draw(alpha) }
+    __bullets.each {|bullet| bullet.draw(alpha) }
     __ship.draw(__t)
     __explosions.each {|explosion| explosion.draw() }
 
@@ -399,7 +399,7 @@ class GameOverState {
     }
   }
 
-  static draw(dt) {
+  static draw(alpha) {
     Canvas.cls()
     Canvas.print("Game Over", 160-27, 120-3, Color.white)
   }
