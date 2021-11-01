@@ -42,6 +42,8 @@ int FUSE_perform(char **argv) {
   options.permute = 0;
   struct optparse_long longopts[] = {
     {"help", 'h', OPTPARSE_NONE},
+    {"fuse", 'f', OPTPARSE_NONE},
+    {0}
   };
   while ((option = optparse_long(&options, longopts, NULL)) != -1) {
     switch (option) {

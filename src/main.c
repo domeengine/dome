@@ -454,9 +454,11 @@ int main(int argc, char* args[])
   };
 
   int option;
+  char **subargv = NULL;
   struct optparse options;
   optparse_init(&options, args);
   options.permute = 0;
+  int subcommandIndex = -1;
   if (argc > 1) {
     while ((option = optparse_long(&options, longopts, NULL)) != -1) {
       switch (option) {
@@ -504,7 +506,6 @@ int main(int argc, char* args[])
       }
     }
 
-    char **subargv = NULL;
     static const struct {
       char name[8];
       int (*cmd)(char **);
@@ -514,9 +515,8 @@ int main(int argc, char* args[])
       // {"nest", NEST_perform },
     };
     int ncmds = sizeof(cmds) / sizeof(*cmds);
-
-    // If we match a subcommand, execute it
     subargv = args + options.optind;
+    // If we match a subcommand, execute it
     for (int i = 0; i < ncmds; i++) {
       if (!strcmp(cmds[i].name, subargv[0])) {
         result = cmds[i].cmd(subargv);
