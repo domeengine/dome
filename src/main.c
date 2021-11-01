@@ -372,7 +372,6 @@ printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "  dome [options]\n");
   ENGINE_printLog(engine, "  dome [options] [--] entry_path [arguments]\n");
   ENGINE_printLog(engine, "  dome -e | --embed sourceFile [moduleName] [destinationFile]\n");
-  ENGINE_printLog(engine, "  dome -f | --fuse sourceFile [destinationFile]\n");
   ENGINE_printLog(engine, "  dome -h | --help\n");
   ENGINE_printLog(engine, "  dome -v | --version\n");
   ENGINE_printLog(engine, "\nOptions: \n");
@@ -382,7 +381,6 @@ printUsage(ENGINE* engine) {
 #endif
   ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
   ENGINE_printLog(engine, "  -e --embed          Converts a Wren source file to a C include file.\n");
-  ENGINE_printLog(engine, "  -f --fuse           Creates a standalone copy of the DOME binary with <sourceFile> fused to it.\n");
   ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
 }
@@ -448,9 +446,6 @@ int main(int argc, char* args[])
     {"debug", 'd', OPTPARSE_NONE},
     // subcommands
     {"embed", 'e', OPTPARSE_NONE},
-#ifndef __EMSCRIPTEN__
-    {"fuse", 'f', OPTPARSE_REQUIRED},
-#endif
     {0}
   };
 
@@ -486,11 +481,6 @@ int main(int argc, char* args[])
         case 'e':
                   result = WRENEMBED_encodeAndDumpInDOME(argc, args);
                   goto cleanup;
-#ifndef __EMSCRIPTEN__
-        case 'f':
-                  result = FUSE_perform(&engine, args);
-                  goto cleanup;
-#endif
         case 'h':
                   printTitle(&engine);
                   printUsage(&engine);
@@ -596,7 +586,6 @@ int main(int argc, char* args[])
         engine.tar = NULL;
       }
     } else {
-#ifndef __EMSCRIPTEN__
       char* binaryPath = FUSE_getExecutablePath();
       if (binaryPath != NULL) {
         // Check if end of file has marker
@@ -622,7 +611,6 @@ int main(int argc, char* args[])
         }
       }
       free(binaryPath);
-#endif
     }
 
     if (engine.tar != NULL) {

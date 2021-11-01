@@ -1,6 +1,3 @@
-#ifndef __EMSCRIPTEN__
-
-
 // This header is placed at the end of the file
 #pragma pack(push, 1)
 typedef struct {
@@ -31,8 +28,13 @@ FUSE_getExecutablePath() {
   return path;
 }
 
-void FUSE_usage() {
-
+void FUSE_usage(ENGINE* engine) {
+  ENGINE_printLog(engine, "\nUsage: \n");
+  ENGINE_printLog(engine, "  dome fuse <source file> [<output file>] \n");
+  ENGINE_printLog(engine, "  dome fuse [options] \n");
+  ENGINE_printLog(engine, "\nOptions: \n");
+  ENGINE_printLog(engine, "  -h --help    Show this help message.");
+  ENGINE_printLog(engine, "\n");
 }
 
 int FUSE_perform(ENGINE* engine, char **argv) {
@@ -42,16 +44,15 @@ int FUSE_perform(ENGINE* engine, char **argv) {
   options.permute = 0;
   struct optparse_long longopts[] = {
     {"help", 'h', OPTPARSE_NONE},
-    {"fuse", 'f', OPTPARSE_NONE},
     {0}
   };
   while ((option = optparse_long(&options, longopts, NULL)) != -1) {
     switch (option) {
       case 'h':
-        FUSE_usage();
+        FUSE_usage(engine);
         return EXIT_SUCCESS;
       case '?':
-        ENGINE_printLog(engine, "%s: %s\n", argv[0], options.errmsg);
+        ENGINE_printLog(engine, "dome: %s: %s\n", argv[0], options.errmsg);
         return EXIT_FAILURE;
     }
   }
@@ -59,8 +60,8 @@ int FUSE_perform(ENGINE* engine, char **argv) {
 
   char* fileName = optparse_arg(&options);
   if (fileName == NULL) {
-    ENGINE_printLog(engine, "Not enough arguments\n");
-    FUSE_usage();
+    ENGINE_printLog(engine, "dome: Missing file name.\n");
+    FUSE_usage(engine);
     return EXIT_FAILURE;
   }
   char* outputFileName = optparse_arg(&options);
@@ -79,7 +80,7 @@ int FUSE_perform(ENGINE* engine, char **argv) {
     binaryPath = NULL;
     FILE* binaryOut = fopen(outputFileName, "wb");
     if (binaryIn == NULL || binaryOut == NULL) {
-      ENGINE_printLog(engine, "Error loading DOME binary: %s \n", strerror(errno));
+      ENGINE_printLog(engine, "dome: Error loading DOME binary: %s \n", strerror(errno));
       return EXIT_FAILURE;
     }
 
@@ -87,7 +88,7 @@ int FUSE_perform(ENGINE* engine, char **argv) {
     int tarResult = mtar_open(&tar, fileName, "rb");
     FILE* egg = tar.stream;
     if (tarResult != MTAR_ESUCCESS) {
-      ENGINE_printLog(engine, "Could not fuse: %s is not a valid EGG file.\n", fileName);
+      ENGINE_printLog(engine, "dome: Could not fuse: %s is not a valid EGG file.\n", fileName);
       return EXIT_FAILURE;
     }
 
@@ -115,7 +116,7 @@ int FUSE_perform(ENGINE* engine, char **argv) {
     // All owner permissions, everyone else reads and executes
     int result = chmod(outputFileName, 0755);
     if (result != 0) {
-      ENGINE_printLog(engine, "Couldn't set permissions on the fused file: %s\n", strerror(errno));
+      ENGINE_printLog(engine, "dome: Couldn't set permissions on the fused file: %s\n", strerror(errno));
       return EXIT_FAILURE;
     }
 
@@ -164,5 +165,3 @@ int FUSE_open(mtar_t* tar, FILE* fd, size_t offset) {
 
   return MTAR_ESUCCESS;
 }
-
-#endif
