@@ -1,5 +1,6 @@
 #ifndef __EMSCRIPTEN__
 
+
 // This header is placed at the end of the file
 #pragma pack(push, 1)
 typedef struct {
@@ -30,21 +31,45 @@ FUSE_getExecutablePath() {
   return path;
 }
 
-int FUSE_perform(int argc, char* args[]) {
-  if (argc < 3) {
+void FUSE_usage() {
+
+}
+
+int FUSE_perform(char **argv) {
+  struct optparse options;
+  int option;
+  optparse_init(&options, argv);
+  options.permute = 0;
+  struct optparse_long longopts[] = {
+    {"help", 'h', OPTPARSE_NONE},
+  };
+  while ((option = optparse_long(&options, longopts, NULL)) != -1) {
+    switch (option) {
+      case 'h':
+        FUSE_usage();
+        return EXIT_SUCCESS;
+      case '?':
+        fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);
+        return EXIT_FAILURE;
+    }
+  }
+  argv += options.optind;
+
+  char* fileName = optparse_arg(&options);
+  if (fileName == NULL) {
     fprintf(stderr, "Not enough arguments\n");
+    FUSE_usage();
     return EXIT_FAILURE;
   }
-
-  char* fileName = args[2];
+  char* outputFileName = optparse_arg(&options);
+  if (outputFileName == NULL) {
 #if defined _WIN32 || __MINGW32__
-  char* outputFileName = "game.exe";
+    outputFileName = "game.exe";
 #else
-  char* outputFileName = "game";
+    outputFileName = "game";
 #endif
-  if (argc == 4) {
-    outputFileName = args[3];
   }
+
   char* binaryPath = FUSE_getExecutablePath();
   if (binaryPath != NULL) {
     FILE* binaryIn = fopen(binaryPath, "rb");

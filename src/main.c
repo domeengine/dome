@@ -27,7 +27,7 @@
 #include <time.h>
 #include <math.h>
 #ifndef M_PI
-  #define M_PI 3.14159265358979323846
+#define M_PI 3.14159265358979323846
 #endif
 
 #include <wren.h>
@@ -170,8 +170,7 @@ LOOP_processInput(LOOP_STATE* state) {
   SDL_Event event;
   INPUT_clearText(vm);
   while(SDL_PollEvent(&event)) {
-    switch (event.type)
-    {
+    switch (event.type) {
       case SDL_QUIT:
         engine->running = false;
         break;
@@ -441,11 +440,12 @@ int main(int argc, char* args[])
   struct optparse_long longopts[] = {
     {"help", 'h', OPTPARSE_NONE},
     {"version", 'v', OPTPARSE_NONE},
-    #ifdef __MINGW32__
+#ifdef __MINGW32__
     {"console", 'c', OPTPARSE_NONE},
-    #endif
+#endif
     {"buffer", 'b', OPTPARSE_REQUIRED},
     {"debug", 'd', OPTPARSE_NONE},
+    // subcommands
     {"embed", 'e', OPTPARSE_NONE},
 #ifndef __EMSCRIPTEN__
     {"fuse", 'f', OPTPARSE_REQUIRED},
@@ -456,59 +456,77 @@ int main(int argc, char* args[])
   int option;
   struct optparse options;
   optparse_init(&options, args);
-
-  // options.permute = 0;
-  char* otherArg = NULL;
-  if  ((otherArg = optparse_arg(&options)) != NULL) {
-    printf("%s\n", otherArg);
-  }
-  optparse_init(&options, args);
-  while ((option = optparse_long(&options, longopts, NULL)) != -1) {
-    switch (option) {
-      case 'b':
-        {
-          int shift = atoi(options.optarg);
-          if (shift == 0) {
-            // If it wasn't valid, set to a meaningful default.
-            AUDIO_BUFFER_SIZE = 2048;
-          }
-          AUDIO_BUFFER_SIZE = 1 << shift;
-        } break;
+  options.permute = 0;
+  if (argc > 1) {
+    while ((option = optparse_long(&options, longopts, NULL)) != -1) {
+      switch (option) {
+        case 'b':
+          {
+            int shift = atoi(options.optarg);
+            if (shift == 0) {
+              // If it wasn't valid, set to a meaningful default.
+              AUDIO_BUFFER_SIZE = 2048;
+            }
+            AUDIO_BUFFER_SIZE = 1 << shift;
+          } break;
 #ifdef __MINGW32__
-      case 'c': {
-          AllocConsole();
-          freopen("CONIN$", "r", stdin);
-          freopen("CONOUT$", "w", stdout);
-          freopen("CONOUT$", "w", stderr);
-      } break;
+        case 'c': {
+                    AllocConsole();
+                    freopen("CONIN$", "r", stdin);
+                    freopen("CONOUT$", "w", stdout);
+                    freopen("CONOUT$", "w", stderr);
+                  } break;
 #endif
-      case 'd':
-        DEBUG_MODE = true;
-        ENGINE_printLog(&engine, "Debug Mode enabled\n");
-        break;
-      case 'e':
-        WRENEMBED_encodeAndDumpInDOME(argc, args);
-        goto cleanup;
+        case 'd':
+                  DEBUG_MODE = true;
+                  ENGINE_printLog(&engine, "Debug Mode enabled\n");
+                  break;
+        case 'e':
+                  result = WRENEMBED_encodeAndDumpInDOME(argc, args);
+                  goto cleanup;
 #ifndef __EMSCRIPTEN__
-      case 'f':
-        FUSE_perform(argc, args);
-        goto cleanup;
+        case 'f':
+                  result = FUSE_perform(args);
+                  goto cleanup;
 #endif
-      case 'h':
-        printTitle(&engine);
-        printUsage(&engine);
+        case 'h':
+                  printTitle(&engine);
+                  printUsage(&engine);
+                  goto cleanup;
+        case 'v':
+                  printTitle(&engine);
+                  printVersion(&engine);
+                  goto cleanup;
+        case '?':
+                  fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
+                  result = EXIT_FAILURE;
+                  goto cleanup;
+      }
+    }
+
+    char **subargv = NULL;
+    static const struct {
+      char name[8];
+      int (*cmd)(char **);
+    } cmds[] = {
+      {"fuse",  FUSE_perform },
+      // {"embed",  EMBED_perform },
+      // {"nest", NEST_perform },
+    };
+    int ncmds = sizeof(cmds) / sizeof(*cmds);
+
+    // If we match a subcommand, execute it
+    subargv = args + options.optind;
+    for (int i = 0; i < ncmds; i++) {
+      if (!strcmp(cmds[i].name, subargv[0])) {
+        result = cmds[i].cmd(subargv);
         goto cleanup;
-      case 'v':
-        printTitle(&engine);
-        printVersion(&engine);
-        goto cleanup;
-      case '?':
-        fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
-        result = EXIT_FAILURE;
-        goto cleanup;
+      }
     }
   }
 
+
+  // assume we are trying to play the game
   {
     char* defaultEggName = "game.egg";
     char* mainFileName = "main.wren";
@@ -523,6 +541,7 @@ int main(int argc, char* args[])
     engine.argv[0] = args[0];
     engine.argv[1] = NULL;
     int domeArgCount = 1;
+    char* otherArg = NULL;
     while ((otherArg = optparse_arg(&options))) {
       engine.argv[domeArgCount] = otherArg;
       domeArgCount++;
@@ -689,9 +708,9 @@ int main(int argc, char* args[])
   }
   loop.windowBlurred = false;
   loop.previousTime = SDL_GetPerformanceCounter();
-  #ifdef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
   emscripten_set_main_loop_arg(DOME_loop, &loop, 0, true);
-  #endif
+#endif
   while (engine.running) {
 
     // processInput()
