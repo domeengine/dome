@@ -109,7 +109,7 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "plugin.c"
 
 #include "tools/fuse.c"
-#include "tools/wrenembed.c"
+#include "tools/embed.c"
 
 #include "modules/dome.c"
 #include "modules/font.c"
@@ -478,9 +478,6 @@ int main(int argc, char* args[])
                   DEBUG_MODE = true;
                   ENGINE_printLog(&engine, "Debug Mode enabled\n");
                   break;
-        case 'e':
-                  result = WRENEMBED_encodeAndDumpInDOME(argc, args);
-                  goto cleanup;
         case 'h':
                   printTitle(&engine);
                   printUsage(&engine);
@@ -501,7 +498,7 @@ int main(int argc, char* args[])
       int (*cmd)(ENGINE*, char **);
     } cmds[] = {
       {"fuse",  FUSE_perform },
-      // {"embed",  EMBED_perform },
+      {"embed",  EMBED_perform },
       // {"nest", NEST_perform },
     };
     int ncmds = sizeof(cmds) / sizeof(*cmds);

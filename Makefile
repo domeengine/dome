@@ -163,7 +163,7 @@ LDFLAGS += $(DEPS)
 
 
 # Build Rules
-PROJECTS := dome.bin
+PROJECTS := dome.bin modules
 .PHONY: all clean reset cloc $(PROJECTS)
 
 all: $(PROJECTS)
@@ -178,9 +178,14 @@ $(WREN_LIB): $(LIBS)/wren
 	@echo "==== Building Wren ===="
 	./scripts/setup_wren.sh $(WREN_PARAMS)
 
-$(MODULES)/*.inc: $(TOOLS)/embed.c $(MODULES)/*.wren
+$(TOOLS)/embed: $(TOOLS)/embed-standalone.c $(TOOLS)/embedlib.c
+	$(CC) -o $(TOOLS)/embed -std=gnu99 $(TOOLS)/embed-standalone.c
+
+$(MODULES)/*.inc: $(TOOLS)/embed $(MODULES)/*.wren
 	@echo "==== Building DOME modules  ===="
 	./scripts/generateEmbedModules.sh
+
+modules: $(MODULES)/*.inc
 
 $(OBJS)/glibc_compat.o: $(INCLUDES)/glibc_compat.c
 	@mkdir -p $(OBJS)
