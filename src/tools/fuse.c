@@ -53,6 +53,7 @@ int FUSE_perform(ENGINE* engine, char **argv) {
         return EXIT_SUCCESS;
       case '?':
         ENGINE_printLog(engine, "dome: %s: %s\n", argv[0], options.errmsg);
+        FUSE_usage(engine);
         return EXIT_FAILURE;
     }
   }

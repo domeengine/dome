@@ -1,7 +1,12 @@
 #include "embedlib.c"
 
 void EMBED_usage(ENGINE* engine) {
-  fputs("dome -e | --embed sourceFile [moduleName] [destinationFile]\n", stderr);
+  ENGINE_printLog(engine, "\nUsage: \n");
+  ENGINE_printLog(engine, "  dome embed <source file> [<variable>] [<output file>] \n");
+  ENGINE_printLog(engine, "  dome embed [options] \n");
+  ENGINE_printLog(engine, "\nOptions: \n");
+  ENGINE_printLog(engine, "  -h --help    Show this help message.\n");
+  ENGINE_printLog(engine, "\n");
 }
 
 int EMBED_perform(ENGINE* engine, char** argv) {
@@ -21,6 +26,7 @@ int EMBED_perform(ENGINE* engine, char** argv) {
         return EXIT_SUCCESS;
       case '?':
         ENGINE_printLog(engine, "dome: %s: %s\n", argv[0], options.errmsg);
+        EMBED_usage(engine);
         return EXIT_FAILURE;
     }
   }
