@@ -50,18 +50,15 @@ int NEST_packDirectory(ENGINE* engine, mtar_t* tar, char* directory, size_t star
         tinydir_next(&dir);
         continue;
       }
+#if !defined(_WIN32) || !defined(__MINGW32__)
       struct stat info;
-#if defined _WIN32 || __MINGW32__
-      stat(path, &info);
-#else
       lstat(path, &info);
-#endif
-
       if (S_ISLNK(info.st_mode)) {
         ENGINE_printLog(engine, "Skipping symlink: %s\n", path);
         tinydir_next(&dir);
         continue;
       }
+#endif
 
       if (file.is_dir) {
         result = NEST_packDirectory(engine, tar, path, start);
@@ -149,12 +146,15 @@ int NEST_perform(ENGINE* engine, char **argv) {
       /* Is this a file or directory? */
       struct stat info;
       stat(path, &info);
+#if !defined(_WIN32) || !defined(__MINGW32__)
       bool isLink = S_ISLNK(info.st_mode);
-      bool isFile = S_ISREG(info.st_mode);
       if (isLink) {
         ENGINE_printLog(engine, "Ignoring symlink: %s\n", path);
         continue;
-      } else if (isFile) {
+      }
+#endif
+      bool isFile = S_ISREG(info.st_mode);
+      if (isFile) {
         if (!DOT_FILES && path[0] == '.' && path[1] != '.' ) {
           continue;
         }
