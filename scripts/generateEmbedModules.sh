@@ -1,8 +1,6 @@
 #!/bin/bash
 cd src/tools
 
-gcc embed-standalone.c -o embed -std=gnu99
-
 declare -a arr=(
 "stringUtils"
 "dome"
