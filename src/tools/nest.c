@@ -50,6 +50,13 @@ int NEST_packDirectory(ENGINE* engine, mtar_t* tar, char* directory, size_t star
         tinydir_next(&dir);
         continue;
       }
+      struct stat info;
+      lstat(path, &info);
+      if (S_ISLNK(info.st_mode)) {
+        ENGINE_printLog(engine, "Skipping symlink: %s\n", path);
+        tinydir_next(&dir);
+        continue;
+      }
 
       if (file.is_dir) {
         result = NEST_packDirectory(engine, tar, path, start);
