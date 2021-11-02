@@ -51,7 +51,12 @@ int NEST_packDirectory(ENGINE* engine, mtar_t* tar, char* directory, size_t star
         continue;
       }
       struct stat info;
+#if defined _WIN32 || __MINGW32__
+      stat(path, &info);
+#else
       lstat(path, &info);
+#endif
+
       if (S_ISLNK(info.st_mode)) {
         ENGINE_printLog(engine, "Skipping symlink: %s\n", path);
         tinydir_next(&dir);
