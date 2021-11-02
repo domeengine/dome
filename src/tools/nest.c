@@ -29,43 +29,42 @@ int NEST_writeFile(ENGINE* engine, mtar_t* tar, char* filePath, char* tarPath) {
 }
 
 int NEST_packDirectory(ENGINE* engine, mtar_t* tar, char* directory, size_t start) {
-  struct dirent* de = NULL;
-  DIR* dr = opendir(directory);
-  if (dr == NULL) {
-    ENGINE_printLog(engine, "dome: Could not open directory %s\n", directory);
-    return EXIT_FAILURE;
-  }
+  tinydir_dir dir;
+  tinydir_open(&dir, directory);
 
-  int result;
+  while (dir.has_next) {
+    int result = EXIT_SUCCESS;
 
-  while ((de = readdir(dr)) != NULL) {
-    // Ignore the current and parent
+    tinydir_file file;
+    tinydir_readfile(&dir, &file);
+
     result = EXIT_SUCCESS;
-    if ((strcmp(de->d_name, ".") != 0) && (strcmp(de->d_name, "..") != 0)) {
+    if ((strcmp(file.name, ".") != 0) && (strcmp(file.name, "..") != 0)) {
       char path[PATH_MAX];
 
       strcpy(path, directory);
       strcat(path, "/");
-      strcat(path, de->d_name);
+      strcat(path, file.name);
 
-      if (!DOT_FILES && strncmp(de->d_name, ".", 1) == 0) {
+      if (!DOT_FILES && strncmp(file.name, ".", 1) == 0) {
+        tinydir_next(&dir);
         continue;
       }
 
-      if (de->d_type == DT_LNK) {
-        ENGINE_printLog(engine, "Ignoring symlink: %s\n", path);
-      } else if (((de->d_type & DT_DIR) != 0)) {
-        // If this is a directory, but not a hidden one
+      if (file.is_dir) {
         result = NEST_packDirectory(engine, tar, path, start);
       } else {
         result = NEST_writeFile(engine, tar, path, path + start);
       }
-      if (result == EXIT_FAILURE) {
-        return EXIT_FAILURE;
-      }
     }
+    if (result == EXIT_FAILURE) {
+      tinydir_close(&dir);
+      return EXIT_FAILURE;
+    }
+    tinydir_next(&dir);
   }
-  closedir(dr);
+  tinydir_close(&dir);
+
   return EXIT_SUCCESS;
 }
 
