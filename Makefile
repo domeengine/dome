@@ -180,7 +180,7 @@ $(WREN_LIB): $(LIBS)/wren
 
 $(TOOLS)/embed: $(TOOLS)/embed-standalone.c $(TOOLS)/embedlib.c
 	@echo "==== Building standalone embed tool  ===="
-	$(CC) -o $(TOOLS)/embed $(CFLAGS) $(TOOLS)/embed-standalone.c $(IFLAGS) $(LDFLAGS)
+	$(CC) -o $(TOOLS)/embed $(CFLAGS) $(TOOLS)/embed-standalone.c $(IFLAGS) $(WINDOW_MODE_FLAG)
 
 $(MODULES)/*.inc: $(TOOLS)/embed $(MODULES)/*.wren
 	@echo "==== Building DOME modules  ===="
