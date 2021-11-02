@@ -235,4 +235,4 @@ reset:
 	rm -rf $(INCLUDES)/wren.h
 
 cloc:
-	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util" -not-match-f ".inc" src
+	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "font" -not-match-f ".inc" src
