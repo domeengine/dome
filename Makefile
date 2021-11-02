@@ -179,7 +179,7 @@ $(WREN_LIB): $(LIBS)/wren
 	./scripts/setup_wren.sh $(WREN_PARAMS)
 
 $(TOOLS)/embed: $(TOOLS)/embed-standalone.c $(TOOLS)/embedlib.c
-	$(CC) -o $(TOOLS)/embed -std=gnu99 $(TOOLS)/embed-standalone.c
+	$(CC) -o $(TOOLS)/embed -std=c99 $(TOOLS)/embed-standalone.c
 
 $(MODULES)/*.inc: $(TOOLS)/embed $(MODULES)/*.wren
 	@echo "==== Building DOME modules  ===="
