@@ -179,7 +179,8 @@ $(WREN_LIB): $(LIBS)/wren
 	./scripts/setup_wren.sh $(WREN_PARAMS)
 
 $(TOOLS)/embed: $(TOOLS)/embed-standalone.c $(TOOLS)/embedlib.c
-	$(CC) -o $(TOOLS)/embed -std=c99 $(TOOLS)/embed-standalone.c
+	@echo "==== Building standalone embed tool  ===="
+	$(CC) -o $(TOOLS)/embed $(CFLAGS) $(TOOLS)/embed-standalone.c $(IFLAGS)
 
 $(MODULES)/*.inc: $(TOOLS)/embed $(MODULES)/*.wren
 	@echo "==== Building DOME modules  ===="
