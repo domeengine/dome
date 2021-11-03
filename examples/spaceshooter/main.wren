@@ -45,8 +45,8 @@ class Main {
     }
   }
 
-  draw(dt) {
-    _state.draw(dt)
+  draw(alpha) {
+    _state.draw(alpha)
     var pos = Mouse.pos
     if (Mouse.isButtonPressed("right")) {
       Canvas.pset(pos.x, pos.y, Color.orange)
@@ -93,8 +93,8 @@ class Star {
     }
   }
 
-  draw(dt) {
-    Canvas.pset(_x, _y + dt*(0.25+_s), Color.lightgray)
+  draw(alpha) {
+    Canvas.pset(_x, _y + alpha*(0.25+_s), Color.lightgray)
   }
 }
 
@@ -119,9 +119,9 @@ class Bullet {
     _y = _y - 3
   }
 
-  draw(dt) {
+  draw(alpha) {
     var color = Color.white
-    var y = _y + 3*dt
+    var y = _y + 3*alpha
     Canvas.rectfill(_x, y, 2, 2, Color.white)
     Canvas.rectfill(_x, y+2, 2, 4, Color.darkgray)
   }
@@ -149,9 +149,9 @@ class Enemy {
     _y = _y + 1
   }
 
-  draw(dt) {
+  draw(alpha) {
     if (alive) {
-      Canvas.draw(_image, x, y+dt)
+      Canvas.draw(_image, x, y+alpha)
     }
   }
 }
@@ -359,11 +359,11 @@ class MainGame {
       box1.y2 > box2.y1
   }
 
-  static draw(dt) {
+  static draw(alpha) {
     Canvas.cls()
-    __stars.each {|star| star.draw(dt) }
-    __enemies.each {|enemy| enemy.draw(dt) }
-    __bullets.each {|bullet| bullet.draw(dt) }
+    __stars.each {|star| star.draw(alpha) }
+    __enemies.each {|enemy| enemy.draw(alpha) }
+    __bullets.each {|bullet| bullet.draw(alpha) }
     __ship.draw(__t)
     __explosions.each {|explosion| explosion.draw() }
 
@@ -399,7 +399,7 @@ class GameOverState {
     }
   }
 
-  static draw(dt) {
+  static draw(alpha) {
     Canvas.cls()
     Canvas.print("Game Over", 160-27, 120-3, Color.white)
   }

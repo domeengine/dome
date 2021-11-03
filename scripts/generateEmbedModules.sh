@@ -1,7 +1,5 @@
 #!/bin/bash
-cd src/util
-
-gcc embed.c -o embed -std=gnu99
+cd src/tools
 
 declare -a arr=(
 "stringUtils"

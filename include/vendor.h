@@ -10,9 +10,6 @@
 #include <whereami/whereami.h>
 #endif
 
-#define JO_GIF_HEADER_FILE_ONLY
-#include <jo_gif.h>
-
 // Set up STB_IMAGE
 #define STBI_FAILURE_USERMSG
 #define STBI_NO_STDIO

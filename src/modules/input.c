@@ -116,6 +116,7 @@ INPUT_clearText(WrenVM* vm) {
   if (!inputCaptured) {
     return WREN_RESULT_SUCCESS;
   }
+  wrenEnsureSlots(vm, 1);
   wrenSetSlotHandle(vm, 0, keyboardClass);
   return wrenCall(vm, keyboardClearTextMethod);
 }

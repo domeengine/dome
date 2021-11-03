@@ -4,7 +4,7 @@ LIBS=lib
 OBJS=obj
 INCLUDES=include
 SOURCE_FILES = $(shell find src -type f)
-UTILS = $(SOURCE)/util
+TOOLS = $(SOURCE)/tools
 MODULES=$(SOURCE)/modules
 SCRIPTS=scripts
 
@@ -163,7 +163,7 @@ LDFLAGS += $(DEPS)
 
 
 # Build Rules
-PROJECTS := dome.bin
+PROJECTS := dome.bin modules
 .PHONY: all clean reset cloc $(PROJECTS)
 
 all: $(PROJECTS)
@@ -178,9 +178,15 @@ $(WREN_LIB): $(LIBS)/wren
 	@echo "==== Building Wren ===="
 	./scripts/setup_wren.sh $(WREN_PARAMS)
 
-$(MODULES)/*.inc: $(UTILS)/embed.c $(MODULES)/*.wren
+$(TOOLS)/embed: $(TOOLS)/embed-standalone.c $(TOOLS)/embedlib.c
+	@echo "==== Building standalone embed tool  ===="
+	$(CC) -o $(TOOLS)/embed $(CFLAGS) $(TOOLS)/embed-standalone.c $(WINDOW_MODE_FLAG)
+
+$(MODULES)/*.inc: $(TOOLS)/embed $(MODULES)/*.wren
 	@echo "==== Building DOME modules  ===="
 	./scripts/generateEmbedModules.sh
+
+modules: $(MODULES)/*.inc
 
 $(OBJS)/glibc_compat.o: $(INCLUDES)/glibc_compat.c
 	@mkdir -p $(OBJS)
@@ -229,4 +235,4 @@ reset:
 	rm -rf $(INCLUDES)/wren.h
 
 cloc:
-	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "util" -not-match-f ".inc" src
+	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "font" -not-match-f ".inc" src

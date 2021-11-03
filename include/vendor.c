@@ -7,8 +7,6 @@
 
 #include <stdbool.h>
 
-#include <jo_gif.h>
-
 #define OPTPARSE_IMPLEMENTATION
 #include <optparse.h>
 

@@ -27,7 +27,7 @@
 #include <time.h>
 #include <math.h>
 #ifndef M_PI
-  #define M_PI 3.14159265358979323846
+#define M_PI 3.14159265358979323846
 #endif
 
 #include <wren.h>
@@ -84,7 +84,6 @@ global_variable bool DEBUG_MODE = true;
 global_variable bool DEBUG_MODE = false;
 #endif
 global_variable size_t AUDIO_BUFFER_SIZE = 2048;
-global_variable size_t GIF_SCALE = 1;
 
 
 
@@ -96,9 +95,8 @@ global_variable size_t GIF_SCALE = 1;
 
 #include "plugin.h"
 #include "engine.h"
-#include "util/font8x8.h"
+#include "font/font8x8.h"
 #include "io.c"
-#include "fuse.c"
 
 #include "audio/engine.h"
 #include "audio/hashmap.c"
@@ -109,6 +107,13 @@ global_variable size_t GIF_SCALE = 1;
 
 #include "engine.c"
 #include "plugin.c"
+
+#ifndef __EMSCRIPTEN__
+#include "tools/help.c"
+#include "tools/fuse.c"
+#include "tools/embed.c"
+#include "tools/nest.c"
+#endif
 
 #include "modules/dome.c"
 #include "modules/font.c"
@@ -121,7 +126,6 @@ global_variable size_t GIF_SCALE = 1;
 #include "modules/platform.c"
 #include "modules/random.c"
 #include "modules/plugin.c"
-#include "util/wrenembed.c"
 
 
 // Comes last to register modules
@@ -171,8 +175,7 @@ LOOP_processInput(LOOP_STATE* state) {
   SDL_Event event;
   INPUT_clearText(vm);
   while(SDL_PollEvent(&event)) {
-    switch (event.type)
-    {
+    switch (event.type) {
       case SDL_QUIT:
         engine->running = false;
         break;
@@ -317,11 +320,6 @@ LOOP_flip(LOOP_STATE* state) {
   }
   // Flip Buffer to Screen
   SDL_UpdateTexture(state->engine->texture, 0, state->engine->canvas.pixels, state->engine->canvas.width * 4);
-  // Flip buffer for recording
-  if (state->engine->record.makeGif) {
-    size_t imageSize = state->engine->canvas.width * state->engine->canvas.height * 4;
-    memcpy(state->engine->record.gifPixels, state->engine->canvas.pixels, imageSize);
-  }
   // clear screen
   SDL_RenderClear(state->engine->renderer);
   SDL_RenderCopy(state->engine->renderer, state->engine->texture, NULL, NULL);
@@ -375,22 +373,22 @@ internal void
 printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "\nUsage: \n");
 
-  ENGINE_printLog(engine, "  dome [options]\n");
-  ENGINE_printLog(engine, "  dome [options] [--] entry_path [arguments]\n");
-  ENGINE_printLog(engine, "  dome -e | --embed sourceFile [moduleName] [destinationFile]\n");
-  ENGINE_printLog(engine, "  dome -f | --fuse sourceFile [destinationFile]\n");
+  ENGINE_printLog(engine, "  dome [options] [<command>]\n");
+  ENGINE_printLog(engine, "  dome [options] [--] <entry_path> [<argument>]...\n");
   ENGINE_printLog(engine, "  dome -h | --help\n");
   ENGINE_printLog(engine, "  dome -v | --version\n");
+  ENGINE_printLog(engine, "\nAvailable Commands: \n");
+  ENGINE_printLog(engine, "  embed    Converts a Wren source file to a C include file for plugin development.\n");
+  ENGINE_printLog(engine, "  fuse     Merges a bundle with DOME to make a standalone file.\n");
+  ENGINE_printLog(engine, "  help     Displays information on how to use each command.\n");
+  ENGINE_printLog(engine, "  nest     Bundle a project into a single file.\n");
   ENGINE_printLog(engine, "\nOptions: \n");
   ENGINE_printLog(engine, "  -b --buffer=<buf>   Set the audio buffer size (default: 11)\n");
 #ifdef __MINGW32__
   ENGINE_printLog(engine, "  -c --console        Opens a console window for development.\n");
 #endif
   ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
-  ENGINE_printLog(engine, "  -e --embed          Converts a Wren source file to a C include file.\n");
-  ENGINE_printLog(engine, "  -f --fuse           Creates a standalone copy of the DOME binary with <sourceFile> fused to it.\n");
   ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
-  ENGINE_printLog(engine, "  -r --record=<gif>   Record video to <gif>.\n");
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
 }
 
@@ -438,8 +436,6 @@ int main(int argc, char* args[])
 #ifdef __EMSCRIPTEN__
   emscripten_wget("game.egg", "game.egg");
 #endif
-  engine.record.gifName = "test.gif";
-  engine.record.makeGif = false;
   INIT_TO_ZERO(LOOP_STATE, loop);
   loop.FPS = 60;
   loop.MS_PER_FRAME = ceil(1000.0 / loop.FPS);
@@ -447,90 +443,87 @@ int main(int argc, char* args[])
   ENGINE_init(&engine);
   loop.engine = &engine;
 
-  struct optparse_long longopts[] = {
-    {"buffer", 'b', OPTPARSE_REQUIRED},
-    #ifdef __MINGW32__
-    {"console", 'c', OPTPARSE_NONE},
-    #endif
-    {"debug", 'd', OPTPARSE_NONE},
-    {"embed", 'e', OPTPARSE_NONE},
-    {"help", 'h', OPTPARSE_NONE},
-    {"record", 'r', OPTPARSE_OPTIONAL},
-    {"scale", 's', OPTPARSE_REQUIRED},
 #ifndef __EMSCRIPTEN__
-    {"fuse", 'f', OPTPARSE_REQUIRED},
-#endif
+  struct optparse_long longopts[] = {
+    {"help", 'h', OPTPARSE_NONE},
     {"version", 'v', OPTPARSE_NONE},
+#ifdef __MINGW32__
+    {"console", 'c', OPTPARSE_NONE},
+#endif
+    {"buffer", 'b', OPTPARSE_REQUIRED},
+    {"debug", 'd', OPTPARSE_NONE},
     {0}
   };
 
   int option;
+  char **subargv = NULL;
   struct optparse options;
   optparse_init(&options, args);
-  while ((option = optparse_long(&options, longopts, NULL)) != -1) {
-    switch (option) {
-      case 's':
-        {
-          int scale = atoi(options.optarg);
-          if (scale <= 0) {
-            // If it wasn't valid, set to a meaningful default.
-            GIF_SCALE = 1;
-          }
-          GIF_SCALE = scale;
-        } break;
-      case 'b':
-        {
-          int shift = atoi(options.optarg);
-          if (shift == 0) {
-            // If it wasn't valid, set to a meaningful default.
-            AUDIO_BUFFER_SIZE = 2048;
-          }
-          AUDIO_BUFFER_SIZE = 1 << shift;
-        } break;
+  options.permute = 0;
+  if (argc > 1) {
+    while ((option = optparse_long(&options, longopts, NULL)) != -1) {
+      switch (option) {
+        case 'b':
+          {
+            int shift = atoi(options.optarg);
+            if (shift == 0) {
+              // If it wasn't valid, set to a meaningful default.
+              AUDIO_BUFFER_SIZE = 2048;
+            }
+            AUDIO_BUFFER_SIZE = 1 << shift;
+          } break;
 #ifdef __MINGW32__
-      case 'c': {
-          AllocConsole();
-          freopen("CONIN$", "r", stdin);
-          freopen("CONOUT$", "w", stdout);
-          freopen("CONOUT$", "w", stderr);
-      } break;
+        case 'c': {
+                    AllocConsole();
+                    freopen("CONIN$", "r", stdin);
+                    freopen("CONOUT$", "w", stdout);
+                    freopen("CONOUT$", "w", stderr);
+                  } break;
 #endif
-      case 'd':
-        DEBUG_MODE = true;
-        ENGINE_printLog(&engine, "Debug Mode enabled\n");
-        break;
-      case 'e':
-        WRENEMBED_encodeAndDumpInDOME(argc, args);
+        case 'd':
+                  DEBUG_MODE = true;
+                  ENGINE_printLog(&engine, "Debug Mode enabled\n");
+                  break;
+        case 'h':
+                  printTitle(&engine);
+                  printUsage(&engine);
+                  goto cleanup;
+        case 'v':
+                  printTitle(&engine);
+                  printVersion(&engine);
+                  goto cleanup;
+        case '?':
+                  fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
+                  result = EXIT_FAILURE;
+                  goto cleanup;
+      }
+    }
+
+    static const struct {
+      char name[8];
+      char letter;
+      int (*cmd)(ENGINE*, char **);
+    } cmds[] = {
+      {"fuse", 'f',  FUSE_perform },
+      {"embed", 'e', EMBED_perform },
+      {"help",  'h', HELP_perform },
+      {"nest", 'n', NEST_perform }
+    };
+    int ncmds = sizeof(cmds) / sizeof(*cmds);
+    subargv = args + options.optind;
+    // If we match a subcommand, execute it
+    for (int i = 0; i < ncmds; i++) {
+      if (!strncmp(cmds[i].name, subargv[0], strlen(subargv[0]))) { // || subargv[0][0] == cmds[i].letter) {
+      // if (!strcmp(cmds[i].name, subargv[0])) { // || subargv[0][0] == cmds[i].letter) {
+        result = cmds[i].cmd(&engine, subargv);
         goto cleanup;
-#ifndef __EMSCRIPTEN__
-      case 'f':
-        FUSE_perform(argc, args);
-        goto cleanup;
-#endif
-      case 'h':
-        printTitle(&engine);
-        printUsage(&engine);
-        goto cleanup;
-      case 'r':
-        engine.record.makeGif = true;
-        if (options.optarg != NULL) {
-          engine.record.gifName = options.optarg;
-        } else {
-          engine.record.gifName = "dome.gif";
-        }
-        ENGINE_printLog(&engine, "GIF Recording is enabled: Saving to %s\n", engine.record.gifName);
-        break;
-      case 'v':
-        printTitle(&engine);
-        printVersion(&engine);
-        goto cleanup;
-      case '?':
-        fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
-        result = EXIT_FAILURE;
-        goto cleanup;
+      }
     }
   }
+#endif
 
+
+  // assume we are trying to play the game
   {
     char* defaultEggName = "game.egg";
     char* mainFileName = "main.wren";
@@ -540,6 +533,7 @@ int main(int argc, char* args[])
     char pathBuf[PATH_MAX];
     char* fileName = NULL;
 
+#ifndef __EMSCRIPTEN__
     // Get non-option args list
     engine.argv = calloc(max(2, argc), sizeof(char*));
     engine.argv[0] = args[0];
@@ -561,6 +555,15 @@ int main(int argc, char* args[])
     if (domeArgCount > 1) {
       arg = engine.argv[1];
     }
+#else
+    engine.argv = calloc(2, sizeof(char*));
+    engine.argv[0] = args[0];
+    engine.argv[1] = NULL;
+    engine.argc = 1;
+    bool autoResolve = true;
+    char* arg = NULL;
+#endif
+
 
     // Get establish the path components: filename(?) and basepath.
     if (arg != NULL) {
@@ -669,8 +672,6 @@ int main(int argc, char* args[])
   loop.vm = vm;
 
   // Load user game file
-  SDL_Thread* recordThread = NULL;
-
   WrenHandle* initMethod = NULL;
 
   interpreterResult = wrenInterpret(vm, "main", gameFile);
@@ -707,10 +708,6 @@ int main(int argc, char* args[])
   SDL_SetWindowPosition(engine.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
   SDL_ShowWindow(engine.window);
 
-  // Resizing from init must happen before we begin recording
-  if (engine.record.makeGif) {
-    recordThread = SDL_CreateThread(ENGINE_record, "DOMErecorder", &engine);
-  }
   loop.lag = loop.MS_PER_FRAME;
   result = LOOP_processInput(&loop);
   if (result != EXIT_SUCCESS) {
@@ -718,9 +715,9 @@ int main(int argc, char* args[])
   }
   loop.windowBlurred = false;
   loop.previousTime = SDL_GetPerformanceCounter();
-  #ifdef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
   emscripten_set_main_loop_arg(DOME_loop, &loop, 0, true);
-  #endif
+#endif
   while (engine.running) {
 
     // processInput()
@@ -805,9 +802,6 @@ int main(int argc, char* args[])
   }
 
 vm_cleanup:
-  if (recordThread != NULL) {
-    SDL_WaitThread(recordThread, NULL);
-  }
   // Finish processing async threads so we can release resources
   ENGINE_finishAsync(&engine);
   SDL_Event event;
