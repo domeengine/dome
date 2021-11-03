@@ -108,10 +108,12 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "engine.c"
 #include "plugin.c"
 
+#ifndef __EMSCRIPTEN__
 #include "tools/help.c"
 #include "tools/fuse.c"
 #include "tools/embed.c"
 #include "tools/nest.c"
+#endif
 
 #include "modules/dome.c"
 #include "modules/font.c"
@@ -441,6 +443,7 @@ int main(int argc, char* args[])
   ENGINE_init(&engine);
   loop.engine = &engine;
 
+#ifndef __EMSCRIPTEN__
   struct optparse_long longopts[] = {
     {"help", 'h', OPTPARSE_NONE},
     {"version", 'v', OPTPARSE_NONE},
@@ -515,6 +518,7 @@ int main(int argc, char* args[])
       }
     }
   }
+#endif
 
 
   // assume we are trying to play the game
@@ -527,6 +531,7 @@ int main(int argc, char* args[])
     char pathBuf[PATH_MAX];
     char* fileName = NULL;
 
+#ifndef __EMSCRIPTEN__
     // Get non-option args list
     engine.argv = calloc(max(2, argc), sizeof(char*));
     engine.argv[0] = args[0];
@@ -548,6 +553,15 @@ int main(int argc, char* args[])
     if (domeArgCount > 1) {
       arg = engine.argv[1];
     }
+#else
+    engine.argv = calloc(2, sizeof(char*));
+    engine.argv[0] = args[0];
+    engine.argv[1] = NULL;
+    engine.argc = 1;
+    bool autoResolve = true;
+    char* arg = NULL;
+#endif
+
 
     // Get establish the path components: filename(?) and basepath.
     if (arg != NULL) {
@@ -587,6 +601,7 @@ int main(int argc, char* args[])
         engine.tar = NULL;
       }
     } else {
+#ifndef __EMSCRIPTEN__
       char* binaryPath = FUSE_getExecutablePath();
       if (binaryPath != NULL) {
         // Check if end of file has marker
@@ -612,6 +627,7 @@ int main(int argc, char* args[])
         }
       }
       free(binaryPath);
+#endif
     }
 
     if (engine.tar != NULL) {
