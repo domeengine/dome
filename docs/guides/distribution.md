@@ -10,24 +10,24 @@ The easiest way to share a game you've made is to place a DOME binary, your sour
 
 ## NEST - Easy bundling
 
-_(Please note: NEST is still in development, and has to be built from source)_
+For easy distribution, you can package all of your games resources into a single `.egg` file using the `nest` tool built into DOME. DOME automatically plays any file named `game.egg` in the current working directory.
 
-For easy distribution, you can package all of your games resources into a single `.egg` file using a tool called [NEST](https://github.com/domeengine/nest). DOME automatically plays any file named `game.egg` in the current working directory.
+If you use a `.egg` file, DOME expects your game to start from a `main.wren` in the base directory as its entry point.
 
-If you use a `.egg` file, DOME expects your game to start from a `main.wren` in the base directory as it's entry point.
-
-Install NEST, and then navigate to your main game directory, before running the following:
+Navigate to your main game directory, before running the following:
 
 ```
-> nest -z -o game.egg -- [files | directories]
+> dome nest [files | directories]
 ```
+
+This will bundle all the files and directories into a file named `game.egg`.
 
 ### Fused Mode
 
 Depending on your needs, you might want to only distribute your application to your users as a single file. This is possible using DOME's "fuse" mode. Once you have a `.egg` file as described in the previous section, you can embed it inside a DOME executable using the "fuse" tool. Run DOME from the commandline like this:
 
 ```
-> dome -f game.egg [destination file]
+> dome fuse game.egg [destination file]
 ```
 
 This creates a standalone executable which requires no other files to run. If you set a destination file, the resulting binary will be placed there. Otherwise, it'll be placed in the current working directory, as a file named `game` (or `game.exe` on Windows). This will only produce a binary for the current platform. You'll need to do this on each platform you want to distribute to.

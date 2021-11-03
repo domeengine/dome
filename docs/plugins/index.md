@@ -292,16 +292,16 @@ WrenInterpretResult call(WrenVM* vm, WrenHandle* method);
 
 ### Module Embedding
 
-If your plugin registers a Wren module, you can embed the source of that module in your plugin by using DOME's built-in `--embed` command, which will convert it into a C include file.
+If your plugin registers a Wren module, you can embed the source of that module in your plugin by using DOME's built-in `embed` subcommand, which will convert it into a C include file.
 
 ```sh
-$ dome -e | --embed   sourceFile [moduleVariableName] [destinationFile]
+$ dome embed sourceFile [moduleVariableName] [destinationFile]
 ```
 
 Example:
 
 ```sh
-$ dome -e external.wren source external.wren.inc
+$ dome embed external.wren sourceModule external.wren.inc
 ```
 
 This command will use `external.wren` to generate `external.wren.inc`, which contains the variable `sourceModule` for including in C/C++ source code.
