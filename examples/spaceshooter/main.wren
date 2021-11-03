@@ -77,7 +77,7 @@ class Explosion {
 
 class Star {
   construct new() {
-    _x = OurRandom.int(Canvas.wialphah)
+    _x = OurRandom.int(Canvas.width)
     _y = OurRandom.int(Canvas.height)
     _s = OurRandom.float()
   }
@@ -88,7 +88,7 @@ class Star {
   update() {
     _y = _y + 0.25 + _s
     if (_y > Canvas.height) {
-      _x = OurRandom.int(Canvas.wialphah)
+      _x = OurRandom.int(Canvas.width)
       _y = 0
     }
   }
@@ -159,7 +159,7 @@ class Enemy {
 
 class Ship {
   construct new() {
-    _x = Canvas.wialphah / 2
+    _x = Canvas.width / 2
     _y = Canvas.height - 20
     _imm = false
     _health = 3
@@ -225,7 +225,7 @@ class MainGame {
     }
 
     for (i in 0...5) {
-      __enemies.add(Enemy.new(OurRandom.int(Canvas.wialphah), -OurRandom.int(30)))
+      __enemies.add(Enemy.new(OurRandom.int(Canvas.width), -OurRandom.int(30)))
     }
     __lastFire = 0
     __heart = ImageData.loadFromFile("res/heart-full.png")
@@ -256,7 +256,7 @@ class MainGame {
     }
     if (!__resized && Keyboard.isKeyDown("c")) {
       __resized = true
-      if (Canvas.wialphah != 64) {
+      if (Canvas.width != 64) {
         Canvas.resize(64, 64)
         Window.resize(64 * 2, 64 * 2)
       } else {
@@ -335,7 +335,7 @@ class MainGame {
     __enemies = __enemies.where {|enemy|
       var isAlive = enemy.alive && enemy.y < Canvas.height
       if (!isAlive) {
-        __enemies.add(Enemy.new(OurRandom.int(Canvas.wialphah), 0))
+        __enemies.add(Enemy.new(OurRandom.int(Canvas.width), 0))
       }
       return isAlive
     }.toList

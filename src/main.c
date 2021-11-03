@@ -501,18 +501,20 @@ int main(int argc, char* args[])
 
     static const struct {
       char name[8];
+      char letter;
       int (*cmd)(ENGINE*, char **);
     } cmds[] = {
-      {"fuse",  FUSE_perform },
-      {"embed",  EMBED_perform },
-      {"help",  HELP_perform },
-      {"nest", NEST_perform }
+      {"fuse", 'f',  FUSE_perform },
+      {"embed", 'e', EMBED_perform },
+      {"help",  'h', HELP_perform },
+      {"nest", 'n', NEST_perform }
     };
     int ncmds = sizeof(cmds) / sizeof(*cmds);
     subargv = args + options.optind;
     // If we match a subcommand, execute it
     for (int i = 0; i < ncmds; i++) {
-      if (!strcmp(cmds[i].name, subargv[0])) {
+      if (!strncmp(cmds[i].name, subargv[0], strlen(subargv[0]))) { // || subargv[0][0] == cmds[i].letter) {
+      // if (!strcmp(cmds[i].name, subargv[0])) { // || subargv[0][0] == cmds[i].letter) {
         result = cmds[i].cmd(&engine, subargv);
         goto cleanup;
       }
