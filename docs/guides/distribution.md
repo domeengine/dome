@@ -1,27 +1,26 @@
 [< Back](..)
 
-Distributing your games
+Distributing your applications
 ===================
 
-DOME is designed to be cross-platform, and so the same Wren code and assets should work across Windows, Mac and Linux.
+DOME is designed to be cross-platform, and so the same Wren code and assets should work across Windows, Mac and Linux. There are different approaches to sharing your application with others.
+
+Please note, none of the methods described here will provide adequate protection from reverse engineering or asset extraction, but may be a temporary hurdle against the casual user. They are intended only as measures of convenience.
 
 ## Basic Packaging
-The easiest way to share a game you've made is to place a DOME binary, your source code and game assets into a single zip file. Do this once for each platform you wish to support, and share those zip files with your users.
-If you are providing your own DOME binary, rather than a pre-compiled one, you will need to have access to the shared SDL2 library.
+The simplest and easiest way to share something you've made is to place a DOME binary, your source code and assets into a single zip file. Do this once for each platform you wish to support, and share those zip files with your users. If you are providing your own DOME binary, rather than a pre-compiled one, you will need to have access to the shared SDL2 library.
 
-## nest - Easy bundling
+## Bundling with `nest`
 
-For easy distribution, you can package all of your application code and resources into a single `.egg` file using the `nest` tool built into DOME. DOME automatically plays any file named `game.egg` in the current working directory.
+For convenience, and to reduce the risk of a file going missing, you can create a `.egg` bundle, which packages all of your application code and resources into a single file. This can be done using the `nest` tool built into DOME. 
 
-If you use a `.egg` file, DOME expects your game to start from a `main.wren` in the base of the bundle, as its entry point.
-
-Navigate to your main game directory, before running the following on the commandline:
+To create a bundle, navigate to your application's root directory, before running the following on the commandline:
 
 ```
 > dome nest [files | directories]
 ```
 
-This will bundle all the files and directories into a file named `game.egg`.
+This will bundle all the files and directories into a file named `game.egg`. DOME automatically plays any file named `game.egg` in the current working directory. It expects that bundles contain a `main.wren` file in the base directory of the bundle, as the entry point for execution.
 
 ### Fused Mode
 
@@ -35,15 +34,15 @@ This creates a standalone executable which requires no other files to run. If yo
 
 ## Platform-specific Distribution Notes
 
-This section discusses the needs of various platforms when distributing games with DOME.
+This section discusses the needs of various platforms when distributing applications with DOME.
 
 ### Windows
 
-On Windows, DOME comes compiled with all it's dependancies, so you just need to provide your game files.
+On Windows, DOME comes compiled with all its dependancies, so you just need to provide your application files.
 
-### Mac OS X
+### Mac OS
 
-On Mac, you can create an application bundle by arranging your code and assets into the following directory/file layout:
+On Mac OS platforms, you can create an application bundle by arranging your code and assets into the following directory/file layout:
 
 `<Game>` is a placeholder and should be replaced by the name of your application. It must be named consistently in the bundle layout, as well as in the Info.plist file.
 
@@ -58,6 +57,7 @@ On Mac, you can create an application bundle by arranging your code and assets i
         +-- Resources
             +-- game.egg
             +-- icon.icns
+            +-- other assets...
 ```
 
 You only need to provide libSDL2.dylib if you are not using a statically linked version of `dome`. (If you are using an official DOME binary, you don't need to worry.)
@@ -91,13 +91,14 @@ Doing this results in a self contained and easy to distribute application bundle
 
 ### Linux
 
-To run your game on linux, make sure SDL2 is installed, then run the `dome` executable with a `game.egg` file in the same directory.
+Running your application on Linux should be reasonably simple. If you use a version with a statically linked version of SDL2, then you can just run the `dome` executable with a `game.egg` file in the same directory.
+If your binary is not statically linked, you'll need to acquire a copy of the SDL2 shared library, and either install it globally, or store a local copy with `dome`.
 
 ### Web
 
-DOME has an experimental web engine, which you can use to play your game in a browser. 
+DOME has an experimental web engine, which you can use to run your application in a browser. 
 To do this, you need to host the `dome.html` file and your `game.egg` file in the same directory on a server.
 
-You may find that the performance of your game suffers when running in the browser, in which case it may not be suitable for playing in browsers.
+You may find that the performance of your application suffers when running in the browser, in which case this may not be a suitable method of distribution.
 DOME's web engine does not currently support playing at full screen.
 
