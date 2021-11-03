@@ -1,6 +1,8 @@
+#include "tools.h"
 #include "embedlib.c"
 
-void EMBED_usage(ENGINE* engine) {
+internal void
+EMBED_usage(ENGINE* engine) {
   ENGINE_printLog(engine, "\nUsage: \n");
   ENGINE_printLog(engine, "  dome embed <source file> [<variable>] [<output file>] \n");
   ENGINE_printLog(engine, "  dome embed [options] \n");
@@ -9,7 +11,8 @@ void EMBED_usage(ENGINE* engine) {
   ENGINE_printLog(engine, "\n");
 }
 
-int EMBED_perform(ENGINE* engine, char** argv) {
+internal int
+EMBED_perform(ENGINE* engine, char** argv) {
   struct optparse options;
   int option;
   optparse_init(&options, argv);
@@ -22,6 +25,7 @@ int EMBED_perform(ENGINE* engine, char** argv) {
   while ((option = optparse_long(&options, longopts, NULL)) != -1) {
     switch (option) {
       case 'h':
+        printTitle(engine);
         EMBED_usage(engine);
         return EXIT_SUCCESS;
       case '?':

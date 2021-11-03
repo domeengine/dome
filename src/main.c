@@ -108,6 +108,7 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "engine.c"
 #include "plugin.c"
 
+#include "tools/help.c"
 #include "tools/fuse.c"
 #include "tools/embed.c"
 #include "tools/nest.c"
@@ -370,18 +371,21 @@ internal void
 printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "\nUsage: \n");
 
-  ENGINE_printLog(engine, "  dome [options]\n");
-  ENGINE_printLog(engine, "  dome [options] [--] entry_path [arguments]\n");
-  ENGINE_printLog(engine, "  dome -e | --embed sourceFile [moduleName] [destinationFile]\n");
+  ENGINE_printLog(engine, "  dome [options] [<command>]\n");
+  ENGINE_printLog(engine, "  dome [options] [--] <entry_path> [<argument>]...\n");
   ENGINE_printLog(engine, "  dome -h | --help\n");
   ENGINE_printLog(engine, "  dome -v | --version\n");
+  ENGINE_printLog(engine, "\nAvailable Commands: \n");
+  ENGINE_printLog(engine, "  embed    Converts a Wren source file to a C include file for plugin development.\n");
+  ENGINE_printLog(engine, "  fuse     Merges a bundle with DOME to make a standalone file.\n");
+  ENGINE_printLog(engine, "  help     Displays information on how to use each command.\n");
+  ENGINE_printLog(engine, "  nest     Bundle a project into a single file.\n");
   ENGINE_printLog(engine, "\nOptions: \n");
   ENGINE_printLog(engine, "  -b --buffer=<buf>   Set the audio buffer size (default: 11)\n");
 #ifdef __MINGW32__
   ENGINE_printLog(engine, "  -c --console        Opens a console window for development.\n");
 #endif
   ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
-  ENGINE_printLog(engine, "  -e --embed          Converts a Wren source file to a C include file.\n");
   ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
 }
@@ -445,8 +449,6 @@ int main(int argc, char* args[])
 #endif
     {"buffer", 'b', OPTPARSE_REQUIRED},
     {"debug", 'd', OPTPARSE_NONE},
-    // subcommands
-    {"embed", 'e', OPTPARSE_NONE},
     {0}
   };
 
@@ -500,6 +502,7 @@ int main(int argc, char* args[])
     } cmds[] = {
       {"fuse",  FUSE_perform },
       {"embed",  EMBED_perform },
+      {"help",  HELP_perform },
       {"nest", NEST_perform }
     };
     int ncmds = sizeof(cmds) / sizeof(*cmds);

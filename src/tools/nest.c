@@ -1,7 +1,10 @@
+#include "tools.h"
+
 typedef enum { MODE_NONE, MODE_CREATE, MODE_EXTRACT } MODE;
 bool DOT_FILES = false;
 
-void NEST_usage(ENGINE* engine) {
+internal void
+NEST_usage(ENGINE* engine) {
   ENGINE_printLog(engine, "\nUsage: \n");
   ENGINE_printLog(engine, "  dome nest [options] [--] (<file> | <directory>) ... \n");
   ENGINE_printLog(engine, "\nOptions: \n");
@@ -12,7 +15,8 @@ void NEST_usage(ENGINE* engine) {
   ENGINE_printLog(engine, "\n");
 }
 
-int NEST_writeFile(ENGINE* engine, mtar_t* tar, char* filePath, char* tarPath) {
+internal int
+NEST_writeFile(ENGINE* engine, mtar_t* tar, char* filePath, char* tarPath) {
   size_t length;
   char* inputFile = readEntireFile(filePath, &length);
   if (inputFile == NULL) {
@@ -28,7 +32,8 @@ int NEST_writeFile(ENGINE* engine, mtar_t* tar, char* filePath, char* tarPath) {
   return EXIT_SUCCESS;
 }
 
-int NEST_packDirectory(ENGINE* engine, mtar_t* tar, char* directory, size_t start) {
+internal int
+NEST_packDirectory(ENGINE* engine, mtar_t* tar, char* directory, size_t start) {
   tinydir_dir dir;
   tinydir_open(&dir, directory);
 
@@ -78,7 +83,8 @@ int NEST_packDirectory(ENGINE* engine, mtar_t* tar, char* directory, size_t star
 }
 
 
-int NEST_perform(ENGINE* engine, char **argv) {
+internal int
+NEST_perform(ENGINE* engine, char **argv) {
   struct optparse options;
   optparse_init(&options, argv);
   options.permute = 0;
@@ -97,6 +103,7 @@ int NEST_perform(ENGINE* engine, char **argv) {
     switch (option) {
       case 128: DOT_FILES = true; break;
       case 'h':
+        printTitle(engine);
         NEST_usage(engine);
         return EXIT_SUCCESS;
       case 'x':
