@@ -156,6 +156,7 @@ ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
 internal ENGINE*
 ENGINE_init(ENGINE* engine) {
   engine->handleText = true;
+  engine->fused = false;
   engine->window = NULL;
   engine->renderer = NULL;
   engine->texture = NULL;
