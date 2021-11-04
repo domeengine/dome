@@ -185,11 +185,13 @@ int main(int argc, char* args[])
   setbuf(stderr, NULL);
   setvbuf(stderr, NULL, _IONBF, 0);
 
+
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
   size_t gameFileLength;
   char* gameFile;
   INIT_TO_ZERO(ENGINE, engine);
+
 #ifdef __EMSCRIPTEN__
   emscripten_wget("game.egg", "game.egg");
 #endif
@@ -198,39 +200,60 @@ int main(int argc, char* args[])
   loop.MS_PER_FRAME = ceil(1000.0 / loop.FPS);
 
   ENGINE_init(&engine);
+  engine.argv = calloc(max(2, argc), sizeof(char*));
+  engine.argv[0] = args[0];
+  engine.argv[1] = NULL;
   loop.engine = &engine;
 
 #ifndef __EMSCRIPTEN__
   // Is this web? If No...
-    // Are we running in fused mode?
-    // Did we get a path?
+  // Are we running in fused mode?
+  // Did we get a path?
   // No - Try opening game.egg, or main.wren
   // Yes - Try opening it. If it's an egg, run it, otherwise don't.
 
   char* binaryPath = FUSE_getExecutablePath();
-  if (binaryPath != NULL) {
-    // Check if end of file has marker
-    FILE* self = fopen(binaryPath, "rb");
-    int result = fseek (self, -((long int)sizeof(DOME_FUSED_HEADER)), SEEK_END);
-    if (result == 0) {
-      DOME_FUSED_HEADER header;
-      result = fread(&header, sizeof(DOME_FUSED_HEADER), 1, self);
-      if (result == 1) {
-        if (memcmp("DOME", header.magic1, 4) == 0 && memcmp("DOME", header.magic2, 4) == 0) {
-          if (header.version == 1) {
-            engine.tar = malloc(sizeof(mtar_t));
-            FUSE_open(engine.tar, self, header.offset);
-  //          engine.argv[1] = NULL;
-            engine.fused = true;
-          } else {
-            printf("DOME is in fused mode, but the data is corrupt.");
-            fclose(self);
-          }
-        }
-      }
+  if (binaryPath == NULL) {
+    ENGINE_printLog(&engine, "dome: Could not allocate memory. Aborting.\n");
+    result = EXIT_FAILURE;
+    goto cleanup;
+  }
+  // Check if end of file has marker
+  FILE* self = fopen(binaryPath, "rb");
+  if (self == NULL) {
+    ENGINE_printLog(&engine, "dome: Could not read binary: %s\n", strerror(errno));
+    result = EXIT_FAILURE;
+    goto cleanup;
+  }
+  int fileResult = fseek (self, -((long int)sizeof(DOME_FUSED_HEADER)), SEEK_END);
+  if (fileResult != 0) {
+    ENGINE_printLog(&engine, "dome: Could not introspect binary: %s\n", strerror(errno));
+    result = EXIT_FAILURE;
+    goto cleanup;
+  }
+  DOME_FUSED_HEADER header;
+  fileResult = fread(&header, sizeof(DOME_FUSED_HEADER), 1, self);
+  if (fileResult != 1) {
+    ENGINE_printLog(&engine, "dome: Could not introspect binary: %s\n", strerror(errno));
+    fclose(self);
+    result = EXIT_FAILURE;
+    goto cleanup;
+  }
+
+  if (memcmp("DOME", header.magic1, 4) == 0 && memcmp("DOME", header.magic2, 4) == 0) {
+    if (header.version == 1) {
+      engine.tar = malloc(sizeof(mtar_t));
+      FUSE_open(engine.tar, self, header.offset);
+      engine.fused = true;
     } else {
+      ENGINE_printLog(&engine, "dome: Fused mode data is in the wrong format.");
       fclose(self);
+      result = EXIT_FAILURE;
+      goto cleanup;
     }
+  } else {
+    // We aren't in fused mode.
+    fclose(self);
   }
   free(binaryPath);
 
@@ -252,45 +275,53 @@ int main(int argc, char* args[])
   options.permute = 0;
 
   if (!engine.fused) {
-    if (argc > 1) {
-      while ((option = optparse_long(&options, longopts, NULL)) != -1) {
-        switch (option) {
-          case 'b':
-            {
-              int shift = atoi(options.optarg);
-              if (shift == 0) {
-                // If it wasn't valid, set to a meaningful default.
-                AUDIO_BUFFER_SIZE = 2048;
-              }
-              AUDIO_BUFFER_SIZE = 1 << shift;
-            } break;
+    while ((option = optparse_long(&options, longopts, NULL)) != -1) {
+      switch (option) {
+        case 'b':
+          {
+            int shift = atoi(options.optarg);
+            if (shift == 0) {
+              // If it wasn't valid, set to a meaningful default.
+              AUDIO_BUFFER_SIZE = 2048;
+            }
+            AUDIO_BUFFER_SIZE = 1 << shift;
+          } break;
 #ifdef __MINGW32__
-          case 'c': {
-                      AllocConsole();
-                      freopen("CONIN$", "r", stdin);
-                      freopen("CONOUT$", "w", stdout);
-                      freopen("CONOUT$", "w", stderr);
-                    } break;
+        case 'c':
+          {
+            AllocConsole();
+            freopen("CONIN$", "r", stdin);
+            freopen("CONOUT$", "w", stdout);
+            freopen("CONOUT$", "w", stderr);
+          } break;
 #endif
-          case 'd':
-                    DEBUG_MODE = true;
-                    ENGINE_printLog(&engine, "Debug Mode enabled\n");
-                    break;
-          case 'h':
-                    printTitle(&engine);
-                    printUsage(&engine);
-                    goto cleanup;
-          case 'v':
-                    printTitle(&engine);
-                    printVersion(&engine);
-                    goto cleanup;
-          case '?':
-                    fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
-                    result = EXIT_FAILURE;
-                    goto cleanup;
-        }
+        case 'd':
+          {
+            DEBUG_MODE = true;
+            ENGINE_printLog(&engine, "Debug Mode enabled\n");
+          } break;
+        case 'h':
+          {
+            printTitle(&engine);
+            printUsage(&engine);
+            goto cleanup;
+          }
+        case 'v':
+          {
+            printTitle(&engine);
+            printVersion(&engine);
+            goto cleanup;
+          }
+        case '?':
+          {
+            fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
+            result = EXIT_FAILURE;
+            goto cleanup;
+          }
       }
+    }
 
+    if (argc > 1) {
       static const struct {
         char name[8];
         char letter;
@@ -312,119 +343,151 @@ int main(int argc, char* args[])
       }
     }
   }
-#endif
 
-
-  // assume we are trying to play the game
-  {
-
-#ifndef __EMSCRIPTEN__
-    // Get non-option args list
-    engine.argv = calloc(max(2, argc), sizeof(char*));
-    engine.argv[0] = args[0];
-    engine.argv[1] = NULL;
-    int domeArgCount = 1;
-    char* otherArg = NULL;
-    while ((otherArg = optparse_arg(&options))) {
-      engine.argv[domeArgCount] = otherArg;
-      domeArgCount++;
-    }
-
-    bool autoResolve = (domeArgCount == 1);
-
-    domeArgCount = max(2, domeArgCount);
-    engine.argv = realloc(engine.argv, sizeof(char*) * domeArgCount);
-    engine.argc = domeArgCount;
-
-    char* arg = NULL;
-    if (domeArgCount > 1) {
-      arg = engine.argv[1];
-    }
+  // we are trying to play the game
+  // Get non-option args list
+  int domeArgCount = 1;
+  char* otherArg = NULL;
+  while ((otherArg = optparse_arg(&options))) {
+    engine.argv[domeArgCount] = strdup(otherArg);
+    domeArgCount++;
+  }
+  // This has to be here because we modify the value shortly.
+  bool autoResolve = (domeArgCount == 1);
+  domeArgCount = max(2, domeArgCount);
+  engine.argv = realloc(engine.argv, sizeof(char*) * domeArgCount);
+  engine.argc = domeArgCount;
 
 #else
-    engine.argv = calloc(2, sizeof(char*));
-    engine.argv[0] = args[0];
-    engine.argv[1] = NULL;
-    engine.argc = 1;
-    bool autoResolve = true;
-    char* arg = NULL;
+  engine.argc = 1;
+  bool autoResolve = true;
+  char* entryArgument = NULL;
 #endif
 
-    char* defaultEggName = "game.egg";
-    char* mainFileName = "main.wren";
-    char pathBuf[PATH_MAX];
-    char* fileName = NULL;
-    char* base = BASEPATH_get();
+  char* defaultEggName = "game.egg";
+  char* mainFileName = "main.wren";
+  char entryPath[PATH_MAX];
+  char* fileName = NULL;
+  char* base = BASEPATH_get();
+  printf("DEBUG: autoResolve: %s\n", autoResolve ? "true" : "false");
+  bool resolved = false;
+  char* entryArgument = NULL;
+  if (domeArgCount > 1) {
+    entryArgument = engine.argv[1];
+    printf("DEBUG: Entry argument is set: %s\n", entryArgument);
+  }
 
-    if (!engine.fused) {
-      // Get establish the path components: filename(?) and basepath.
-      if (arg != NULL) {
-        strcpy(pathBuf, base);
-        strcat(pathBuf, arg);
-        if (isDirectory(pathBuf)) {
-          BASEPATH_set(pathBuf);
-          autoResolve = true;
-        } else {
-          char* dirc = strdup(pathBuf);
-          char* basec = strdup(pathBuf);
-          // This sets the filename used.
-          fileName = strdup(basename(dirc));
-          BASEPATH_set(dirname(basec));
-          free(dirc);
-          free(basec);
-        }
-
-        base = BASEPATH_get();
-      }
-
-      // If a filename is given in the path, use it, or assume its 'game.egg'
-      strcpy(pathBuf, base);
-      strcat(pathBuf, !autoResolve ? fileName : defaultEggName);
-      chdir(base);
-
-      if (doesFileExist(pathBuf)) {
-        // the current path exists, let's see if it's a TAR file.
-        engine.tar = malloc(sizeof(mtar_t));
-        int tarResult = mtar_open(engine.tar, pathBuf, "r");
-        if (tarResult == MTAR_ESUCCESS) {
-          ENGINE_printLog(&engine, "Loading bundle %s\n", pathBuf);
-          engine.argv[1] = strdup(pathBuf);
-        } else {
-          // Not a valid tar file.
-          free(engine.tar);
-          engine.tar = NULL;
-        }
-      }
-
-    }
-
-    if (engine.tar != NULL) {
-      // It is a tar file, we need to look for a "main.wren" entry point.
-      strcpy(pathBuf, mainFileName);
-    } else {
-      // Not a tar file, use the given path or main.wren
-      strcpy(pathBuf, base);
-      strcat(pathBuf, !autoResolve ? fileName : mainFileName);
-      engine.argv[1] = strdup(pathBuf);
-      strcpy(pathBuf, !autoResolve ? fileName : mainFileName);
-    }
-
-    if (fileName != NULL) {
-      free(fileName);
-    }
-
-    // The basepath is incorporated later, so we pass the basename version to this method.
-    gameFile = ENGINE_readFile(&engine, pathBuf, &gameFileLength);
-    if (gameFile == NULL) {
-      if (engine.tar != NULL) {
-        ENGINE_printLog(&engine, "Error: Could not load %s in bundle.\n", pathBuf);
+  bool isBundle = false;
+  if (engine.fused) {
+    strcpy(entryPath, mainFileName);
+    printf("DEBUG: Engine is fused. Entry path: %s\n", entryPath);
+  } else {
+    printf("DEBUG: Engine is not fused.\n");
+    if (entryArgument != NULL) {
+      autoResolve = false;
+      strcpy(entryPath, base);
+      strcat(entryPath, entryArgument);
+      printf("DEBUG: Checking if directory. Entry path: %s\n", entryPath);
+      if (isDirectory(entryPath)) {
+        printf("DEBUG: Success\n");
+        BASEPATH_set(entryPath);
+        autoResolve = true;
+        printf("DEBUG: Resolution required.\n");
       } else {
-        ENGINE_printLog(&engine, "Error: Could not load %s.\n", pathBuf);
+        char* directory = dirname(strdup(entryPath));
+        char* filename = basename(strdup(entryPath));
+        strcpy(entryPath, directory);
+        strcat(entryPath, "/");
+        strcat(entryPath, filename);
+        printf("DEBUG: Trying it as a file name instead: %s\n", entryPath);
+
+        // This sets the filename used.
+        BASEPATH_set(directory);
+
+        free(directory);
+        free(filename);
+
+        if (!doesFileExist(entryPath)) {
+          printf("DEBUG: Path does not exist. Abort\n");
+          result = EXIT_FAILURE;
+          goto cleanup;
+          // abort
+        } else {
+          printf("DEBUG: Successfully found a file.\n");
+          autoResolve = false;
+          resolved = false;
+        }
       }
-      printUsage(&engine);
-      result = EXIT_FAILURE;
-      goto cleanup;
     }
+
+    base = BASEPATH_get();
+    printf("DEBUG: Base: %s\n", base);
+    // TODO: free base?
+    chdir(base);
+
+    if (!resolved) {
+      // No entry arg. Scan the current directory for game.egg or main.wren.
+      if (autoResolve) {
+        strcpy(entryPath, base);
+        strcat(entryPath, defaultEggName);
+      }
+      printf("DEBUG: Trying bundle. Entry path: %s\n", entryPath);
+      if (doesFileExist(entryPath)) {
+        printf("DEBUG: Attempting to load tar file\n");
+        mtar_t* tar = malloc(sizeof(mtar_t));
+        int tarResult = mtar_open(tar, entryPath, "r");
+        if (tarResult == MTAR_ESUCCESS) {
+          printf("DEBUG: Success\n");
+          engine.tar = tar;
+          resolved = true;
+          ENGINE_printLog(&engine, "Loading bundle %s\n", entryPath);
+        } else {
+          printf("DEBUG: Tar was unsuccessful\n");
+          // Not a valid tar file.
+          free(tar);
+        }
+      }
+      if (engine.tar == NULL) {
+        // attempt to load egg
+        strcpy(entryPath, base);
+        strcat(entryPath, mainFileName);
+        printf("DEBUG: Trying default wren file. Entry path: %s\n", entryPath);
+        if (doesFileExist(entryPath)) {
+          // attempt to load wren file
+          printf("DEBUG: Success\n");
+          resolved = true;
+        } else {
+          printf("DEBUG: Not found. Abort.\n");
+          // abort
+        }
+      }
+    }
+  }
+
+  if (!engine.fused && !resolved) {
+    printf("DEBUG: Could not resolve to an entry point. Abort.\n");
+    result = EXIT_FAILURE;
+    goto cleanup;
+  } else {
+    free(entryArgument);
+    engine.argv[1] = strdup(entryPath);
+    if (engine.tar != NULL) {
+      strcpy(entryPath, mainFileName);
+    }
+  }
+  printf("DEBUG: Final entry path: %s\n", entryPath);
+
+  // The basepath is incorporated later, so we pass the basename version to this method.
+  gameFile = ENGINE_readFile(&engine, entryPath, &gameFileLength);
+  if (gameFile == NULL) {
+    if (engine.tar != NULL) {
+      ENGINE_printLog(&engine, "Error: Could not load %s in bundle.\n", entryPath);
+    } else {
+      ENGINE_printLog(&engine, "Error: Could not load %s.\n", entryPath);
+    }
+    printUsage(&engine);
+    result = EXIT_FAILURE;
+    goto cleanup;
   }
 
   result = ENGINE_start(&engine);
@@ -597,10 +660,12 @@ vm_cleanup:
   AUDIO_ENGINE_halt(engine.audioEngine);
   AUDIO_ENGINE_releaseHandles(engine.audioEngine, vm);
 
+  // TODO: test if this is in the right place
+  result = engine.exit_status;
+
 cleanup:
   BASEPATH_free();
   VM_free(vm);
-  result = engine.exit_status;
   ENGINE_free(&engine);
   //Quit SDL subsystems
   if (strlen(SDL_GetError()) > 0) {
