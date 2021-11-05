@@ -378,8 +378,8 @@ int main(int argc, char* args[])
   if (engine.fused) {
     strcpy(entryPath, mainFileName);
   } else {
-    // Set the basepath according to the incoming argument
     if (entryArgument != NULL) {
+      // Set the basepath according to the incoming argument
       strcpy(entryPath, base);
       strcat(entryPath, entryArgument);
       if (isDirectory(entryPath)) {
@@ -421,12 +421,16 @@ int main(int argc, char* args[])
         strcpy(entryPath, base);
         strcat(entryPath, mainFileName);
         finalFileName = NULL;
+        resolved = doesFileExist(entryPath);
+      } else {
+        resolved = true;
       }
-      resolved = true;
     }
   }
 
   if (!engine.fused && !resolved) {
+    ENGINE_printLog(&engine, "Error: Could not find an entry point at: %s\n", dirname(entryPath));
+    printUsage(&engine);
     result = EXIT_FAILURE;
     goto cleanup;
   } else {
@@ -441,7 +445,7 @@ int main(int argc, char* args[])
     if (engine.tar != NULL) {
       ENGINE_printLog(&engine, "Error: Could not load %s in bundle.\n", entryPath);
     } else {
-      ENGINE_printLog(&engine, "Error: Could not load %s.\n", entryPath);
+      ENGINE_printLog(&engine, "Error: Could not load %s.\n", engine.argv[1]);
     }
     printUsage(&engine);
     result = EXIT_FAILURE;
