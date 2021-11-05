@@ -128,7 +128,6 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "modules/plugin.c"
 // Comes last to register modules
 #include "vm.c"
-
 #include "game.c"
 
 char* resolveEntryPath(ENGINE* engine, char* entryArgument, bool autoResolve) {
@@ -307,12 +306,10 @@ int main(int argc, char* argv[])
   int result = EXIT_SUCCESS;
   INIT_TO_ZERO(ENGINE, engine);
 
-
   ENGINE_init(&engine);
   engine.argv = calloc(max(2, argc), sizeof(char*));
   engine.argv[0] = argv[0];
   engine.argv[1] = NULL;
-
 
 #ifndef __EMSCRIPTEN__
   result = introspectBinary(&engine);
