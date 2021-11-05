@@ -271,7 +271,7 @@ int main(int argc, char* argv[])
   bool autoResolve = true;
 
 #ifndef __EMSCRIPTEN__
-  result = introspectBinary(&engine);
+  result = FUSE_introspectBinary(&engine);
   if (result != EXIT_SUCCESS) {
     goto cleanup;
   }
