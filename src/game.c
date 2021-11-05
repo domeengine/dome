@@ -255,7 +255,6 @@ int DOME_begin(ENGINE* engine, char* entryPath) {
     } else {
       ENGINE_printLog(engine, "Error: Could not load %s.\n", engine->argv[1]);
     }
-    printUsage(engine);
     result = EXIT_FAILURE;
     goto cleanup;
   }

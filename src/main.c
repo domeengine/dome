@@ -130,6 +130,51 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "vm.c"
 #include "game.c"
 
+
+internal void
+printTitle(ENGINE* engine) {
+  ENGINE_printLog(engine, "DOME - Design-Oriented Minimalist Engine\n");
+}
+
+internal void
+printVersion(ENGINE* engine) {
+  ENGINE_printLog(engine, "Version: " DOME_VERSION " - " DOME_HASH "\n");
+  SDL_version compiled;
+  SDL_version linked;
+
+  SDL_VERSION(&compiled);
+  SDL_GetVersion(&linked);
+  ENGINE_printLog(engine, "SDL version: %d.%d.%d (Compiled)\n", compiled.major, compiled.minor, compiled.patch);
+  ENGINE_printLog(engine, "SDL version %d.%d.%d (Linked)\n", linked.major, linked.minor, linked.patch);
+  ENGINE_printLog(engine, "Wren version: %d.%d.%d\n", WREN_VERSION_MAJOR, WREN_VERSION_MINOR, WREN_VERSION_PATCH);
+
+  ENGINE_printLog(engine, "\n");
+}
+
+
+internal void
+printUsage(ENGINE* engine) {
+  ENGINE_printLog(engine, "\nUsage: \n");
+
+  ENGINE_printLog(engine, "  dome [options] [<command>]\n");
+  ENGINE_printLog(engine, "  dome [options] [--] <entry_path> [<argument>]...\n");
+  ENGINE_printLog(engine, "  dome -h | --help\n");
+  ENGINE_printLog(engine, "  dome -v | --version\n");
+  ENGINE_printLog(engine, "\nAvailable Commands: \n");
+  ENGINE_printLog(engine, "  embed    Converts a Wren source file to a C include file for plugin development.\n");
+  ENGINE_printLog(engine, "  fuse     Merges a bundle with DOME to make a standalone file.\n");
+  ENGINE_printLog(engine, "  help     Displays information on how to use each command.\n");
+  ENGINE_printLog(engine, "  nest     Bundle a project into a single file.\n");
+  ENGINE_printLog(engine, "\nOptions: \n");
+  ENGINE_printLog(engine, "  -b --buffer=<buf>   Set the audio buffer size (default: 11)\n");
+#ifdef __MINGW32__
+  ENGINE_printLog(engine, "  -c --console        Opens a console window for development.\n");
+#endif
+  ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
+  ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
+  ENGINE_printLog(engine, "  -v --version        Show version.\n");
+}
+
 char* resolveEntryPath(ENGINE* engine, char* entryArgument, bool autoResolve) {
   char* defaultEggName = "game.egg";
   char* mainFileName = "main.wren";
@@ -206,93 +251,6 @@ char* resolveEntryPath(ENGINE* engine, char* entryArgument, bool autoResolve) {
   return entryPath;
 }
 
-internal void
-printTitle(ENGINE* engine) {
-  ENGINE_printLog(engine, "DOME - Design-Oriented Minimalist Engine\n");
-}
-
-internal void
-printVersion(ENGINE* engine) {
-  ENGINE_printLog(engine, "Version: " DOME_VERSION " - " DOME_HASH "\n");
-  SDL_version compiled;
-  SDL_version linked;
-
-  SDL_VERSION(&compiled);
-  SDL_GetVersion(&linked);
-  ENGINE_printLog(engine, "SDL version: %d.%d.%d (Compiled)\n", compiled.major, compiled.minor, compiled.patch);
-  ENGINE_printLog(engine, "SDL version %d.%d.%d (Linked)\n", linked.major, linked.minor, linked.patch);
-  ENGINE_printLog(engine, "Wren version: %d.%d.%d\n", WREN_VERSION_MAJOR, WREN_VERSION_MINOR, WREN_VERSION_PATCH);
-
-  ENGINE_printLog(engine, "\n");
-}
-
-
-internal void
-printUsage(ENGINE* engine) {
-  ENGINE_printLog(engine, "\nUsage: \n");
-
-  ENGINE_printLog(engine, "  dome [options] [<command>]\n");
-  ENGINE_printLog(engine, "  dome [options] [--] <entry_path> [<argument>]...\n");
-  ENGINE_printLog(engine, "  dome -h | --help\n");
-  ENGINE_printLog(engine, "  dome -v | --version\n");
-  ENGINE_printLog(engine, "\nAvailable Commands: \n");
-  ENGINE_printLog(engine, "  embed    Converts a Wren source file to a C include file for plugin development.\n");
-  ENGINE_printLog(engine, "  fuse     Merges a bundle with DOME to make a standalone file.\n");
-  ENGINE_printLog(engine, "  help     Displays information on how to use each command.\n");
-  ENGINE_printLog(engine, "  nest     Bundle a project into a single file.\n");
-  ENGINE_printLog(engine, "\nOptions: \n");
-  ENGINE_printLog(engine, "  -b --buffer=<buf>   Set the audio buffer size (default: 11)\n");
-#ifdef __MINGW32__
-  ENGINE_printLog(engine, "  -c --console        Opens a console window for development.\n");
-#endif
-  ENGINE_printLog(engine, "  -d --debug          Enables debug mode.\n");
-  ENGINE_printLog(engine, "  -h --help           Show this screen.\n");
-  ENGINE_printLog(engine, "  -v --version        Show version.\n");
-}
-
-
-int introspectBinary(ENGINE* engine) {
-  char* binaryPath = FUSE_getExecutablePath();
-  if (binaryPath == NULL) {
-    ENGINE_printLog(engine, "dome: Could not allocate memory. Aborting.\n");
-    return EXIT_FAILURE;
-  }
-  // Check if end of file has marker
-  FILE* self = fopen(binaryPath, "rb");
-  if (self == NULL) {
-    ENGINE_printLog(engine, "dome: Could not read binary: %s\n", strerror(errno));
-    return EXIT_FAILURE;
-  }
-  int fileResult = fseek (self, -((long int)sizeof(DOME_FUSED_HEADER)), SEEK_END);
-  if (fileResult != 0) {
-    ENGINE_printLog(engine, "dome: Could not introspect binary: %s\n", strerror(errno));
-    return EXIT_FAILURE;
-  }
-  DOME_FUSED_HEADER header;
-  fileResult = fread(&header, sizeof(DOME_FUSED_HEADER), 1, self);
-  if (fileResult != 1) {
-    ENGINE_printLog(engine, "dome: Could not introspect binary: %s\n", strerror(errno));
-    fclose(self);
-    return EXIT_FAILURE;
-  }
-
-  if (memcmp("DOME", header.magic1, 4) == 0 && memcmp("DOME", header.magic2, 4) == 0) {
-    if (header.version == 1) {
-      engine->tar = malloc(sizeof(mtar_t));
-      FUSE_open(engine->tar, self, header.offset);
-      engine->fused = true;
-    } else {
-      ENGINE_printLog(engine, "dome: Fused mode data is in the wrong format.");
-      fclose(self);
-      return EXIT_FAILURE;
-    }
-  } else {
-    // We aren't in fused mode.
-    fclose(self);
-  }
-  free(binaryPath);
-  return EXIT_SUCCESS;
-}
 
 int main(int argc, char* argv[])
 {
@@ -310,6 +268,7 @@ int main(int argc, char* argv[])
   engine.argv = calloc(max(2, argc), sizeof(char*));
   engine.argv[0] = argv[0];
   engine.argv[1] = NULL;
+  bool autoResolve = true;
 
 #ifndef __EMSCRIPTEN__
   result = introspectBinary(&engine);
@@ -412,8 +371,9 @@ int main(int argc, char* argv[])
     engine.argv[domeArgCount] = strdup(otherArg);
     domeArgCount++;
   }
-  // This has to be here because we modify the value shortly.
-  bool autoResolve = (domeArgCount == 1);
+  // This has to be here because we modify the value of domeArgCount after
+  // to account for a strict 2-arg requirement. (See dome.Process documentation)
+  autoResolve = (domeArgCount == 1);
   domeArgCount = max(2, domeArgCount);
   engine.argv = realloc(engine.argv, sizeof(char*) * domeArgCount);
   engine.argc = domeArgCount;
