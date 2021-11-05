@@ -237,3 +237,202 @@ void DOME_loop(void* data) {
   }
   *((LOOP_STATE*)data) = loop;
 }
+
+int DOME_begin(ENGINE* engine, char* entryPath) {
+  int result = EXIT_SUCCESS;
+  WrenVM* vm = NULL;
+  INIT_TO_ZERO(LOOP_STATE, loop);
+  loop.FPS = 60;
+  loop.MS_PER_FRAME = ceil(1000.0 / loop.FPS);
+  loop.engine = engine;
+  // The basepath is incorporated later, so we pass the basename version to this method.
+  size_t gameFileLength;
+  char* gameFile;
+  gameFile = ENGINE_readFile(engine, entryPath, &gameFileLength);
+  if (gameFile == NULL) {
+    if (engine->tar != NULL) {
+      ENGINE_printLog(engine, "Error: Could not load %s in bundle.\n", entryPath);
+    } else {
+      ENGINE_printLog(engine, "Error: Could not load %s.\n", engine->argv[1]);
+    }
+    printUsage(engine);
+    result = EXIT_FAILURE;
+    goto cleanup;
+  }
+
+  result = ENGINE_start(engine);
+  if (result == EXIT_FAILURE) {
+    goto cleanup;
+  }
+
+  // Configure Wren VM
+  vm = VM_create(engine);
+  WrenInterpretResult interpreterResult;
+  loop.vm = vm;
+
+  // Load user game file
+  WrenHandle* initMethod = NULL;
+
+  interpreterResult = wrenInterpret(vm, "main", gameFile);
+  free(gameFile);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    result = EXIT_FAILURE;
+    goto vm_cleanup;
+  }
+  // Load the class into slot 0.
+
+
+  wrenEnsureSlots(vm, 3);
+  initMethod = wrenMakeCallHandle(vm, "init()");
+  wrenGetVariable(vm, "main", "Game", 0);
+  loop.gameClass = wrenGetSlotHandle(vm, 0);
+  loop.updateMethod = wrenMakeCallHandle(vm, "update()");
+  loop.drawMethod = wrenMakeCallHandle(vm, "draw(_)");
+
+  SDL_SetRenderDrawColor(engine->renderer, 0x00, 0x00, 0x00, 0xFF);
+
+  // Initiate game loop
+
+  wrenSetSlotHandle(vm, 0, loop.gameClass);
+  interpreterResult = wrenCall(vm, initMethod);
+  if (interpreterResult != WREN_RESULT_SUCCESS) {
+    result = EXIT_FAILURE;
+    goto vm_cleanup;
+  }
+  // Release this handle if it finished successfully
+  wrenReleaseHandle(vm, initMethod);
+  initMethod = NULL;
+  engine->initialized = true;
+
+  SDL_SetWindowPosition(engine->window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+  SDL_ShowWindow(engine->window);
+
+  loop.lag = loop.MS_PER_FRAME;
+  result = DOME_processInput(&loop);
+  if (result != EXIT_SUCCESS) {
+    goto vm_cleanup;
+  }
+  loop.windowBlurred = false;
+  loop.previousTime = SDL_GetPerformanceCounter();
+#ifdef __EMSCRIPTEN__
+  emscripten_set_main_loop_arg(DOME_loop, &loop, 0, true);
+#endif
+  while (engine->running) {
+
+    // processInput()
+    if (loop.windowBlurred) {
+      result = DOME_processInput(&loop);
+      if (result != EXIT_SUCCESS) {
+        goto vm_cleanup;
+      }
+    }
+
+    loop.currentTime = SDL_GetPerformanceCounter();
+    loop.elapsed = 1000 * (loop.currentTime - loop.previousTime) / (double) SDL_GetPerformanceFrequency();
+    loop.previousTime = loop.currentTime;
+
+
+    // If we aren't focused, we skip the update loop and let the CPU sleep
+    // to be good citizens
+    if (loop.windowBlurred) {
+      SDL_Delay(50);
+      continue;
+    }
+
+    if(fabs(loop.elapsed - 1.0/120.0) < .0002){
+      loop.elapsed = 1.0/120.0;
+    }
+    if(fabs(loop.elapsed - 1.0/60.0) < .0002){
+      loop.elapsed = 1.0/60.0;
+    }
+    if(fabs(loop.elapsed - 1.0/30.0) < .0002){
+      loop.elapsed = 1.0/30.0;
+    }
+    loop.lag += loop.elapsed;
+
+    if (engine->lockstep) {
+      if (loop.lag >= loop.MS_PER_FRAME) {
+        result = DOME_processInput(&loop);
+        if (result != EXIT_SUCCESS) {
+          goto vm_cleanup;
+        }
+        result = DOME_update(&loop);
+        if (result != EXIT_SUCCESS) {
+          goto vm_cleanup;
+        }
+        result = DOME_render(&loop);
+        if (result != EXIT_SUCCESS) {
+          goto vm_cleanup;
+        }
+        loop.lag = mid(0, loop.lag - loop.MS_PER_FRAME, loop.MS_PER_FRAME);
+        DOME_flip(&loop);
+      }
+    } else {
+      loop.attempts = 5;
+      while (loop.attempts > 0 && loop.lag >= loop.MS_PER_FRAME) {
+        loop.attempts--;
+
+        result = DOME_processInput(&loop);
+        if (result != EXIT_SUCCESS) {
+          goto vm_cleanup;
+        }
+        // update()
+        result = DOME_update(&loop);
+        if (result != EXIT_SUCCESS) {
+          goto vm_cleanup;
+        }
+        loop.lag -= loop.MS_PER_FRAME;
+      }
+      // render();
+      result = DOME_render(&loop);
+      if (result != EXIT_SUCCESS) {
+        goto vm_cleanup;
+      }
+      if (loop.attempts == 0) {
+        loop.lag = 0;
+      }
+      DOME_flip(&loop);
+    }
+
+
+    if (!engine->vsyncEnabled) {
+      SDL_Delay(1);
+    }
+  }
+
+vm_cleanup:
+  // Finish processing async threads so we can release resources
+  ENGINE_finishAsync(engine);
+  SDL_Event event;
+  while(SDL_PollEvent(&event)) {
+    if (event.type == SDL_USEREVENT) {
+      if (event.user.code == EVENT_LOAD_FILE) {
+        FILESYSTEM_loadEventComplete(&event);
+      }
+    }
+  }
+
+  // Free resources
+  ENGINE_reportError(engine);
+
+  if (initMethod != NULL) {
+    wrenReleaseHandle(vm, initMethod);
+  }
+
+  DOME_release(&loop);
+
+  if (bufferClass != NULL) {
+    wrenReleaseHandle(vm, bufferClass);
+  }
+
+  INPUT_release(vm);
+
+  AUDIO_ENGINE_halt(engine->audioEngine);
+  AUDIO_ENGINE_releaseHandles(engine->audioEngine, vm);
+
+  // TODO: test if this is in the right place
+  result = engine->exit_status;
+
+cleanup:
+  return result;
+}
