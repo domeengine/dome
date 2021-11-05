@@ -37,49 +37,6 @@ FUSE_getExecutablePath() {
   return path;
 }
 
-int FUSE_introspectBinary(ENGINE* engine) {
-  char* binaryPath = FUSE_getExecutablePath();
-  if (binaryPath == NULL) {
-    ENGINE_printLog(engine, "dome: Could not allocate memory. Aborting.\n");
-    return EXIT_FAILURE;
-  }
-  // Check if end of file has marker
-  FILE* self = fopen(binaryPath, "rb");
-  if (self == NULL) {
-    ENGINE_printLog(engine, "dome: Could not read binary: %s\n", strerror(errno));
-    return EXIT_FAILURE;
-  }
-  int fileResult = fseek (self, -((long int)sizeof(DOME_FUSED_HEADER)), SEEK_END);
-  if (fileResult != 0) {
-    ENGINE_printLog(engine, "dome: Could not introspect binary: %s\n", strerror(errno));
-    return EXIT_FAILURE;
-  }
-  DOME_FUSED_HEADER header;
-  fileResult = fread(&header, sizeof(DOME_FUSED_HEADER), 1, self);
-  if (fileResult != 1) {
-    ENGINE_printLog(engine, "dome: Could not introspect binary: %s\n", strerror(errno));
-    fclose(self);
-    return EXIT_FAILURE;
-  }
-
-  if (memcmp("DOME", header.magic1, 4) == 0 && memcmp("DOME", header.magic2, 4) == 0) {
-    if (header.version == 1) {
-      engine->tar = malloc(sizeof(mtar_t));
-      FUSE_open(engine->tar, self, header.offset);
-      engine->fused = true;
-    } else {
-      ENGINE_printLog(engine, "dome: Fused mode data is in the wrong format.");
-      fclose(self);
-      return EXIT_FAILURE;
-    }
-  } else {
-    // We aren't in fused mode.
-    fclose(self);
-  }
-  free(binaryPath);
-  return EXIT_SUCCESS;
-}
-
 internal int
 FUSE_perform(ENGINE* engine, char **argv) {
   struct optparse options;
@@ -215,3 +172,47 @@ FUSE_open(mtar_t* tar, FILE* fd, size_t offset) {
 
   return MTAR_ESUCCESS;
 }
+
+int FUSE_introspectBinary(ENGINE* engine) {
+  char* binaryPath = FUSE_getExecutablePath();
+  if (binaryPath == NULL) {
+    ENGINE_printLog(engine, "dome: Could not allocate memory. Aborting.\n");
+    return EXIT_FAILURE;
+  }
+  // Check if end of file has marker
+  FILE* self = fopen(binaryPath, "rb");
+  if (self == NULL) {
+    ENGINE_printLog(engine, "dome: Could not read binary: %s\n", strerror(errno));
+    return EXIT_FAILURE;
+  }
+  int fileResult = fseek (self, -((long int)sizeof(DOME_FUSED_HEADER)), SEEK_END);
+  if (fileResult != 0) {
+    ENGINE_printLog(engine, "dome: Could not introspect binary: %s\n", strerror(errno));
+    return EXIT_FAILURE;
+  }
+  DOME_FUSED_HEADER header;
+  fileResult = fread(&header, sizeof(DOME_FUSED_HEADER), 1, self);
+  if (fileResult != 1) {
+    ENGINE_printLog(engine, "dome: Could not introspect binary: %s\n", strerror(errno));
+    fclose(self);
+    return EXIT_FAILURE;
+  }
+
+  if (memcmp("DOME", header.magic1, 4) == 0 && memcmp("DOME", header.magic2, 4) == 0) {
+    if (header.version == 1) {
+      engine->tar = malloc(sizeof(mtar_t));
+      FUSE_open(engine->tar, self, header.offset);
+      engine->fused = true;
+    } else {
+      ENGINE_printLog(engine, "dome: Fused mode data is in the wrong format.");
+      fclose(self);
+      return EXIT_FAILURE;
+    }
+  } else {
+    // We aren't in fused mode.
+    fclose(self);
+  }
+  free(binaryPath);
+  return EXIT_SUCCESS;
+}
+
