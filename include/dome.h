@@ -40,12 +40,14 @@
 typedef enum {
   API_DOME,
   API_WREN,
-  API_AUDIO
+  API_AUDIO,
+  API_GRAPHICS
 } API_TYPE;
 
 #define DOME_API_VERSION 0
 #define WREN_API_VERSION 0
 #define AUDIO_API_VERSION 0
+#define GRAPHICS_API_VERSION 0
 
 // Opaque context pointer
 typedef void* DOME_Context;
@@ -188,6 +190,23 @@ typedef struct {
   void (*stop)(CHANNEL_REF ref);
   void* (*getData)(CHANNEL_REF ref);
 } AUDIO_API_v0;
+
+
+typedef union {
+  uint32_t value;
+  struct {
+    // Intel storage order
+    uint8_t b;
+    uint8_t g;
+    uint8_t r;
+    uint8_t a;
+  } component;
+} DOME_Color;
+
+typedef struct {
+  void (*pset)(DOME_Context ctx, int32_t x, int32_t y, DOME_Color color);
+  DOME_Color (*pget)(DOME_Context ctx, int32_t x, int32_t y);
+} GRAPHICS_API_v0;
 
 typedef void* (*DOME_getAPIFunction)(API_TYPE api, int version);
 PUBLIC_EXPORT void* DOME_getAPI(API_TYPE api, int version);
