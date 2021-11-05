@@ -430,9 +430,8 @@ vm_cleanup:
   AUDIO_ENGINE_halt(engine->audioEngine);
   AUDIO_ENGINE_releaseHandles(engine->audioEngine, vm);
 
-  // TODO: test if this is in the right place
+  VM_free(vm);
   result = engine->exit_status;
-
 cleanup:
   return result;
 }
