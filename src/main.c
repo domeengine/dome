@@ -366,116 +366,74 @@ int main(int argc, char* args[])
 
   char* defaultEggName = "game.egg";
   char* mainFileName = "main.wren";
+  char* finalFileName = NULL;
   char entryPath[PATH_MAX];
-  char* fileName = NULL;
   char* base = BASEPATH_get();
-  printf("DEBUG: autoResolve: %s\n", autoResolve ? "true" : "false");
   bool resolved = false;
   char* entryArgument = NULL;
   if (domeArgCount > 1) {
     entryArgument = engine.argv[1];
-    printf("DEBUG: Entry argument is set: %s\n", entryArgument);
   }
 
-  bool isBundle = false;
   if (engine.fused) {
     strcpy(entryPath, mainFileName);
-    printf("DEBUG: Engine is fused. Entry path: %s\n", entryPath);
   } else {
-    printf("DEBUG: Engine is not fused.\n");
+    // Set the basepath according to the incoming argument
     if (entryArgument != NULL) {
-      autoResolve = false;
       strcpy(entryPath, base);
       strcat(entryPath, entryArgument);
-      printf("DEBUG: Checking if directory. Entry path: %s\n", entryPath);
       if (isDirectory(entryPath)) {
-        printf("DEBUG: Success\n");
-        BASEPATH_set(entryPath);
         autoResolve = true;
-        printf("DEBUG: Resolution required.\n");
+        BASEPATH_set(entryPath);
       } else {
+        autoResolve = false;
         char* directory = dirname(strdup(entryPath));
-        char* filename = basename(strdup(entryPath));
-        strcpy(entryPath, directory);
-        strcat(entryPath, "/");
-        strcat(entryPath, filename);
-        printf("DEBUG: Trying it as a file name instead: %s\n", entryPath);
-
-        // This sets the filename used.
+        finalFileName = basename(strdup(entryPath));
         BASEPATH_set(directory);
-
         free(directory);
-        free(filename);
+      }
 
-        if (!doesFileExist(entryPath)) {
-          printf("DEBUG: Path does not exist. Abort\n");
-          result = EXIT_FAILURE;
-          goto cleanup;
-          // abort
-        } else {
-          printf("DEBUG: Successfully found a file.\n");
-          autoResolve = false;
-          resolved = false;
-        }
+      base = BASEPATH_get();
+      chdir(base);
+    }
+
+    if (autoResolve) {
+      strcpy(entryPath, base);
+      strcat(entryPath, defaultEggName);
+    }
+
+    if (doesFileExist(entryPath)) {
+      mtar_t* tar = malloc(sizeof(mtar_t));
+      int tarResult = mtar_open(tar, entryPath, "r");
+      if (tarResult == MTAR_ESUCCESS) {
+        engine.tar = tar;
+        finalFileName = NULL;
+        resolved = true;
+        ENGINE_printLog(&engine, "Loading bundle %s\n", entryPath);
+      } else {
+        // Not a valid tar file.
+        free(tar);
       }
     }
 
-    base = BASEPATH_get();
-    printf("DEBUG: Base: %s\n", base);
-    // TODO: free base?
-    chdir(base);
-
-    if (!resolved) {
-      // No entry arg. Scan the current directory for game.egg or main.wren.
+    if (engine.tar == NULL) {
       if (autoResolve) {
         strcpy(entryPath, base);
-        strcat(entryPath, defaultEggName);
-      }
-      printf("DEBUG: Trying bundle. Entry path: %s\n", entryPath);
-      if (doesFileExist(entryPath)) {
-        printf("DEBUG: Attempting to load tar file\n");
-        mtar_t* tar = malloc(sizeof(mtar_t));
-        int tarResult = mtar_open(tar, entryPath, "r");
-        if (tarResult == MTAR_ESUCCESS) {
-          printf("DEBUG: Success\n");
-          engine.tar = tar;
-          resolved = true;
-          ENGINE_printLog(&engine, "Loading bundle %s\n", entryPath);
-        } else {
-          printf("DEBUG: Tar was unsuccessful\n");
-          // Not a valid tar file.
-          free(tar);
-        }
-      }
-      if (engine.tar == NULL) {
-        // attempt to load egg
-        strcpy(entryPath, base);
         strcat(entryPath, mainFileName);
-        printf("DEBUG: Trying default wren file. Entry path: %s\n", entryPath);
-        if (doesFileExist(entryPath)) {
-          // attempt to load wren file
-          printf("DEBUG: Success\n");
-          resolved = true;
-        } else {
-          printf("DEBUG: Not found. Abort.\n");
-          // abort
-        }
+        finalFileName = NULL;
       }
+      resolved = true;
     }
   }
 
   if (!engine.fused && !resolved) {
-    printf("DEBUG: Could not resolve to an entry point. Abort.\n");
     result = EXIT_FAILURE;
     goto cleanup;
   } else {
     free(entryArgument);
     engine.argv[1] = strdup(entryPath);
-    if (engine.tar != NULL) {
-      strcpy(entryPath, mainFileName);
-    }
+    strcpy(entryPath, finalFileName == NULL ? mainFileName : finalFileName);
   }
-  printf("DEBUG: Final entry path: %s\n", entryPath);
 
   // The basepath is incorporated later, so we pass the basename version to this method.
   gameFile = ENGINE_readFile(&engine, entryPath, &gameFileLength);
