@@ -131,6 +131,78 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 
 #include "game.c"
 
+char* resolveEntryPath(ENGINE* engine, char* entryArgument, bool autoResolve) {
+  char* defaultEggName = "game.egg";
+  char* mainFileName = "main.wren";
+  char* finalFileName = NULL;
+  char* entryPath = malloc(sizeof(char) * PATH_MAX);
+  char* base = BASEPATH_get();
+  bool resolved = false;
+
+  if (engine->fused) {
+    strcpy(entryPath, mainFileName);
+  } else {
+    if (entryArgument != NULL) {
+      // Set the basepath according to the incoming argument
+      strcpy(entryPath, base);
+      strcat(entryPath, entryArgument);
+      if (isDirectory(entryPath)) {
+        autoResolve = true;
+        BASEPATH_set(entryPath);
+      } else {
+        autoResolve = false;
+        char* directory = dirname(strdup(entryPath));
+        finalFileName = basename(strdup(entryPath));
+        BASEPATH_set(directory);
+        free(directory);
+      }
+
+      base = BASEPATH_get();
+      chdir(base);
+    }
+
+    if (autoResolve) {
+      strcpy(entryPath, base);
+      strcat(entryPath, defaultEggName);
+    }
+
+    if (doesFileExist(entryPath)) {
+      mtar_t* tar = malloc(sizeof(mtar_t));
+      int tarResult = mtar_open(tar, entryPath, "r");
+      if (tarResult == MTAR_ESUCCESS) {
+        engine->tar = tar;
+        finalFileName = NULL;
+        resolved = true;
+        ENGINE_printLog(engine, "Loading bundle %s\n", entryPath);
+      } else {
+        // Not a valid tar file.
+        free(tar);
+      }
+    }
+
+    if (engine->tar == NULL) {
+      if (autoResolve) {
+        strcpy(entryPath, base);
+        strcat(entryPath, mainFileName);
+        finalFileName = NULL;
+        resolved = doesFileExist(entryPath);
+      } else {
+        resolved = true;
+      }
+    }
+  }
+
+  if (!engine->fused && !resolved) {
+    ENGINE_printLog(engine, "Error: Could not find an entry point at: %s\n", dirname(entryPath));
+    printUsage(engine);
+    return NULL;
+  } else {
+    free(entryArgument);
+    engine->argv[1] = strdup(entryPath);
+    strcpy(entryPath, finalFileName == NULL ? mainFileName : finalFileName);
+  }
+  return entryPath;
+}
 
 internal void
 printTitle(ENGINE* engine) {
@@ -176,7 +248,7 @@ printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
 }
 
-int main(int argc, char* args[])
+int main(int argc, char* argv[])
 {
   // configuring the buffer has to be first
 
@@ -188,8 +260,6 @@ int main(int argc, char* args[])
 
   int result = EXIT_SUCCESS;
   WrenVM* vm = NULL;
-  size_t gameFileLength;
-  char* gameFile;
   INIT_TO_ZERO(ENGINE, engine);
 
 #ifdef __EMSCRIPTEN__
@@ -201,17 +271,11 @@ int main(int argc, char* args[])
 
   ENGINE_init(&engine);
   engine.argv = calloc(max(2, argc), sizeof(char*));
-  engine.argv[0] = args[0];
+  engine.argv[0] = argv[0];
   engine.argv[1] = NULL;
   loop.engine = &engine;
 
 #ifndef __EMSCRIPTEN__
-  // Is this web? If No...
-  // Are we running in fused mode?
-  // Did we get a path?
-  // No - Try opening game.egg, or main.wren
-  // Yes - Try opening it. If it's an egg, run it, otherwise don't.
-
   char* binaryPath = FUSE_getExecutablePath();
   if (binaryPath == NULL) {
     ENGINE_printLog(&engine, "dome: Could not allocate memory. Aborting.\n");
@@ -271,7 +335,7 @@ int main(int argc, char* args[])
   int option;
   char **subargv = NULL;
   struct optparse options;
-  optparse_init(&options, args);
+  optparse_init(&options, argv);
   options.permute = 0;
 
   if (!engine.fused) {
@@ -314,7 +378,7 @@ int main(int argc, char* args[])
           }
         case '?':
           {
-            fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
+            fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);
             result = EXIT_FAILURE;
             goto cleanup;
           }
@@ -333,7 +397,7 @@ int main(int argc, char* args[])
         {"nest", 'n', NEST_perform }
       };
       int ncmds = sizeof(cmds) / sizeof(*cmds);
-      subargv = args + options.optind;
+      subargv = argv + options.optind;
       // If we match a subcommand, execute it
       for (int i = 0; i < ncmds; i++) {
         if (!strncmp(cmds[i].name, subargv[0], strlen(subargv[0]))) {
@@ -357,89 +421,16 @@ int main(int argc, char* args[])
   domeArgCount = max(2, domeArgCount);
   engine.argv = realloc(engine.argv, sizeof(char*) * domeArgCount);
   engine.argc = domeArgCount;
-
-#else
-  engine.argc = 1;
-  bool autoResolve = true;
-  char* entryArgument = NULL;
 #endif
 
-  char* defaultEggName = "game.egg";
-  char* mainFileName = "main.wren";
-  char* finalFileName = NULL;
-  char entryPath[PATH_MAX];
-  char* base = BASEPATH_get();
-  bool resolved = false;
-  char* entryArgument = NULL;
-  if (domeArgCount > 1) {
-    entryArgument = engine.argv[1];
-  }
-
-  if (engine.fused) {
-    strcpy(entryPath, mainFileName);
-  } else {
-    if (entryArgument != NULL) {
-      // Set the basepath according to the incoming argument
-      strcpy(entryPath, base);
-      strcat(entryPath, entryArgument);
-      if (isDirectory(entryPath)) {
-        autoResolve = true;
-        BASEPATH_set(entryPath);
-      } else {
-        autoResolve = false;
-        char* directory = dirname(strdup(entryPath));
-        finalFileName = basename(strdup(entryPath));
-        BASEPATH_set(directory);
-        free(directory);
-      }
-
-      base = BASEPATH_get();
-      chdir(base);
-    }
-
-    if (autoResolve) {
-      strcpy(entryPath, base);
-      strcat(entryPath, defaultEggName);
-    }
-
-    if (doesFileExist(entryPath)) {
-      mtar_t* tar = malloc(sizeof(mtar_t));
-      int tarResult = mtar_open(tar, entryPath, "r");
-      if (tarResult == MTAR_ESUCCESS) {
-        engine.tar = tar;
-        finalFileName = NULL;
-        resolved = true;
-        ENGINE_printLog(&engine, "Loading bundle %s\n", entryPath);
-      } else {
-        // Not a valid tar file.
-        free(tar);
-      }
-    }
-
-    if (engine.tar == NULL) {
-      if (autoResolve) {
-        strcpy(entryPath, base);
-        strcat(entryPath, mainFileName);
-        finalFileName = NULL;
-        resolved = doesFileExist(entryPath);
-      } else {
-        resolved = true;
-      }
-    }
-  }
-
-  if (!engine.fused && !resolved) {
-    ENGINE_printLog(&engine, "Error: Could not find an entry point at: %s\n", dirname(entryPath));
-    printUsage(&engine);
-    result = EXIT_FAILURE;
+  char* entryPath = resolveEntryPath(&engine, engine.argv[1], autoResolve);
+  if (entryPath == NULL) {
     goto cleanup;
-  } else {
-    free(entryArgument);
-    engine.argv[1] = strdup(entryPath);
-    strcpy(entryPath, finalFileName == NULL ? mainFileName : finalFileName);
   }
 
   // The basepath is incorporated later, so we pass the basename version to this method.
+  size_t gameFileLength;
+  char* gameFile;
   gameFile = ENGINE_readFile(&engine, entryPath, &gameFileLength);
   if (gameFile == NULL) {
     if (engine.tar != NULL) {
@@ -451,6 +442,7 @@ int main(int argc, char* args[])
     result = EXIT_FAILURE;
     goto cleanup;
   }
+  free(entryPath);
 
   result = ENGINE_start(&engine);
   if (result == EXIT_FAILURE) {
