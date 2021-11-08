@@ -126,227 +126,10 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "modules/platform.c"
 #include "modules/random.c"
 #include "modules/plugin.c"
-
-
 // Comes last to register modules
 #include "vm.c"
+#include "game.c"
 
-typedef struct {
-  ENGINE* engine;
-  WrenVM* vm;
-  WrenHandle* gameClass;
-  WrenHandle* updateMethod;
-  WrenHandle* drawMethod;
-  double MS_PER_FRAME;
-  double FPS;
-  double lag;
-  uint64_t previousTime;
-  uint64_t currentTime;
-  double elapsed;
-  bool windowBlurred;
-  uint8_t attempts;
-  bool tickRender;
-} LOOP_STATE;
-
-internal void
-LOOP_release(LOOP_STATE* state) {
-  WrenVM* vm = state->vm;
-
-  if (state->drawMethod != NULL) {
-    wrenReleaseHandle(vm, state->drawMethod);
-  }
-
-  if (state->updateMethod != NULL) {
-    wrenReleaseHandle(vm, state->updateMethod);
-  }
-
-  if (state->gameClass != NULL) {
-    wrenReleaseHandle(vm, state->gameClass);
-  }
-}
-
-internal int
-LOOP_processInput(LOOP_STATE* state) {
-  WrenInterpretResult interpreterResult;
-  ENGINE* engine = state->engine;
-  WrenVM* vm = state->vm;
-  engine->mouse.scrollX = 0;
-  engine->mouse.scrollY = 0;
-  SDL_Event event;
-  INPUT_clearText(vm);
-  while(SDL_PollEvent(&event)) {
-    switch (event.type) {
-      case SDL_QUIT:
-        engine->running = false;
-        break;
-      case SDL_WINDOWEVENT:
-        {
-          if (event.window.event == SDL_WINDOWEVENT_RESIZED ||
-              event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-            SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
-            break;
-          }
-          if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
-#ifdef __EMSCRIPTEN__
-            AUDIO_ENGINE_pause(engine->audioEngine);
-#endif
-            state->windowBlurred = true;
-          } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-#ifdef __EMSCRIPTEN__
-            AUDIO_ENGINE_resume(engine->audioEngine);
-#endif
-            ENGINE_updateTextRegion(engine);
-            state->windowBlurred = false;
-          }
-        } break;
-      case SDL_KEYDOWN:
-      case SDL_KEYUP:
-        {
-          SDL_Keycode keyCode = event.key.keysym.sym;
-          if (keyCode == SDLK_F3 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-            engine->debugEnabled = !engine->debugEnabled;
-          } else if (keyCode == SDLK_F2 && event.key.state == SDL_PRESSED && event.key.repeat == 0) {
-            ENGINE_takeScreenshot(engine);
-          } else if (event.key.repeat == 0) {
-            char* buttonName = strToLower((char*)SDL_GetKeyName(keyCode));
-            interpreterResult = INPUT_update(vm, DOME_INPUT_KEYBOARD, buttonName, event.key.state == SDL_PRESSED);
-            free(buttonName);
-            if (interpreterResult != WREN_RESULT_SUCCESS) {
-              return EXIT_FAILURE;
-            }
-          }
-        } break;
-      case SDL_TEXTEDITING:
-        {
-          if (utf8len(event.edit.text) > 0) {
-            INPUT_setCompositionText(vm, event.edit.text, event.edit.start, event.edit.length);
-          }
-        } break;
-      case SDL_TEXTINPUT:
-        {
-          if (utf8len(event.text.text) > 0) {
-            INPUT_addText(vm, event.text.text);
-          }
-        } break;
-
-      case SDL_CONTROLLERDEVICEADDED:
-        {
-          GAMEPAD_eventAdded(vm, event.cdevice.which);
-        } break;
-      case SDL_CONTROLLERDEVICEREMOVED:
-        {
-          GAMEPAD_eventRemoved(vm, event.cdevice.which);
-        } break;
-      case SDL_CONTROLLERBUTTONDOWN:
-      case SDL_CONTROLLERBUTTONUP:
-        {
-          SDL_ControllerButtonEvent cbutton = event.cbutton;
-          const char* buttonName = GAMEPAD_stringFromButton(cbutton.button);
-          interpreterResult = GAMEPAD_eventButtonPressed(vm, cbutton.which, buttonName, cbutton.state == SDL_PRESSED);
-          if (interpreterResult != WREN_RESULT_SUCCESS) {
-            return EXIT_FAILURE;
-          }
-        } break;
-      case SDL_MOUSEWHEEL:
-        {
-          int dir = event.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? 1 : -1;
-          engine->mouse.scrollX += event.wheel.x * dir;
-          // Down should be positive to match the direction of rendering.
-          engine->mouse.scrollY += event.wheel.y * -dir;
-        } break;
-      case SDL_MOUSEBUTTONDOWN:
-      case SDL_MOUSEBUTTONUP:
-        {
-          char* buttonName;
-          switch (event.button.button) {
-            case SDL_BUTTON_LEFT: buttonName = "left"; break;
-            case SDL_BUTTON_MIDDLE: buttonName = "middle"; break;
-            case SDL_BUTTON_RIGHT: buttonName = "right"; break;
-            case SDL_BUTTON_X1: buttonName = "x1"; break;
-            default:
-            case SDL_BUTTON_X2: buttonName = "x2"; break;
-          }
-          bool state = event.button.state == SDL_PRESSED;
-          interpreterResult = INPUT_update(vm, DOME_INPUT_MOUSE, buttonName, state);
-          if (interpreterResult != WREN_RESULT_SUCCESS) {
-            return EXIT_FAILURE;
-          }
-        } break;
-      case SDL_USEREVENT:
-        {
-          ENGINE_printLog(engine, "Event code %i\n", event.user.code);
-          if (event.user.code == EVENT_LOAD_FILE) {
-            FILESYSTEM_loadEventComplete(&event);
-          }
-        }
-    }
-  }
-  if (inputCaptured) {
-    interpreterResult = INPUT_commit(vm);
-    if (interpreterResult != WREN_RESULT_SUCCESS) {
-      return EXIT_FAILURE;
-    }
-  }
-  return EXIT_SUCCESS;
-}
-
-internal int
-LOOP_render(LOOP_STATE* state) {
-  if (PLUGIN_COLLECTION_runHook(state->engine, DOME_PLUGIN_HOOK_PRE_DRAW) != DOME_RESULT_SUCCESS) {
-    return EXIT_FAILURE;
-  };
-  WrenInterpretResult interpreterResult;
-  wrenEnsureSlots(state->vm, 8);
-  wrenSetSlotHandle(state->vm, 0, state->gameClass);
-  wrenSetSlotDouble(state->vm, 1, ((double)state->lag / state->MS_PER_FRAME));
-  interpreterResult = wrenCall(state->vm, state->drawMethod);
-  if (interpreterResult != WREN_RESULT_SUCCESS) {
-    return EXIT_FAILURE;
-  }
-  if (PLUGIN_COLLECTION_runHook(state->engine, DOME_PLUGIN_HOOK_POST_DRAW) != DOME_RESULT_SUCCESS) {
-    return EXIT_FAILURE;
-  };
-
-
-  return EXIT_SUCCESS;
-}
-
-internal void
-LOOP_flip(LOOP_STATE* state) {
-
-  state->engine->debug.elapsed = state->elapsed;
-  if (state->engine->debugEnabled) {
-    ENGINE_drawDebug(state->engine);
-  }
-  // Flip Buffer to Screen
-  SDL_UpdateTexture(state->engine->texture, 0, state->engine->canvas.pixels, state->engine->canvas.width * 4);
-  // clear screen
-  SDL_RenderClear(state->engine->renderer);
-  SDL_RenderCopy(state->engine->renderer, state->engine->texture, NULL, NULL);
-  SDL_RenderPresent(state->engine->renderer);
-}
-
-internal int
-LOOP_update(LOOP_STATE* state) {
-  WrenInterpretResult interpreterResult;
-
-  if (PLUGIN_COLLECTION_runHook(state->engine, DOME_PLUGIN_HOOK_PRE_UPDATE) != DOME_RESULT_SUCCESS) {
-    return EXIT_FAILURE;
-  };
-
-  wrenEnsureSlots(state->vm, 8);
-  wrenSetSlotHandle(state->vm, 0, state->gameClass);
-  interpreterResult = wrenCall(state->vm, state->updateMethod);
-  if (interpreterResult != WREN_RESULT_SUCCESS) {
-    return EXIT_FAILURE;
-  }
-  if (PLUGIN_COLLECTION_runHook(state->engine, DOME_PLUGIN_HOOK_POST_UPDATE) != DOME_RESULT_SUCCESS) {
-    return EXIT_FAILURE;
-  };
-  // updateAudio()
-  AUDIO_ENGINE_update(state->engine->audioEngine, state->vm);
-  return EXIT_SUCCESS;
-}
 
 internal void
 printTitle(ENGINE* engine) {
@@ -392,34 +175,84 @@ printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
 }
 
-void DOME_loop(void* data) {
-  LOOP_STATE loop = *((LOOP_STATE*)data);
-  loop.currentTime = SDL_GetPerformanceCounter();
-  loop.elapsed = 1000 * (loop.currentTime - loop.previousTime) / (double) SDL_GetPerformanceFrequency();
-  loop.previousTime = loop.currentTime;
-  loop.lag += loop.elapsed;
+char* resolveEntryPath(ENGINE* engine, char* entryArgument, bool autoResolve) {
+  char* defaultEggName = "game.egg";
+  char* mainFileName = "main.wren";
+  char* finalFileName = NULL;
+  char* entryPath = malloc(sizeof(char) * PATH_MAX);
+  char* base = BASEPATH_get();
+  bool resolved = false;
 
-  if (loop.lag >= loop.MS_PER_FRAME) {
-    LOOP_processInput(&loop);
-    if (loop.windowBlurred) {
-      loop.lag = 0;
-      loop.tickRender = true;
-      return;
+  if (engine->fused) {
+    strcpy(entryPath, mainFileName);
+  } else {
+    if (entryArgument != NULL) {
+      // Set the basepath according to the incoming argument
+      strcpy(entryPath, base);
+      strcat(entryPath, entryArgument);
+      if (isDirectory(entryPath)) {
+        autoResolve = true;
+        BASEPATH_set(entryPath);
+      } else {
+        autoResolve = false;
+        char* directory = dirname(strdup(entryPath));
+        finalFileName = basename(strdup(entryPath));
+        BASEPATH_set(directory);
+        free(directory);
+      }
+
+      base = BASEPATH_get();
+      chdir(base);
     }
-    LOOP_update(&loop);
-    if (loop.tickRender) {
-      LOOP_render(&loop);
-      LOOP_flip(&loop);
+
+    if (autoResolve) {
+      strcpy(entryPath, base);
+      strcat(entryPath, defaultEggName);
+#ifdef __EMSCRIPTEN__
+  emscripten_wget("game.egg", "game.egg");
+#endif
     }
-    loop.tickRender = !loop.tickRender;
-    loop.lag = mid(0, loop.lag - loop.MS_PER_FRAME, loop.MS_PER_FRAME);
+
+    if (doesFileExist(entryPath)) {
+      mtar_t* tar = malloc(sizeof(mtar_t));
+      int tarResult = mtar_open(tar, entryPath, "r");
+      if (tarResult == MTAR_ESUCCESS) {
+        engine->tar = tar;
+        finalFileName = NULL;
+        resolved = true;
+        ENGINE_printLog(engine, "Loading bundle %s\n", entryPath);
+      } else {
+        // Not a valid tar file.
+        free(tar);
+      }
+    }
+
+    if (engine->tar == NULL) {
+      if (autoResolve) {
+        strcpy(entryPath, base);
+        strcat(entryPath, mainFileName);
+        finalFileName = NULL;
+        resolved = doesFileExist(entryPath);
+      } else {
+        resolved = true;
+      }
+    }
   }
-  *((LOOP_STATE*)data) = loop;
+
+  if (!engine->fused && !resolved) {
+    ENGINE_printLog(engine, "Error: Could not find an entry point at: %s\n", dirname(entryPath));
+    printUsage(engine);
+    return NULL;
+  } else {
+    free(entryArgument);
+    engine->argv[1] = strdup(entryPath);
+    strcpy(entryPath, finalFileName == NULL ? mainFileName : finalFileName);
+  }
+  return entryPath;
 }
 
 
-
-int main(int argc, char* args[])
+int main(int argc, char* argv[])
 {
   // configuring the buffer has to be first
 
@@ -429,21 +262,20 @@ int main(int argc, char* args[])
   setvbuf(stderr, NULL, _IONBF, 0);
 
   int result = EXIT_SUCCESS;
-  WrenVM* vm = NULL;
-  size_t gameFileLength;
-  char* gameFile;
   INIT_TO_ZERO(ENGINE, engine);
-#ifdef __EMSCRIPTEN__
-  emscripten_wget("game.egg", "game.egg");
-#endif
-  INIT_TO_ZERO(LOOP_STATE, loop);
-  loop.FPS = 60;
-  loop.MS_PER_FRAME = ceil(1000.0 / loop.FPS);
 
   ENGINE_init(&engine);
-  loop.engine = &engine;
+  engine.argv = calloc(max(2, argc), sizeof(char*));
+  engine.argv[0] = argv[0];
+  engine.argv[1] = NULL;
+  bool autoResolve = true;
 
 #ifndef __EMSCRIPTEN__
+  result = FUSE_introspectBinary(&engine);
+  if (result != EXIT_SUCCESS) {
+    goto cleanup;
+  }
+
   struct optparse_long longopts[] = {
     {"help", 'h', OPTPARSE_NONE},
     {"version", 'v', OPTPARSE_NONE},
@@ -458,9 +290,10 @@ int main(int argc, char* args[])
   int option;
   char **subargv = NULL;
   struct optparse options;
-  optparse_init(&options, args);
+  optparse_init(&options, argv);
   options.permute = 0;
-  if (argc > 1) {
+
+  if (!engine.fused) {
     while ((option = optparse_long(&options, longopts, NULL)) != -1) {
       switch (option) {
         case 'b':
@@ -473,368 +306,89 @@ int main(int argc, char* args[])
             AUDIO_BUFFER_SIZE = 1 << shift;
           } break;
 #ifdef __MINGW32__
-        case 'c': {
-                    AllocConsole();
-                    freopen("CONIN$", "r", stdin);
-                    freopen("CONOUT$", "w", stdout);
-                    freopen("CONOUT$", "w", stderr);
-                  } break;
+        case 'c':
+          {
+            AllocConsole();
+            freopen("CONIN$", "r", stdin);
+            freopen("CONOUT$", "w", stdout);
+            freopen("CONOUT$", "w", stderr);
+          } break;
 #endif
         case 'd':
-                  DEBUG_MODE = true;
-                  ENGINE_printLog(&engine, "Debug Mode enabled\n");
-                  break;
+          {
+            DEBUG_MODE = true;
+            ENGINE_printLog(&engine, "Debug Mode enabled\n");
+          } break;
         case 'h':
-                  printTitle(&engine);
-                  printUsage(&engine);
-                  goto cleanup;
-        case 'v':
-                  printTitle(&engine);
-                  printVersion(&engine);
-                  goto cleanup;
-        case '?':
-                  fprintf(stderr, "%s: %s\n", args[0], options.errmsg);
-                  result = EXIT_FAILURE;
-                  goto cleanup;
-      }
-    }
-
-    static const struct {
-      char name[8];
-      char letter;
-      int (*cmd)(ENGINE*, char **);
-    } cmds[] = {
-      {"fuse", 'f',  FUSE_perform },
-      {"embed", 'e', EMBED_perform },
-      {"help",  'h', HELP_perform },
-      {"nest", 'n', NEST_perform }
-    };
-    int ncmds = sizeof(cmds) / sizeof(*cmds);
-    subargv = args + options.optind;
-    // If we match a subcommand, execute it
-    for (int i = 0; i < ncmds; i++) {
-      if (!strncmp(cmds[i].name, subargv[0], strlen(subargv[0]))) { // || subargv[0][0] == cmds[i].letter) {
-      // if (!strcmp(cmds[i].name, subargv[0])) { // || subargv[0][0] == cmds[i].letter) {
-        result = cmds[i].cmd(&engine, subargv);
-        goto cleanup;
-      }
-    }
-  }
-#endif
-
-
-  // assume we are trying to play the game
-  {
-    char* defaultEggName = "game.egg";
-    char* mainFileName = "main.wren";
-
-    char* base = BASEPATH_get();
-
-    char pathBuf[PATH_MAX];
-    char* fileName = NULL;
-
-#ifndef __EMSCRIPTEN__
-    // Get non-option args list
-    engine.argv = calloc(max(2, argc), sizeof(char*));
-    engine.argv[0] = args[0];
-    engine.argv[1] = NULL;
-    int domeArgCount = 1;
-    char* otherArg = NULL;
-    while ((otherArg = optparse_arg(&options))) {
-      engine.argv[domeArgCount] = otherArg;
-      domeArgCount++;
-    }
-
-    bool autoResolve = (domeArgCount == 1);
-
-    domeArgCount = max(2, domeArgCount);
-    engine.argv = realloc(engine.argv, sizeof(char*) * domeArgCount);
-    engine.argc = domeArgCount;
-
-    char* arg = NULL;
-    if (domeArgCount > 1) {
-      arg = engine.argv[1];
-    }
-#else
-    engine.argv = calloc(2, sizeof(char*));
-    engine.argv[0] = args[0];
-    engine.argv[1] = NULL;
-    engine.argc = 1;
-    bool autoResolve = true;
-    char* arg = NULL;
-#endif
-
-
-    // Get establish the path components: filename(?) and basepath.
-    if (arg != NULL) {
-      strcpy(pathBuf, base);
-      strcat(pathBuf, arg);
-      if (isDirectory(pathBuf)) {
-        BASEPATH_set(pathBuf);
-        autoResolve = true;
-      } else {
-        char* dirc = strdup(pathBuf);
-        char* basec = strdup(pathBuf);
-        // This sets the filename used.
-        fileName = strdup(basename(dirc));
-        BASEPATH_set(dirname(basec));
-        free(dirc);
-        free(basec);
-      }
-
-      base = BASEPATH_get();
-    }
-
-    // If a filename is given in the path, use it, or assume its 'game.egg'
-    strcpy(pathBuf, base);
-    strcat(pathBuf, !autoResolve ? fileName : defaultEggName);
-    chdir(base);
-
-    if (doesFileExist(pathBuf)) {
-      // the current path exists, let's see if it's a TAR file.
-      engine.tar = malloc(sizeof(mtar_t));
-      int tarResult = mtar_open(engine.tar, pathBuf, "r");
-      if (tarResult == MTAR_ESUCCESS) {
-        ENGINE_printLog(&engine, "Loading bundle %s\n", pathBuf);
-        engine.argv[1] = strdup(pathBuf);
-      } else {
-        // Not a valid tar file.
-        free(engine.tar);
-        engine.tar = NULL;
-      }
-    } else {
-#ifndef __EMSCRIPTEN__
-      char* binaryPath = FUSE_getExecutablePath();
-      if (binaryPath != NULL) {
-        // Check if end of file has marker
-        FILE* self = fopen(binaryPath, "rb");
-        int result = fseek (self, -((long int)sizeof(DOME_FUSED_HEADER)), SEEK_END);
-        if (result == 0) {
-          DOME_FUSED_HEADER header;
-          result = fread(&header, sizeof(DOME_FUSED_HEADER), 1, self);
-          if (result == 1) {
-            if (memcmp("DOME", header.magic1, 4) == 0 && memcmp("DOME", header.magic2, 4) == 0) {
-              if (header.version == 1) {
-                engine.tar = malloc(sizeof(mtar_t));
-                FUSE_open(engine.tar, self, header.offset);
-                engine.argv[1] = NULL;
-              } else {
-                printf("DOME is in fused mode, but the data is corrupt.");
-                fclose(self);
-              }
-            }
+          {
+            printTitle(&engine);
+            printUsage(&engine);
+            goto cleanup;
           }
-        } else {
-          fclose(self);
+        case 'v':
+          {
+            printTitle(&engine);
+            printVersion(&engine);
+            goto cleanup;
+          }
+        case '?':
+          {
+            fprintf(stderr, "%s: %s\n", argv[0], options.errmsg);
+            result = EXIT_FAILURE;
+            goto cleanup;
+          }
+      }
+    }
+
+    if (argc > 1) {
+      static const struct {
+        char name[8];
+        char letter;
+        int (*cmd)(ENGINE*, char **);
+      } cmds[] = {
+        {"fuse", 'f',  FUSE_perform },
+        {"embed", 'e', EMBED_perform },
+        {"help",  'h', HELP_perform },
+        {"nest", 'n', NEST_perform }
+      };
+      int ncmds = sizeof(cmds) / sizeof(*cmds);
+      subargv = argv + options.optind;
+      // If we match a subcommand, execute it
+      for (int i = 0; i < ncmds; i++) {
+        if (!strncmp(cmds[i].name, subargv[0], strlen(subargv[0]))) {
+          result = cmds[i].cmd(&engine, subargv);
+          goto cleanup;
         }
       }
-      free(binaryPath);
-#endif
-    }
-
-    if (engine.tar != NULL) {
-      // It is a tar file, we need to look for a "main.wren" entry point.
-      strcpy(pathBuf, mainFileName);
-    } else {
-      // Not a tar file, use the given path or main.wren
-      strcpy(pathBuf, base);
-      strcat(pathBuf, !autoResolve ? fileName : mainFileName);
-      engine.argv[1] = strdup(pathBuf);
-      strcpy(pathBuf, !autoResolve ? fileName : mainFileName);
-    }
-
-    if (fileName != NULL) {
-      free(fileName);
-    }
-
-    // The basepath is incorporated later, so we pass the basename version to this method.
-    gameFile = ENGINE_readFile(&engine, pathBuf, &gameFileLength);
-    if (gameFile == NULL) {
-      if (engine.tar != NULL) {
-        ENGINE_printLog(&engine, "Error: Could not load %s in bundle.\n", pathBuf);
-      } else {
-        ENGINE_printLog(&engine, "Error: Could not load %s.\n", pathBuf);
-      }
-      printUsage(&engine);
-      result = EXIT_FAILURE;
-      goto cleanup;
     }
   }
 
-  result = ENGINE_start(&engine);
-  if (result == EXIT_FAILURE) {
+  // we are trying to play the game
+  // Get non-option args list
+  int domeArgCount = 1;
+  char* otherArg = NULL;
+  while ((otherArg = optparse_arg(&options))) {
+    engine.argv[domeArgCount] = strdup(otherArg);
+    domeArgCount++;
+  }
+  // This has to be here because we modify the value of domeArgCount after
+  // to account for a strict 2-arg requirement. (See dome.Process documentation)
+  autoResolve = (domeArgCount == 1);
+  domeArgCount = max(2, domeArgCount);
+  engine.argv = realloc(engine.argv, sizeof(char*) * domeArgCount);
+  engine.argc = domeArgCount;
+#endif
+
+  char* entryPath = resolveEntryPath(&engine, engine.argv[1], autoResolve);
+  if (entryPath == NULL) {
     goto cleanup;
   }
 
-  // Configure Wren VM
-  vm = VM_create(&engine);
-  WrenInterpretResult interpreterResult;
-  loop.vm = vm;
-
-  // Load user game file
-  WrenHandle* initMethod = NULL;
-
-  interpreterResult = wrenInterpret(vm, "main", gameFile);
-  free(gameFile);
-  if (interpreterResult != WREN_RESULT_SUCCESS) {
-    result = EXIT_FAILURE;
-    goto vm_cleanup;
-  }
-  // Load the class into slot 0.
-
-
-  wrenEnsureSlots(vm, 3);
-  initMethod = wrenMakeCallHandle(vm, "init()");
-  wrenGetVariable(vm, "main", "Game", 0);
-  loop.gameClass = wrenGetSlotHandle(vm, 0);
-  loop.updateMethod = wrenMakeCallHandle(vm, "update()");
-  loop.drawMethod = wrenMakeCallHandle(vm, "draw(_)");
-
-  SDL_SetRenderDrawColor(engine.renderer, 0x00, 0x00, 0x00, 0xFF);
-
-  // Initiate game loop
-
-  wrenSetSlotHandle(vm, 0, loop.gameClass);
-  interpreterResult = wrenCall(vm, initMethod);
-  if (interpreterResult != WREN_RESULT_SUCCESS) {
-    result = EXIT_FAILURE;
-    goto vm_cleanup;
-  }
-  // Release this handle if it finished successfully
-  wrenReleaseHandle(vm, initMethod);
-  initMethod = NULL;
-  engine.initialized = true;
-
-  SDL_SetWindowPosition(engine.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-  SDL_ShowWindow(engine.window);
-
-  loop.lag = loop.MS_PER_FRAME;
-  result = LOOP_processInput(&loop);
-  if (result != EXIT_SUCCESS) {
-    goto vm_cleanup;
-  }
-  loop.windowBlurred = false;
-  loop.previousTime = SDL_GetPerformanceCounter();
-#ifdef __EMSCRIPTEN__
-  emscripten_set_main_loop_arg(DOME_loop, &loop, 0, true);
-#endif
-  while (engine.running) {
-
-    // processInput()
-    if (loop.windowBlurred) {
-      result = LOOP_processInput(&loop);
-      if (result != EXIT_SUCCESS) {
-        goto vm_cleanup;
-      }
-    }
-
-    loop.currentTime = SDL_GetPerformanceCounter();
-    loop.elapsed = 1000 * (loop.currentTime - loop.previousTime) / (double) SDL_GetPerformanceFrequency();
-    loop.previousTime = loop.currentTime;
-
-
-    // If we aren't focused, we skip the update loop and let the CPU sleep
-    // to be good citizens
-    if (loop.windowBlurred) {
-      SDL_Delay(50);
-      continue;
-    }
-
-    if(fabs(loop.elapsed - 1.0/120.0) < .0002){
-      loop.elapsed = 1.0/120.0;
-    }
-    if(fabs(loop.elapsed - 1.0/60.0) < .0002){
-      loop.elapsed = 1.0/60.0;
-    }
-    if(fabs(loop.elapsed - 1.0/30.0) < .0002){
-      loop.elapsed = 1.0/30.0;
-    }
-    loop.lag += loop.elapsed;
-
-    if (engine.lockstep) {
-      if (loop.lag >= loop.MS_PER_FRAME) {
-        result = LOOP_processInput(&loop);
-        if (result != EXIT_SUCCESS) {
-          goto vm_cleanup;
-        }
-        result = LOOP_update(&loop);
-        if (result != EXIT_SUCCESS) {
-          goto vm_cleanup;
-        }
-        result = LOOP_render(&loop);
-        if (result != EXIT_SUCCESS) {
-          goto vm_cleanup;
-        }
-        loop.lag = mid(0, loop.lag - loop.MS_PER_FRAME, loop.MS_PER_FRAME);
-        LOOP_flip(&loop);
-      }
-    } else {
-      loop.attempts = 5;
-      while (loop.attempts > 0 && loop.lag >= loop.MS_PER_FRAME) {
-        loop.attempts--;
-
-        result = LOOP_processInput(&loop);
-        if (result != EXIT_SUCCESS) {
-          goto vm_cleanup;
-        }
-        // update()
-        result = LOOP_update(&loop);
-        if (result != EXIT_SUCCESS) {
-          goto vm_cleanup;
-        }
-        loop.lag -= loop.MS_PER_FRAME;
-      }
-      // render();
-      result = LOOP_render(&loop);
-      if (result != EXIT_SUCCESS) {
-        goto vm_cleanup;
-      }
-      if (loop.attempts == 0) {
-        loop.lag = 0;
-      }
-      LOOP_flip(&loop);
-    }
-
-
-    if (!engine.vsyncEnabled) {
-      SDL_Delay(1);
-    }
-  }
-
-vm_cleanup:
-  // Finish processing async threads so we can release resources
-  ENGINE_finishAsync(&engine);
-  SDL_Event event;
-  while(SDL_PollEvent(&event)) {
-    if (event.type == SDL_USEREVENT) {
-      if (event.user.code == EVENT_LOAD_FILE) {
-        FILESYSTEM_loadEventComplete(&event);
-      }
-    }
-  }
-
-  // Free resources
-  ENGINE_reportError(&engine);
-
-  if (initMethod != NULL) {
-    wrenReleaseHandle(vm, initMethod);
-  }
-
-  LOOP_release(&loop);
-
-  if (bufferClass != NULL) {
-    wrenReleaseHandle(vm, bufferClass);
-  }
-
-  INPUT_release(vm);
-
-  AUDIO_ENGINE_halt(engine.audioEngine);
-  AUDIO_ENGINE_releaseHandles(engine.audioEngine, vm);
+  result = DOME_begin(&engine, entryPath);
+  free(entryPath);
 
 cleanup:
   BASEPATH_free();
-  VM_free(vm);
-  result = engine.exit_status;
   ENGINE_free(&engine);
   //Quit SDL subsystems
   if (strlen(SDL_GetError()) > 0) {
@@ -843,3 +397,4 @@ cleanup:
 
   return result;
 }
+
