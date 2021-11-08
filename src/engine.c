@@ -378,6 +378,34 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 }
 
 internal void
+ENGINE_unsafePset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
+  CANVAS canvas = engine->canvas;
+
+  // Draw pixel at (x,y)
+  int32_t width = canvas.width;
+  uint8_t newA = ((0xFF000000 & c) >> 24);
+
+  uint32_t current = ((uint32_t*)(canvas.pixels))[width * y + x];
+  double normA = newA / (double)UINT8_MAX;
+  double diffA = 1 - normA;
+
+  uint8_t oldR, oldG, oldB, newR, newG, newB;
+  getColorComponents(current, &oldR, &oldG, &oldB);
+  getColorComponents(c, &newR, &newG, &newB);
+
+  uint8_t a = 0xFF;
+  uint8_t r = (diffA * oldR + normA * newR);
+  uint8_t g = (diffA * oldG + normA * newG);
+  uint8_t b = (diffA * oldB + normA * newB);
+
+  c = (a << 24) | (b << 16) | (g << 8) | r;
+
+  // This is a very hot line, so we use pointer arithmetic for
+  // speed!
+  *(((uint32_t*)canvas.pixels) + (width * y + x)) = c;
+}
+
+internal void
 ENGINE_blitBuffer(ENGINE* engine, int32_t x, int32_t y) {
   PIXEL_BUFFER buffer = engine->blitBuffer;
 

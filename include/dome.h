@@ -205,7 +205,10 @@ typedef union {
 
 typedef struct {
   void (*pset)(DOME_Context ctx, int32_t x, int32_t y, DOME_Color color);
+  void (*unsafePset)(DOME_Context ctx, int32_t x, int32_t y, DOME_Color color);
   DOME_Color (*pget)(DOME_Context ctx, int32_t x, int32_t y);
+  uint32_t (*getWidth)(DOME_Context ctx);
+  uint32_t (*getHeight)(DOME_Context ctx);
 } GRAPHICS_API_v0;
 
 typedef void* (*DOME_getAPIFunction)(API_TYPE api, int version);
