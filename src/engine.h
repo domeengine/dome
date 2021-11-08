@@ -77,6 +77,7 @@ typedef struct ENGINE_t {
   int exit_status;
   struct AUDIO_ENGINE_t* audioEngine;
   bool initialized;
+  bool fused;
   bool debugEnabled;
   bool vsyncEnabled;
   ENGINE_DEBUG debug;
