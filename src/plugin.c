@@ -358,6 +358,10 @@ DOME_getAPI(API_TYPE api, int version) {
     if (version == 0) {
       return &graphics_v0;
     }
+  } else if (api == API_IO) {
+    if (version == 0) {
+      return &io_v0;
+    }
   }
 
   return NULL;

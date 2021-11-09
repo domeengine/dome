@@ -1,3 +1,5 @@
+typedef double[4][4] MAT;
+
 typedef struct {
   double x;
   double y;
@@ -30,3 +32,5 @@ inline V2 V_mul(V2 a, double v) {
   result.y = a.y * v;
   return result;
 }
+
+

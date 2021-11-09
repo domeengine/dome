@@ -43,7 +43,7 @@ EMBED_perform(ENGINE* engine, char** argv) {
     return EXIT_FAILURE;
   }
   size_t length;
-  char* fileToConvert = EMBED_readEntireFile(fileName, &length);
+  char* fileToConvert = ENGINE_readFile(engine, fileName, &length);
 
   if (fileToConvert == NULL) {
     ENGINE_printLog(engine, "dome: Error reading file: %s\n", strerror(errno));

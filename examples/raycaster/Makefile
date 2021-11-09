@@ -1,5 +1,5 @@
 NAME = raycaster
-CFLAGS = -O3 -g
+CFLAGS = -O0 -g
 .PHONY: ${NAME}.dylib
 ${NAME}.dylib: ${NAME}.c
 	gcc ${CFLAGS} -dynamiclib -o ${NAME}.dylib -I../../include ${NAME}.c -undefined dynamic_lookup

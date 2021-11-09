@@ -1,16 +1,14 @@
 import "math" for Vec
 import "plugin" for Plugin
 import "input" for Keyboard
-import "graphics" for Canvas
-import "dome" for Process, Window
+import "graphics" for Canvas, Color
+import "dome" for Window
 
 Plugin.load("raycaster")
 // The plugin will be initialised now
 
 // Plugins can register their own modules
 import "raycaster" for Raycaster
-
-
 var SPEED = 0.1
 
 class Main {
@@ -22,7 +20,11 @@ class Main {
   }
 
   init() {
+    var SCALE = 3
+    Canvas.resize(320, 200)
+    Window.resize(SCALE*Canvas.width, SCALE*Canvas.height)
     Window.lockstep = true
+
     _pos = Vec.new(22, 12)
     _angle = 180
     compute()
@@ -55,6 +57,8 @@ class Main {
   }
   draw(alpha) {
     Canvas.cls()
+    Canvas.rectfill(0, 0, Canvas.width, Canvas.height / 2, Color.lightgray)
+    Canvas.rectfill(0, Canvas.height / 2, Canvas.width, Canvas.height / 2, Color.darkgray)
     _raycaster.draw(alpha)
   }
 }

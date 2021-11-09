@@ -38,8 +38,8 @@ typedef struct {
 } ENGINE_RECORDER;
 
 typedef struct {
-  size_t height;
-  size_t width;
+  int32_t width;
+  int32_t height;
   uint32_t* pixels;
 } PIXEL_BUFFER;
 
@@ -108,4 +108,7 @@ global_variable uint32_t ENGINE_EVENT_TYPE;
 
 inline internal void ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c);
 inline internal void ENGINE_unsafePset(ENGINE* engine, int64_t x, int64_t y, uint32_t c);
+inline internal void ENGINE_unsafePsetNoBlend(ENGINE* engine, int64_t x, int64_t y, uint32_t c);
 internal uint32_t ENGINE_pget(ENGINE* engine, int64_t x, int64_t y);
+internal char* ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr);
+internal void ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf);

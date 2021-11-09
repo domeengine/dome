@@ -30,10 +30,34 @@ GRAPHICS_API_getHeight(DOME_Context ctx) {
   return engine->canvas.height;
 }
 
+internal void
+GRAPHICS_API_draw(DOME_Context ctx, DOME_Bitmap* bitmap, int32_t x, int32_t y, DOME_DrawMode mode) {
+  ENGINE* engine = (ENGINE*)ctx;
+  if ((mode & DOME_DRAWMODE_BLEND) != 0) {
+    // do alpha blending. slow.
+    for (int32_t j = 0; j < bitmap->height; j++) {
+      for (int32_t i = 0; i < bitmap->height; i++) {
+        DOME_Color c = *(bitmap->pixels + (j * bitmap->width) + i);
+        ENGINE_pset(engine, x + i, y + j, c.value);
+      }
+    }
+  } else {
+    // fast blit
+    int32_t height = bitmap->height;
+    int32_t width = bitmap->width;
+    DOME_Color* pixels = bitmap->pixels;
+    for (int32_t j = 0; j < height; j++) {
+      uint32_t* row = (uint32_t*)(pixels + (j * width));
+      ENGINE_blitLine(engine, x, y + j, width, row);
+    }
+  }
+}
+
 GRAPHICS_API_v0 graphics_v0 = {
   .pget = GRAPHICS_API_pget,
   .pset = GRAPHICS_API_pset,
   .unsafePset = GRAPHICS_API_unsafePset,
   .getWidth = GRAPHICS_API_getWidth,
   .getHeight = GRAPHICS_API_getHeight,
+  .draw = GRAPHICS_API_draw
 };
