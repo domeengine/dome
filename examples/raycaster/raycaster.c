@@ -1,4 +1,6 @@
 #include <stddef.h>
+#include <assert.h>
+#include <stdio.h>
 #include "math.h"
 #include "domath.c"
 // You'll need to include the DOME header
@@ -14,9 +16,16 @@ static DOME_Bitmap* bitmap;
 static uint32_t WIDTH = 0;
 static uint32_t HEIGHT = 0;
 
-inline float
-clamp(float a, float x, float b) {
-  return fmin(fmax(a, x), b);
+inline double
+clamp(double min, double x, double max) {
+  if (x < min) {
+    return min;
+  }
+  if (x > max) {
+    return max;
+  }
+  return x;
+  // return fmax(min, fmin(x, max));
 }
 
 typedef struct {
@@ -121,6 +130,9 @@ void draw(WrenVM* vm) {
   int w = WIDTH;
   int h = HEIGHT;
 
+  int texWidth = 64;
+  int texHeight = 64;
+
   for(int x = 0; x < w; x++) {
     // Perform DDA first
     double cameraX = 2 * (x / (double)w) - 1;
@@ -168,6 +180,7 @@ void draw(WrenVM* vm) {
       }
       if (mapPos.x < 0 || mapPos.x >= mapWidth || mapPos.y < 0 || mapPos.y >= mapHeight) {
         tile = 1;
+        hit = true;
       } else {
         tile = worldMap[(int)(mapPos.x)][(int)(mapPos.y)];
       }
@@ -184,11 +197,11 @@ void draw(WrenVM* vm) {
 
     // Calculate perspective of wall-slice
     double halfH = (double)h / 2.0;
-    double lineHeight = fmax(0, (double)h / perpWallDistance);
+    double lineHeight = fmax(0, ((double)h / perpWallDistance));
     double drawStart = (-lineHeight / 2.0) + halfH;
     double drawEnd = (lineHeight / 2.0) + halfH;
-    drawStart = clamp(0, drawStart, h);
-    drawEnd = clamp(0, drawEnd, h);
+    drawStart = clamp(0, drawStart, h - 1);
+    drawEnd = clamp(0, drawEnd, h - 1);
 
     double wallX;
     if (side == 0) {
@@ -197,7 +210,39 @@ void draw(WrenVM* vm) {
       wallX = rayPosition.x + perpWallDistance * rayDirection.x;
     }
     wallX = wallX - floor(wallX);
+    int drawWallStart = fmax(0, (int)drawStart);
+    int drawWallEnd = fmin((int)ceil(drawEnd), h - 1);
     DOME_Color color;
+    int texX = (int)floor(wallX * (double)(texWidth - 1));
+    if (side == 0 && rayDirection.x < 0) {
+      texX = (texWidth - 1) - texX;
+    }
+    if (side == 1 && rayDirection.y > 0) {
+      texX = (texWidth - 1) - texX;
+    }
+
+    texX = clamp(0, texX, texWidth - 1);
+    assert(texX >= 0);
+    assert(texX < texWidth);
+
+    double texStep = (double)(texHeight) / lineHeight;
+    double texPos = (ceil(drawStart) - halfH + (lineHeight / 2.0)) * texStep;
+    for (int y = drawWallStart; y < drawWallEnd; y++) {
+      int texY = ((int)texPos) % texHeight;
+      assert(texY >= 0);
+      assert(texY < texHeight);
+      color = bitmap->pixels[texWidth * texY + texX]; // textureNum
+      if (side == 1) {
+        uint8_t alpha = color.component.a;
+        color.value = (color.value >> 1) & 8355711;
+        color.component.a = alpha;
+      }
+      assert(y < h);
+      unsafePset(ctx, x, y, color);
+      texPos += texStep;
+    }
+
+#if 0
     switch(tile)
     {
       case 1:  color.value = 0xFFFF0000;  break; //red
@@ -213,9 +258,8 @@ void draw(WrenVM* vm) {
       color.component.g /= 2;
       color.component.b /= 2;
     }
-    int drawWallStart = (int)drawStart;
-    int drawWallEnd = (int)ceil(drawEnd);
     vLine(ctx, x, drawWallStart, drawWallEnd, color);
+#endif
   }
   graphics->draw(ctx, bitmap, 0, 0, DOME_DRAWMODE_BLEND);
 }

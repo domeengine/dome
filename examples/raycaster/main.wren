@@ -10,6 +10,7 @@ Plugin.load("raycaster")
 // Plugins can register their own modules
 import "raycaster" for Raycaster
 var SPEED = 0.1
+var R_SPEED = 0.75
 
 class Main {
   construct new() {}
@@ -45,12 +46,12 @@ class Main {
       _raycaster.setPosition(_pos.x, _pos.y)
     }
     if (Keyboard["left"].down) {
-      _angle = _angle - 0.5
+      _angle = _angle - R_SPEED
       compute()
       _raycaster.setAngle(_angle)
     }
     if (Keyboard["right"].down) {
-      _angle = _angle + 0.5
+      _angle = _angle + R_SPEED
       compute()
       _raycaster.setAngle(_angle)
     }
