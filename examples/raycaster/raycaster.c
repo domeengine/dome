@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include "math.h"
+#include "domath.c"
 // You'll need to include the DOME header
 #include "dome.h"
 
@@ -12,6 +13,11 @@ static DOME_Bitmap* bitmap;
 
 static uint32_t WIDTH = 0;
 static uint32_t HEIGHT = 0;
+
+inline float
+clamp(float a, float x, float b) {
+  return fmin(fmax(a, x), b);
+}
 
 typedef struct {
   size_t width;
@@ -103,10 +109,123 @@ void vLine(DOME_Context ctx, int32_t x, int32_t y0, uint32_t y1, DOME_Color colo
 }
 
 void draw(WrenVM* vm) {
+  DOME_Context ctx = core->getContext(vm);
+  double alpha = wren->getSlotDouble(vm, 1);
+  // Retrieve the DOME Context from the VM. This is needed for many things.
+  DOME_Color color;
+
+  V2 rayPosition = { posX, posY };
+  V2 direction = { dirX, dirY };
+  V2 camera = { planeX, planeY };
+
+  int w = WIDTH;
+  int h = HEIGHT;
+
+  for(int x = 0; x < w; x++) {
+    // Perform DDA first
+    double cameraX = 2 * (x / (double)w) - 1;
+  //   V2 rayDirection = V2_add(direction, V2_mul(camera, cameraX));
+    // cast ray
+    V2 rayDirection = {direction.x + camera.x * cameraX, direction.y + camera.y * cameraX};
+    V2 sideDistance = {0, 0};
+    /*
+    sideDistance.x = sqrt(1.0 + pow((rayDirection.y / rayDirection.x), 2));
+    sideDistance.y = sqrt(1.0 + pow((rayDirection.x / rayDirection.y), 2));
+    */
+    sideDistance.x = sqrt(1.0 + pow(rayDirection.y, 2) / pow(rayDirection.x, 2));
+    sideDistance.y = sqrt(1.0 + pow(rayDirection.x, 2) / pow(rayDirection.y, 2));
+    V2 nextSideDistance;
+    V2 mapPos = { floor(rayPosition.x), floor(rayPosition.y) };
+    V2 stepDirection = {0, 0};
+    if (rayDirection.x < 0) {
+      stepDirection.x = -1;
+      nextSideDistance.x = (rayPosition.x - mapPos.x) * sideDistance.x;
+    } else {
+      stepDirection.x = 1;
+      nextSideDistance.x = (mapPos.x + 1.0 - rayPosition.x) * sideDistance.x;
+    }
+
+    if (rayDirection.y < 0) {
+      stepDirection.y = -1;
+      nextSideDistance.y = (rayPosition.y - mapPos.y) * sideDistance.y;
+
+    } else {
+      stepDirection.y = 1;
+      nextSideDistance.y = (mapPos.y + 1.0 - rayPosition.y) * sideDistance.y;
+    }
+    bool hit = false;
+    int side = 0;
+    int tile = 0;
+    while(!hit) {
+      if (nextSideDistance.x < nextSideDistance.y) {
+        nextSideDistance.x += sideDistance.x;
+        mapPos.x += stepDirection.x;
+        side = 0;
+      } else {
+        nextSideDistance.y += sideDistance.y;
+        mapPos.y += stepDirection.y;
+        side = 1;
+      }
+      if (mapPos.x < 0 || mapPos.x >= mapWidth || mapPos.y < 0 || mapPos.y >= mapHeight) {
+        tile = 1;
+      } else {
+        tile = worldMap[(int)(mapPos.x)][(int)(mapPos.y)];
+      }
+      hit = (tile > 0);
+      // Check for door and thin walls here
+    }
+
+    double perpWallDistance;
+    if (side == 0) {
+      perpWallDistance = fabs((mapPos.x - rayPosition.x + (1 - stepDirection.x) / 2.0) / rayDirection.x);
+    } else {
+      perpWallDistance = fabs((mapPos.y - rayPosition.y + (1 - stepDirection.y) / 2.0) / rayDirection.y);
+    }
+
+    // Calculate perspective of wall-slice
+    double halfH = (double)h / 2.0;
+    double lineHeight = fmax(0, (double)h / perpWallDistance);
+    double drawStart = (-lineHeight / 2.0) + halfH;
+    double drawEnd = (lineHeight / 2.0) + halfH;
+    drawStart = clamp(0, drawStart, h);
+    drawEnd = clamp(0, drawEnd, h);
+
+    double wallX;
+    if (side == 0) {
+      wallX = rayPosition.y + perpWallDistance * rayDirection.y;
+    } else {
+      wallX = rayPosition.x + perpWallDistance * rayDirection.x;
+    }
+    wallX = wallX - floor(wallX);
+    DOME_Color color;
+    switch(tile)
+    {
+      case 1:  color.value = 0xFFFF0000;  break; //red
+      case 2:  color.value = 0xFF00FF00;  break; //green
+      case 3:  color.value = 0xFF0000FF;   break; //blue
+      case 4:  color.value = 0xFFFFFFFF;  break; //white
+      default: color.value = 0xFF00FFFF; break; //yellow
+    }
+
+    //give x and y sides different brightness
+    if (side == 1) {
+      color.component.r /= 2;
+      color.component.g /= 2;
+      color.component.b /= 2;
+    }
+    int drawWallStart = (int)drawStart;
+    int drawWallEnd = (int)ceil(drawEnd);
+    vLine(ctx, x, drawWallStart, drawWallEnd, color);
+  }
+  graphics->draw(ctx, bitmap, 0, 0, DOME_DRAWMODE_BLEND);
+}
+
+/*
+void drawOld(WrenVM* vm) {
   // Fetch the method argument
   double alpha = wren->getSlotDouble(vm, 1);
-  int texWidth = 8;
-  int texHeight = 8;
+  int texWidth = 64;
+  int texHeight = 64;
 
   // Retrieve the DOME Context from the VM. This is needed for many things.
   DOME_Context ctx = core->getContext(vm);
@@ -212,7 +331,7 @@ void draw(WrenVM* vm) {
       wallX -= floor((wallX));
 
       //x coordinate on the texture
-      int texX = floor(wallX * (double)texWidth);
+      int texX = clamp(0, round(wallX * (double)texWidth), texWidth);
       if(side == 0 && rayDirX > 0) texX = texWidth - texX - 1;
       if(side == 1 && rayDirY < 0) texX = texWidth - texX - 1;
       // How much to increase the texture coordinate per screen pixel
@@ -222,9 +341,9 @@ void draw(WrenVM* vm) {
       for(int y = drawStart; y<drawEnd; y++)
       {
         // Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
-        int texY = (int)texPos & (texHeight - 1);
+        int texY = (int)clamp(0, round(texPos), texHeight - 1);
         texPos += step;
-        color.value = texture[texHeight * texY + texX]; // textureNum
+        color = bitmap->pixels[texHeight * texY + texX]; // textureNum
         //make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
         uint8_t alpha = color.component.a;
         if(side == 1) color.value = (color.value >> 1) & 8355711;
@@ -237,6 +356,7 @@ void draw(WrenVM* vm) {
   }
   graphics->draw(ctx, bitmap, 0, 0, DOME_DRAWMODE_BLEND);
 }
+*/
 
 DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
     DOME_Context ctx) {
@@ -278,7 +398,9 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
     }
   }
 
+  core->log(ctx, "Loading...\n");
   bitmap = io->readImageFile(ctx, "wall.png");
+  core->log(ctx, "Complete\n");
 
   // Returning anything other than SUCCESS here will result in the current fiber
   // aborting. Use this to indicate if your plugin initialised successfully.
