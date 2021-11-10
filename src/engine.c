@@ -353,7 +353,6 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
   uint8_t newA = ((0xFF000000 & c) >> 24);
 
   if (newA == 0) {
-    printf("empty\n");
     return;
   } else if (zone.x <= x && x < zone.x + zone.w && zone.y <= y && y < zone.y + zone.h) {
     if (newA < 0xFF) {
