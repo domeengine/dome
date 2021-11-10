@@ -1,5 +1,18 @@
 // typedef double[4][4] MAT;
 
+inline double
+clamp(double min, double x, double max) {
+  if (x < min) {
+    return min;
+  }
+  if (x > max) {
+    return max;
+  }
+  return x;
+  // return fmax(min, fmin(x, max));
+}
+
+
 typedef struct {
   double x;
   double y;

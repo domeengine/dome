@@ -15,11 +15,6 @@ var R_SPEED = 0.75
 class Main {
   construct new() {}
 
-  compute() {
-    var rads = _angle * Num.pi / 180
-    _dir = Vec.new(rads.cos, rads.sin)
-  }
-
   init() {
     var SCALE = 3
     Canvas.resize(320, 200)
@@ -28,12 +23,21 @@ class Main {
 
     _pos = Vec.new(22, 12)
     _angle = 180
-    compute()
+    computeDirection()
 
     // and allocators for foreign classes
     _raycaster = Raycaster.init()
     _raycaster.setPosition(_pos.x, _pos.y)
     _raycaster.setAngle(_angle)
+    _raycaster.loadTexture("res/wall1.png")
+    _raycaster.loadTexture("res/wall2.png")
+    _raycaster.loadTexture("res/wall3.png")
+    _raycaster.loadTexture("res/wall4.png")
+  }
+
+  computeDirection() {
+    var rads = _angle * Num.pi / 180
+    _dir = Vec.new(rads.cos, rads.sin)
   }
 
   update() {
@@ -47,12 +51,12 @@ class Main {
     }
     if (Keyboard["left"].down) {
       _angle = _angle - R_SPEED
-      compute()
+      computeDirection()
       _raycaster.setAngle(_angle)
     }
     if (Keyboard["right"].down) {
       _angle = _angle + R_SPEED
-      compute()
+      computeDirection()
       _raycaster.setAngle(_angle)
     }
   }
