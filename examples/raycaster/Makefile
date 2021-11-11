@@ -1,11 +1,17 @@
 NAME = raycaster
 CFLAGS = -O0 -g
-.PHONY: ${NAME}.dylib
-${NAME}.dylib: ${NAME}.c
+.PHONY: all
+
+all: ${NAME}.dylib
+
+renderer.c.inc: renderer.wren
+	../../dome embed renderer.wren rendererModuleSource renderer.c.inc
+
+${NAME}.dylib: ${NAME}.c renderer.c.inc
 	gcc ${CFLAGS} -dynamiclib -o ${NAME}.dylib -I../../include ${NAME}.c -undefined dynamic_lookup
 
-${NAME}.so: ${NAME}.c
+${NAME}.so: ${NAME}.c renderer.c.inc
 	gcc ${CFLAGS} -shared -std=c11 -o ${NAME}.so -fPIC  -I../../include ${NAME}.c
 
-${NAME}.dll: ${NAME}.c
+${NAME}.dll: ${NAME}.c renderer.c.inc
 	gcc ${CFLAGS} -shared -std=gnu11 -shared -fPIC  -I../../include ${NAME}.c -Wl,--unresolved-symbols=ignore-in-object-files -o ${NAME}.dll

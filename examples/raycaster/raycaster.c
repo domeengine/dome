@@ -7,6 +7,7 @@
 
 // You'll need to include the DOME header
 #include "dome.h"
+#include "renderer.c.inc"
 
 static GRAPHICS_API_v0* graphics;
 static DOME_API_v0* core;
@@ -34,16 +35,23 @@ typedef struct {
   int ceilingTextureId;
 } TILE;
 
+
 typedef struct {
   size_t width;
   size_t height;
-  TILE* data;
+  TILE* tiles;
 } MAP;
 
 typedef struct {
   MAP map;
   DOME_Bitmap** textureList;
 } RENDERER;
+
+typedef struct {
+  size_t x;
+  size_t y;
+  RENDERER* renderer; // Should this be a wren handle?
+} TILE_REF;
 
 uint32_t BLACK = 0xFF000000;
 uint32_t R =  0xFFFF0000;
@@ -85,15 +93,34 @@ double posX = 22, posY = 12;  //x and y start position
 double dirX = -1, dirY = 0; //initial direction vector
 double planeX = 0, planeY = 0.66; //the 2d raycaster version of camera plane
 
-static const char* source =  ""
-"foreign class Raycaster {\n" // Source file for an external module
-"construct init() {} \n"
-"foreign setPosition(x, y) \n"
-"foreign setAngle(angle) \n"
-"foreign draw(alpha) \n"
-"foreign loadTexture(path) \n"
+void TILE_allocate(WrenVM* vm) {
+  TILE_REF* ref = wren->setSlotNewForeign(vm, 0, 0, sizeof(TILE_REF));
+  RENDERER* renderer = wren->getSlotForeign(vm, 1);
+  ref->x = wren->getSlotDouble(vm, 2);
+  ref->y = wren->getSlotDouble(vm, 3);
+  ref->renderer = renderer;
+}
 
-"} \n";
+void TILE_setTextures(WrenVM* vm) {
+  TILE* tile = wren->getSlotForeign(vm, 0);
+  size_t arity = wren->getSlotCount(vm);
+  tile->wallTextureId = wren->getSlotDouble(vm, 1);
+  if (arity >= 3) {
+    tile->floorTextureId = wren->getSlotDouble(vm, 2);
+  }
+  if (arity >= 4) {
+    tile->ceilingTextureId = wren->getSlotDouble(vm, 3);
+  }
+}
+void TILE_getSolid(WrenVM* vm) {
+  TILE* tile = wren->getSlotForeign(vm, 0);
+  wren->setSlotBool(vm, 0, tile->solid);
+}
+
+void TILE_setSolid(WrenVM* vm) {
+  TILE* tile = wren->getSlotForeign(vm, 0);
+  tile->solid = wren->getSlotBool(vm, 1);
+}
 
 void allocate(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
@@ -102,6 +129,26 @@ void allocate(WrenVM* vm) {
   size_t CLASS_SIZE = sizeof(RENDERER); // This should be the size of your object's data
   RENDERER* obj = wren->setSlotNewForeign(vm, 0, 0, CLASS_SIZE);
   obj->textureList = NULL;
+  obj->map.tiles = NULL;
+  obj->map.width = 0;
+  obj->map.height = 0;
+
+  // Temporary map loading
+  obj->map.tiles = NULL;
+  obj->map.width = mapHeight;
+  obj->map.height = mapWidth;
+  for (int y = 0; y < mapHeight; y++) {
+    for (int x = 0; x < mapWidth; x++) {
+      TILE tile;
+      tile.solid = worldMap[x][y] != 0;
+      tile.wallTextureId = worldMap[x][y];
+      tile.floorTextureId = 0;
+      tile.ceilingTextureId = 0;
+      tile.door = false;
+      tile.locked = false;
+      sbpush(obj->map.tiles, tile);
+    }
+  }
 }
 
 void finalize(void* data) {
@@ -110,6 +157,7 @@ void finalize(void* data) {
     io->freeBitmap(renderer->textureList[i]);
   }
   sbfree(renderer->textureList);
+  sbfree(renderer->map.tiles);
 }
 
 void loadTexture(WrenVM* vm) {
@@ -149,6 +197,8 @@ void vLine(DOME_Context ctx, int32_t x, int32_t y0, uint32_t y1, DOME_Color colo
 void draw(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
   RENDERER* renderer = wren->getSlotForeign(vm, 0);
+  TILE* tiles = renderer->map.tiles;
+  size_t mapPitch = mapWidth; //renderer->map.width;
   double alpha = wren->getSlotDouble(vm, 1);
   // Retrieve the DOME Context from the VM. This is needed for many things.
   DOME_Color color;
@@ -212,7 +262,7 @@ void draw(WrenVM* vm) {
         tile = 1;
         hit = true;
       } else {
-        tile = worldMap[(int)(mapPos.x)][(int)(mapPos.y)];
+        tile = tiles[(int)mapPos.y * mapPitch + (int)mapPos.x].wallTextureId;
       }
       hit = (tile > 0);
       // Check for door and thin walls here
@@ -320,13 +370,20 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
 
   // Register a module with it's associated source.
   // Avoid giving the module a common name.
-  core->registerModule(ctx, "raycaster", source);
+  core->registerModule(ctx, "raycaster", rendererModuleSource);
 
   core->registerClass(ctx, "raycaster", "Raycaster", allocate, finalize);
   core->registerFn(ctx, "raycaster", "Raycaster.draw(_)", draw);
   core->registerFn(ctx, "raycaster", "Raycaster.setAngle(_)", setAngle);
   core->registerFn(ctx, "raycaster", "Raycaster.loadTexture(_)", loadTexture);
   core->registerFn(ctx, "raycaster", "Raycaster.setPosition(_,_)", setPosition);
+
+  core->registerClass(ctx, "raycaster", "WorldTile", TILE_allocate, NULL);
+  core->registerFn(ctx, "raycaster", "WorldTile.solid", TILE_getSolid);
+  core->registerFn(ctx, "raycaster", "WorldTile.solid=(_)", TILE_setSolid);
+  core->registerFn(ctx, "raycaster", "WorldTile.setTextures(_)", TILE_setTextures);
+  core->registerFn(ctx, "raycaster", "WorldTile.setTextures(_,_)", TILE_setTextures);
+  core->registerFn(ctx, "raycaster", "WorldTile.setTextures(_,_,_)", TILE_setTextures);
 
   core->log(ctx, "Loading...\n");
   // bitmap = io->readImageFile(ctx, "wall.png");

@@ -38,14 +38,24 @@ class Main {
   computeDirection() {
     var rads = _angle * Num.pi / 180
     _dir = Vec.new(rads.cos, rads.sin)
+    _perp = Vec.new(-_dir.y, _dir.x)
   }
 
   update() {
-    if (Keyboard["up"].down) {
+    // TODO: normalise movement
+    if (Keyboard["a"].down) {
+      _pos = _pos - _perp * SPEED
+      _raycaster.setPosition(_pos.x, _pos.y)
+    }
+    if (Keyboard["d"].down) {
+      _pos = _pos + _perp * SPEED
+      _raycaster.setPosition(_pos.x, _pos.y)
+    }
+    if (Keyboard["w"].down || Keyboard["up"].down) {
       _pos = _pos + _dir*SPEED
       _raycaster.setPosition(_pos.x, _pos.y)
     }
-    if (Keyboard["down"].down) {
+    if (Keyboard["s"].down || Keyboard["down"].down) {
       _pos = _pos - _dir*SPEED
       _raycaster.setPosition(_pos.x, _pos.y)
     }
