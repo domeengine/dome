@@ -8,7 +8,7 @@ Plugin.load("raycaster")
 // The plugin will be initialised now
 
 // Plugins can register their own modules
-import "raycaster" for Raycaster
+import "raycaster" for Raycaster, WorldTile
 var SPEED = 0.1
 var R_SPEED = 0.75
 
@@ -33,6 +33,8 @@ class Main {
     _raycaster.loadTexture("res/wall2.png")
     _raycaster.loadTexture("res/wall3.png")
     _raycaster.loadTexture("res/wall4.png")
+    _tile = WorldTile.init(_raycaster, 6, 0)
+    _tile.solid = false
   }
 
   computeDirection() {

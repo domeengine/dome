@@ -113,13 +113,16 @@ void TILE_setTextures(WrenVM* vm) {
   }
 }
 void TILE_getSolid(WrenVM* vm) {
-  TILE* tile = wren->getSlotForeign(vm, 0);
-  wren->setSlotBool(vm, 0, tile->solid);
+  TILE_REF* ref = wren->getSlotForeign(vm, 0);
+  RENDERER* renderer = ref->renderer;
+  TILE tile = renderer->map.tiles[(int)ref->y * renderer->map.width + (int)ref->x];
+  wren->setSlotBool(vm, 0, tile.solid);
 }
 
 void TILE_setSolid(WrenVM* vm) {
-  TILE* tile = wren->getSlotForeign(vm, 0);
-  tile->solid = wren->getSlotBool(vm, 1);
+  TILE_REF* ref = wren->getSlotForeign(vm, 0);
+  RENDERER* renderer = ref->renderer;
+  renderer->map.tiles[(int)ref->y * renderer->map.width + (int)ref->x].solid = wren->getSlotBool(vm, 1);
 }
 
 void allocate(WrenVM* vm) {
@@ -247,7 +250,7 @@ void draw(WrenVM* vm) {
     }
     bool hit = false;
     int side = 0;
-    int tile = 0;
+    int textureId = 0;
     while(!hit) {
       if (nextSideDistance.x < nextSideDistance.y) {
         nextSideDistance.x += sideDistance.x;
@@ -259,18 +262,21 @@ void draw(WrenVM* vm) {
         side = 1;
       }
       if (mapPos.x < 0 || mapPos.x >= mapWidth || mapPos.y < 0 || mapPos.y >= mapHeight) {
-        tile = 1;
+        textureId = 1;
         hit = true;
       } else {
-        tile = tiles[(int)mapPos.y * mapPitch + (int)mapPos.x].wallTextureId;
+        TILE tile = tiles[(int)mapPos.y * mapPitch + (int)mapPos.x];
+        if (tile.solid) {
+          textureId = tile.wallTextureId;
+          hit = true;
+        }
       }
-      hit = (tile > 0);
       // Check for door and thin walls here
     }
 
     DOME_Bitmap* texture = NULL;
-    if (tile <= sbcount(renderer->textureList)) {
-      texture = renderer->textureList[tile - 1];
+    if (textureId <= sbcount(renderer->textureList)) {
+      texture = renderer->textureList[textureId - 1];
       texWidth = texture->width;
       texHeight = texture->height;
     }
@@ -332,7 +338,7 @@ void draw(WrenVM* vm) {
       }
     } else {
 
-      switch(tile)
+      switch(textureId)
       {
         case 1:  color.value = 0xFFFF0000;  break; //red
         case 2:  color.value = 0xFF00FF00;  break; //green
