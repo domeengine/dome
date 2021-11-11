@@ -53,6 +53,9 @@ typedef struct {
   RENDERER* renderer; // Should this be a wren handle?
 } TILE_REF;
 
+#define getTileFrom_fast(ref, renderer) renderer->map.tiles[ref->y * renderer->map.width + ref->x]
+#define getTileFrom(ref) getTileFrom_fast(ref, ref->renderer)
+
 uint32_t BLACK = 0xFF000000;
 uint32_t R =  0xFFFF0000;
 uint32_t B = 0xFF0000FF;
@@ -112,17 +115,19 @@ void TILE_setTextures(WrenVM* vm) {
     tile->ceilingTextureId = wren->getSlotDouble(vm, 3);
   }
 }
+
+
 void TILE_getSolid(WrenVM* vm) {
   TILE_REF* ref = wren->getSlotForeign(vm, 0);
   RENDERER* renderer = ref->renderer;
-  TILE tile = renderer->map.tiles[(int)ref->y * renderer->map.width + (int)ref->x];
+  TILE tile = getTileFrom(ref);
   wren->setSlotBool(vm, 0, tile.solid);
 }
 
 void TILE_setSolid(WrenVM* vm) {
   TILE_REF* ref = wren->getSlotForeign(vm, 0);
   RENDERER* renderer = ref->renderer;
-  renderer->map.tiles[(int)ref->y * renderer->map.width + (int)ref->x].solid = wren->getSlotBool(vm, 1);
+  getTileFrom(ref).solid = wren->getSlotBool(vm, 1);
 }
 
 void allocate(WrenVM* vm) {
@@ -261,7 +266,7 @@ void draw(WrenVM* vm) {
         mapPos.y += stepDirection.y;
         side = 1;
       }
-      if (mapPos.x < 0 || mapPos.x >= mapWidth || mapPos.y < 0 || mapPos.y >= mapHeight) {
+      if (mapPos.x < 0 || mapPos.x >= renderer->map.width || mapPos.y < 0 || mapPos.y >= renderer->map.height) {
         textureId = 1;
         hit = true;
       } else {
