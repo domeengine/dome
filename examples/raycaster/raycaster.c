@@ -46,6 +46,7 @@ typedef struct {
 typedef struct {
   MAP map;
   DOME_Bitmap** textureList;
+  double* lookup;
 } RENDERER;
 
 typedef struct {
@@ -151,6 +152,10 @@ void allocate(WrenVM* vm) {
   HEIGHT = graphics->getHeight(ctx);
   size_t CLASS_SIZE = sizeof(RENDERER); // This should be the size of your object's data
   RENDERER* obj = wren->setSlotNewForeign(vm, 0, 0, CLASS_SIZE);
+  obj->lookup = NULL;
+  for (int y = 0; y <= HEIGHT; y++) {
+    sbpush(obj->lookup, ((double)HEIGHT / (2.0 * y - HEIGHT)));
+  }
   obj->textureList = NULL;
   obj->map.tiles = NULL;
   obj->map.width = 0;
@@ -165,13 +170,10 @@ void allocate(WrenVM* vm) {
       TILE tile;
       tile.solid = worldMap[y][x] != 0;
       tile.wallTextureId = worldMap[y][x];
-      tile.floorTextureId = 0;
-      tile.ceilingTextureId = 0;
+      tile.floorTextureId = 7;
+      tile.ceilingTextureId = 8;
       tile.door = worldMap[y][x] == 6;
       tile.state = tile.door ? 0.5 : 0;
-      if (tile.door) {
-        printf("tile.door = 6\n");
-      }
       tile.locked = false;
       sbpush(obj->map.tiles, tile);
     }
@@ -183,6 +185,7 @@ void finalize(void* data) {
   for (int i = 0; i < sbcount(renderer->textureList); i++) {
     io->freeBitmap(renderer->textureList[i]);
   }
+  sbfree(renderer->lookup);
   sbfree(renderer->textureList);
   sbfree(renderer->map.tiles);
 }
@@ -375,6 +378,7 @@ void draw(WrenVM* vm) {
 
     DOME_Bitmap* texture = NULL;
     if (cast.inBounds && textureId <= sbcount(renderer->textureList)) {
+      // printf("%i\n", textureId);
       texture = renderer->textureList[textureId - 1];
       texWidth = texture->width;
       texHeight = texture->height;
@@ -471,6 +475,56 @@ void draw(WrenVM* vm) {
         color.component.b /= 2;
       }
       vLine(ctx, x, drawWallStart, drawWallEnd, color);
+    }
+
+    double floorXWall;
+    double floorYWall;
+    if (side == 0 && rayDirection.x > 0) {
+      floorXWall = mapPos.x;
+      floorYWall = mapPos.y + wallX;
+    } else if (side == 0 && rayDirection.x < 0) {
+      floorXWall = mapPos.x + 1.0;
+      floorYWall = mapPos.y + wallX;
+    } else if (side == 1 && rayDirection.y > 0) {
+      floorXWall = mapPos.x + wallX;
+      floorYWall = mapPos.y;
+    } else {
+      floorXWall = mapPos.x + wallX;
+      floorYWall = mapPos.y + 1.0;
+    }
+    double distWall = perpWallDistance;
+    drawEnd = drawWallEnd;
+    for (int y = floor(drawEnd); y < h; y++) {
+      double currentDist = renderer->lookup[y];
+      double weight = currentDist / distWall;
+      double currentFloorX = weight * floorXWall + (1.0 - weight) * rayPosition.x;
+      double currentFloorY = weight * floorYWall + (1.0 - weight) * rayPosition.y;
+      int floorPosX = (int)currentFloorX;
+      int floorPosY = (int)currentFloorY;
+
+      TILE tile = map.tiles[floorPosY * map.width + floorPosX];
+      textureId = tile.floorTextureId;
+
+      if (textureId > 0) {
+        texture = renderer->textureList[textureId - 1];
+        texWidth = texture->width;
+        texHeight = texture->height;
+        int texX = (int)(currentFloorX * texWidth) % texWidth;
+        int texY = (int)(currentFloorY * texHeight) % texHeight;
+        color = texture->pixels[texWidth * texY + texX]; // textureNum
+        unsafePset(ctx, x, y, color);
+      }
+      textureId = tile.ceilingTextureId;
+
+      if (textureId > 0) {
+        texture = renderer->textureList[textureId - 1];
+        texWidth = texture->width;
+        texHeight = texture->height;
+        int texX = (int)(currentFloorX * texWidth) % texWidth;
+        int texY = (int)(currentFloorY * texHeight) % texHeight;
+        color = texture->pixels[texWidth * texY + texX]; // textureNum
+        unsafePset(ctx, x, h - y - 1, color);
+      }
     }
   }
   // graphics->draw(ctx, bitmap, 0, 0, DOME_DRAWMODE_BLEND);
