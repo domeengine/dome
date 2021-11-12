@@ -27,7 +27,8 @@ typedef struct {
   double state; // how open are we, clamped [0,1]
   int8_t mode; // opening/closing
 
-  double offset; // if -1, it's not thin
+  bool thin;
+  double offset;
 
   // If these are negative, default to color
   int wallTextureId;
@@ -139,6 +140,10 @@ TILE_GETTER(state, State, Double)
 TILE_SETTER(state, State, Double)
 TILE_GETTER(mode, Mode, Double)
 TILE_SETTER(mode, Mode, Double)
+TILE_GETTER(offset, Offset, Double)
+TILE_SETTER(offset, Offset, Double)
+TILE_GETTER(thin, Thin, Bool)
+TILE_SETTER(thin, Thin, Bool)
 
 void allocate(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
@@ -277,7 +282,7 @@ CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ig
       tile = tiles[(int)mapPos.y * mapPitch + (int)mapPos.x];
       result.inBounds = true;
      // Check for door and thin walls here
-      if (tile.door) {
+      if (tile.thin || tile.door) {
         float doorState = 1.0;
         if (tile.door) {
           doorState = ignoreDoors ? 1 : tile.state;
@@ -313,7 +318,10 @@ CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ig
           offsetX = 0.5;
           offsetY = 0.5;
         }
-        // TODO- thin wall handling here
+        if (tile.thin) {
+          offsetX = 0.5 + clamp(-0.5, tile.offset * getSign(stepDirection.x), 0.5);
+          offsetY = 0.5 + clamp(-0.5, tile.offset * getSign(stepDirection.y), 0.5);
+        }
         if (side == 0) {
           float true_y_step = sqrt(trueDeltaX * trueDeltaX - 1);
           float half_step_in_y = rye2 + (stepDirection.y * true_y_step) * offsetX;
@@ -378,7 +386,11 @@ void draw(WrenVM* vm) {
       offsetX = 0.5;
       offsetY = 0.5;
     }
-    if (tile.door) {
+    if (tile.thin) {
+      offsetX = 0.5 + clamp(-0.5, tile.offset * getSign(stepDirection.x), 0.5);
+      offsetY = 0.5 + clamp(-0.5, tile.offset * getSign(stepDirection.y), 0.5);
+    }
+    if (tile.door || offsetX != 0 || offsetY != 0) {
       if (side == 0) {
         mapPos.x = mapPos.x + stepDirection.x * offsetX;
       } else {
@@ -386,7 +398,6 @@ void draw(WrenVM* vm) {
       }
 
     }
-
     double perpWallDistance;
     if (side == 0) {
       perpWallDistance = fabs((mapPos.x - rayPosition.x + (1 - stepDirection.x) / 2.0) / rayDirection.x);
@@ -499,6 +510,10 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
   core->registerFn(ctx, "raycaster", "WorldTile.state=(_)", TILE_setState);
   core->registerFn(ctx, "raycaster", "WorldTile.mode", TILE_getMode);
   core->registerFn(ctx, "raycaster", "WorldTile.mode=(_)", TILE_setMode);
+  core->registerFn(ctx, "raycaster", "WorldTile.thin", TILE_getThin);
+  core->registerFn(ctx, "raycaster", "WorldTile.thin=(_)", TILE_setThin);
+  core->registerFn(ctx, "raycaster", "WorldTile.offset", TILE_getOffset);
+  core->registerFn(ctx, "raycaster", "WorldTile.offset=(_)", TILE_setOffset);
   core->registerFn(ctx, "raycaster", "WorldTile.setTextures(_)", TILE_setTextures);
   core->registerFn(ctx, "raycaster", "WorldTile.setTextures(_,_)", TILE_setTextures);
   core->registerFn(ctx, "raycaster", "WorldTile.setTextures(_,_,_)", TILE_setTextures);

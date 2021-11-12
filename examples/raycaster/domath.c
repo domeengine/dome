@@ -1,5 +1,16 @@
 // typedef double[4][4] MAT;
 
+double
+getSign(double n) {
+  if (n < 0.0001) {
+    return -1;
+  }
+  if (n > 0.0001) {
+    return 1;
+  }
+  return 0;
+}
+
 inline double
 clamp(double min, double x, double max) {
   if (x < min) {

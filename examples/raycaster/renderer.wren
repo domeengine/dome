@@ -19,4 +19,8 @@ foreign class WorldTile {
   foreign state=(v)
   foreign mode
   foreign mode=(v)
+  foreign offset
+  foreign offset=(v)
+  foreign thin
+  foreign thin=(v)
 }

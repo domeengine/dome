@@ -38,6 +38,10 @@ class Main {
     _tile = WorldTile.init(_raycaster, 8, 8)
     _tile.state = 1
     _tile.mode = 1
+
+    var wall = WorldTile.init(_raycaster, 6, 6)
+    wall.thin = true
+    wall.offset = 0
   }
 
   computeDirection() {
