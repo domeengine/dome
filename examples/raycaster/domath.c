@@ -14,6 +14,11 @@ clamp(double min, double x, double max) {
 
 
 typedef struct {
+  int32_t x;
+  int32_t y;
+} V2i;
+
+typedef struct {
   double x;
   double y;
 } V2;

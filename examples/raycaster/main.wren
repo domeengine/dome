@@ -16,8 +16,8 @@ class Main {
   construct new() {}
 
   init() {
-    var SCALE = 3
-    Canvas.resize(320, 200)
+    var SCALE = 2
+    Canvas.resize(640, 400)
     Window.resize(SCALE*Canvas.width, SCALE*Canvas.height)
     Window.lockstep = true
 
@@ -33,6 +33,8 @@ class Main {
     _raycaster.loadTexture("res/wall2.png")
     _raycaster.loadTexture("res/wall3.png")
     _raycaster.loadTexture("res/wall4.png")
+    _raycaster.loadTexture("res/terminal.png")
+    _raycaster.loadTexture("res/door.png")
     _tile = WorldTile.init(_raycaster, 6, 0)
     _tile.solid = false
   }

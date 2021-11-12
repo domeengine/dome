@@ -64,7 +64,7 @@ uint32_t texture[64] = {};
 #define mapWidth 24
 #define mapHeight 24
 
-int worldMap[mapWidth][mapHeight]=
+int worldMap[mapHeight][mapWidth]=
 {
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -74,7 +74,7 @@ int worldMap[mapWidth][mapHeight]=
   {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,3,0,0,0,3,0,0,0,1},
   {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,2,2,0,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
+  {1,0,0,0,0,0,2,2,6,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -148,11 +148,15 @@ void allocate(WrenVM* vm) {
   for (int y = 0; y < mapHeight; y++) {
     for (int x = 0; x < mapWidth; x++) {
       TILE tile;
-      tile.solid = worldMap[x][y] != 0;
-      tile.wallTextureId = worldMap[x][y];
+      tile.solid = worldMap[y][x] != 0;
+      tile.wallTextureId = worldMap[y][x] < 6 ? worldMap[y][x] : 1;
       tile.floorTextureId = 0;
       tile.ceilingTextureId = 0;
-      tile.door = false;
+      tile.door = worldMap[y][x] == 6;
+      tile.state = tile.door ? 0.5 : 0;
+      if (tile.door) {
+        printf("tile.door = 6\n");
+      }
       tile.locked = false;
       sbpush(obj->map.tiles, tile);
     }
@@ -202,11 +206,130 @@ void vLine(DOME_Context ctx, int32_t x, int32_t y0, uint32_t y1, DOME_Color colo
   }
 }
 
+typedef struct {
+  V2i mapPos;
+  int side;
+  V2 stepDirection;
+  bool inBounds;
+} CAST_RESULT;
+
+CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ignoreDoors) {
+  V2 sideDistance = {0, 0};
+  CAST_RESULT result;
+  /*
+   sideDistance.x = sqrt(1.0 + pow((rayDirection.y / rayDirection.x), 2));
+   sideDistance.y = sqrt(1.0 + pow((rayDirection.x / rayDirection.y), 2));
+   */
+  sideDistance.x = sqrt(1.0 + pow(rayDirection.y, 2) / pow(rayDirection.x, 2));
+  sideDistance.y = sqrt(1.0 + pow(rayDirection.x, 2) / pow(rayDirection.y, 2));
+  V2 nextSideDistance;
+  V2 mapPos = { floor(rayPosition.x), floor(rayPosition.y) };
+  V2 stepDirection = {0, 0};
+  if (rayDirection.x < 0) {
+    stepDirection.x = -1;
+    nextSideDistance.x = (rayPosition.x - mapPos.x) * sideDistance.x;
+  } else {
+    stepDirection.x = 1;
+    nextSideDistance.x = (mapPos.x + 1.0 - rayPosition.x) * sideDistance.x;
+  }
+
+  if (rayDirection.y < 0) {
+    stepDirection.y = -1;
+    nextSideDistance.y = (rayPosition.y - mapPos.y) * sideDistance.y;
+
+  } else {
+    stepDirection.y = 1;
+    nextSideDistance.y = (mapPos.y + 1.0 - rayPosition.y) * sideDistance.y;
+  }
+  bool hit = false;
+  int side = 0;
+  size_t mapPitch = mapWidth; //renderer->map.width;
+  TILE* tiles = renderer->map.tiles;
+  while(!hit) {
+    if (nextSideDistance.x < nextSideDistance.y) {
+      nextSideDistance.x += sideDistance.x;
+      mapPos.x += stepDirection.x;
+      side = 0;
+    } else {
+      nextSideDistance.y += sideDistance.y;
+      mapPos.y += stepDirection.y;
+      side = 1;
+    }
+    TILE tile;
+    /*
+    mapPos.x = floor(mapPos.x);
+    mapPos.y = floor(mapPos.y);
+    */
+    if (mapPos.x < 0 || mapPos.x >= renderer->map.width || mapPos.y < 0 || mapPos.y >= renderer->map.height) {
+      hit = true;
+      result.inBounds = false;
+    } else {
+      tile = tiles[(int)mapPos.y * mapPitch + (int)mapPos.x];
+      result.inBounds = true;
+     // Check for door and thin walls here
+      if (tile.door) {
+        float doorState = 1.0;
+        if (tile.door) {
+          doorState = ignoreDoors ? 1 : tile.state;
+        }
+        double adj;
+        double ray_mult;
+        if (side == 0) {
+          adj = mapPos.x - rayPosition.x + 1.0;
+          if (rayPosition.x < mapPos.x) {
+            adj = adj - 1;
+          }
+          ray_mult = adj / rayDirection.x;
+        } else {
+          adj = mapPos.y - rayPosition.y + 1.0;
+          if (rayPosition.y < mapPos.y) {
+            adj = adj - 1;
+          }
+          ray_mult = adj / rayDirection.y;
+        }
+        float rye2 = rayPosition.y + rayDirection.y * ray_mult;
+        float rxe2 = rayPosition.x + rayDirection.x * ray_mult;
+        float trueDeltaX = sideDistance.x;
+        float trueDeltaY = sideDistance.y;
+        if (fabs(rayDirection.y) < 0.01) {
+          trueDeltaY = 100;
+        }
+        if (fabs(rayDirection.x) < 0.01) {
+          trueDeltaX = 100;
+        }
+        float offsetX = 0;
+        float offsetY = 0;
+        if (tile.door) {
+          offsetX = 0.5;
+          offsetY = 0.5;
+        }
+        // TODO- thin wall handling here
+        if (side == 0) {
+          float true_y_step = sqrt(trueDeltaX * trueDeltaX - 1);
+          float half_step_in_y = rye2 + (stepDirection.y * true_y_step) * offsetX;
+          hit = ((int)half_step_in_y == mapPos.x) && fabs(1 - 2 * (half_step_in_y - mapPos.y)) > 1 - doorState;
+        } else {
+          float true_x_step = sqrt(trueDeltaY * trueDeltaY - 1);
+          float half_step_in_x = rxe2 + (stepDirection.x * true_x_step) * offsetY;
+          hit = ((int)half_step_in_x == mapPos.x) && fabs(1 - 2 * (half_step_in_x - mapPos.x)) > 1 - doorState;
+        }
+      } else {
+        hit = tile.solid;
+      }
+    }
+  }
+
+  result.mapPos = (V2i){ mapPos.x, mapPos.y };
+  result.stepDirection = stepDirection;
+  result.side = side;
+
+  return result;
+}
+
 void draw(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
   RENDERER* renderer = wren->getSlotForeign(vm, 0);
-  TILE* tiles = renderer->map.tiles;
-  size_t mapPitch = mapWidth; //renderer->map.width;
+  MAP map = renderer->map;
   double alpha = wren->getSlotDouble(vm, 1);
   // Retrieve the DOME Context from the VM. This is needed for many things.
   DOME_Color color;
@@ -224,66 +347,34 @@ void draw(WrenVM* vm) {
   for(int x = 0; x < w; x++) {
     // Perform DDA first
     double cameraX = 2 * (x / (double)w) - 1;
-  //   V2 rayDirection = V2_add(direction, V2_mul(camera, cameraX));
-    // cast ray
-    V2 rayDirection = {direction.x + camera.x * cameraX, direction.y + camera.y * cameraX};
-    V2 sideDistance = {0, 0};
-    /*
-    sideDistance.x = sqrt(1.0 + pow((rayDirection.y / rayDirection.x), 2));
-    sideDistance.y = sqrt(1.0 + pow((rayDirection.x / rayDirection.y), 2));
-    */
-    sideDistance.x = sqrt(1.0 + pow(rayDirection.y, 2) / pow(rayDirection.x, 2));
-    sideDistance.y = sqrt(1.0 + pow(rayDirection.x, 2) / pow(rayDirection.y, 2));
-    V2 nextSideDistance;
-    V2 mapPos = { floor(rayPosition.x), floor(rayPosition.y) };
-    V2 stepDirection = {0, 0};
-    if (rayDirection.x < 0) {
-      stepDirection.x = -1;
-      nextSideDistance.x = (rayPosition.x - mapPos.x) * sideDistance.x;
-    } else {
-      stepDirection.x = 1;
-      nextSideDistance.x = (mapPos.x + 1.0 - rayPosition.x) * sideDistance.x;
-    }
-
-    if (rayDirection.y < 0) {
-      stepDirection.y = -1;
-      nextSideDistance.y = (rayPosition.y - mapPos.y) * sideDistance.y;
-
-    } else {
-      stepDirection.y = 1;
-      nextSideDistance.y = (mapPos.y + 1.0 - rayPosition.y) * sideDistance.y;
-    }
-    bool hit = false;
-    int side = 0;
-    int textureId = 0;
-    while(!hit) {
-      if (nextSideDistance.x < nextSideDistance.y) {
-        nextSideDistance.x += sideDistance.x;
-        mapPos.x += stepDirection.x;
-        side = 0;
-      } else {
-        nextSideDistance.y += sideDistance.y;
-        mapPos.y += stepDirection.y;
-        side = 1;
-      }
-      if (mapPos.x < 0 || mapPos.x >= renderer->map.width || mapPos.y < 0 || mapPos.y >= renderer->map.height) {
-        textureId = 1;
-        hit = true;
-      } else {
-        TILE tile = tiles[(int)mapPos.y * mapPitch + (int)mapPos.x];
-        if (tile.solid) {
-          textureId = tile.wallTextureId;
-          hit = true;
-        }
-      }
-      // Check for door and thin walls here
-    }
+    V2 rayDirection = V2_add(direction, V2_mul(camera, cameraX));
+    CAST_RESULT cast = castRay(renderer, rayPosition, rayDirection, false);
+    V2 mapPos = { cast.mapPos.x, cast.mapPos.y };
+    int side = cast.side;
+    V2 stepDirection = cast.stepDirection;
+    TILE tile = map.tiles[(int)mapPos.y * map.width + (int)mapPos.x];
+    int textureId = tile.wallTextureId;
 
     DOME_Bitmap* texture = NULL;
-    if (textureId <= sbcount(renderer->textureList)) {
+    if (cast.inBounds && textureId <= sbcount(renderer->textureList)) {
       texture = renderer->textureList[textureId - 1];
       texWidth = texture->width;
       texHeight = texture->height;
+    }
+
+    double offsetX = 0;
+    double offsetY = 0;
+    if (tile.door) {
+      offsetX = 0.5;
+      offsetY = 0.5;
+    }
+    if (tile.door) {
+      if (side == 0) {
+        mapPos.x = mapPos.x + stepDirection.x * offsetX;
+      } else {
+        mapPos.y = mapPos.y + stepDirection.y * offsetY;
+      }
+
     }
 
     double perpWallDistance;
