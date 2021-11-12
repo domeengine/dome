@@ -35,8 +35,9 @@ class Main {
     _raycaster.loadTexture("res/wall4.png")
     _raycaster.loadTexture("res/terminal.png")
     _raycaster.loadTexture("res/door.png")
-    _tile = WorldTile.init(_raycaster, 6, 0)
-    _tile.solid = false
+    _tile = WorldTile.init(_raycaster, 8, 8)
+    _tile.state = 1
+    _tile.mode = 1
   }
 
   computeDirection() {
@@ -73,6 +74,13 @@ class Main {
       computeDirection()
       _raycaster.setAngle(_angle)
     }
+
+    _tile.state = _tile.state + _tile.mode * 0.05
+    if (_tile.state <= 0 || _tile.state >= 1) {
+      _tile.mode = -1 * _tile.mode
+      _tile.state = _tile.mode < 0 ? 1 : 0
+    }
+
   }
   draw(alpha) {
     Canvas.cls()
@@ -81,5 +89,6 @@ class Main {
     _raycaster.draw(alpha)
   }
 }
+
 
 var Game = Main.new()

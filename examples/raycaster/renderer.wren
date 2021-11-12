@@ -13,4 +13,10 @@ foreign class WorldTile {
   foreign setTextures(wall)
   foreign setTextures(wall, floor)
   foreign setTextures(wall, floor, ceiling)
+  foreign door
+  foreign door=(v)
+  foreign state
+  foreign state=(v)
+  foreign mode
+  foreign mode=(v)
 }

@@ -24,10 +24,10 @@ typedef struct {
   bool door;
   bool locked;
   int behaviour; // how does this door function?
-  float state; // how open are we, clamped [0,1]
-  uint8_t mode; // opening/closing
+  double state; // how open are we, clamped [0,1]
+  int8_t mode; // opening/closing
 
-  float offset; // if -1, it's not thin
+  double offset; // if -1, it's not thin
 
   // If these are negative, default to color
   int wallTextureId;
@@ -94,7 +94,7 @@ int worldMap[mapHeight][mapWidth]=
 
 double posX = 22, posY = 12;  //x and y start position
 double dirX = -1, dirY = 0; //initial direction vector
-double planeX = 0, planeY = 0.66; //the 2d raycaster version of camera plane
+double planeX = 0, planeY = -1; //the 2d raycaster version of camera plane
 
 void TILE_allocate(WrenVM* vm) {
   TILE_REF* ref = wren->setSlotNewForeign(vm, 0, 0, sizeof(TILE_REF));
@@ -116,19 +116,29 @@ void TILE_setTextures(WrenVM* vm) {
   }
 }
 
-
-void TILE_getSolid(WrenVM* vm) {
-  TILE_REF* ref = wren->getSlotForeign(vm, 0);
-  RENDERER* renderer = ref->renderer;
-  TILE tile = getTileFrom(ref);
-  wren->setSlotBool(vm, 0, tile.solid);
+#define TILE_GETTER(fieldName, method, fieldType) \
+  void TILE_get##method(WrenVM* vm) { \
+  TILE_REF* ref = wren->getSlotForeign(vm, 0); \
+  RENDERER* renderer = ref->renderer; \
+  TILE tile = getTileFrom(ref); \
+  wren->setSlot##fieldType(vm, 0, tile.fieldName); \
 }
 
-void TILE_setSolid(WrenVM* vm) {
-  TILE_REF* ref = wren->getSlotForeign(vm, 0);
-  RENDERER* renderer = ref->renderer;
-  getTileFrom(ref).solid = wren->getSlotBool(vm, 1);
+#define TILE_SETTER(fieldName, method, fieldType) \
+void TILE_set##method(WrenVM* vm) { \
+  TILE_REF* ref = wren->getSlotForeign(vm, 0); \
+  RENDERER* renderer = ref->renderer; \
+  getTileFrom(ref).fieldName = wren->getSlot##fieldType(vm, 1); \
 }
+
+TILE_GETTER(solid, Solid, Bool)
+TILE_SETTER(solid, Solid, Bool)
+TILE_GETTER(door, Door, Bool)
+TILE_SETTER(door, Door, Bool)
+TILE_GETTER(state, State, Double)
+TILE_SETTER(state, State, Double)
+TILE_GETTER(mode, Mode, Double)
+TILE_SETTER(mode, Mode, Double)
 
 void allocate(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
@@ -149,7 +159,7 @@ void allocate(WrenVM* vm) {
     for (int x = 0; x < mapWidth; x++) {
       TILE tile;
       tile.solid = worldMap[y][x] != 0;
-      tile.wallTextureId = worldMap[y][x] < 6 ? worldMap[y][x] : 1;
+      tile.wallTextureId = worldMap[y][x];
       tile.floorTextureId = 0;
       tile.ceilingTextureId = 0;
       tile.door = worldMap[y][x] == 6;
@@ -483,6 +493,12 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
   core->registerClass(ctx, "raycaster", "WorldTile", TILE_allocate, NULL);
   core->registerFn(ctx, "raycaster", "WorldTile.solid", TILE_getSolid);
   core->registerFn(ctx, "raycaster", "WorldTile.solid=(_)", TILE_setSolid);
+  core->registerFn(ctx, "raycaster", "WorldTile.door", TILE_getDoor);
+  core->registerFn(ctx, "raycaster", "WorldTile.door=(_)", TILE_setDoor);
+  core->registerFn(ctx, "raycaster", "WorldTile.state", TILE_getState);
+  core->registerFn(ctx, "raycaster", "WorldTile.state=(_)", TILE_setState);
+  core->registerFn(ctx, "raycaster", "WorldTile.mode", TILE_getMode);
+  core->registerFn(ctx, "raycaster", "WorldTile.mode=(_)", TILE_setMode);
   core->registerFn(ctx, "raycaster", "WorldTile.setTextures(_)", TILE_setTextures);
   core->registerFn(ctx, "raycaster", "WorldTile.setTextures(_,_)", TILE_setTextures);
   core->registerFn(ctx, "raycaster", "WorldTile.setTextures(_,_,_)", TILE_setTextures);
