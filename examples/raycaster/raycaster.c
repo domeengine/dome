@@ -44,9 +44,19 @@ typedef struct {
 } MAP;
 
 typedef struct {
+  V2 position;
+  V2 direction;
+  int textureId;
+  V2 div;
+  double vMove;
+} OBJ;
+
+typedef struct {
   MAP map;
   DOME_Bitmap** textureList;
   double* lookup;
+  double* z;
+  OBJ* objects;
 } RENDERER;
 
 typedef struct {
@@ -156,6 +166,9 @@ void allocate(WrenVM* vm) {
   for (int y = 0; y <= HEIGHT; y++) {
     sbpush(obj->lookup, ((double)HEIGHT / (2.0 * y - HEIGHT)));
   }
+  for (int x = 0; x <= WIDTH; x++) {
+    sbpush(obj->z, 0);
+  }
   obj->textureList = NULL;
   obj->map.tiles = NULL;
   obj->map.width = 0;
@@ -178,6 +191,14 @@ void allocate(WrenVM* vm) {
       sbpush(obj->map.tiles, tile);
     }
   }
+
+  OBJ sprite;
+  sprite.div.x = 1;
+  sprite.div.y = 1;
+  sprite.vMove = 0;
+  sprite.textureId = 9;
+  sprite.position = (V2) {12, 12};
+  sbpush(obj->objects, sprite);
 }
 
 void finalize(void* data) {
@@ -186,6 +207,7 @@ void finalize(void* data) {
     io->freeBitmap(renderer->textureList[i]);
   }
   sbfree(renderer->lookup);
+  sbfree(renderer->z);
   sbfree(renderer->textureList);
   sbfree(renderer->map.tiles);
 }
@@ -408,6 +430,7 @@ void draw(WrenVM* vm) {
     } else {
       perpWallDistance = fabs((mapPos.y - rayPosition.y + (1 - stepDirection.y) / 2.0) / rayDirection.y);
     }
+    renderer->z[x] = perpWallDistance;
 
     // Calculate perspective of wall-slice
     double halfH = (double)h / 2.0;
@@ -524,6 +547,70 @@ void draw(WrenVM* vm) {
         int texY = (int)(currentFloorY * texHeight) % texHeight;
         color = texture->pixels[texWidth * texY + texX]; // textureNum
         unsafePset(ctx, x, h - y - 1, color);
+      }
+    }
+  }
+  size_t objCount = sbcount(renderer->objects);
+  for (size_t i = 0; i < objCount; i++) {
+    OBJ obj = renderer->objects[i];
+    double uDiv = obj.div.x;
+    double vDiv = obj.div.y;
+    double vMove = obj.vMove;
+
+    // getSpriteTransform
+    V2 position = { posX, posY };
+    V2 dir = direction;
+    V2 cam = camera;
+    double invDet = 1.0 / (-camera.x * dir.y + dir.x * camera.y);
+    V2 sprite = V2_sub(obj.position, position);
+
+    V2 transform;
+    transform.x = invDet * (dir.x * sprite.y - dir.y * sprite.x);
+    transform.y = invDet * (cam.y * sprite.x - cam.x * sprite.y);
+    // end getSpriteTransform
+    if (transform.y > 0) {
+      int vMoveScreen = floor(vMove / transform.y);
+      int spriteScreenX = floor((w / 2.0) * (1.0 + transform.x / transform.y));
+      //prevent fish eye
+      int spriteHeight = floor(fabs(h / transform.y) / vDiv);
+      int drawStartY = floor(((h - spriteHeight) / 2.0) + vMoveScreen);
+      if (drawStartY < 0) {
+        drawStartY = 0;
+      }
+      int drawEndY = floor(((h + spriteHeight) / 2.0) + vMoveScreen);
+      if (drawEndY >= h) {
+        drawEndY = h - 1;
+      }
+      int spriteWidth = floor((fabs(h / transform.y) / uDiv) / 2.0);
+      int drawStartX = floor(spriteScreenX - spriteWidth);
+      if (drawStartX < 0) {
+        drawStartX = 0;
+      }
+      int drawEndX = floor(spriteScreenX + spriteWidth);
+      if (drawEndX >= w) {
+        drawEndX = w - 1;
+      }
+
+      DOME_Bitmap* texture = renderer->textureList[obj.textureId - 1];
+      texWidth = texture->width;
+      texHeight = texture->height;
+
+      for (int stripe = drawStartX; stripe < drawEndX; stripe++) {
+        int texX = abs((stripe - (-spriteWidth + spriteScreenX)) * texWidth / (spriteWidth * 2));
+
+        // Conditions for this if:
+        //1) it's in front of camera plane so you don't see things behind you
+        //2) it's on the screen (left)
+        //3) it's on the screen (right)
+        //4) ZBuffer, with perpendicular distance
+
+        if (stripe > 0 && stripe < w && transform.y < renderer->z[stripe]) {
+          for (int y = drawStartY; y < drawEndY; y++) {
+            int texY = fabs(((y - vMoveScreen) - (-spriteHeight / 2.0 + h / 2.0)) * texHeight / spriteHeight);
+            color = texture->pixels[texWidth * texY + texX]; // textureNum
+            unsafePset(ctx, stripe, y, color);
+          }
+        }
       }
     }
   }

@@ -37,6 +37,7 @@ class Main {
     _raycaster.loadTexture("res/door.png")
     _raycaster.loadTexture("res/floor.png")
     _raycaster.loadTexture("res/ceil.png")
+    _raycaster.loadTexture("res/DUMMY1.png")
     _tile = WorldTile.init(_raycaster, 8, 8)
     _tile.state = 1
     _tile.mode = 1
