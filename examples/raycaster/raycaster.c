@@ -569,8 +569,7 @@ void draw(WrenVM* vm) {
       drawEnd = h - 1;
     }
     for (int y = floor(drawEnd); y < h; y++) {
-      // printf("y: %i\n", y);
-      double currentDist = h / (2.0 * y - h); //renderer->lookup[y];
+      double currentDist = h / (2.0 * y - h); // TODO: make lookup on this work again
       double weight = currentDist / distWall;
       double currentFloorX = weight * floorXWall + (1.0 - weight) * rayPosition.x;
       double currentFloorY = weight * floorYWall + (1.0 - weight) * rayPosition.y;
