@@ -17,7 +17,8 @@ class Main {
 
   init() {
     var SCALE = 2
-    Canvas.resize(640, 400)
+    var C_SCALE = 2
+    Canvas.resize(C_SCALE * 320, C_SCALE* 200)
     Window.resize(SCALE*Canvas.width, SCALE*Canvas.height)
     Window.lockstep = true
 
@@ -88,6 +89,7 @@ class Main {
       _tile.state = _tile.mode < 0 ? 1 : 0
     }
 
+    _raycaster.update()
   }
   draw(alpha) {
     Canvas.cls()

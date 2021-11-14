@@ -62,4 +62,11 @@ V2 V2_mul(V2 a, double v) {
   return result;
 }
 
+double V2_length(V2 a) {
+  return sqrt(pow(a.x, 2) + pow(a.y, 2));
+}
+
+double V2_lengthSquared(V2 a) {
+  return pow(a.x, 2) + pow(a.y, 2);
+}
 

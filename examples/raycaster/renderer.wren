@@ -3,6 +3,7 @@ foreign class Raycaster {
   foreign setPosition(x, y)
   foreign setAngle(angle)
   foreign draw(alpha)
+  foreign update()
   foreign loadTexture(path)
 }
 
