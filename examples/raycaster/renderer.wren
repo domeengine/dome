@@ -5,6 +5,20 @@ foreign class Raycaster {
   foreign draw(alpha)
   foreign update()
   foreign loadTexture(path)
+
+  foreign f_pushObject(x, y, textureId)
+  pushObject(x, y, textureId) {
+    var id = f_pushObject(x, y, textureId)
+    return WorldObject.init(this, id)
+  }
+}
+
+foreign class WorldObject {
+  construct init(renderer, id) {}
+  // foreign textureId
+  // foreign textureId=(v)
+  // foreign setPosition(x, y)
+  // TODO: set div, vMove
 }
 
 foreign class WorldTile {

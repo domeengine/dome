@@ -43,6 +43,9 @@ class Main {
     _tile.state = 1
     _tile.mode = 1
 
+    _raycaster.pushObject(12, 12, 9)
+    _raycaster.pushObject(12, 5, 9)
+
     var wall = WorldTile.init(_raycaster, 6, 6)
     wall.thin = true
     wall.offset = 0
