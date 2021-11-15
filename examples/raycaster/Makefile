@@ -7,7 +7,7 @@ all: ${NAME}.dylib
 renderer.c.inc: renderer.wren
 	../../dome embed renderer.wren rendererModuleSource renderer.c.inc
 
-${NAME}.dylib: ${NAME}.c domath.c sbuf.c renderer.c.inc
+${NAME}.dylib: ${NAME}.c domath.c sbuf.c sort.c renderer.c.inc
 	gcc ${CFLAGS} -dynamiclib -o ${NAME}.dylib -I../../include ${NAME}.c -undefined dynamic_lookup
 
 ${NAME}.so: ${NAME}.c renderer.c.inc

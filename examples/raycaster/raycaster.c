@@ -1,12 +1,14 @@
 #include <stddef.h>
 #include <assert.h>
 #include <stdio.h>
-#include "math.h"
-#include "domath.c"
-#include "sbuf.c"
-
 // You'll need to include the DOME header
 #include "dome.h"
+#include "math.h"
+#include "domath.c"
+#include "renderer.h"
+#include "sbuf.c"
+#include "sort.c"
+
 #include "renderer.c.inc"
 
 static GRAPHICS_API_v0* graphics;
@@ -15,64 +17,6 @@ static IO_API_v0* io;
 static WREN_API_v0* wren;
 static void (*unsafePset)(DOME_Context, int32_t, int32_t, DOME_Color) = NULL;
 
-typedef struct {
-  bool solid;
-  // door state
-  bool door;
-  bool locked;
-  int behaviour; // how does this door function?
-  double state; // how open are we, clamped [0,1]
-  int8_t mode; // opening/closing
-
-  bool thin;
-  double offset;
-
-  // If these are negative, default to color
-  int wallTextureId;
-  int floorTextureId;
-  int ceilingTextureId;
-} TILE;
-
-
-typedef struct {
-  size_t width;
-  size_t height;
-  TILE* tiles;
-} MAP;
-
-typedef struct {
-  uint64_t id;
-  V2 position;
-  V2 direction;
-  int textureId;
-  V2 div;
-  double vMove;
-} OBJ;
-
-typedef struct {
-  V2 position;
-  V2 direction;
-  V2 cameraPlane;
-
-  uint32_t width;
-  uint32_t height;
-
-  double* lookup;
-  double* z;
-
-  DOME_Bitmap** textureList;
-
-  MAP map;
-
-  OBJ* objects;
-  uint64_t nextId;
-} RENDERER;
-
-typedef struct {
-  size_t x;
-  size_t y;
-  WrenHandle* handle;
-} TILE_REF;
 
 #define worldTile(renderer, x, y) renderer->map.tiles[(int)y * renderer->map.width + (int)x]
 #define getTileFrom(ref, renderer) worldTile(renderer, ref->x, ref->y)
@@ -230,14 +174,14 @@ void RENDERER_pushObject(WrenVM* vm) {
 
 void RENDERER_finalize(void* data) {
   RENDERER* renderer = data;
+  free(renderer->lookup);
+  free(renderer->z);
+  free(renderer->map.tiles);
+
   for (int i = 0; i < sb_count(renderer->textureList); i++) {
     io->freeBitmap(renderer->textureList[i]);
   }
-  free(renderer->lookup);
-  free(renderer->z);
   sb_free(renderer->textureList);
-  sb_free(renderer->objects);
-  free(renderer->map.tiles);
 }
 
 void RENDERER_loadTexture(WrenVM* vm) {
@@ -310,7 +254,7 @@ CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ig
   }
   bool hit = false;
   int side = 0;
-  size_t mapPitch = mapWidth; //renderer->map.width;
+  size_t mapPitch = mapWidth;
   TILE* tiles = renderer->map.tiles;
   while(!hit) {
     if (nextSideDistance.x < nextSideDistance.y) {
@@ -323,17 +267,14 @@ CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ig
       side = 1;
     }
     TILE tile;
-    /*
-    mapPos.x = round(mapPos.x);
-    mapPos.y = round(mapPos.y);
-    */
+
     if (mapPos.x < 0 || mapPos.x >= renderer->map.width || mapPos.y < 0 || mapPos.y >= renderer->map.height) {
       hit = true;
       result.inBounds = false;
     } else {
       tile = worldTile(renderer, mapPos.x, mapPos.y);
       result.inBounds = true;
-     // Check for door and thin walls here
+      // Check for door and thin walls here
       if (tile.thin || tile.door) {
         float doorState = 1.0;
         if (tile.door) {
@@ -396,22 +337,13 @@ CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ig
   return result;
 }
 
-int compareZBuffer (void* ref, const void * a, const void * b)
-{
-  RENDERER* renderer = ref;
-  OBJ* aV = (OBJ*)a;
-  OBJ* bV = (OBJ*)b;
-   return V2_lengthSquared(V2_sub(renderer->position, bV->position)) - V2_lengthSquared(V2_sub(renderer->position, aV->position));
-}
-
 
 void RENDERER_update(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
   RENDERER* renderer = wren->getSlotForeign(vm, 0);
 
-  // sortt objects by z
-  // argment order is messed up because qsort_r is not standard
-  qsort_r(renderer->objects, sb_count(renderer->objects), sizeof(OBJ), renderer, compareZBuffer);
+  // sort objects by z
+  RENDERER_sort(renderer);
 }
 
 void RENDERER_draw(WrenVM* vm) {
@@ -757,7 +689,6 @@ DOME_EXPORT DOME_Result PLUGIN_postDraw(DOME_Context ctx) {
 }
 
 DOME_EXPORT DOME_Result PLUGIN_onShutdown(DOME_Context ctx) {
-  // io->freeBitmap(bitmap);
   return DOME_RESULT_SUCCESS;
 }
 
