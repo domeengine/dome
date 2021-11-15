@@ -74,11 +74,9 @@ typedef struct {
   WrenHandle* handle;
 } TILE_REF;
 
-#define getTileFrom(ref, renderer) renderer->map.tiles[ref->y * renderer->map.width + ref->x]
+#define worldTile(renderer, x, y) renderer->map.tiles[(int)y * renderer->map.width + (int)x]
+#define getTileFrom(ref, renderer) worldTile(renderer, ref->x, ref->y)
 
-uint32_t BLACK = 0xFF000000;
-uint32_t R =  0xFFFF0000;
-uint32_t B = 0xFF0000FF;
 uint32_t texture[64] = {};
 
 #define mapWidth 24
@@ -165,7 +163,7 @@ TILE_SETTER(offset, Offset, Double)
 TILE_GETTER(thin, Thin, Bool)
 TILE_SETTER(thin, Thin, Bool)
 
-void allocate(WrenVM* vm) {
+void RENDERER_allocate(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
   RENDERER* renderer = wren->setSlotNewForeign(vm, 0, 0, sizeof(RENDERER));
 
@@ -205,7 +203,7 @@ void allocate(WrenVM* vm) {
       tile.door = worldMap[y][x] == 6;
       tile.state = tile.door ? 0.5 : 0;
       tile.locked = false;
-      renderer->map.tiles[y * mapWidth + x] = tile;
+      worldTile(renderer, x, y) = tile;
     }
   }
 }
@@ -226,12 +224,11 @@ void RENDERER_pushObject(WrenVM* vm) {
   sb_push(renderer->objects, sprite);
 
   OBJ last = sb_last(renderer->objects);
-  printf("%f,%f\n", last.position.x, last.position.y);
 
   wren->setSlotDouble(vm, 0, sprite.id);
 }
 
-void finalize(void* data) {
+void RENDERER_finalize(void* data) {
   RENDERER* renderer = data;
   for (int i = 0; i < sb_count(renderer->textureList); i++) {
     io->freeBitmap(renderer->textureList[i]);
@@ -243,7 +240,7 @@ void finalize(void* data) {
   free(renderer->map.tiles);
 }
 
-void loadTexture(WrenVM* vm) {
+void RENDERER_loadTexture(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
   RENDERER* renderer = wren->getSlotForeign(vm, 0);
   const char* path = wren->getSlotString(vm, 1);
@@ -254,14 +251,14 @@ void loadTexture(WrenVM* vm) {
   printf("Assigning texture slot %zu\n", newId);
 }
 
-void setPosition(WrenVM* vm) {
+void RENDERER_setPosition(WrenVM* vm) {
   double x = wren->getSlotDouble(vm, 1);
   double y = wren->getSlotDouble(vm, 2);
   RENDERER* renderer = wren->getSlotForeign(vm, 0);
   renderer->position.x = x;
   renderer->position.y = y;
 }
-void setAngle(WrenVM* vm) {
+void RENDERER_setAngle(WrenVM* vm) {
   double angle = wren->getSlotDouble(vm, 1);
   double rads = angle * M_PI / 180.0;
   RENDERER* renderer = wren->getSlotForeign(vm, 0);
@@ -334,7 +331,7 @@ CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ig
       hit = true;
       result.inBounds = false;
     } else {
-      tile = tiles[(int)mapPos.y * mapPitch + (int)mapPos.x];
+      tile = worldTile(renderer, mapPos.x, mapPos.y);
       result.inBounds = true;
      // Check for door and thin walls here
       if (tile.thin || tile.door) {
@@ -408,7 +405,7 @@ int compareZBuffer (void* ref, const void * a, const void * b)
 }
 
 
-void update(WrenVM* vm) {
+void RENDERER_update(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
   RENDERER* renderer = wren->getSlotForeign(vm, 0);
 
@@ -417,7 +414,7 @@ void update(WrenVM* vm) {
   qsort_r(renderer->objects, sb_count(renderer->objects), sizeof(OBJ), renderer, compareZBuffer);
 }
 
-void draw(WrenVM* vm) {
+void RENDERER_draw(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
   RENDERER* renderer = wren->getSlotForeign(vm, 0);
   MAP map = renderer->map;
@@ -448,7 +445,7 @@ void draw(WrenVM* vm) {
 
     DOME_Bitmap* texture = NULL;
     if (cast.inBounds && textureId <= sb_count(renderer->textureList)) {
-      tile = map.tiles[(int)(mapPos.y) * map.width + (int)(mapPos.x)];
+      tile = worldTile(renderer, mapPos.x, mapPos.y);
       textureId = tile.wallTextureId;
       if (textureId <= 0) {
       } else {
@@ -594,7 +591,7 @@ void draw(WrenVM* vm) {
       assert(floorPosX < mapWidth);
       assert(floorPosY >= 0);
       assert(floorPosY < mapHeight);
-      TILE tile = map.tiles[floorPosY * map.width + floorPosX];
+      TILE tile = worldTile(renderer, floorPosX, floorPosY);
       textureId = tile.floorTextureId;
 
       if (textureId > 0) {
@@ -709,12 +706,12 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
   // Avoid giving the module a common name.
   core->registerModule(ctx, "raycaster", rendererModuleSource);
 
-  core->registerClass(ctx, "raycaster", "Raycaster", allocate, finalize);
-  core->registerFn(ctx, "raycaster", "Raycaster.draw(_)", draw);
-  core->registerFn(ctx, "raycaster", "Raycaster.update()", update);
-  core->registerFn(ctx, "raycaster", "Raycaster.setAngle(_)", setAngle);
-  core->registerFn(ctx, "raycaster", "Raycaster.loadTexture(_)", loadTexture);
-  core->registerFn(ctx, "raycaster", "Raycaster.setPosition(_,_)", setPosition);
+  core->registerClass(ctx, "raycaster", "Raycaster", RENDERER_allocate, RENDERER_finalize);
+  core->registerFn(ctx, "raycaster", "Raycaster.draw(_)", RENDERER_draw);
+  core->registerFn(ctx, "raycaster", "Raycaster.update()", RENDERER_update);
+  core->registerFn(ctx, "raycaster", "Raycaster.setAngle(_)", RENDERER_setAngle);
+  core->registerFn(ctx, "raycaster", "Raycaster.loadTexture(_)", RENDERER_loadTexture);
+  core->registerFn(ctx, "raycaster", "Raycaster.setPosition(_,_)", RENDERER_setPosition);
   core->registerFn(ctx, "raycaster", "Raycaster.f_pushObject(_,_,_)", RENDERER_pushObject);
 
   core->registerClass(ctx, "raycaster", "WorldTile", TILE_allocate, NULL);
