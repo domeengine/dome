@@ -41,6 +41,7 @@ typedef struct {
 } MAP;
 
 typedef struct {
+  uint64_t id;
   V2 position;
   V2 direction;
   int textureId;
@@ -64,6 +65,7 @@ typedef struct {
   MAP map;
 
   OBJ* objects;
+  uint64_t nextId;
 } RENDERER;
 
 typedef struct {
@@ -182,9 +184,12 @@ void allocate(WrenVM* vm) {
     renderer->z[x] = 0;
   }
   renderer->textureList = NULL;
+  renderer->objects = NULL;
   renderer->map.tiles = NULL;
   renderer->map.width = 0;
   renderer->map.height = 0;
+
+  renderer->nextId = 0;
 
   // Temporary map loading
   renderer->map.width = mapHeight;
@@ -203,21 +208,27 @@ void allocate(WrenVM* vm) {
       renderer->map.tiles[y * mapWidth + x] = tile;
     }
   }
+}
+
+void RENDERER_pushObject(WrenVM* vm) {
+  RENDERER* renderer = wren->getSlotForeign(vm, 0);
+  double x = wren->getSlotDouble(vm, 1);
+  double y = wren->getSlotDouble(vm, 2);
+  uint32_t textureId = wren->getSlotDouble(vm, 3);
 
   OBJ sprite;
+  sprite.id = renderer->nextId++;
   sprite.div.x = 1;
   sprite.div.y = 1;
   sprite.vMove = 0;
-  sprite.textureId = 9;
-  sprite.position = (V2) {12, 12};
+  sprite.textureId = textureId;
+  sprite.position = (V2) {x, y};
   sb_push(renderer->objects, sprite);
 
-  sprite.div.x = 1;
-  sprite.div.y = 1;
-  sprite.vMove = 0;
-  sprite.textureId = 9;
-  sprite.position = (V2) {12, 5};
-  sb_push(renderer->objects, sprite);
+  OBJ last = sb_last(renderer->objects);
+  printf("%f,%f\n", last.position.x, last.position.y);
+
+  wren->setSlotDouble(vm, 0, sprite.id);
 }
 
 void finalize(void* data) {
@@ -391,9 +402,9 @@ CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ig
 int compareZBuffer (void* ref, const void * a, const void * b)
 {
   RENDERER* renderer = ref;
-  V2* aV = (V2*)a;
-  V2* bV = (V2*)b;
-   return V2_lengthSquared(V2_sub(renderer->position, *bV)) - V2_lengthSquared(V2_sub(renderer->position, *aV));
+  OBJ* aV = (OBJ*)a;
+  OBJ* bV = (OBJ*)b;
+   return V2_lengthSquared(V2_sub(renderer->position, bV->position)) - V2_lengthSquared(V2_sub(renderer->position, aV->position));
 }
 
 
@@ -704,6 +715,7 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
   core->registerFn(ctx, "raycaster", "Raycaster.setAngle(_)", setAngle);
   core->registerFn(ctx, "raycaster", "Raycaster.loadTexture(_)", loadTexture);
   core->registerFn(ctx, "raycaster", "Raycaster.setPosition(_,_)", setPosition);
+  core->registerFn(ctx, "raycaster", "Raycaster.f_pushObject(_,_,_)", RENDERER_pushObject);
 
   core->registerClass(ctx, "raycaster", "WorldTile", TILE_allocate, NULL);
   core->registerFn(ctx, "raycaster", "WorldTile.solid", TILE_getSolid);

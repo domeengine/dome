@@ -9,7 +9,7 @@ foreign class Raycaster {
   foreign f_pushObject(x, y, textureId)
   pushObject(x, y, textureId) {
     var id = f_pushObject(x, y, textureId)
-    return WorldObject.init(this, id)
+//     return WorldObject.init(this, id)
   }
 }
 
