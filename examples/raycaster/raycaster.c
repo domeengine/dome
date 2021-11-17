@@ -24,8 +24,6 @@ static TILE VOID_TILE = {};
 #define worldTile(renderer, x, y) renderer->map.tiles[(int)y * renderer->map.width + (int)x]
 #define getTileFrom(ref, renderer) worldTile(renderer, ref->x, ref->y)
 
-uint32_t texture[64] = {};
-
 void OBJ_allocate(WrenVM* vm) {
   OBJ_REF* ref = wren->setSlotNewForeign(vm, 0, 0, sizeof(OBJ_REF));
   WrenHandle* handle = wren->getSlotHandle(vm, 1);
@@ -319,7 +317,7 @@ CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ig
   }
   bool hit = false;
   int side = 0;
-  size_t mapPitch = mapWidth;
+  size_t mapPitch = renderer->map.width;
   TILE* tiles = renderer->map.tiles;
   while(!hit) {
     if (nextSideDistance.x < nextSideDistance.y) {
