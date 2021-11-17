@@ -2,6 +2,8 @@ foreign class Raycaster {
   construct init() {}
   foreign setPosition(x, y)
   foreign setAngle(angle)
+  foreign setDimensions(width, height)
+
   foreign draw(alpha)
   foreign update()
   foreign loadTexture(path)

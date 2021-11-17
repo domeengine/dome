@@ -22,12 +22,13 @@ class Main {
     Window.resize(SCALE*Canvas.width, SCALE*Canvas.height)
     Window.lockstep = true
 
-    _pos = Vec.new(22, 12)
+    _pos = Vec.new(4, 4)
     _angle = 180
     computeDirection()
 
     // and allocators for foreign classes
     _raycaster = Raycaster.init()
+    _raycaster.setDimensions(14, 14)
     _raycaster.setPosition(_pos.x, _pos.y)
     _raycaster.setAngle(_angle)
     _raycaster.loadTexture("res/wall1.png")
@@ -39,6 +40,15 @@ class Main {
     _raycaster.loadTexture("res/floor.png")
     _raycaster.loadTexture("res/ceil.png")
     _raycaster.loadTexture("res/guard-test.png")
+    for (y in 0...14) {
+      for (x in 0...14) {
+        if (x == 0 || y == 0 || x == 13 || y == 13) {
+           _raycaster.tile(x, y).solid(true).wallTextureId(1)
+        } else {
+          _raycaster.tile(x, y).solid(false).floorTextureId(7).ceilingTextureId(8)
+        }
+      }
+    }
 
 
     _tile = WorldTile.init(_raycaster, 8, 8)
