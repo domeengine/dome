@@ -6,24 +6,42 @@ foreign class Raycaster {
   foreign update()
   foreign loadTexture(path)
 
-  foreign removeObject(textureId)
   foreign f_pushObject(x, y, textureId)
   tile(x, y) {
     return WorldTile.init(this, x, y)
   }
+
+  object(id) {
+    // Should we create an object if the id is not used?
+    return WorldObject.init(this, id)
+  }
+
   pushObject(x, y, textureId) {
     var id = f_pushObject(x, y, textureId)
-    return id
-//     return WorldObject.init(this, id)
+    return WorldObject.init(this, id)
   }
 }
 
 foreign class WorldObject {
   construct init(renderer, id) {}
-  // foreign textureId
-  // foreign textureId=(v)
-  // foreign setPosition(x, y)
-  // TODO: set div, vMove
+
+  foreign remove()
+
+  // TODO: Fluent API
+  foreign id
+
+  foreign textureId
+  foreign textureId=(v)
+  foreign x
+  foreign x=(v)
+  foreign y
+  foreign y=(v)
+  foreign uDiv
+  foreign uDiv=(v)
+  foreign vDiv
+  foreign vDiv=(v)
+  foreign vMove
+  foreign vMove=(v)
 }
 
 foreign class WorldTile {

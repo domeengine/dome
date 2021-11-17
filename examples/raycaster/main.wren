@@ -47,7 +47,8 @@ class Main {
 
     _raycaster.pushObject(12, 12, 9)
     _raycaster.pushObject(12, 11, 9)
-    _raycaster.pushObject(10, 11, 9)
+    _obj = _raycaster.pushObject(10, 11, 9)
+    _obj.remove()
 
     _raycaster.tile(6, 6).thin(true).offset(-0.5)
   }

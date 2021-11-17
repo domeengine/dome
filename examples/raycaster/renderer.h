@@ -35,6 +35,11 @@ typedef struct {
 } OBJ;
 
 typedef struct {
+  uint64_t id;
+  WrenHandle* handle;
+} OBJ_REF;
+
+typedef struct {
   V2 position;
   V2 direction;
   V2 cameraPlane;
