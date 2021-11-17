@@ -331,11 +331,15 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "random", "Squirrel5.float()", SQUIRREL5_float);
   MAP_lockModule(&engine->moduleMap, "random");
 
+  engine->vm = vm;
+
   return vm;
 }
 
 internal void VM_free(WrenVM* vm) {
   if (vm != NULL) {
+    ENGINE* engine = wrenGetUserData(vm);
+    engine->vm = NULL;
     wrenFreeVM(vm);
   }
 }

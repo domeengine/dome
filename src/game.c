@@ -400,6 +400,9 @@ int DOME_begin(ENGINE* engine, char* entryPath) {
   }
 
 vm_cleanup:
+  if (PLUGIN_COLLECTION_runHook(engine, DOME_PLUGIN_HOOK_SHUTDOWN) != DOME_RESULT_SUCCESS) {
+    return EXIT_FAILURE;
+  };
   // Finish processing async threads so we can release resources
   ENGINE_finishAsync(engine);
   SDL_Event event;

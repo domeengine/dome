@@ -274,6 +274,12 @@ DOME_lockModuleImpl(DOME_Context ctx, const char* moduleName) {
   MAP_lockModule(moduleMap, moduleName);
 }
 
+internal WrenVM*
+DOME_getVM(DOME_Context ctx) {
+  ENGINE* engine = (ENGINE*)ctx;
+  return engine->vm;
+}
+
 internal DOME_Context
 DOME_getVMContext(WrenVM* vm) {
   return wrenGetUserData(vm);
@@ -337,6 +343,7 @@ DOME_API_v0 dome_v0 = {
   .registerClass = DOME_registerClassImpl,
   .lockModule = DOME_lockModuleImpl,
   .getContext = DOME_getVMContext,
+  .getVM = DOME_getVM,
   .log = DOME_printLog
 };
 

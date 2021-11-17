@@ -58,6 +58,7 @@ typedef struct ENGINE_t {
   SDL_Renderer *renderer;
   SDL_Texture *texture;
   SDL_Rect viewport;
+  WrenVM* vm;
   CANVAS canvas;
   PIXEL_BUFFER blitBuffer;
   ABC_FIFO fifo;
