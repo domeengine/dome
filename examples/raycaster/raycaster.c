@@ -16,7 +16,9 @@ static DOME_API_v0* core;
 static IO_API_v0* io;
 static WREN_API_v0* wren;
 static void (*unsafePset)(DOME_Context, int32_t, int32_t, DOME_Color) = NULL;
+static WrenVM* vm;
 
+static size_t count = 0;
 
 #define worldTile(renderer, x, y) renderer->map.tiles[(int)y * renderer->map.width + (int)x]
 #define getTileFrom(ref, renderer) worldTile(renderer, ref->x, ref->y)
@@ -61,6 +63,13 @@ void TILE_allocate(WrenVM* vm) {
   ref->x = wren->getSlotDouble(vm, 2);
   ref->y = wren->getSlotDouble(vm, 3);
   ref->handle = handle;
+}
+
+void TILE_finalize(void* data) {
+  TILE_REF* ref = data;
+  // This is probably a bad idea
+  wren->releaseHandle(vm, ref->handle);
+  ref->handle = NULL;
 }
 
 void TILE_setTextures(WrenVM* vm) {
@@ -125,8 +134,8 @@ void RENDERER_allocate(WrenVM* vm) {
   for (int x = 0; x < renderer->width; x++) {
     renderer->z[x] = 0;
   }
-  renderer->textureList = NULL;
-  renderer->objects = NULL;
+  renderer->textureList = NULL;// malloc(sizeof(DOME_Bitmap*) * 10);
+  renderer->objects = calloc(sizeof(OBJ), 3);
   renderer->map.tiles = NULL;
   renderer->map.width = 0;
   renderer->map.height = 0;
@@ -165,9 +174,11 @@ void RENDERER_pushObject(WrenVM* vm) {
   sprite.vMove = 0;
   sprite.textureId = textureId;
   sprite.position = (V2) {x, y};
-  sb_push(renderer->objects, sprite);
 
-  OBJ last = sb_last(renderer->objects);
+  OBJ* objects = renderer->objects;
+  // sb_push(objects, sprite);
+  objects[sprite.id] = sprite;
+  renderer->objects = objects;
 
   wren->setSlotDouble(vm, 0, sprite.id);
 }
@@ -178,10 +189,12 @@ void RENDERER_finalize(void* data) {
   free(renderer->z);
   free(renderer->map.tiles);
 
-  for (int i = 0; i < sb_count(renderer->textureList); i++) {
+  for (int i = 0; i < sb_count(renderer->textureList);  i++) {
     io->freeBitmap(renderer->textureList[i]);
   }
+  //free(renderer->textureList);
   sb_free(renderer->textureList);
+  free(renderer->objects);
 }
 
 void RENDERER_loadTexture(WrenVM* vm) {
@@ -189,8 +202,12 @@ void RENDERER_loadTexture(WrenVM* vm) {
   RENDERER* renderer = wren->getSlotForeign(vm, 0);
   const char* path = wren->getSlotString(vm, 1);
   DOME_Bitmap* bitmap = io->readImageFile(ctx, path);
+  // renderer->textureList[count] = bitmap;
   sb_push(renderer->textureList, bitmap);
-  size_t newId = sb_count(renderer->textureList);
+  if (renderer->textureList == NULL) {
+    abort();
+  }
+  size_t newId = sb_count(renderer->textureList); // ++count;
   wren->setSlotDouble(vm, 0, newId);
   printf("Assigning texture slot %zu\n", newId);
 }
@@ -552,7 +569,7 @@ void RENDERER_draw(WrenVM* vm) {
       }
     }
   }
-  size_t objCount = sb_count(renderer->objects);
+  size_t objCount = 3;// sb_count(renderer->objects);
   for (size_t i = 0; i < objCount; i++) {
     OBJ obj = renderer->objects[i];
     double uDiv = obj.div.x;
@@ -627,6 +644,7 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
   io = DOME_getAPI(API_IO, IO_API_VERSION);
   graphics = DOME_getAPI(API_GRAPHICS, GRAPHICS_API_VERSION);
   unsafePset = graphics->unsafePset;
+  vm = core->getVM(ctx);
 
   // DOME also provides a subset of the Wren API for accessing slots
   // in foreign methods.
@@ -646,7 +664,7 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
   core->registerFn(ctx, "raycaster", "Raycaster.setPosition(_,_)", RENDERER_setPosition);
   core->registerFn(ctx, "raycaster", "Raycaster.f_pushObject(_,_,_)", RENDERER_pushObject);
 
-  core->registerClass(ctx, "raycaster", "WorldTile", TILE_allocate, NULL);
+  core->registerClass(ctx, "raycaster", "WorldTile", TILE_allocate, TILE_finalize);
   core->registerFn(ctx, "raycaster", "WorldTile.solid", TILE_getSolid);
   core->registerFn(ctx, "raycaster", "WorldTile.solid=(_)", TILE_setSolid);
   core->registerFn(ctx, "raycaster", "WorldTile.door", TILE_getDoor);

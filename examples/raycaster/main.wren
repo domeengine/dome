@@ -34,17 +34,18 @@ class Main {
     _raycaster.loadTexture("res/wall2.png")
     _raycaster.loadTexture("res/wall3.png")
     _raycaster.loadTexture("res/wall4.png")
-    _raycaster.loadTexture("res/terminal.png")
-    _raycaster.loadTexture("res/door.png")
+    _raycaster.loadTexture("res/blankwall.png")
+    _raycaster.loadTexture("res/blankwall.png")
     _raycaster.loadTexture("res/floor.png")
     _raycaster.loadTexture("res/ceil.png")
-    _raycaster.loadTexture("res/DUMMY1.png")
+    _raycaster.loadTexture("res/guard-test.png")
     _tile = WorldTile.init(_raycaster, 8, 8)
     _tile.state = 1
     _tile.mode = 1
 
     _raycaster.pushObject(12, 12, 9)
-    _raycaster.pushObject(12, 5, 9)
+    _raycaster.pushObject(12, 11, 9)
+    _raycaster.pushObject(10, 11, 9)
 
     var wall = WorldTile.init(_raycaster, 6, 6)
     wall.thin = true

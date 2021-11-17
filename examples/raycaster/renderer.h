@@ -46,10 +46,9 @@ typedef struct {
   double* z;
 
   DOME_Bitmap** textureList;
+  OBJ* objects;
 
   MAP map;
-
-  OBJ* objects;
   uint64_t nextId;
 } RENDERER;
 
