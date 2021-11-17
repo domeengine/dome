@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stddef.h>
 #include <assert.h>
 #include <stdio.h>
@@ -115,6 +116,12 @@ TILE_GETTER(offset, Offset, Double)
 TILE_SETTER(offset, Offset, Double)
 TILE_GETTER(thin, Thin, Bool)
 TILE_SETTER(thin, Thin, Bool)
+TILE_GETTER(ceilingTextureId, CeilingTextureId, Double)
+TILE_SETTER(ceilingTextureId, CeilingTextureId, Double)
+TILE_GETTER(floorTextureId, FloorTextureId, Double)
+TILE_SETTER(floorTextureId, FloorTextureId, Double)
+TILE_GETTER(wallTextureId, WallTextureId, Double)
+TILE_SETTER(wallTextureId, WallTextureId, Double)
 
 void RENDERER_allocate(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
@@ -135,12 +142,14 @@ void RENDERER_allocate(WrenVM* vm) {
     renderer->z[x] = 0;
   }
   renderer->textureList = NULL;// malloc(sizeof(DOME_Bitmap*) * 10);
-  renderer->objects = calloc(sizeof(OBJ), 3);
+  renderer->objects = NULL;// calloc(sizeof(OBJ), 3);
   renderer->map.tiles = NULL;
   renderer->map.width = 0;
   renderer->map.height = 0;
 
-  renderer->nextId = 0;
+  // An ID of zero means the entry is not in use.
+  // Valid IDs are > 0
+  renderer->nextId = 1;
 
   // Temporary map loading
   renderer->map.width = mapHeight;
@@ -168,6 +177,8 @@ void RENDERER_pushObject(WrenVM* vm) {
   uint32_t textureId = wren->getSlotDouble(vm, 3);
 
   OBJ sprite;
+  // Safety init
+  memset(&sprite, 0, sizeof(OBJ));
   sprite.id = renderer->nextId++;
   sprite.div.x = 1;
   sprite.div.y = 1;
@@ -175,12 +186,22 @@ void RENDERER_pushObject(WrenVM* vm) {
   sprite.textureId = textureId;
   sprite.position = (V2) {x, y};
 
-  OBJ* objects = renderer->objects;
-  // sb_push(objects, sprite);
-  objects[sprite.id] = sprite;
-  renderer->objects = objects;
+  sb_push(renderer->objects, sprite);
+  renderer->objectCount++;
 
   wren->setSlotDouble(vm, 0, sprite.id);
+}
+
+void RENDERER_removeObject(WrenVM* vm) {
+  RENDERER* renderer = wren->getSlotForeign(vm, 0);
+  uint64_t id = wren->getSlotDouble(vm, 1);
+  uint64_t count = sb_count(renderer->objects);
+  if (count > 0) {
+    uint64_t last = count - 1;
+    renderer->objects[id] = sb_last(renderer->objects);
+    renderer->objects[last].id = 0;
+    renderer->objectCount--;
+  }
 }
 
 void RENDERER_finalize(void* data) {
@@ -192,9 +213,8 @@ void RENDERER_finalize(void* data) {
   for (int i = 0; i < sb_count(renderer->textureList);  i++) {
     io->freeBitmap(renderer->textureList[i]);
   }
-  //free(renderer->textureList);
   sb_free(renderer->textureList);
-  free(renderer->objects);
+  sb_free(renderer->objects);
 }
 
 void RENDERER_loadTexture(WrenVM* vm) {
@@ -207,7 +227,7 @@ void RENDERER_loadTexture(WrenVM* vm) {
   if (renderer->textureList == NULL) {
     abort();
   }
-  size_t newId = sb_count(renderer->textureList); // ++count;
+  size_t newId = sb_count(renderer->textureList);
   wren->setSlotDouble(vm, 0, newId);
   printf("Assigning texture slot %zu\n", newId);
 }
@@ -569,7 +589,7 @@ void RENDERER_draw(WrenVM* vm) {
       }
     }
   }
-  size_t objCount = 3;// sb_count(renderer->objects);
+  size_t objCount = renderer->objectCount;
   for (size_t i = 0; i < objCount; i++) {
     OBJ obj = renderer->objects[i];
     double uDiv = obj.div.x;
@@ -663,6 +683,7 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
   core->registerFn(ctx, "raycaster", "Raycaster.loadTexture(_)", RENDERER_loadTexture);
   core->registerFn(ctx, "raycaster", "Raycaster.setPosition(_,_)", RENDERER_setPosition);
   core->registerFn(ctx, "raycaster", "Raycaster.f_pushObject(_,_,_)", RENDERER_pushObject);
+  core->registerFn(ctx, "raycaster", "Raycaster.removeObject(_)", RENDERER_removeObject);
 
   core->registerClass(ctx, "raycaster", "WorldTile", TILE_allocate, TILE_finalize);
   core->registerFn(ctx, "raycaster", "WorldTile.solid", TILE_getSolid);
@@ -677,9 +698,12 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
   core->registerFn(ctx, "raycaster", "WorldTile.thin=(_)", TILE_setThin);
   core->registerFn(ctx, "raycaster", "WorldTile.offset", TILE_getOffset);
   core->registerFn(ctx, "raycaster", "WorldTile.offset=(_)", TILE_setOffset);
-  core->registerFn(ctx, "raycaster", "WorldTile.setTextures(_)", TILE_setTextures);
-  core->registerFn(ctx, "raycaster", "WorldTile.setTextures(_,_)", TILE_setTextures);
-  core->registerFn(ctx, "raycaster", "WorldTile.setTextures(_,_,_)", TILE_setTextures);
+  core->registerFn(ctx, "raycaster", "WorldTile.ceilingTextureId", TILE_getCeilingTextureId);
+  core->registerFn(ctx, "raycaster", "WorldTile.ceilingTextureId=(_)", TILE_setCeilingTextureId);
+  core->registerFn(ctx, "raycaster", "WorldTile.floorTextureId", TILE_getFloorTextureId);
+  core->registerFn(ctx, "raycaster", "WorldTile.floorTextureId=(_)", TILE_setFloorTextureId);
+  core->registerFn(ctx, "raycaster", "WorldTile.wallTextureId", TILE_getWallTextureId);
+  core->registerFn(ctx, "raycaster", "WorldTile.wallTextureId=(_)", TILE_setWallTextureId);
 
   core->log(ctx, "Loading...\n");
   // bitmap = io->readImageFile(ctx, "wall.png");

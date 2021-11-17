@@ -39,6 +39,8 @@ class Main {
     _raycaster.loadTexture("res/floor.png")
     _raycaster.loadTexture("res/ceil.png")
     _raycaster.loadTexture("res/guard-test.png")
+
+
     _tile = WorldTile.init(_raycaster, 8, 8)
     _tile.state = 1
     _tile.mode = 1
@@ -47,9 +49,7 @@ class Main {
     _raycaster.pushObject(12, 11, 9)
     _raycaster.pushObject(10, 11, 9)
 
-    var wall = WorldTile.init(_raycaster, 6, 6)
-    wall.thin = true
-    wall.offset = 0
+    _raycaster.tile(6, 6).thin(true).offset(-0.5)
   }
 
   computeDirection() {
@@ -87,10 +87,10 @@ class Main {
       _raycaster.setAngle(_angle)
     }
 
-    _tile.state = _tile.state + _tile.mode * 0.05
+    _tile.state(_tile.state + _tile.mode * 0.05)
     if (_tile.state <= 0 || _tile.state >= 1) {
-      _tile.mode = -1 * _tile.mode
-      _tile.state = _tile.mode < 0 ? 1 : 0
+      _tile.mode(-1 * _tile.mode)
+      _tile.state(_tile.mode < 0 ? 1 : 0)
     }
 
     _raycaster.update()

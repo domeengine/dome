@@ -46,6 +46,8 @@ typedef struct {
   double* z;
 
   DOME_Bitmap** textureList;
+
+  size_t objectCount;
   OBJ* objects;
 
   MAP map;

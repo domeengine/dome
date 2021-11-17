@@ -6,9 +6,14 @@ foreign class Raycaster {
   foreign update()
   foreign loadTexture(path)
 
+  foreign removeObject(textureId)
   foreign f_pushObject(x, y, textureId)
+  tile(x, y) {
+    return WorldTile.init(this, x, y)
+  }
   pushObject(x, y, textureId) {
     var id = f_pushObject(x, y, textureId)
+    return id
 //     return WorldObject.init(this, id)
   }
 }
@@ -23,11 +28,60 @@ foreign class WorldObject {
 
 foreign class WorldTile {
   construct init(renderer, x, y) {}
+
+  thin(value) {
+    thin = value
+    return this
+  }
+
+  offset(value) {
+    offset = value
+    return this
+  }
+
+  wallTextureId(value) {
+    wallTextureId = value
+    return this
+  }
+
+  ceilingTextureId(value) {
+    ceilingTextureId = value
+    return this
+  }
+
+  floorTextureId(value) {
+    floorTextureId = value
+    return this
+  }
+
+  solid(value) {
+    solid = value
+    return this
+  }
+
+  state(value) {
+    state = value
+    return this
+  }
+
+  mode(value) {
+    mode = value
+    return this
+  }
+
+  door(value) {
+    door = value
+    return this
+  }
+
+  foreign wallTextureId
+  foreign wallTextureId=(v)
+  foreign ceilingTextureId
+  foreign ceilingTextureId=(v)
+  foreign floorTextureId
+  foreign floorTextureId=(v)
   foreign solid
   foreign solid=(v)
-  foreign setTextures(wall)
-  foreign setTextures(wall, floor)
-  foreign setTextures(wall, floor, ceiling)
   foreign door
   foreign door=(v)
   foreign state
