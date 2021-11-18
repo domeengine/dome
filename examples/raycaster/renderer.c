@@ -1,173 +1,6 @@
-#include <string.h>
-#include <stddef.h>
-#include <assert.h>
-#include <stdio.h>
-#include "dome.h"
-#include "math.h"
-#include "domath.c"
-#include "renderer.h"
-#include "sbuf.c"
-#include "sort.c"
-
-#include "renderer.c.inc"
-
-static GRAPHICS_API_v0* graphics;
-static DOME_API_v0* core;
-static IO_API_v0* io;
-static WREN_API_v0* wren;
-static void (*unsafePset)(DOME_Context, int32_t, int32_t, DOME_Color) = NULL;
-static WrenVM* vm;
-
-static size_t count = 0;
-
-static TILE VOID_TILE = {};
+#include "renderer.wren.inc"
 #define worldTile(renderer, x, y) renderer->map.tiles[(int)y * renderer->map.width + (int)x]
 #define getTileFrom(ref, renderer) worldTile(renderer, ref->x, ref->y)
-
-void OBJ_allocate(WrenVM* vm) {
-  OBJ_REF* ref = wren->setSlotNewForeign(vm, 0, 0, sizeof(OBJ_REF));
-  WrenHandle* handle = wren->getSlotHandle(vm, 1);
-  ref->handle = handle;
-  ref->id = wren->getSlotDouble(vm, 2);
-}
-
-void OBJ_finalize(void* data) {
-  OBJ_REF* ref = data;
-  // This is probably a bad idea
-  wren->releaseHandle(vm, ref->handle);
-  ref->id = 0;
-  ref->handle = NULL;
-}
-
-void OBJ_remove(WrenVM* vm) {
-  OBJ_REF* ref = wren->getSlotForeign(vm, 0);
-  wren->ensureSlots(vm, 2);
-  wren->setSlotHandle(vm, 1, ref->handle);
-  RENDERER* renderer = wren->getSlotForeign(vm, 1);
-
-  uint64_t id = ref->id;
-  size_t count = renderer->objectCount;
-
-  for (size_t i = 0; i < count; i++) {
-    OBJ* item = &(renderer->objects[i]);
-    if (item->id == id) {
-      uint64_t last = count - 1;
-      renderer->objects[id] = renderer->objects[last];
-      renderer->objects[last].id = 0;
-      renderer->objectCount--;
-      break;
-    }
-  }
-  // Handle if ID not found?
-}
-
-OBJ* RENDERER_getObject(RENDERER* renderer, uint64_t id) {
-  OBJ* objects = renderer->objects;
-  size_t count = renderer->objectCount;
-
-  for (size_t i = 0; i < count; i++) {
-    OBJ* item = objects + i;
-    if (item->id == id) {
-      return item;
-    }
-  }
-  return NULL;
-}
-
-#define OBJ_GETTER(fieldName, method, fieldType) \
-  void OBJ_get##method(WrenVM* vm) { \
-  OBJ_REF* ref = wren->getSlotForeign(vm, 0); \
-  wren->ensureSlots(vm, 3); \
-  wren->setSlotHandle(vm, 2, ref->handle); \
-  RENDERER* renderer = wren->getSlotForeign(vm, 2); \
-  OBJ* obj = RENDERER_getObject(renderer, ref->id); \
-  wren->setSlot##fieldType(vm, 0, obj->fieldName); \
-}
-
-#define OBJ_SETTER(fieldName, method, fieldType) \
-void OBJ_set##method(WrenVM* vm) { \
-  OBJ_REF* ref = wren->getSlotForeign(vm, 0); \
-  wren->ensureSlots(vm, 3); \
-  wren->setSlotHandle(vm, 2, ref->handle); \
-  RENDERER* renderer = wren->getSlotForeign(vm, 2); \
-  OBJ* obj = RENDERER_getObject(renderer, ref->id); \
-  obj->fieldName = wren->getSlot##fieldType(vm, 1); \
-}
-
-OBJ_GETTER(id, Id, Double)
-OBJ_GETTER(textureId, TextureId, Double)
-OBJ_SETTER(textureId, TextureId, Double)
-OBJ_GETTER(position.x, X, Double)
-OBJ_SETTER(position.x, X, Double)
-OBJ_GETTER(position.y, Y, Double)
-OBJ_SETTER(position.y, Y, Double)
-OBJ_GETTER(div.x, UDiv, Double)
-OBJ_SETTER(div.x, UDiv, Double)
-OBJ_GETTER(div.y, VDiv, Double)
-OBJ_SETTER(div.y, VDiv, Double)
-OBJ_GETTER(vMove, VMove, Double)
-OBJ_SETTER(vMove, VMove, Double)
-
-
-void TILE_allocate(WrenVM* vm) {
-  TILE_REF* ref = wren->setSlotNewForeign(vm, 0, 0, sizeof(TILE_REF));
-  WrenHandle* handle = wren->getSlotHandle(vm, 1);
-  ref->x = wren->getSlotDouble(vm, 2);
-  ref->y = wren->getSlotDouble(vm, 3);
-  ref->handle = handle;
-}
-
-void TILE_finalize(void* data) {
-  TILE_REF* ref = data;
-  // This is probably a bad idea
-  wren->releaseHandle(vm, ref->handle);
-  ref->handle = NULL;
-}
-
-#define TILE_GETTER(fieldName, method, fieldType) \
-  void TILE_get##method(WrenVM* vm) { \
-  TILE_REF* ref = wren->getSlotForeign(vm, 0); \
-  wren->ensureSlots(vm, 3); \
-  wren->setSlotHandle(vm, 2, ref->handle); \
-  RENDERER* renderer = wren->getSlotForeign(vm, 2); \
-  TILE tile; \
-  if (renderer->map.width * renderer->map.height > 0) {\
-    tile = getTileFrom(ref, renderer); \
-  } else { \
-   tile = VOID_TILE; \
-  } \
-  wren->setSlot##fieldType(vm, 0, tile.fieldName); \
-}
-
-#define TILE_SETTER(fieldName, method, fieldType) \
-void TILE_set##method(WrenVM* vm) { \
-  TILE_REF* ref = wren->getSlotForeign(vm, 0); \
-  wren->ensureSlots(vm, 3); \
-  wren->setSlotHandle(vm, 2, ref->handle); \
-  RENDERER* renderer = wren->getSlotForeign(vm, 2); \
-  if (renderer->map.width * renderer->map.height > 0) {\
-    getTileFrom(ref, renderer).fieldName = wren->getSlot##fieldType(vm, 1); \
-  } \
-}
-
-TILE_GETTER(solid, Solid, Bool)
-TILE_SETTER(solid, Solid, Bool)
-TILE_GETTER(door, Door, Bool)
-TILE_SETTER(door, Door, Bool)
-TILE_GETTER(state, State, Double)
-TILE_SETTER(state, State, Double)
-TILE_GETTER(mode, Mode, Double)
-TILE_SETTER(mode, Mode, Double)
-TILE_GETTER(offset, Offset, Double)
-TILE_SETTER(offset, Offset, Double)
-TILE_GETTER(thin, Thin, Bool)
-TILE_SETTER(thin, Thin, Bool)
-TILE_GETTER(ceilingTextureId, CeilingTextureId, Double)
-TILE_SETTER(ceilingTextureId, CeilingTextureId, Double)
-TILE_GETTER(floorTextureId, FloorTextureId, Double)
-TILE_SETTER(floorTextureId, FloorTextureId, Double)
-TILE_GETTER(wallTextureId, WallTextureId, Double)
-TILE_SETTER(wallTextureId, WallTextureId, Double)
 
 void RENDERER_allocate(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
@@ -256,6 +89,7 @@ void RENDERER_setPosition(WrenVM* vm) {
   renderer->position.x = x;
   renderer->position.y = y;
 }
+
 void RENDERER_setAngle(WrenVM* vm) {
   double angle = wren->getSlotDouble(vm, 1);
   double rads = angle * M_PI / 180.0;
@@ -265,6 +99,7 @@ void RENDERER_setAngle(WrenVM* vm) {
   renderer->cameraPlane.x = -renderer->direction.y;
   renderer->cameraPlane.y = renderer->direction.x;
 }
+
 void RENDERER_setDimensions(WrenVM* vm) {
   uint64_t width = wren->getSlotDouble(vm, 1);
   uint64_t height = wren->getSlotDouble(vm, 2);
@@ -275,21 +110,45 @@ void RENDERER_setDimensions(WrenVM* vm) {
   memset(renderer->map.tiles, 0, width * height * sizeof(TILE));
 }
 
-void vLine(DOME_Context ctx, int32_t x, int32_t y0, uint32_t y1, DOME_Color color) {
-  uint32_t height = graphics->getHeight(ctx);
-  y0 = fmax(0, y0);
-  y1 = fmin(y1, height - 1);
-  for (int y = y0; y <= y1; y++) {
-    unsafePset(ctx, x, y, color);
+OBJ* RENDERER_getObject(RENDERER* renderer, uint64_t id) {
+  OBJ* objects = renderer->objects;
+  size_t count = renderer->objectCount;
+
+  for (size_t i = 0; i < count; i++) {
+    OBJ* item = objects + i;
+    if (item->id == id) {
+      return item;
+    }
   }
+  return NULL;
 }
 
-typedef struct {
-  V2 mapPos;
-  int side;
-  V2i stepDirection;
-  bool inBounds;
-} CAST_RESULT;
+int RENDERER_compareZBuffer (void* ref, const void * a, const void * b)
+{
+  RENDERER* renderer = ref;
+  OBJ* aV = (OBJ*)a;
+  OBJ* bV = (OBJ*)b;
+  return V2_lengthSquared(V2_sub(renderer->position, bV->position)) - V2_lengthSquared(V2_sub(renderer->position, aV->position));
+}
+
+void RENDERER_sort(RENDERER* renderer) {
+  // Assume that the list of objects is /nearly/ sorted, frame over frame
+  // So insertion sort gives the best performance on average.
+
+  OBJ* objects = renderer->objects;
+  size_t count = renderer->objectCount;
+
+  for (size_t i = 1; i < count; i++) {
+    OBJ item = objects[i];
+    assert(item.id > 0);
+    size_t previous = i;
+    while (previous > 0 && RENDERER_compareZBuffer(renderer, &item, &objects[previous - 1]) <= 0) {
+      objects[previous] = objects[previous - 1];
+      previous -= 1;
+    }
+    objects[previous] = item;
+  }
+}
 
 CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ignoreDoors) {
   V2 sideDistance = {0, 0};
@@ -695,26 +554,7 @@ void RENDERER_draw(WrenVM* vm) {
   // graphics->draw(ctx, bitmap, 0, 0, DOME_DRAWMODE_BLEND);
 }
 
-DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
-    DOME_Context ctx) {
-
-  // Fetch the latest Core API and save it for later use.
-  core = DOME_getAPI(API_DOME, DOME_API_VERSION);
-  io = DOME_getAPI(API_IO, IO_API_VERSION);
-  graphics = DOME_getAPI(API_GRAPHICS, GRAPHICS_API_VERSION);
-  unsafePset = graphics->unsafePset;
-  vm = core->getVM(ctx);
-
-  // DOME also provides a subset of the Wren API for accessing slots
-  // in foreign methods.
-  wren = DOME_getAPI(API_WREN, WREN_API_VERSION);
-
-  core->log(ctx, "Initialising raycaster module\n");
-
-  // Register a module with it's associated source.
-  // Avoid giving the module a common name.
-  core->registerModule(ctx, "raycaster", rendererModuleSource);
-
+void RENDERER_register(DOME_Context ctx) {
   core->registerClass(ctx, "raycaster", "Raycaster", RENDERER_allocate, RENDERER_finalize);
   core->registerFn(ctx, "raycaster", "Raycaster.draw(_)", RENDERER_draw);
   core->registerFn(ctx, "raycaster", "Raycaster.update()", RENDERER_update);
@@ -723,69 +563,6 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
   core->registerFn(ctx, "raycaster", "Raycaster.setPosition(_,_)", RENDERER_setPosition);
   core->registerFn(ctx, "raycaster", "Raycaster.setDimensions(_,_)", RENDERER_setDimensions);
   core->registerFn(ctx, "raycaster", "Raycaster.f_pushObject(_,_,_)", RENDERER_pushObject);
-
-  core->registerClass(ctx, "raycaster", "WorldObject", OBJ_allocate, OBJ_finalize);
-  core->registerFn(ctx, "raycaster", "WorldObject.remove()", OBJ_remove);
-  core->registerFn(ctx, "raycaster", "WorldObject.id", OBJ_getId);
-  core->registerFn(ctx, "raycaster", "WorldObject.textureId", OBJ_getTextureId);
-  core->registerFn(ctx, "raycaster", "WorldObject.textureId=(_)", OBJ_setTextureId);
-  core->registerFn(ctx, "raycaster", "WorldObject.x", OBJ_getX);
-  core->registerFn(ctx, "raycaster", "WorldObject.x=(_)", OBJ_setX);
-  core->registerFn(ctx, "raycaster", "WorldObject.y", OBJ_getY);
-  core->registerFn(ctx, "raycaster", "WorldObject.y=(_)", OBJ_setY);
-  core->registerFn(ctx, "raycaster", "WorldObject.uDiv", OBJ_getUDiv);
-  core->registerFn(ctx, "raycaster", "WorldObject.uDiv=(_)", OBJ_setUDiv);
-  core->registerFn(ctx, "raycaster", "WorldObject.vDiv", OBJ_getVDiv);
-  core->registerFn(ctx, "raycaster", "WorldObject.vDiv=(_)", OBJ_setVDiv);
-  core->registerFn(ctx, "raycaster", "WorldObject.vMove", OBJ_getVMove);
-  core->registerFn(ctx, "raycaster", "WorldObject.vMove=(_)", OBJ_setVMove);
-
-  core->registerClass(ctx, "raycaster", "WorldTile", TILE_allocate, TILE_finalize);
-  core->registerFn(ctx, "raycaster", "WorldTile.solid", TILE_getSolid);
-  core->registerFn(ctx, "raycaster", "WorldTile.solid=(_)", TILE_setSolid);
-  core->registerFn(ctx, "raycaster", "WorldTile.door", TILE_getDoor);
-  core->registerFn(ctx, "raycaster", "WorldTile.door=(_)", TILE_setDoor);
-  core->registerFn(ctx, "raycaster", "WorldTile.state", TILE_getState);
-  core->registerFn(ctx, "raycaster", "WorldTile.state=(_)", TILE_setState);
-  core->registerFn(ctx, "raycaster", "WorldTile.mode", TILE_getMode);
-  core->registerFn(ctx, "raycaster", "WorldTile.mode=(_)", TILE_setMode);
-  core->registerFn(ctx, "raycaster", "WorldTile.thin", TILE_getThin);
-  core->registerFn(ctx, "raycaster", "WorldTile.thin=(_)", TILE_setThin);
-  core->registerFn(ctx, "raycaster", "WorldTile.offset", TILE_getOffset);
-  core->registerFn(ctx, "raycaster", "WorldTile.offset=(_)", TILE_setOffset);
-  core->registerFn(ctx, "raycaster", "WorldTile.ceilingTextureId", TILE_getCeilingTextureId);
-  core->registerFn(ctx, "raycaster", "WorldTile.ceilingTextureId=(_)", TILE_setCeilingTextureId);
-  core->registerFn(ctx, "raycaster", "WorldTile.floorTextureId", TILE_getFloorTextureId);
-  core->registerFn(ctx, "raycaster", "WorldTile.floorTextureId=(_)", TILE_setFloorTextureId);
-  core->registerFn(ctx, "raycaster", "WorldTile.wallTextureId", TILE_getWallTextureId);
-  core->registerFn(ctx, "raycaster", "WorldTile.wallTextureId=(_)", TILE_setWallTextureId);
-
-  core->log(ctx, "Loading...\n");
-  // bitmap = io->readImageFile(ctx, "wall.png");
-  core->log(ctx, "Complete\n");
-
-  // Returning anything other than SUCCESS here will result in the current fiber
-  // aborting. Use this to indicate if your plugin initialised successfully.
-  return DOME_RESULT_SUCCESS;
 }
 
-DOME_EXPORT DOME_Result PLUGIN_preUpdate(DOME_Context ctx) {
-  //  DOME_Color color = graphics->pget(ctx, 0, 0);
-  // core->log(ctx, "a: 0x%02hX, r: 0x%02hX, g: 0x%02hX, b: 0x%02hX\n", color.component.a, color.component.r, color.component.g, color.component.b);
-  return DOME_RESULT_SUCCESS;
-}
-
-DOME_EXPORT DOME_Result PLUGIN_postUpdate(DOME_Context ctx) {
-  return DOME_RESULT_SUCCESS;
-}
-DOME_EXPORT DOME_Result PLUGIN_preDraw(DOME_Context ctx) {
-  return DOME_RESULT_SUCCESS;
-}
-DOME_EXPORT DOME_Result PLUGIN_postDraw(DOME_Context ctx) {
-  return DOME_RESULT_SUCCESS;
-}
-
-DOME_EXPORT DOME_Result PLUGIN_onShutdown(DOME_Context ctx) {
-  return DOME_RESULT_SUCCESS;
-}
 

@@ -1,6 +1,3 @@
-
-#include <stdint.h>
-
 double
 getSign(double n) {
   if (n < 0.0001) {
@@ -14,14 +11,7 @@ getSign(double n) {
 
 inline double
 clamp(double min, double x, double max) {
-  if (x < min) {
-    return min;
-  }
-  if (x > max) {
-    return max;
-  }
-  return x;
-  // return fmax(min, fmin(x, max));
+  return fmax(min, fmin(x, max));
 }
 
 

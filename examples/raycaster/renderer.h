@@ -1,5 +1,3 @@
-#include <stddef.h>
-
 typedef struct {
   bool solid;
   // door state
@@ -64,3 +62,18 @@ typedef struct {
   size_t y;
   WrenHandle* handle;
 } TILE_REF;
+
+typedef struct {
+  V2 mapPos;
+  int side;
+  V2i stepDirection;
+  bool inBounds;
+} CAST_RESULT;
+
+static GRAPHICS_API_v0* graphics;
+static DOME_API_v0* core;
+static IO_API_v0* io;
+static WREN_API_v0* wren;
+static void (*unsafePset)(DOME_Context, int32_t, int32_t, DOME_Color) = NULL;
+static WrenVM* vm;
+static TILE VOID_TILE = {};
