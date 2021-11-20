@@ -10,8 +10,8 @@ void RENDERER_allocate(WrenVM* vm) {
   renderer->direction = (V2) { 0, 1 };
   renderer->cameraPlane = (V2) { -1, 0 };
 
-  renderer->width = graphics->getWidth(ctx);
-  renderer->height = graphics->getHeight(ctx);
+  renderer->width = canvas->getWidth(ctx);
+  renderer->height = canvas->getHeight(ctx);
   renderer->lookup = calloc(renderer->height, sizeof(double));
   for (int y = 0; y < renderer->height; y++) {
     renderer->lookup[y] = ((double)renderer->height / (2.0 * y - renderer->height));
@@ -72,8 +72,8 @@ void RENDERER_loadTexture(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
   RENDERER* renderer = wren->getSlotForeign(vm, 0);
   const char* path = wren->getSlotString(vm, 1);
-  DOME_Bitmap* bitmap = io->readImageFile(ctx, path);
-  sb_push(renderer->textureList, bitmap);
+  DOME_Bitmap* texture = io->readImageFile(ctx, path);
+  sb_push(renderer->textureList, texture);
   if (renderer->textureList == NULL) {
     abort();
   }
@@ -338,9 +338,9 @@ void RENDERER_draw(WrenVM* vm) {
         texture = renderer->textureList[textureId - 1];
         texWidth = texture->width;
         texHeight = texture->height;
-        int texX = (int)(texWidth * (floorX - cellX)) % texWidth;
-        int texY = (int)(texHeight * (floorY - cellY)) % texHeight;
-        color = texture->pixels[texWidth * texY + texX];
+        int texX = (uint32_t)(texWidth * (floorX - cellX)) % texWidth;
+        int texY = (uint32_t)(texHeight * (floorY - cellY)) % texHeight;
+        color = bitmap->pget(texture, texX, texY);
         unsafePset(ctx, x, y, color);
       }
       textureId = tile.ceilingTextureId;
@@ -350,7 +350,7 @@ void RENDERER_draw(WrenVM* vm) {
         texHeight = texture->height;
         int texX = (int)(texWidth * (floorX - cellX)) % texWidth;
         int texY = (int)(texHeight * (floorY - cellY)) % texHeight;
-        color = texture->pixels[texWidth * texY + texX];
+        color = bitmap->pget(texture, texX, texY);
         unsafePset(ctx, x, h - y - 1, color);
       }
 
@@ -458,7 +458,7 @@ void RENDERER_draw(WrenVM* vm) {
         assert(texY >= 0);
         assert(texY < texHeight);
 
-        color = texture->pixels[texWidth * texY + texX];
+        color = bitmap->pget(texture, texX, texY);
         if (side == 1) {
           uint8_t alpha = color.component.a;
           color.value = (color.value >> 1) & 8355711;
@@ -542,7 +542,7 @@ void RENDERER_draw(WrenVM* vm) {
         if (stripe > 0 && stripe < w && transform.y < renderer->z[stripe]) {
           for (int y = drawStartY; y < drawEndY; y++) {
             int texY = fabs(((y - vMoveScreen) - (-spriteHeight / 2.0 + h / 2.0)) * texHeight / spriteHeight);
-            color = texture->pixels[texWidth * texY + texX];
+            color = bitmap->pget(texture, texX, texY);
             unsafePset(ctx, stripe, y, color);
           }
         }

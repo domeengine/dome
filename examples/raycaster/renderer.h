@@ -70,7 +70,8 @@ typedef struct {
   bool inBounds;
 } CAST_RESULT;
 
-static GRAPHICS_API_v0* graphics;
+static CANVAS_API_v0* canvas;
+static BITMAP_API_v0* bitmap;
 static DOME_API_v0* core;
 static IO_API_v0* io;
 static WREN_API_v0* wren;
