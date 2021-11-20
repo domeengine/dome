@@ -230,17 +230,15 @@ typedef struct {
 } CANVAS_API_v0;
 
 typedef struct {
+  DOME_Bitmap* (*fromFile)(DOME_Context ctx, const char* path);
+  DOME_Bitmap* (*fromBuffer)(DOME_Context ctx, void* buffer, size_t length);
   DOME_Color (*pget)(DOME_Bitmap* bitmap, uint32_t x, uint32_t y);
   void (*pset)(DOME_Bitmap* bitmap, uint32_t x, uint32_t y, DOME_Color color);
+  void (*free)(DOME_Bitmap* bitmap);
 } BITMAP_API_v0;
 
 typedef struct {
   void* (*readFile)(DOME_Context ctx, const char* path, size_t* length);
-
-  DOME_Bitmap* (*readImageFile)(DOME_Context ctx, const char* path);
-  DOME_Bitmap* (*imageFromBuffer)(DOME_Context ctx, void* buffer, size_t length);
-  void (*freeBitmap)(DOME_Bitmap* bitmap);
-
 } IO_API_v0;
 
 typedef void* (*DOME_getAPIFunction)(API_TYPE api, int version);
@@ -248,6 +246,7 @@ PUBLIC_EXPORT void* DOME_getAPI(API_TYPE api, int version);
 
 
 // Helper macros to abstract the api->method
+// These can be removed if you don't need them in your project
 
 #define DOME_registerModule(ctx, name, src) api->registerModule(ctx, name, src)
 #define DOME_registerClass(ctx, module, className, allocate, finalize) api->registerClass(ctx, module, className, allocate, finalize)

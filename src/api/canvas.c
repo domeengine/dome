@@ -59,20 +59,6 @@ CANVAS_API_line(DOME_Context ctx, int64_t x0, int64_t y0, int64_t x1, int64_t y1
   ENGINE_line(engine, x0, y0, x1, y1, color.value, 1);
 }
 
-internal DOME_Color
-BITMAP_API_pget(DOME_Bitmap* bitmap, uint32_t x, uint32_t y) {
-  assert(y < bitmap->height);
-  assert(x < bitmap->width);
-  return bitmap->pixels[y * bitmap->width + x];
-}
-
-internal void
-BITMAP_API_pset(DOME_Bitmap* bitmap, uint32_t x, uint32_t y, DOME_Color color) {
-  assert(y < bitmap->height);
-  assert(x < bitmap->width);
-  bitmap->pixels[y * bitmap->width + x] = color;
-}
-
 CANVAS_API_v0 canvas_v0 = {
   .pget = CANVAS_API_pget,
   .pset = CANVAS_API_pset,
@@ -81,9 +67,4 @@ CANVAS_API_v0 canvas_v0 = {
   .getHeight = CANVAS_API_getHeight,
   .draw = CANVAS_API_draw,
   .line = CANVAS_API_line
-};
-
-BITMAP_API_v0 bitmap_v0 = {
-  .pget = BITMAP_API_pget,
-  .pset = BITMAP_API_pset
 };

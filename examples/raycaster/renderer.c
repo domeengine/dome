@@ -62,7 +62,7 @@ void RENDERER_finalize(void* data) {
   free(renderer->map.tiles);
 
   for (int i = 0; i < sb_count(renderer->textureList);  i++) {
-    io->freeBitmap(renderer->textureList[i]);
+    bitmap->free(renderer->textureList[i]);
   }
   sb_free(renderer->textureList);
   sb_free(renderer->objects);
@@ -72,7 +72,7 @@ void RENDERER_loadTexture(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
   RENDERER* renderer = wren->getSlotForeign(vm, 0);
   const char* path = wren->getSlotString(vm, 1);
-  DOME_Bitmap* texture = io->readImageFile(ctx, path);
+  DOME_Bitmap* texture = bitmap->fromFile(ctx, path);
   sb_push(renderer->textureList, texture);
   if (renderer->textureList == NULL) {
     abort();
