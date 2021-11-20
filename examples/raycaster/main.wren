@@ -1,6 +1,6 @@
 import "math" for Vec
 import "plugin" for Plugin
-import "input" for Keyboard
+import "input" for Keyboard, Mouse
 import "graphics" for Canvas, Color
 import "dome" for Window
 
@@ -23,7 +23,7 @@ class Main {
     Window.lockstep = true
 
     _pos = Vec.new(4, 4)
-    _angle = 180
+    _angle = 0
     computeDirection()
 
     // and allocators for foreign classes
@@ -51,16 +51,14 @@ class Main {
     }
 
 
-    _tile = WorldTile.init(_raycaster, 8, 8)
-    _tile.state = 1
-    _tile.mode = 1
+
+    _raycaster.tile(8, 7).wallTextureId(1).solid(true)
+    _raycaster.tile(8, 9).wallTextureId(1).solid(true)
+    _tile = _raycaster.tile(8, 8).wallTextureId(5).state(1).mode(1).door(true).ceilingTextureId(3)
 
     _raycaster.pushObject(12, 12, 9)
     _raycaster.pushObject(12, 11, 9)
-    _obj = _raycaster.pushObject(10, 11, 9)
-    _obj.remove()
-
-    _raycaster.tile(6, 6).thin(true).offset(-0.5)
+    _raycaster.pushObject(10, 11, 9)
   }
 
   computeDirection() {
@@ -111,6 +109,7 @@ class Main {
     Canvas.rectfill(0, 0, Canvas.width, Canvas.height / 2, Color.lightgray)
     Canvas.rectfill(0, Canvas.height / 2, Canvas.width, Canvas.height / 2, Color.darkgray)
     _raycaster.draw(alpha)
+    Canvas.print("%(Mouse.x)", 0, 0, Color.white)
   }
 }
 
