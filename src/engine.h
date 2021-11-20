@@ -1,9 +1,3 @@
-// Forward-declaring some methods for interacting with the AudioEngine
-// for managing memory and initialization
-struct AUDIO_ENGINE_t;
-internal struct AUDIO_ENGINE_t* AUDIO_ENGINE_init(void);
-internal void AUDIO_ENGINE_free(struct AUDIO_ENGINE_t*);
-
 typedef struct {
   int64_t x;
   int64_t y;
@@ -106,11 +100,3 @@ typedef enum {
 } ENGINE_WRITE_RESULT;
 
 global_variable uint32_t ENGINE_EVENT_TYPE;
-
-inline internal void ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c);
-inline internal void ENGINE_unsafePset(ENGINE* engine, int64_t x, int64_t y, uint32_t c);
-inline internal void ENGINE_unsafePsetNoBlend(ENGINE* engine, int64_t x, int64_t y, uint32_t c);
-internal uint32_t ENGINE_pget(ENGINE* engine, int64_t x, int64_t y);
-internal void ENGINE_line(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, uint32_t c, uint64_t size);
-internal char* ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr);
-internal void ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf);
