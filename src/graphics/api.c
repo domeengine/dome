@@ -1,17 +1,17 @@
 internal void
-GRAPHICS_API_unsafePset(DOME_Context ctx, int32_t x, int32_t y, DOME_Color color) {
+CANVAS_API_unsafePset(DOME_Context ctx, int32_t x, int32_t y, DOME_Color color) {
   ENGINE* engine = (ENGINE*)ctx;
   ENGINE_unsafePset(engine, x, y, color.value);
 }
 
 internal void
-GRAPHICS_API_pset(DOME_Context ctx, int32_t x, int32_t y, DOME_Color color) {
+CANVAS_API_pset(DOME_Context ctx, int32_t x, int32_t y, DOME_Color color) {
   ENGINE* engine = (ENGINE*)ctx;
   ENGINE_pset(engine, x, y, color.value);
 }
 
 internal DOME_Color
-GRAPHICS_API_pget(DOME_Context ctx, int32_t x, int32_t y) {
+CANVAS_API_pget(DOME_Context ctx, int32_t x, int32_t y) {
   ENGINE* engine = (ENGINE*)ctx;
   DOME_Color color;
   color.value = ENGINE_pget(engine, x, y);
@@ -20,18 +20,18 @@ GRAPHICS_API_pget(DOME_Context ctx, int32_t x, int32_t y) {
 }
 
 internal uint32_t
-GRAPHICS_API_getWidth(DOME_Context ctx) {
+CANVAS_API_getWidth(DOME_Context ctx) {
   ENGINE* engine = (ENGINE*)ctx;
   return engine->canvas.width;
 }
 internal uint32_t
-GRAPHICS_API_getHeight(DOME_Context ctx) {
+CANVAS_API_getHeight(DOME_Context ctx) {
   ENGINE* engine = (ENGINE*)ctx;
   return engine->canvas.height;
 }
 
 internal void
-GRAPHICS_API_draw(DOME_Context ctx, DOME_Bitmap* bitmap, int32_t x, int32_t y, DOME_DrawMode mode) {
+CANVAS_API_draw(DOME_Context ctx, DOME_Bitmap* bitmap, int32_t x, int32_t y, DOME_DrawMode mode) {
   ENGINE* engine = (ENGINE*)ctx;
   if ((mode & DOME_DRAWMODE_BLEND) != 0) {
     // do alpha blending. slow.
@@ -53,11 +53,30 @@ GRAPHICS_API_draw(DOME_Context ctx, DOME_Bitmap* bitmap, int32_t x, int32_t y, D
   }
 }
 
-GRAPHICS_API_v0 graphics_v0 = {
-  .pget = GRAPHICS_API_pget,
-  .pset = GRAPHICS_API_pset,
-  .unsafePset = GRAPHICS_API_unsafePset,
-  .getWidth = GRAPHICS_API_getWidth,
-  .getHeight = GRAPHICS_API_getHeight,
-  .draw = GRAPHICS_API_draw
+internal DOME_Color
+BITMAP_API_pget(DOME_Bitmap* bitmap, uint32_t x, uint32_t y) {
+  assert(y < bitmap->height);
+  assert(x < bitmap->width);
+  return bitmap->pixels[y * bitmap->width + x];
+}
+
+internal void
+BITMAP_API_pset(DOME_Bitmap* bitmap, uint32_t x, uint32_t y, DOME_Color color) {
+  assert(y < bitmap->height);
+  assert(x < bitmap->width);
+  bitmap->pixels[y * bitmap->width + x] = color;
+}
+
+CANVAS_API_v0 canvas_v0 = {
+  .pget = CANVAS_API_pget,
+  .pset = CANVAS_API_pset,
+  .unsafePset = CANVAS_API_unsafePset,
+  .getWidth = CANVAS_API_getWidth,
+  .getHeight = CANVAS_API_getHeight,
+  .draw = CANVAS_API_draw,
+};
+
+BITMAP_API_v0 bitmap_v0 = {
+  .pget = BITMAP_API_pget,
+  .pset = BITMAP_API_pset
 };

@@ -41,14 +41,16 @@ typedef enum {
   API_DOME,
   API_WREN,
   API_AUDIO,
-  API_GRAPHICS,
+  API_CANVAS,
+  API_BITMAP,
   API_IO
 } API_TYPE;
 
 #define DOME_API_VERSION 0
 #define WREN_API_VERSION 0
 #define AUDIO_API_VERSION 0
-#define GRAPHICS_API_VERSION 0
+#define CANVAS_API_VERSION 0
+#define BITMAP_API_VERSION 0
 #define IO_API_VERSION 0
 
 // Opaque context pointer
@@ -224,7 +226,12 @@ typedef struct {
   uint32_t (*getWidth)(DOME_Context ctx);
   uint32_t (*getHeight)(DOME_Context ctx);
   void (*draw)(DOME_Context ctx, DOME_Bitmap* bitmap, int32_t x, int32_t y, DOME_DrawMode mode);
-} GRAPHICS_API_v0;
+} CANVAS_API_v0;
+
+typedef struct {
+  DOME_Color (*pget)(DOME_Bitmap* bitmap, uint32_t x, uint32_t y);
+  void (*pset)(DOME_Bitmap* bitmap, uint32_t x, uint32_t y, DOME_Color color);
+} BITMAP_API_v0;
 
 typedef struct {
   void* (*readFile)(DOME_Context ctx, const char* path, size_t* length);
