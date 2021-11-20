@@ -870,6 +870,19 @@ ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, u
 }
 
 internal void
+ENGINE_tri(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c) {
+  ENGINE_line(engine, x0, y0, x1, y1, c, 1);
+  ENGINE_line(engine, x1, y1, x2, y2, c, 1);
+  ENGINE_line(engine, x2, y2, x0, y0, c, 1);
+}
+internal void
+ENGINE_trifill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c) {
+  ENGINE_line(engine, x0, y0, x1, y1, c, 1);
+  ENGINE_line(engine, x1, y1, x2, y2, c, 1);
+  ENGINE_line(engine, x2, y2, x0, y0, c, 1);
+}
+
+internal void
 ENGINE_rect(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint32_t c) {
   w = w - 1;
   h = h - 1;
