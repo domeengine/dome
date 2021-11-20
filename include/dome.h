@@ -226,6 +226,7 @@ typedef struct {
   uint32_t (*getWidth)(DOME_Context ctx);
   uint32_t (*getHeight)(DOME_Context ctx);
   void (*draw)(DOME_Context ctx, DOME_Bitmap* bitmap, int32_t x, int32_t y, DOME_DrawMode mode);
+  void (*line)(DOME_Context ctx, int64_t x0, int64_t y0, int64_t x1, int64_t y1, DOME_Color color);
 } CANVAS_API_v0;
 
 typedef struct {

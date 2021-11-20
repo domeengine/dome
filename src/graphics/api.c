@@ -53,6 +53,12 @@ CANVAS_API_draw(DOME_Context ctx, DOME_Bitmap* bitmap, int32_t x, int32_t y, DOM
   }
 }
 
+internal void
+CANVAS_API_line(DOME_Context ctx, int64_t x0, int64_t y0, int64_t x1, int64_t y1, DOME_Color color) {
+  ENGINE* engine = (ENGINE*)ctx;
+  ENGINE_line(engine, x0, y0, x1, y1, color.value, 1);
+}
+
 internal DOME_Color
 BITMAP_API_pget(DOME_Bitmap* bitmap, uint32_t x, uint32_t y) {
   assert(y < bitmap->height);
@@ -74,6 +80,7 @@ CANVAS_API_v0 canvas_v0 = {
   .getWidth = CANVAS_API_getWidth,
   .getHeight = CANVAS_API_getHeight,
   .draw = CANVAS_API_draw,
+  .line = CANVAS_API_line
 };
 
 BITMAP_API_v0 bitmap_v0 = {
