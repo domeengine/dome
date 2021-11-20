@@ -169,7 +169,6 @@ CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ig
   if (rayDirection.y < 0) {
     stepDirection.y = -1;
     nextSideDistance.y = (rayPosition.y - mapPos.y) * sideDistance.y;
-
   } else {
     stepDirection.y = 1;
     nextSideDistance.y = (mapPos.y + 1.0 - rayPosition.y) * sideDistance.y;
@@ -202,7 +201,7 @@ CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ig
       result.inBounds = true;
       // Check for door and thin walls here
       if (tile.thin || tile.door) {
-        float doorState = 1.0;
+        double doorState = 1.0;
         if (tile.door) {
           doorState = ignoreDoors ? 1 : tile.state;
         }
@@ -221,18 +220,18 @@ CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ig
           }
           ray_mult = adj / rayDirection.y;
         }
-        float rye2 = rayPosition.y + rayDirection.y * ray_mult;
-        float rxe2 = rayPosition.x + rayDirection.x * ray_mult;
-        float trueDeltaX = sideDistance.x;
-        float trueDeltaY = sideDistance.y;
+        double rye2 = rayPosition.y + rayDirection.y * ray_mult;
+        double rxe2 = rayPosition.x + rayDirection.x * ray_mult;
+        double trueDeltaX = sideDistance.x;
+        double trueDeltaY = sideDistance.y;
         if (fabs(rayDirection.y) < 0.01) {
           trueDeltaY = 100;
         }
         if (fabs(rayDirection.x) < 0.01) {
           trueDeltaX = 100;
         }
-        float offsetX = 0;
-        float offsetY = 0;
+        double offsetX = 0;
+        double offsetY = 0;
         if (tile.door) {
           offsetX = 0.5;
           offsetY = 0.5;
@@ -242,12 +241,12 @@ CAST_RESULT castRay(RENDERER* renderer, V2 rayPosition, V2 rayDirection, bool ig
           offsetY = 0.5 + clamp(-0.5, tile.offset * getSign(stepDirection.y), 0.5);
         }
         if (side == 0) {
-          float true_y_step = sqrt(trueDeltaX * trueDeltaX - 1);
-          float half_step_in_y = rye2 + (stepDirection.y * true_y_step) * offsetX;
+          double true_y_step = sqrt(trueDeltaX * trueDeltaX - 1);
+          double half_step_in_y = rye2 + (stepDirection.y * true_y_step) * offsetX;
           hit = ((int)half_step_in_y == mapPos.x) && fabs(1 - 2 * (half_step_in_y - mapPos.y)) > 1 - doorState;
         } else {
-          float true_x_step = sqrt(trueDeltaY * trueDeltaY - 1);
-          float half_step_in_x = rxe2 + (stepDirection.x * true_x_step) * offsetY;
+          double true_x_step = sqrt(trueDeltaY * trueDeltaY - 1);
+          double half_step_in_x = rxe2 + (stepDirection.x * true_x_step) * offsetY;
           hit = ((int)half_step_in_x == mapPos.x) && fabs(1 - 2 * (half_step_in_x - mapPos.x)) > 1 - doorState;
         }
       } else {
@@ -280,6 +279,7 @@ void RENDERER_draw(WrenVM* vm) {
   // Retrieve the DOME Context from the VM. This is needed for many things.
   DOME_Color color;
 
+  V2 position = renderer->position;
   V2 rayPosition = renderer->position;
   V2 direction = renderer->direction;
   V2 camera = renderer->cameraPlane;
@@ -290,6 +290,78 @@ void RENDERER_draw(WrenVM* vm) {
   int texWidth = 64;
   int texHeight = 64;
 
+  // Vertical position of the camera.
+  double posZ = 0.5 * h;
+  V2 rayDirection0 = V2_add(direction, V2_mul(camera, -1));
+  V2 rayDirection1 = V2_add(direction, V2_mul(camera, 1));
+  double rayDirX0 = rayDirection0.x;
+  double rayDirY0 = rayDirection0.y;
+  double rayDirX1 = rayDirection1.x;
+  double rayDirY1 = rayDirection1.y;
+  // floor casting
+  for (int y = h/2 + 1; y < h; y++) {
+
+    // Current y position compared to the center of the screen (the horizon)
+    int p = y - (h/2); // y - (h / 2);
+    // Horizontal distance from the camera to the floor for the current row.
+    // 0.5 is the z position exactly in the middle between floor and ceiling.
+    double rowDistance = posZ / (double)p;
+    // calculate the real world step vector we have to add for each x (parallel to camera plane)
+    // adding step by step avoids multiplications with a weight in the inner loop
+    double floorStepX = rowDistance * (rayDirX1 - rayDirX0) / ((double)w);
+    double floorStepY = rowDistance * (rayDirY1 - rayDirY0) / ((double)w);
+
+    // real world coordinates of the leftmost column. This will be updated as we step to the right.
+    double floorX = position.x + rowDistance * rayDirX0;
+    double floorY = position.y + rowDistance * rayDirY0;
+
+    for(int x = 0; x < w; x++) {
+      // the cell coord is simply got from the integer parts of floorX and floorY
+      int cellX = (int)(floorX);
+      int cellY = (int)(floorY);
+
+      // get the texture coordinate from the fractional part
+
+      floorX += floorStepX;
+      floorY += floorStepY;
+      if (cellX < 0 || cellY < 0 || cellX >= renderer->map.width || cellY >= renderer->map.height) {
+        continue;
+      }
+
+      DOME_Color color;
+
+      // floor
+      DOME_Bitmap* texture = NULL;
+      TILE tile = worldTile(renderer, cellX, cellY);
+      uint32_t textureId = tile.floorTextureId;
+      if (textureId > 0) {
+        texture = renderer->textureList[textureId - 1];
+        texWidth = texture->width;
+        texHeight = texture->height;
+        int texX = (int)(texWidth * (floorX - cellX)) % texWidth;
+        int texY = (int)(texHeight * (floorY - cellY)) % texHeight;
+        color = texture->pixels[texWidth * texY + texX];
+        unsafePset(ctx, x, y, color);
+      }
+      textureId = tile.ceilingTextureId;
+      if (textureId > 0) {
+        texture = renderer->textureList[textureId - 1];
+        texWidth = texture->width;
+        texHeight = texture->height;
+        int texX = (int)(texWidth * (floorX - cellX)) % texWidth;
+        int texY = (int)(texHeight * (floorY - cellY)) % texHeight;
+        color = texture->pixels[texWidth * texY + texX];
+        unsafePset(ctx, x, h - y - 1, color);
+      }
+
+      //ceiling (symmetrical, at screenHeight - y - 1 instead of y)
+      // color = texture[ceilingTexture][texWidth * ty + tx];
+      // color = (color >> 1) & 8355711; // make a bit darker
+      // buffer[screenHeight - y - 1][x] = color;
+    }
+  }
+
+  // Wall casting
   for(int x = 0; x < w; x++) {
     // Perform DDA first
     double cameraX = 2 * (x / (double)w) - 1;
@@ -380,13 +452,13 @@ void RENDERER_draw(WrenVM* vm) {
       assert(texX < texWidth);
 
       double texStep = (double)(texHeight) / lineHeight;
-      double texPos = (ceil(drawStart) - halfH + (lineHeight / 2.0)) * texStep;
+      double texPos = ((drawStart) - halfH + (lineHeight / 2.0)) * texStep;
       for (int y = drawWallStart; y <= drawWallEnd; y++) {
         int texY = ((int)texPos) % texHeight;
         assert(texY >= 0);
         assert(texY < texHeight);
 
-        color = texture->pixels[texWidth * texY + texX]; // textureNum
+        color = texture->pixels[texWidth * texY + texX];
         if (side == 1) {
           uint8_t alpha = color.component.a;
           color.value = (color.value >> 1) & 8355711;
@@ -399,15 +471,8 @@ void RENDERER_draw(WrenVM* vm) {
         texPos += texStep;
       }
     } else {
-
-      switch(textureId)
-      {
-        case 1:  color.value = 0xFFFF0000;  break; //red
-        case 2:  color.value = 0xFF00FF00;  break; //green
-        case 3:  color.value = 0xFF0000FF;   break; //blue
-        case 4:  color.value = 0xFFFFFFFF;  break; //white
-        default: color.value = 0xFF00FFFF; break; //yellow
-      }
+      // No texture, just magenta
+      color.value = 0xFFFF00FF;
 
       //give x and y sides different brightness
       if (side == 1) {
@@ -417,76 +482,8 @@ void RENDERER_draw(WrenVM* vm) {
       }
       vLine(ctx, x, drawWallStart, drawWallEnd, color);
     }
-
-    double floorXWall;
-    double floorYWall;
-    if (side == 0 && rayDirection.x > 0) {
-      floorXWall = mapPos.x;
-      floorYWall = mapPos.y + wallX;
-    } else if (side == 0 && rayDirection.x < 0) {
-      floorXWall = mapPos.x + 1.0;
-      floorYWall = mapPos.y + wallX;
-    } else if (side == 1 && rayDirection.y > 0) {
-      floorXWall = mapPos.x + wallX;
-      floorYWall = mapPos.y;
-    } else {
-      floorXWall = mapPos.x + wallX;
-      floorYWall = mapPos.y + 1.0;
-    }
-    double distWall = perpWallDistance;
-    drawEnd = drawWallEnd;
-    if (drawEnd < 0) {
-      drawEnd = h - 1;
-    }
-    for (int y = floor(drawEnd); y < h; y++) {
-      double currentDist = h / (2.0 * y - h); // TODO: make lookup on this work again
-      double weight = currentDist / distWall;
-      double currentFloorX = weight * floorXWall + (1.0 - weight) * rayPosition.x;
-      double currentFloorY = weight * floorYWall + (1.0 - weight) * rayPosition.y;
-      int floorPosX = (int)currentFloorX;
-      int floorPosY = (int)currentFloorY;
-      if (floorPosX < 0 || floorPosX >= map.width || floorPosY < 0 || floorPosY >= map.height) {
-        continue;
-      }
-
-      assert(floorPosX >= 0);
-      assert(floorPosX < renderer->map.width);
-      assert(floorPosY >= 0);
-      assert(floorPosY < renderer->map.height);
-      TILE tile;
-      if (renderer->map.width * renderer->map.height == 0) {
-        tile = VOID_TILE;
-      } else {
-        tile = worldTile(renderer, floorPosX, floorPosY);
-      }
-      textureId = tile.floorTextureId;
-
-      if (textureId > 0) {
-        texture = renderer->textureList[textureId - 1];
-        texWidth = texture->width;
-        texHeight = texture->height;
-        int texX = (int)(currentFloorX * texWidth) % texWidth;
-        int texY = (int)(currentFloorY * texHeight) % texHeight;
-        color = texture->pixels[texWidth * texY + texX]; // textureNum
-        assert(y < h);
-        assert(y >= 0);
-        unsafePset(ctx, x, y, color);
-      }
-      textureId = tile.ceilingTextureId;
-
-      if (textureId > 0) {
-        texture = renderer->textureList[textureId - 1];
-        texWidth = texture->width;
-        texHeight = texture->height;
-        int texX = (int)(currentFloorX * texWidth) % texWidth;
-        int texY = (int)(currentFloorY * texHeight) % texHeight;
-        color = texture->pixels[texWidth * texY + texX]; // textureNum
-        assert((h - y - 1) < h);
-        assert((h - y - 1) >= 0);
-        unsafePset(ctx, x, h - y - 1, color);
-      }
-    }
   }
+
   size_t objCount = renderer->objectCount;
   for (size_t i = 0; i < objCount; i++) {
     OBJ obj = renderer->objects[i];
@@ -505,6 +502,7 @@ void RENDERER_draw(WrenVM* vm) {
     transform.x = invDet * (dir.x * sprite.y - dir.y * sprite.x);
     transform.y = invDet * (cam.y * sprite.x - cam.x * sprite.y);
     // end getSpriteTransform
+
     if (transform.y > 0) {
       int vMoveScreen = floor(vMove / transform.y);
       int spriteScreenX = floor((w / 2.0) * (1.0 + transform.x / transform.y));
@@ -544,14 +542,13 @@ void RENDERER_draw(WrenVM* vm) {
         if (stripe > 0 && stripe < w && transform.y < renderer->z[stripe]) {
           for (int y = drawStartY; y < drawEndY; y++) {
             int texY = fabs(((y - vMoveScreen) - (-spriteHeight / 2.0 + h / 2.0)) * texHeight / spriteHeight);
-            color = texture->pixels[texWidth * texY + texX]; // textureNum
+            color = texture->pixels[texWidth * texY + texX];
             unsafePset(ctx, stripe, y, color);
           }
         }
       }
     }
   }
-  // graphics->draw(ctx, bitmap, 0, 0, DOME_DRAWMODE_BLEND);
 }
 
 void RENDERER_register(DOME_Context ctx) {
