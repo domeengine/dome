@@ -124,6 +124,7 @@ CANVAS_ellipsefill(WrenVM* vm) {
 }
 
 internal void
+<<<<<<< HEAD
 CANVAS_triangle(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x0");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y0");
@@ -166,6 +167,8 @@ CANVAS_trianglefill(WrenVM* vm) {
 }
 
 internal void
+=======
+>>>>>>> 980d85b48f889897e9234ffc95b195a86b93db77
 CANVAS_rect(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
