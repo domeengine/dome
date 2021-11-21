@@ -937,9 +937,6 @@ ENGINE_trianglefill(ENGINE* engine, float x0, float y0, float x1, float y1, floa
     ENGINE_trianglefillFlatBottom(engine, x0, y0, x1, y1, x3, y1, c);
     ENGINE_trianglefillFlatTop(engine, x1, y1, x3, y1, x2, y2, c);
   }
-  ENGINE_print(engine, "p0", x0, y0, 0xff00ccff);
-  ENGINE_print(engine, "p1", x1, y1, 0xff00ccff);
-  ENGINE_print(engine, "p2", x2, y2, 0xff00ccff);
 }
 
 internal void
