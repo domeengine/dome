@@ -54,6 +54,13 @@ lerp(float a, float b, float f) {
   return (a * (1.0 - f)) + (b * f);
 }
 
+inline internal void swap(int* a, int* b)
+{
+    *a ^= *b;
+    *b ^= *a;
+    *a ^= *b;
+}
+
 internal int64_t
 max(int64_t n1, int64_t n2) {
   if (n1 > n2) {
