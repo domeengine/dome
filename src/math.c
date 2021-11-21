@@ -54,11 +54,11 @@ lerp(float a, float b, float f) {
   return (a * (1.0 - f)) + (b * f);
 }
 
-inline internal void swap(int* a, int* b)
+inline internal void swap(float* a, float* b)
 {
-    *a ^= *b;
-    *b ^= *a;
-    *a ^= *b;
+    float temp = *a;
+    *a = *b;
+    *b = temp;
 }
 
 internal int64_t

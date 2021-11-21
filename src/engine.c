@@ -870,7 +870,7 @@ ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, u
 }
 
 internal void
-ENGINE_tri(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c) {
+ENGINE_tri(ENGINE* engine, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t c) {
   ENGINE_line(engine, x0, y0, x1, y1, c, 1);
   ENGINE_line(engine, x1, y1, x2, y2, c, 1);
   ENGINE_line(engine, x2, y2, x0, y0, c, 1);
@@ -921,6 +921,13 @@ ENGINE_trifill(ENGINE* engine, float x0, float y0, float x1, float y1, float x2,
     swap(&y2, &y1);
   }
 
+  x0 += 0.5;
+  y0 += 0.5;
+  x1 += 0.5;
+  y1 += 0.5;
+  x2 += 0.5;
+  y2 += 0.5;
+
   if (y1 == y2) {
     ENGINE_trifillFlatBottom(engine, x0, y0, x1, y1, x2, y2, c);
   } else if (y0 == y1) {
@@ -929,12 +936,7 @@ ENGINE_trifill(ENGINE* engine, float x0, float y0, float x1, float y1, float x2,
     float x3 = (x0 + ((y1 - y0) / (y2 - y0)) * (x2 - x0));
     ENGINE_trifillFlatBottom(engine, x0, y0, x1, y1, x3, y1, c);
     ENGINE_trifillFlatTop(engine, x1, y1, x3, y1, x2, y2, c);
-    ENGINE_print(engine, "p3", x3, y1, 0xff00ccff);
   }
-  
-  ENGINE_line(engine, x0, y0, x1, y1, 0xff00ccff, 1);
-  ENGINE_line(engine, x1, y1, x2, y2, 0xff00ccff, 1);
-  ENGINE_line(engine, x2, y2, x0, y0, 0xff00ccff, 1);
   ENGINE_print(engine, "p0", x0, y0, 0xff00ccff);
   ENGINE_print(engine, "p1", x1, y1, 0xff00ccff);
   ENGINE_print(engine, "p2", x2, y2, 0xff00ccff);
