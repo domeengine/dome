@@ -53,8 +53,8 @@ class Canvas {
   foreign static f_circlefill(x, y, r, c)
   foreign static f_ellipse(x1, y1, x2, y2, c)
   foreign static f_ellipsefill(x1, y1, x2, y2, c)
-  foreign static f_tri(x0, y0, x1, y1, x2, y2, c)
-  foreign static f_trifill(x0, y0, x1, y1, x2, y2, c)
+  foreign static f_triangle(x0, y0, x1, y1, x2, y2, c)
+  foreign static f_trianglefill(x0, y0, x1, y1, x2, y2, c)
 
   static pset(x, y, c) {
     if (c is Color) {
@@ -115,18 +115,18 @@ class Canvas {
       f_circlefill(x, y, r, c)
     }
   }
-  static tri(x0, y0, x1, y1, x2, y2, c) {
+  static triangle(x0, y0, x1, y1, x2, y2, c) {
     if (c is Color) {
-      f_tri(x0, y0, x1, y1, x2, y2, c.toNum)
+      f_triangle(x0, y0, x1, y1, x2, y2, c.toNum)
     } else {
-      f_tri(x0, y0, x1, y1, x2, y2, c)
+      f_triangle(x0, y0, x1, y1, x2, y2, c)
     }
   }
-  static trifill(x0, y0, x1, y1, x2, y2, c) {
+  static trianglefill(x0, y0, x1, y1, x2, y2, c) {
     if (c is Color) {
-      f_trifill(x0, y0, x1, y1, x2, y2, c.toNum)
+      f_trianglefill(x0, y0, x1, y1, x2, y2, c.toNum)
     } else {
-      f_trifill(x0, y0, x1, y1, x2, y2, c)
+      f_trianglefill(x0, y0, x1, y1, x2, y2, c)
     }
   }
   static print(str, x, y, c, font) {

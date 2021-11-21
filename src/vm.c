@@ -192,8 +192,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_cls(_)", CANVAS_cls);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_rect(_,_,_,_,_)", CANVAS_rect);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_line(_,_,_,_,_,_)", CANVAS_line);
-  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_tri(_,_,_,_,_,_,_)", CANVAS_tri);
-  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_trifill(_,_,_,_,_,_,_)", CANVAS_trifill);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_triangle(_,_,_,_,_,_,_)", CANVAS_triangle);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_trianglefill(_,_,_,_,_,_,_)", CANVAS_trianglefill);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_circle(_,_,_,_)", CANVAS_circle);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_circlefill(_,_,_,_)", CANVAS_circle_filled);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_ellipse(_,_,_,_,_)", CANVAS_ellipse);

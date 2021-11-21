@@ -129,7 +129,7 @@ CANVAS_ellipsefill(WrenVM* vm)
 }
 
 internal void
-CANVAS_tri(WrenVM* vm)
+CANVAS_triangle(WrenVM* vm)
 {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x0");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y0");
@@ -147,11 +147,11 @@ CANVAS_tri(WrenVM* vm)
   int64_t y2 = round(wrenGetSlotDouble(vm, 6));
 
   uint32_t c = round(wrenGetSlotDouble(vm, 7));
-  ENGINE_tri(engine, x0, y0, x1, y1, x2, y2, c);
+  ENGINE_triangle(engine, x0, y0, x1, y1, x2, y2, c);
 }
 
 internal void
-CANVAS_trifill(WrenVM* vm)
+CANVAS_trianglefill(WrenVM* vm)
 {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x0");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y0");
@@ -169,7 +169,7 @@ CANVAS_trifill(WrenVM* vm)
   int64_t y2 = round(wrenGetSlotDouble(vm, 6));
 
   uint32_t c = round(wrenGetSlotDouble(vm, 7));
-  ENGINE_trifill(engine, x0, y0, x1, y1, x2, y2, c);
+  ENGINE_trianglefill(engine, x0, y0, x1, y1, x2, y2, c);
 }
 
 internal void
