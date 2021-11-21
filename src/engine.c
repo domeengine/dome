@@ -877,6 +877,13 @@ ENGINE_tri(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, int64
 }
 internal void
 ENGINE_trifill(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t c) {
+  /*
+  if (y1 < y0) {
+    y0 ^= y1;
+    y1 ^= y0;
+    y0 ^= y1;
+  }
+  */
   ENGINE_line(engine, x0, y0, x1, y1, c, 1);
   ENGINE_line(engine, x1, y1, x2, y2, c, 1);
   ENGINE_line(engine, x2, y2, x0, y0, c, 1);

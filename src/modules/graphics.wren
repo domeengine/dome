@@ -53,7 +53,8 @@ class Canvas {
   foreign static f_circlefill(x, y, r, c)
   foreign static f_ellipse(x1, y1, x2, y2, c)
   foreign static f_ellipsefill(x1, y1, x2, y2, c)
-  foreign static f_tri(x1, y1, x2, y2, x3, y3, c)
+  foreign static f_tri(x0, y0, x1, y1, x2, y2, c)
+  foreign static f_trifill(x0, y0, x1, y1, x2, y2, c)
 
   static pset(x, y, c) {
     if (c is Color) {
