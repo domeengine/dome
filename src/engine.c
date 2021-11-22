@@ -1028,9 +1028,6 @@ ENGINE_drawDebug(ENGINE* engine) {
 
 internal bool
 ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint32_t color) {
-  if (engine->initialized) {
-    return true;
-  }
   if (engine->canvas.width == newWidth && engine->canvas.height == newHeight) {
     return true;
   }
