@@ -289,6 +289,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.hidden", MOUSE_getHidden);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.relative=(_)", MOUSE_setRelative);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.relative", MOUSE_getRelative);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.setCursor(_)", MOUSE_setCursor);
   MAP_addFunction(&engine->moduleMap, "input", "static SystemGamePad.f_getGamePadIds()", GAMEPAD_getGamePadIds);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.getTrigger(_)", GAMEPAD_getTrigger);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.close()", GAMEPAD_close);

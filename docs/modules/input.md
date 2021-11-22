@@ -127,6 +127,22 @@ You can use an index from 1-5 (button 0 is invalid) or a lowercase name:
 * `x1`
 * `x2`
 
+#### `static setCursor(name: String)`
+Sets the system cursor to the name provided. If you attempt to set the cursor to an invalid name it will reset to `arrow`.
+Available cursor names are:
+* `arrow`
+* `ibeam`
+* `wait`
+* `crosshair`
+* `waitarrow`
+* `sizenwse`
+* `sizenesw`
+* `sizewe`
+* `sizens`
+* `sizeall`
+* `no`
+* `hand`
+
 ## GamePad
 
 You can use a game pad as input for your games. DOME expects a game pad similar to those used by popular games consoles, with a D-Pad, face buttons, triggers and analog sticks.

@@ -881,6 +881,24 @@ ENGINE_getKeyState(ENGINE* engine, char* keyName) {
   return state[scancode];
 }
 
+internal uint32_t
+ENGINE_findMouseCursorIndex(ENGINE* engine, char* cursorName) {
+  int cursorIndex;
+  for (int index = 0; index < 12; index++) {
+    char * name = ENGINE_MOUSE_CURSORS[index];
+    if (strcmp(name, cursorName) == 0) cursorIndex = index;
+  }
+  return cursorIndex;
+}
+
+internal void
+ENGINE_setMouseCursor(ENGINE* engine, char* cursorName) {
+  SDL_FreeCursor(engine->mouse.cursor);
+  int cursorIndex = ENGINE_findMouseCursorIndex(engine, cursorName);
+  engine->mouse.cursor = SDL_CreateSystemCursor(cursorIndex);
+  SDL_SetCursor(engine->mouse.cursor);
+}
+
 internal void
 ENGINE_setMouseRelative(ENGINE* engine, bool relative) {
   engine->mouse.relative = relative;
