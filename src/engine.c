@@ -881,14 +881,15 @@ ENGINE_getKeyState(ENGINE* engine, char* keyName) {
   return state[scancode];
 }
 
-internal uint32_t
+internal int32_t
 ENGINE_findMouseCursorIndex(ENGINE* engine, const char* cursorName) {
-  int cursorIndex;
-  for (int index = 0; index < 12; index++) {
+  for (int index = 0; index < SDL_NUM_SYSTEM_CURSORS; index++) {
     char * name = ENGINE_MOUSE_CURSORS[index];
-    if (strcmp(name, cursorName) == 0) cursorIndex = index;
+    if (STRINGS_EQUAL(cursorName, name)) {
+      return index;
+    }
   }
-  return cursorIndex;
+  return -1;
 }
 
 internal void
