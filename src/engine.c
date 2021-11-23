@@ -882,7 +882,7 @@ ENGINE_getKeyState(ENGINE* engine, char* keyName) {
 }
 
 internal uint32_t
-ENGINE_findMouseCursorIndex(ENGINE* engine, char* cursorName) {
+ENGINE_findMouseCursorIndex(ENGINE* engine, const char* cursorName) {
   int cursorIndex;
   for (int index = 0; index < 12; index++) {
     char * name = ENGINE_MOUSE_CURSORS[index];
@@ -892,7 +892,7 @@ ENGINE_findMouseCursorIndex(ENGINE* engine, char* cursorName) {
 }
 
 internal void
-ENGINE_setMouseCursor(ENGINE* engine, char* cursorName) {
+ENGINE_setMouseCursor(ENGINE* engine, const char* cursorName) {
   SDL_FreeCursor(engine->mouse.cursor);
   int cursorIndex = ENGINE_findMouseCursorIndex(engine, cursorName);
   engine->mouse.cursor = SDL_CreateSystemCursor(cursorIndex);

@@ -258,7 +258,7 @@ internal void
 MOUSE_setCursor(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASSERT_SLOT_TYPE(vm, 1, STRING, "cursorName");
-  char* name = (char*)wrenGetSlotString(vm, 1);
+  const char* name = wrenGetSlotString(vm, 1);
   ENGINE_setMouseCursor(engine, name);
 }
 
