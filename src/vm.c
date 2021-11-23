@@ -192,6 +192,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_cls(_)", CANVAS_cls);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_rect(_,_,_,_,_)", CANVAS_rect);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_line(_,_,_,_,_,_)", CANVAS_line);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_triangle(_,_,_,_,_,_,_)", CANVAS_triangle);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_trianglefill(_,_,_,_,_,_,_)", CANVAS_trianglefill);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_circle(_,_,_,_)", CANVAS_circle);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_circlefill(_,_,_,_)", CANVAS_circle_filled);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_ellipse(_,_,_,_,_)", CANVAS_ellipse);
@@ -331,11 +333,15 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "random", "Squirrel5.float()", SQUIRREL5_float);
   MAP_lockModule(&engine->moduleMap, "random");
 
+  engine->vm = vm;
+
   return vm;
 }
 
 internal void VM_free(WrenVM* vm) {
   if (vm != NULL) {
+    ENGINE* engine = wrenGetUserData(vm);
+    engine->vm = NULL;
     wrenFreeVM(vm);
   }
 }

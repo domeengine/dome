@@ -379,6 +379,43 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 }
 
 internal void
+ENGINE_unsafePsetNoBlend(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
+  CANVAS canvas = engine->canvas;
+  // Draw pixel at (x,y)
+  // This is a very hot line, so we use pointer arithmetic for
+  // speed!
+  *(((uint32_t*)canvas.pixels) + (canvas.width * y + x)) = c;
+}
+
+internal void
+ENGINE_unsafePset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
+  CANVAS canvas = engine->canvas;
+
+  // Draw pixel at (x,y)
+  int32_t width = canvas.width;
+  uint8_t newA = ((0xFF000000 & c) >> 24);
+
+  uint32_t current = ((uint32_t*)(canvas.pixels))[width * y + x];
+  double normA = newA / (double)UINT8_MAX;
+  double diffA = 1 - normA;
+
+  uint8_t oldR, oldG, oldB, newR, newG, newB;
+  getColorComponents(current, &oldR, &oldG, &oldB);
+  getColorComponents(c, &newR, &newG, &newB);
+
+  uint8_t a = 0xFF;
+  uint8_t r = (diffA * oldR + normA * newR);
+  uint8_t g = (diffA * oldG + normA * newG);
+  uint8_t b = (diffA * oldB + normA * newB);
+
+  c = (a << 24) | (b << 16) | (g << 8) | r;
+
+  // This is a very hot line, so we use pointer arithmetic for
+  // speed!
+  *(((uint32_t*)canvas.pixels) + (width * y + x)) = c;
+}
+
+internal void
 ENGINE_blitBuffer(ENGINE* engine, int32_t x, int32_t y) {
   PIXEL_BUFFER buffer = engine->blitBuffer;
 
@@ -830,6 +867,76 @@ ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, u
     blitPixel(blitBuffer, pitch, rx + x, ry - y , c);
   };
   ENGINE_blitBuffer(engine, x0, y0);
+}
+
+internal void
+ENGINE_triangle(ENGINE* engine, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t c) {
+  ENGINE_line(engine, x0, y0, x1, y1, c, 1);
+  ENGINE_line(engine, x1, y1, x2, y2, c, 1);
+  ENGINE_line(engine, x2, y2, x0, y0, c, 1);
+}
+
+internal void
+ENGINE_trianglefillFlatBottom(ENGINE* engine, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t c) {
+  float invslope0 = (x1 - x0) / (y1 - y0);
+  float invslope1 = (x2 - x0) / (y2 - y0);
+  float curx0 = x0;
+  float curx1 = x0;
+
+  for (int scanlineY = y0; scanlineY <= y1; scanlineY++) {
+    ENGINE_line(engine, curx0, scanlineY, curx1, scanlineY, c, 1);
+    curx0 += invslope0;
+    curx1 += invslope1;
+  }
+}
+
+internal void
+ENGINE_trianglefillFlatTop(ENGINE* engine, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t c) {
+  float invslope0 = (x2 - x0) / (y2 - y0);
+  float invslope1 = (x2 - x1) / (y2 - y1);
+
+  float curx0 = x2;
+  float curx1 = x2;
+
+  for (int scanlineY = y2; scanlineY > y0; scanlineY--)
+  {
+    ENGINE_line(engine, curx0, scanlineY, curx1, scanlineY, c, 1);
+    curx0 -= invslope0;
+    curx1 -= invslope1;
+  }
+}
+
+internal void
+ENGINE_trianglefill(ENGINE* engine, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t c) {
+  if (y1 < y0) {
+    swap(&x1, &x0);
+    swap(&y1, &y0);
+  }
+  if (y2 < y0) {
+    swap(&x2, &x0);
+    swap(&y2, &y0);
+  }
+  if (y2 < y1) {
+    swap(&x2, &x1);
+    swap(&y2, &y1);
+  }
+
+  x0 += 0.5;
+  y0 += 0.5;
+  x1 += 0.5;
+  y1 += 0.5;
+  x2 += 0.5;
+  y2 += 0.5;
+
+  if (y1 == y2) {
+    ENGINE_trianglefillFlatBottom(engine, x0, y0, x1, y1, x2, y2, c);
+  } else if (y0 == y1) {
+    ENGINE_trianglefillFlatTop(engine, x0, y0, x1, y1, x2, y2, c);
+  } else {
+    float x3 = (x0 + ((y1 - y0) / (y2 - y0)) * (x2 - x0));
+    ENGINE_trianglefillFlatBottom(engine, x0, y0, x1, y1, x3, y1, c);
+    ENGINE_trianglefillFlatTop(engine, x1, y1, x3, y1, x2, y2, c);
+  }
 }
 
 internal void

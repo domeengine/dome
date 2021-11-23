@@ -229,63 +229,6 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
   return DOME_RESULT_SUCCESS;
 }
 
-
-internal DOME_Result
-DOME_registerModuleImpl(DOME_Context ctx, const char* name, const char* source) {
-
-  ENGINE* engine = (ENGINE*)ctx;
-  MAP* moduleMap = &(engine->moduleMap);
-  if (MAP_addModule(moduleMap, name, source)) {
-    return DOME_RESULT_SUCCESS;
-  }
-  return DOME_RESULT_FAILURE;
-}
-
-internal DOME_Result
-DOME_registerFnImpl(DOME_Context ctx, const char* moduleName, const char* signature, DOME_ForeignFn method) {
-
-  ENGINE* engine = (ENGINE*)ctx;
-  MAP* moduleMap = &(engine->moduleMap);
-  if (MAP_addFunction(moduleMap, moduleName, signature, (WrenForeignMethodFn)method)) {
-    return DOME_RESULT_SUCCESS;
-  }
-
-  return DOME_RESULT_FAILURE;
-}
-
-internal DOME_Result
-DOME_registerClassImpl(DOME_Context ctx, const char* moduleName, const char* className, DOME_ForeignFn allocate, DOME_FinalizerFn finalize) {
-
-  // TODO: handle null allocate ptr
-  ENGINE* engine = (ENGINE*)ctx;
-  MAP* moduleMap = &(engine->moduleMap);
-  if (MAP_addClass(moduleMap, moduleName, className, (WrenForeignMethodFn)allocate, (WrenFinalizerFn)finalize)) {
-    return DOME_RESULT_SUCCESS;
-  }
-
-  return DOME_RESULT_FAILURE;
-}
-
-internal void
-DOME_lockModuleImpl(DOME_Context ctx, const char* moduleName) {
-  ENGINE* engine = (ENGINE*)ctx;
-  MAP* moduleMap = &(engine->moduleMap);
-
-  MAP_lockModule(moduleMap, moduleName);
-}
-
-internal DOME_Context
-DOME_getVMContext(WrenVM* vm) {
-  return wrenGetUserData(vm);
-}
-internal void
-DOME_printLog(DOME_Context ctx, const char* text, ...) {
-  va_list args;
-  va_start(args, text);
-  ENGINE_printLogVariadic(ctx, text, args);
-  va_end(args);
-}
-
 WREN_API_v0 wren_v0 = {
   .getUserData = wrenGetUserData,
   .ensureSlots = wrenEnsureSlots,
@@ -331,15 +274,6 @@ WREN_API_v0 wren_v0 = {
   .interpret = wrenInterpret,
 };
 
-DOME_API_v0 dome_v0 = {
-  .registerModule = DOME_registerModuleImpl,
-  .registerFn = DOME_registerFnImpl,
-  .registerClass = DOME_registerClassImpl,
-  .lockModule = DOME_lockModuleImpl,
-  .getContext = DOME_getVMContext,
-  .log = DOME_printLog
-};
-
 external void*
 DOME_getAPI(API_TYPE api, int version) {
   if (api == API_DOME) {
@@ -353,6 +287,18 @@ DOME_getAPI(API_TYPE api, int version) {
   } else if (api == API_AUDIO) {
     if (version == 0) {
       return &audio_v0;
+    }
+  } else if (api == API_CANVAS) {
+    if (version == 0) {
+      return &canvas_v0;
+    }
+  } else if (api == API_BITMAP) {
+    if (version == 0) {
+      return &bitmap_v0;
+    }
+  } else if (api == API_IO) {
+    if (version == 0) {
+      return &io_v0;
     }
   }
 

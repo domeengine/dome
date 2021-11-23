@@ -261,6 +261,7 @@ This is a list of provided methods:
       double   getSlotDouble(WrenVM* vm, int slot);    
 const char*    getSlotString(WrenVM* vm, int slot);   
 const char*    getSlotBytes(WrenVM* vm, int slot, int* length);                   
+      void*    getSlotForeign(WrenVM* vm, int slot);                   
 
       WrenType getSlotType(WrenVM* vm, int slot);
 

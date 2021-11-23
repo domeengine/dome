@@ -11,3 +11,4 @@ We'd like to thank the following people for their contributions.
   * Benjamin Stigsen [https://github.com/benstigsen]
   * Alexandru Badiu, aka voidberg [https://github.com/voidberg]
   * Aayush Kashyap [https://github.com/TheKing0x9]
+  * Trevor Martin [https://github.com/trelemar]
