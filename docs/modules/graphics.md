@@ -92,7 +92,7 @@ Resize the canvas to the given `width` and `height`, and reset the color of the 
 If `c` isn't provided, we default to black.
 Resizing the canvas resets the "clipping region" to encompass the whole canvas, as if `Canvas.clip()` was called.
 
-#### `static triangle(x0: Number, y0: Number, x1: Number, y1: Number, x2: Number, y3: Number, c: Color) `
+#### `static triangle(x0: Number, y0: Number, x1: Number, y1: Number, x2: Number, y2: Number, c: Color) `
 Draw a triangle with vertices at (_x0, y0_), (_x1, y1_), (_x2, y2_) in the color _c_.
 
 #### `static trianglefill(x0: Number, y0: Number, x1: Number, y1: Number, x2: Number, y2: Number, c: Color) `

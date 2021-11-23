@@ -166,11 +166,6 @@ CANVAS_trianglefill(WrenVM* vm) {
 }
 
 internal void
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 980d85b48f889897e9234ffc95b195a86b93db77
->>>>>>> b45d12cdac474c16101466a218cd8d8b3a97b822
 CANVAS_rect(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
