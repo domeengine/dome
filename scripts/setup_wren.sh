@@ -3,6 +3,12 @@ DOME_DIR=$PWD
 INCLUDE_DIR=$DOME_DIR/include
 LIB_DIR=$DOME_DIR/lib
 WREN_DIR=$LIB_DIR/wren
+arch=$(uname -m)
+
+if [[ "$arch" == "aarch64"* ]]; then
+  cd $DOME_DIR/scripts/wren_arm
+  ./premake5 gmake2
+fi
 
 cd "$WREN_DIR/projects"
 
