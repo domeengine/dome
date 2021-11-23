@@ -16,16 +16,21 @@ SCRIPTS=scripts
 MODE ?= release
 
 # Determine the system
-# ARCH = 64bit or 32bit
+# ARCH = 64bit, 32bit, or ARM
 UNAME_S = $(shell uname -s)
 UNAME_P = $(shell uname -p)
+UNAME_M = $(shell uname -m)
 ifeq ($(UNAME_S), Darwin)
 SYSTEM ?= macosx
 ARCH ?= 64bit
 FRAMEWORK ?= $(shell which sdl2-config 1>/dev/null && echo "" || echo "framework")
 else ifeq ($(UNAME_S), Linux)
 SYSTEM ?= linux
-ARCH ?= 64bit
+	ifeq ($(UNAME_M), aarch64)
+		ARCH ?= arm
+	else
+		ARCH ?= 64bit
+	endif
 else
 SYSTEM ?= windows
 ifneq (,$(findstring 32,$(UNAME_S)))
@@ -34,6 +39,7 @@ else
 	ARCH ?= 64bit
 endif
 endif
+
 
 # 0 or 1
 STATIC ?= 0
@@ -154,8 +160,11 @@ endif
 
 LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG)
 ifneq ($(filter linux,$(TAGS)),)
-	COMPAT_DEP = $(OBJS)/glibc_compat.o
-	LDFLAGS += -Wl,--wrap=log,--wrap=log2,--wrap=exp,--wrap=pow,--wrap=expf,--wrap=powf,--wrap=logf
+	ifneq ($(filter arm,$(TAGS)),)
+	else
+		COMPAT_DEP = $(OBJS)/glibc_compat.o
+		LDFLAGS += -Wl,--wrap=log,--wrap=log2,--wrap=exp,--wrap=pow,--wrap=expf,--wrap=powf,--wrap=logf
+	endif
 endif
 LDFLAGS += $(DEPS)
 
