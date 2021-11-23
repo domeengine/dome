@@ -16,7 +16,6 @@ lib/SDL2*
 lib/SDL/special
 lib/SDL*
 lib/libSDL2*
-lib/wren*
 
 lib/wren_all.c
 
