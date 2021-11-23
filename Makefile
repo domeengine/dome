@@ -16,7 +16,7 @@ SCRIPTS=scripts
 MODE ?= release
 
 # Determine the system
-# ARCH = 64bit, 32bit, or ARM
+# ARCH = 64bit, 32bit, or arm
 UNAME_S = $(shell uname -s)
 UNAME_P = $(shell uname -p)
 UNAME_M = $(shell uname -m)
