@@ -257,14 +257,8 @@ MOUSE_getHidden(WrenVM* vm) {
 internal void
 MOUSE_setCursor(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  /*
-  SDL_FreeCursor(engine->mouse.cursor);
-  engine->mouse.cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
-  SDL_SetCursor(engine->mouse.cursor);
-  */
   ASSERT_SLOT_TYPE(vm, 1, STRING, "cursorName");
   char* name = (char*)wrenGetSlotString(vm, 1);
-  //const char* cursorName = strToLower(wrenGetSlotString(vm, 1));
   ENGINE_setMouseCursor(engine, name);
 }
 
