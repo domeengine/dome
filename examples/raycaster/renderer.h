@@ -1,4 +1,15 @@
 typedef struct {
+  // If this is zero, default to color
+  uint64_t id;
+
+  // TODO: Min/Max, or src/size?
+  // Other properties for animation
+  // x/y, cellSize etc
+  V2 min;
+  V2 max;
+} TEXTURE_REF;
+
+typedef struct {
   bool solid;
   // door state
   bool door;
@@ -10,10 +21,9 @@ typedef struct {
   bool thin;
   double offset;
 
-  // If these are negative, default to color
-  int wallTextureId;
-  int floorTextureId;
-  int ceilingTextureId;
+  TEXTURE_REF wall;
+  TEXTURE_REF floor;
+  TEXTURE_REF ceiling;
 } TILE;
 
 
@@ -27,7 +37,7 @@ typedef struct {
   uint64_t id;
   V2 position;
   V2 direction;
-  int textureId;
+  TEXTURE_REF texture;
   V2 div;
   double vMove;
 } OBJ;

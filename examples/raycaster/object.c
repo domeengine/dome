@@ -57,8 +57,8 @@ void OBJ_set##method(WrenVM* vm) { \
 }
 
 OBJ_GETTER(id, Id, Double)
-OBJ_GETTER(textureId, TextureId, Double)
-OBJ_SETTER(textureId, TextureId, Double)
+OBJ_GETTER(texture.id, TextureId, Double)
+OBJ_SETTER(texture.id, TextureId, Double)
 OBJ_GETTER(position.x, X, Double)
 OBJ_SETTER(position.x, X, Double)
 OBJ_GETTER(position.y, Y, Double)

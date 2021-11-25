@@ -52,12 +52,12 @@ TILE_GETTER(offset, Offset, Double)
 TILE_SETTER(offset, Offset, Double)
 TILE_GETTER(thin, Thin, Bool)
 TILE_SETTER(thin, Thin, Bool)
-TILE_GETTER(ceilingTextureId, CeilingTextureId, Double)
-TILE_SETTER(ceilingTextureId, CeilingTextureId, Double)
-TILE_GETTER(floorTextureId, FloorTextureId, Double)
-TILE_SETTER(floorTextureId, FloorTextureId, Double)
-TILE_GETTER(wallTextureId, WallTextureId, Double)
-TILE_SETTER(wallTextureId, WallTextureId, Double)
+TILE_GETTER(ceiling.id, CeilingTextureId, Double)
+TILE_SETTER(ceiling.id, CeilingTextureId, Double)
+TILE_GETTER(floor.id, FloorTextureId, Double)
+TILE_SETTER(floor.id, FloorTextureId, Double)
+TILE_GETTER(wall.id, WallTextureId, Double)
+TILE_SETTER(wall.id, WallTextureId, Double)
 
 
 void

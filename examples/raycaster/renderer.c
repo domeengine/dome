@@ -5,6 +5,7 @@
 void RENDERER_allocate(WrenVM* vm) {
   DOME_Context ctx = core->getContext(vm);
   RENDERER* renderer = wren->setSlotNewForeign(vm, 0, 0, sizeof(RENDERER));
+  memset(renderer, 0, sizeof(RENDERER));
 
   renderer->position = (V2) { 1, 1 };
   renderer->direction = (V2) { 0, 1 };
@@ -45,7 +46,7 @@ void RENDERER_pushObject(WrenVM* vm) {
   sprite.div.x = 1;
   sprite.div.y = 1;
   sprite.vMove = 0;
-  sprite.textureId = textureId;
+  sprite.texture.id = textureId;
   sprite.position = (V2) {x, y};
 
   sb_push(renderer->objects, sprite);
@@ -333,7 +334,7 @@ void RENDERER_draw(WrenVM* vm) {
       // floor
       DOME_Bitmap* texture = NULL;
       TILE tile = worldTile(renderer, cellX, cellY);
-      uint32_t textureId = tile.floorTextureId;
+      uint32_t textureId = tile.floor.id;
       if (textureId > 0) {
         texture = renderer->textureList[textureId - 1];
         texWidth = texture->width;
@@ -343,13 +344,13 @@ void RENDERER_draw(WrenVM* vm) {
         color = bitmap->pget(texture, texX, texY);
         unsafePset(ctx, x, y, color);
       }
-      textureId = tile.ceilingTextureId;
+      textureId = tile.ceiling.id;
       if (textureId > 0) {
         texture = renderer->textureList[textureId - 1];
         texWidth = texture->width;
         texHeight = texture->height;
-        int texX = (int)(texWidth * (floorX - cellX)) % texWidth;
-        int texY = (int)(texHeight * (floorY - cellY)) % texHeight;
+        int texX = (uint32_t)(texWidth * (floorX - cellX)) % texWidth;
+        int texY = (uint32_t)(texHeight * (floorY - cellY)) % texHeight;
         color = bitmap->pget(texture, texX, texY);
         unsafePset(ctx, x, h - y - 1, color);
       }
@@ -371,27 +372,32 @@ void RENDERER_draw(WrenVM* vm) {
     int side = cast.side;
     V2i stepDirection = cast.stepDirection;
     TILE tile;
-    int textureId = tile.wallTextureId;
+    int textureId = 0;
 
     DOME_Bitmap* texture = NULL;
-    if (cast.inBounds && textureId <= sb_count(renderer->textureList)) {
-      if (renderer->map.width * renderer->map.height == 0) {
-        tile = VOID_TILE;
-      } else {
-        tile = worldTile(renderer, mapPos.x, mapPos.y);
-      }
-      textureId = tile.wallTextureId;
-      if (textureId <= 0) {
-      } else {
-      // assert(textureId > 0);
-      //printf("%i\n", textureId);
+    if (renderer->map.width * renderer->map.height == 0) {
+      tile = VOID_TILE;
+    } else {
+      tile = worldTile(renderer, mapPos.x, mapPos.y);
+    }
+    if (cast.inBounds) {
+      textureId = tile.wall.id;
+      if (textureId > 0 && textureId <= sb_count(renderer->textureList)) {
         texture = renderer->textureList[textureId - 1];
         texWidth = texture->width;
         texHeight = texture->height;
+      } else {
+        tile = (TILE){};
+        memset(&tile, 0, sizeof(TILE));
+        textureId = 0;
       }
     } else {
       tile = (TILE){};
+      memset(&tile, 0, sizeof(TILE));
       textureId = 0;
+    }
+    if (x == 0) {
+      // printf("%i - %f, %f\n", textureId, rayDirection.x, rayDirection.y);
     }
 
     double offsetX = 0;
@@ -473,6 +479,9 @@ void RENDERER_draw(WrenVM* vm) {
     } else {
       // No texture, just magenta
       color.value = 0xFFFF00FF;
+      if (x == 0) {
+        // printf("Just magenta\n");
+      }
 
       //give x and y sides different brightness
       if (side == 1) {
@@ -526,7 +535,7 @@ void RENDERER_draw(WrenVM* vm) {
         drawEndX = w - 1;
       }
 
-      DOME_Bitmap* texture = renderer->textureList[obj.textureId - 1];
+      DOME_Bitmap* texture = renderer->textureList[obj.texture.id - 1];
       texWidth = texture->width;
       texHeight = texture->height;
 

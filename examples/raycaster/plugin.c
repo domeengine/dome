@@ -12,6 +12,7 @@
 #include "renderer.c"
 #include "object.c"
 #include "tile.c"
+#include "texture.c"
 
 DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
     DOME_Context ctx) {
@@ -33,6 +34,7 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
   RENDERER_register(ctx);
   TILE_register(ctx);
   OBJ_register(ctx);
+  TEXTURE_REF_register(ctx);
 
   core->lockModule(ctx, "raycaster");
 
