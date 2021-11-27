@@ -259,7 +259,18 @@ MOUSE_setCursor(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASSERT_SLOT_TYPE(vm, 1, STRING, "cursorName");
   const char* name = wrenGetSlotString(vm, 1);
-  ENGINE_setMouseCursor(engine, name);
+  int32_t cursorID = ENGINE_findMouseCursorIndex(engine, name);
+  if (cursorID < 0) {
+    VM_ABORT(vm, "invalid cursor name");
+  }
+  ENGINE_setMouseCursor(engine, cursorID);
+}
+
+internal void
+MOUSE_getCursor(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  const char* name = ENGINE_getMouseCursor(engine);
+  wrenSetSlotString(vm, 0, name);
 }
 
 typedef struct {

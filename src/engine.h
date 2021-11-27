@@ -32,6 +32,7 @@ typedef struct {
   int y;
   int scrollX;
   int scrollY;
+  int cursorID;
   SDL_Cursor* cursor;
 } ENGINE_MOUSE_STATE;
 

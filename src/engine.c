@@ -893,11 +893,16 @@ ENGINE_findMouseCursorIndex(ENGINE* engine, const char* cursorName) {
 }
 
 internal void
-ENGINE_setMouseCursor(ENGINE* engine, const char* cursorName) {
+ENGINE_setMouseCursor(ENGINE* engine, int32_t cursorID) {
   SDL_FreeCursor(engine->mouse.cursor);
-  int cursorIndex = ENGINE_findMouseCursorIndex(engine, cursorName);
-  engine->mouse.cursor = SDL_CreateSystemCursor(cursorIndex);
+  engine->mouse.cursorID = cursorID;
+  engine->mouse.cursor = SDL_CreateSystemCursor(engine->mouse.cursorID);
   SDL_SetCursor(engine->mouse.cursor);
+}
+
+internal const char*
+ENGINE_getMouseCursor(ENGINE* engine) {
+  return ENGINE_MOUSE_CURSORS[engine->mouse.cursorID];
 }
 
 internal void
