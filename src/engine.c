@@ -313,6 +313,10 @@ ENGINE_free(ENGINE* engine) {
     SDL_DestroyWindow(engine->window);
   }
 
+  if (engine->mouse.cursor != NULL) {
+    SDL_FreeCursor(engine->mouse.cursor);
+  }
+
   if (engine->argv != NULL) {
     free(engine->argv[1]);
     free(engine->argv);
