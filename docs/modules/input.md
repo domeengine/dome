@@ -88,6 +88,22 @@ This must be set while `handleText` is true, or the effect may be inconsistent.
 #### `static allPressed: Map<string, DigitalInput>`
 This returns a map containing the key names and corresponding `DigitalInput` objects, for all keys which are currently "down".
 
+#### `static cursor: String`
+Gets or sets the system cursor to the name provided.
+Available cursor names are:
+* `arrow`
+* `ibeam`
+* `wait`
+* `crosshair`
+* `waitarrow`
+* `sizenwse`
+* `sizenesw`
+* `sizewe`
+* `sizens`
+* `sizeall`
+* `no`
+* `hand`
+
 #### `static hidden: Boolean`
 Controls whether the mouse cursor is shown or hidden. You can set and read from this field.
 
@@ -126,22 +142,6 @@ You can use an index from 1-5 (button 0 is invalid) or a lowercase name:
 * `right`
 * `x1`
 * `x2`
-
-#### `static setCursor(name: String)`
-Sets the system cursor to the name provided. If you attempt to set the cursor to an invalid name it will reset to `arrow`.
-Available cursor names are:
-* `arrow`
-* `ibeam`
-* `wait`
-* `crosshair`
-* `waitarrow`
-* `sizenwse`
-* `sizenesw`
-* `sizewe`
-* `sizens`
-* `sizeall`
-* `no`
-* `hand`
 
 ## GamePad
 
