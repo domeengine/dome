@@ -115,7 +115,6 @@ class Mouse {
   foreign static hidden=(value)
   foreign static relative=(value)
   foreign static relative
-  foreign static setCursor(name)
   foreign static cursor=(value)
   foreign static cursor
 
