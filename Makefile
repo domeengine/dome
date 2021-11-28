@@ -210,7 +210,7 @@ $(OBJS)/main.o: $(SOURCE_FILES) $(INCLUDES) $(MODULES)/*.inc
 	cp $(LIBS)/wren/src/include/wren.h $(INCLUDES)/wren.h
 	@mkdir -p $(OBJS)
 	@echo "==== Building core ($(TAGS)) module ===="
-	$(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(OBJS)/main.o -Iinclude $(IFLAGS) 
+	$(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(OBJS)/main.o $(IFLAGS) 
 
 $(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(OBJS)/libwren.o $(COMPAT_DEP) $(WREN_LIB)
 	@echo "==== Linking DOME ($(TAGS)) ===="
