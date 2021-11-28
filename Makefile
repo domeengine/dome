@@ -19,13 +19,18 @@ MODE ?= release
 # ARCH = 64bit or 32bit
 UNAME_S = $(shell uname -s)
 UNAME_P = $(shell uname -p)
+UNAME_M = $(shell uname -m)
 ifeq ($(UNAME_S), Darwin)
 SYSTEM ?= macosx
 ARCH ?= 64bit
 FRAMEWORK ?= $(shell which sdl2-config 1>/dev/null && echo "" || echo "framework")
 else ifeq ($(UNAME_S), Linux)
 SYSTEM ?= linux
-ARCH ?= 64bit
+	ifeq ($(UNAME_M), aarch64)
+		ARCH ?= arm64
+	else
+		ARCH ?= 64bit
+	endif
 else
 SYSTEM ?= windows
 ifneq (,$(findstring 32,$(UNAME_S)))
@@ -139,9 +144,9 @@ endif
 endif
 
 ifneq ($(filter release,$(TAGS)),)
-DEPS += -lwren
+#DEPS += -lwren
 else ifneq ($(filter debug,$(TAGS)),)
-DEPS += -lwrend
+#DEPS += -lwrend
 endif
 ifneq ($(and $(filter windows,$(TAGS)),$(filter static,$(TAGS))),)
 WINDOW_MODE ?= windows
@@ -153,7 +158,7 @@ FFLAGS += -F/Library/Frameworks -framework SDL2
 endif
 
 LDFLAGS = -L$(LIBS) $(WINDOW_MODE_FLAG) $(SDLFLAGS) $(STATIC_FLAG)
-ifneq ($(filter linux,$(TAGS)),)
+ifneq ($(and $(filter linux,$(TAGS)), $(filter 64bit, $(TAGS))),)
 	COMPAT_DEP = $(OBJS)/glibc_compat.o
 	LDFLAGS += -Wl,--wrap=log,--wrap=log2,--wrap=exp,--wrap=pow,--wrap=expf,--wrap=powf,--wrap=logf
 endif
@@ -167,16 +172,8 @@ PROJECTS := dome.bin modules
 .PHONY: all clean reset cloc $(PROJECTS)
 
 all: $(PROJECTS)
-
-WREN_LIB ?= $(LIBS)/libwren.a
-WREN_PARAMS ?= $(ARCH) WREN_OPT_RANDOM=0 WREN_OPT_META=1   
-$(LIBS)/wren/lib/libwren.a:
-	@echo "==== Cloning Wren ===="
-	git submodule update --init -- $(LIBS)/wren
-$(LIBS)/wren: $(LIBS)/wren/lib/libwren.a
-$(WREN_LIB): $(LIBS)/wren
-	@echo "==== Building Wren ===="
-	./scripts/setup_wren.sh $(WREN_PARAMS)
+WREN_LIB ?= $(OBJS)/libwren.o
+WREN_PARAMS ?= $(ARCH) WREN_OPT_RANDOM=0 WREN_OPT_META=1
 
 $(TOOLS)/embed: $(TOOLS)/embed-standalone.c $(TOOLS)/embedlib.c
 	@echo "==== Building standalone embed tool  ===="
@@ -188,6 +185,17 @@ $(MODULES)/*.inc: $(TOOLS)/embed $(MODULES)/*.wren
 
 modules: $(MODULES)/*.inc
 
+$(OBJS)/libwren.o:
+	@echo "==== Cloning Wren ===="
+	git submodule update --init -- $(LIBS)/wren
+	@mkdir -p $(OBJS)
+	@echo "==== Building wren module ===="
+	./lib/wren/util/generate_amalgamation.py > $(LIBS)/wren.c
+	@echo "==== Amagamated wren build ===="
+	cp $(LIBS)/wren/src/include/wren.h $(INCLUDES)/wren.h
+	$(CC) -c $(LIBS)/wren.c -o $(OBJS)/libwren.o $(IFLAGS)
+	rm -f $(LIBS)/wren.c
+
 $(OBJS)/glibc_compat.o: $(INCLUDES)/glibc_compat.c
 	@mkdir -p $(OBJS)
 	@echo "==== Building glibc_compat module ===="
@@ -198,12 +206,13 @@ $(OBJS)/vendor.o: $(INCLUDES)/vendor.c
 	@echo "==== Building vendor module ===="
 	$(CC) $(CFLAGS) -c $(INCLUDES)/vendor.c -o $(OBJS)/vendor.o $(IFLAGS)
 
-$(OBJS)/main.o: $(SOURCE_FILES) $(INCLUDES) $(WREN_LIB) $(MODULES)/*.inc
+$(OBJS)/main.o: $(SOURCE_FILES) $(INCLUDES) $(MODULES)/*.inc
+	cp $(LIBS)/wren/src/include/wren.h $(INCLUDES)/wren.h
 	@mkdir -p $(OBJS)
 	@echo "==== Building core ($(TAGS)) module ===="
-	$(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(OBJS)/main.o $(IFLAGS) 
+	$(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(OBJS)/main.o -Iinclude $(IFLAGS) 
 
-$(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(COMPAT_DEP) $(WREN_LIB)
+$(TARGET_NAME): $(OBJS)/main.o $(OBJS)/vendor.o $(OBJS)/libwren.o $(COMPAT_DEP) $(WREN_LIB)
 	@echo "==== Linking DOME ($(TAGS)) ===="
 	$(CC) $(CFLAGS) $(FFLAGS) -o $(TARGET_NAME) $(OBJS)/*.o $(ICON_OBJECT_FILE) $(LDFLAGS) 
 	./scripts/set-executable-path.sh $(TARGET_NAME)
