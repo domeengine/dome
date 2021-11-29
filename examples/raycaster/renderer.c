@@ -473,7 +473,7 @@ void RENDERER_draw(WrenVM* vm) {
 
       int height = (max.y - min.y) * texHeight;
       double texStep = (double)(height) / lineHeight;
-      double texPos = min.y * ((drawStart) - halfH + (lineHeight / 2.0)) * texStep;
+      double texPos = (min.y + ((drawStart) - halfH + (lineHeight / 2.0))) * texStep;
       for (int y = drawWallStart; y <= drawWallEnd; y++) {
         int texY = ((int)texPos) % texHeight;
         assert(texY >= 0);
