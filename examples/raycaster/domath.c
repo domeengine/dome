@@ -1,4 +1,4 @@
-double
+inline static double
 getSign(double n) {
   if (n < 0.0001) {
     return -1;
@@ -9,7 +9,7 @@ getSign(double n) {
   return 0;
 }
 
-inline double
+inline static double
 clamp(double min, double x, double max) {
   return fmax(min, fmin(x, max));
 }

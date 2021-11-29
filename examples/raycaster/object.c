@@ -27,7 +27,7 @@ void OBJ_remove(WrenVM* vm) {
     OBJ* item = &(renderer->objects[i]);
     if (item->id == id) {
       uint64_t last = count - 1;
-      renderer->objects[id] = renderer->objects[last];
+      renderer->objects[i] = renderer->objects[last];
       renderer->objects[last].id = 0;
       renderer->objectCount--;
       break;

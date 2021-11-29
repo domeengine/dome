@@ -459,7 +459,6 @@ void RENDERER_draw(WrenVM* vm) {
       V2 max = ref.max;
       int texX = floor((min.x + (max.x - min.x) * wallX) * (texWidth));
       int width = (max.x - min.x) * texWidth;
-      // int texX = (int)floor(wallX * (double)(texWidth));
       if (side == 0 && rayDirection.x < 0) {
         texX = (width - 1) - texX;
       }
@@ -467,15 +466,15 @@ void RENDERER_draw(WrenVM* vm) {
         texX = (width - 1) - texX;
       }
 
-      texX = clamp(0, texX, texWidth - 1);
+      texX = clamp(0, texX, width - 1);
       assert(texX >= 0);
       assert(texX < texWidth);
 
-      int height = (max.y - min.y) * texHeight;
+      int height = floor((max.y - min.y) * ((double)texHeight - 1.0));
       double texStep = (double)(height) / lineHeight;
-      double texPos = (min.y + ((drawStart) - halfH + (lineHeight / 2.0))) * texStep;
-      for (int y = drawWallStart; y <= drawWallEnd; y++) {
-        int texY = ((int)texPos) % texHeight;
+      double texPos = ((texHeight - 1.0) * min.y + ((drawStart) - halfH + (lineHeight / 2.0))) * texStep;
+      for (int y = drawWallStart; y < drawWallEnd; y++) {
+        int texY = clamp(min.y * texHeight, texPos, height);
         assert(texY >= 0);
         assert(texY < texHeight);
 
