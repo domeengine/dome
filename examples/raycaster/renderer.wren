@@ -121,6 +121,11 @@ foreign class WorldTile {
 
 foreign class TextureRef {
   construct init(id) {}
+  construct init(id, min, max) {
+    this.min = min
+    this.max = max
+  }
+
   foreign id=(v)
   foreign min=(list)
   foreign max=(list)
