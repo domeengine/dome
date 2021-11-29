@@ -374,14 +374,14 @@ void RENDERER_draw(WrenVM* vm) {
     TILE tile;
     int textureId = 0;
 
+    TEXTURE_REF ref = {};
     DOME_Bitmap* texture = NULL;
     if (renderer->map.width * renderer->map.height == 0) {
       tile = VOID_TILE;
-    } else {
+    } else if (cast.inBounds) {
       tile = worldTile(renderer, mapPos.x, mapPos.y);
-    }
-    if (cast.inBounds) {
-      textureId = tile.wall.id;
+      ref = tile.wall;
+      textureId = ref.id;
       if (textureId > 0 && textureId <= sb_count(renderer->textureList)) {
         texture = renderer->textureList[textureId - 1];
         texWidth = texture->width;
@@ -445,20 +445,35 @@ void RENDERER_draw(WrenVM* vm) {
     int drawWallEnd = fmin((int)ceil(drawEnd), h - 1);
     DOME_Color color;
     if (texture != NULL) {
-      int texX = (int)floor(wallX * (double)(texWidth));
+      // wallX = 0->1 of the renderable texture
+      // ref->min 0->1 for the texture data
+      // ref->max 0->1 for the texture data
+      //     wallX
+      // min.x -> max.x
+      // start = min.x * texWidth
+      // end = max.x * texWidth
+      // start + (end - start) * wallX
+      // min.x * texWidth + (max.x * texWidth - min.x * texWidth) * wallX
+      // texWidth * (min.x + (max.x - min.x) * wallX)
+      V2 min = ref.min;
+      V2 max = ref.max;
+      int texX = floor((min.x + (max.x - min.x) * wallX) * (texWidth));
+      int width = (max.x - min.x) * texWidth;
+      // int texX = (int)floor(wallX * (double)(texWidth));
       if (side == 0 && rayDirection.x < 0) {
-        texX = (texWidth - 1) - texX;
+        texX = (width - 1) - texX;
       }
       if (side == 1 && rayDirection.y > 0) {
-        texX = (texWidth - 1) - texX;
+        texX = (width - 1) - texX;
       }
 
       texX = clamp(0, texX, texWidth - 1);
       assert(texX >= 0);
       assert(texX < texWidth);
 
-      double texStep = (double)(texHeight) / lineHeight;
-      double texPos = ((drawStart) - halfH + (lineHeight / 2.0)) * texStep;
+      int height = (max.y - min.y) * texHeight;
+      double texStep = (double)(height) / lineHeight;
+      double texPos = min.y * ((drawStart) - halfH + (lineHeight / 2.0)) * texStep;
       for (int y = drawWallStart; y <= drawWallEnd; y++) {
         int texY = ((int)texPos) % texHeight;
         assert(texY >= 0);

@@ -1,5 +1,6 @@
 NAME = raycaster
-CFLAGS = -O0 -g
+CFLAGS = -O0 -g -Wall
+CFLAGS += -fsanitize=address
 .PHONY: all clean
 
 all: ${NAME}.dylib

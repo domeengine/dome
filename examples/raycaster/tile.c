@@ -40,10 +40,25 @@ void TILE_set##method(WrenVM* vm) { \
   } \
 }
 
+#define TILE_SETTER_BOOL(fieldName, method) \
+void TILE_set##method(WrenVM* vm) { \
+  TILE_REF* ref = wren->getSlotForeign(vm, 0); \
+  wren->ensureSlots(vm, 3); \
+  wren->setSlotHandle(vm, 2, ref->handle); \
+  RENDERER* renderer = wren->getSlotForeign(vm, 2); \
+  if (renderer->map.width * renderer->map.height > 0) {\
+    if (wren->getSlotType(vm, 1) == WREN_TYPE_NULL) {\
+      getTileFrom(ref, renderer).fieldName = false;\
+    } else {\
+      getTileFrom(ref, renderer).fieldName = wren->getSlotBool(vm, 1); \
+    }\
+  } \
+}
+
 TILE_GETTER(solid, Solid, Bool)
-TILE_SETTER(solid, Solid, Bool)
+TILE_SETTER_BOOL(solid, Solid)
 TILE_GETTER(door, Door, Bool)
-TILE_SETTER(door, Door, Bool)
+TILE_SETTER_BOOL(door, Door)
 TILE_GETTER(state, State, Double)
 TILE_SETTER(state, State, Double)
 TILE_GETTER(mode, Mode, Double)
@@ -51,13 +66,24 @@ TILE_SETTER(mode, Mode, Double)
 TILE_GETTER(offset, Offset, Double)
 TILE_SETTER(offset, Offset, Double)
 TILE_GETTER(thin, Thin, Bool)
-TILE_SETTER(thin, Thin, Bool)
+TILE_SETTER_BOOL(thin, Thin)
 TILE_GETTER(ceiling.id, CeilingTextureId, Double)
 TILE_SETTER(ceiling.id, CeilingTextureId, Double)
 TILE_GETTER(floor.id, FloorTextureId, Double)
 TILE_SETTER(floor.id, FloorTextureId, Double)
 TILE_GETTER(wall.id, WallTextureId, Double)
 TILE_SETTER(wall.id, WallTextureId, Double)
+
+void TILE_setWallTexture(WrenVM* vm) {
+  TILE_REF* ref = wren->getSlotForeign(vm, 0);
+  wren->ensureSlots(vm, 3);
+  wren->setSlotHandle(vm, 2, ref->handle);
+  RENDERER* renderer = wren->getSlotForeign(vm, 2);
+  if (renderer->map.width * renderer->map.height > 0) {
+    TEXTURE_REF* textureRef = wren->getSlotForeign(vm, 1);
+    getTileFrom(ref, renderer).wall = *textureRef;
+  }
+}
 
 
 void
@@ -81,5 +107,6 @@ TILE_register(DOME_Context ctx) {
   core->registerFn(ctx, "raycaster", "WorldTile.floorTextureId=(_)", TILE_setFloorTextureId);
   core->registerFn(ctx, "raycaster", "WorldTile.wallTextureId", TILE_getWallTextureId);
   core->registerFn(ctx, "raycaster", "WorldTile.wallTextureId=(_)", TILE_setWallTextureId);
+  core->registerFn(ctx, "raycaster", "WorldTile.wallTexture=(_)", TILE_setWallTexture);
 
 }

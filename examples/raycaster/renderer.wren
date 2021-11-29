@@ -59,6 +59,10 @@ foreign class WorldTile {
     return this
   }
 
+  wallTexture(value) {
+    wallTexture = value
+    return this
+  }
   wallTextureId(value) {
     wallTextureId = value
     return this
@@ -96,6 +100,7 @@ foreign class WorldTile {
 
   foreign wallTextureId
   foreign wallTextureId=(v)
+  foreign wallTexture=(v)
   foreign ceilingTextureId
   foreign ceilingTextureId=(v)
   foreign floorTextureId
@@ -115,7 +120,7 @@ foreign class WorldTile {
 }
 
 foreign class TextureRef {
-  construct init() {}
+  construct init(id) {}
   foreign id=(v)
   foreign min=(list)
   foreign max=(list)

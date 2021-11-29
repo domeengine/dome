@@ -1,5 +1,5 @@
 void TEXTURE_REF_allocate(WrenVM* vm) {
-  TEXTURE_REF* ref = wren->setSlotNewForeign(vm, 0, 0, sizeof(OBJ_REF));
+  TEXTURE_REF* ref = wren->setSlotNewForeign(vm, 0, 0, sizeof(TEXTURE_REF));
   ref->id = wren->getSlotDouble(vm, 1);
   // TODO: other properties
   ref->min = (V2){0, 0};
