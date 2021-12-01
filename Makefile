@@ -201,7 +201,6 @@ $(OBJS)/vendor.o: $(INCLUDES)/vendor.c
 	$(CC) $(CFLAGS) -c $(INCLUDES)/vendor.c -o $(OBJS)/vendor.o $(IFLAGS)
 
 $(OBJS)/main.o: $(SOURCE_FILES) $(INCLUDES) $(MODULES)/*.inc
-	cp $(LIBS)/wren/src/include/wren.h $(INCLUDES)/wren.h
 	@mkdir -p $(OBJS)
 	@echo "==== Building core ($(TAGS)) module ===="
 	$(CC) $(CFLAGS) -c $(SOURCE)/main.c -o $(OBJS)/main.o $(IFLAGS) 
