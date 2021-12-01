@@ -186,15 +186,9 @@ $(MODULES)/*.inc: $(TOOLS)/embed $(MODULES)/*.wren
 modules: $(MODULES)/*.inc
 
 $(OBJS)/libwren.o:
-	@echo "==== Cloning Wren ===="
-	git submodule update --init -- $(LIBS)/wren
 	@mkdir -p $(OBJS)
 	@echo "==== Building wren module ===="
-	./lib/wren/util/generate_amalgamation.py > $(LIBS)/wren.c
-	@echo "==== Amagamated wren build ===="
-	cp $(LIBS)/wren/src/include/wren.h $(INCLUDES)/wren.h
-	$(CC) -c $(LIBS)/wren.c -o $(OBJS)/libwren.o $(IFLAGS)
-	rm -f $(LIBS)/wren.c
+	$(CC) -c $(INCLUDES)/wren.c -o $(OBJS)/libwren.o $(IFLAGS)
 
 $(OBJS)/glibc_compat.o: $(INCLUDES)/glibc_compat.c
 	@mkdir -p $(OBJS)
@@ -241,7 +235,6 @@ reset:
 	git submodule foreach --recursive git clean -xfd
 	rm -rf $(LIBS)/libwren.a 
 	rm -rf $(LIBS)/libwrend.a
-	rm -rf $(INCLUDES)/wren.h
 
 cloc:
 	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "font" -not-match-f ".inc" src
