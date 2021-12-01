@@ -216,7 +216,6 @@ $(OBJS):
 	mkdir -p $(OBJS)
 
 $(OBJS)/wren.o: $(OBJS)	
-	git submodule update --init -- $(LIBS)/wren
 	./scripts/setup_wren_web.sh
 
 # EMCC_FLAGS=--profiling -g 
@@ -233,8 +232,6 @@ clean:
 	rm -rf $(OBJS)/*.o
 reset:
 	git submodule foreach --recursive git clean -xfd
-	rm -rf $(LIBS)/libwren.a 
-	rm -rf $(LIBS)/libwrend.a
 
 cloc:
 	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "font" -not-match-f ".inc" src
