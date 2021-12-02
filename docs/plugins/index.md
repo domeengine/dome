@@ -48,6 +48,32 @@ Advanced developers are invited to build native plugins using a compiled languag
        - [method: getState](#method-getstate)
        - [method: setState](#method-setstate)
        - [method: stop](#method-stop)
+   - [Bitmap](#bitmap)
+     * Struct
+       - [struct: DOME_Bitmap](#method-dome_bitmap)
+     * Methods
+       - [method: fromFile](#method-fromfile)
+       - [method: fromBuffer](#method-fromfile)
+       - [method: free](#method-free)
+       - [method: pget](#method-pget)
+       - [method: pset](#method-pset)
+    - [Canvas](#canvas)
+     * Enums
+       - [enum: DOME_DrawMode](#enum-dome_drawmode)
+     * Struct
+       - [struct: DOME_Color](#method-dome_color)
+     * Methods
+       - [method: draw](#method-draw)
+       - [method: getWidth](#method-getwidth)
+       - [method: getHeight](#method-getHeight)
+       - [method: line](#method-line)
+       - [method: pget](#method-pget)
+       - [method: pset](#method-pset)
+       - [method: unsafePset](#method-unsafepset)
+    - [I/O](#io)
+     * Methods
+       - [method: readfile](#method-readfile)
+
 
 
 # Getting Started
@@ -392,3 +418,165 @@ This allows you to specify the channel's [state](#enum-channel_state). DOME will
 void stop(CHANNEL_REF ref)
 ```
 Marks the audio channel as having stopped. This means that DOME will no longer play this channel. It will call the `finish` callback at it's next opportunity.
+
+## Bitmap
+
+This set of APIs allows you to load and manage graphics from supported file formats. (See the graphics module for more information.)
+
+### Acquisition
+
+```c
+BITMAP_API_v0* bitmap = (BITMAP_API_v0*)DOME_getAPI(API_BITMAP, BITMAP_API_VERSION);
+```
+
+### Struct
+
+#### DOME_Bitmap
+
+The DOME_Bitmap type contains the following fields:
+
+| Field  | Type        | Purpose                                   |
+| ---------------------------------------------------------------- |
+| width  | int32_t     | Width of the bitmap in pixels.            |
+| height | int32_t     | Height of the bitmap in pixels.           |
+| pixels | DOME_Color* | Pointer to the first pixel of the bitmap. |
+
+### Methods
+
+#### method: fromFile
+```c
+DOME_Bitmap* fromFile(DOME_Context ctx, const char* path)
+```
+Loads an image file from `path` on disk (relative to the application entry point)
+and returns a `DOME_Bitmap`. You are responsible for freeing it using the `free`
+function in this API.
+
+##### method: fromFileInMemory
+```c
+DOME_Bitmap* fromFileInMemory(DOME_Context ctx, void* buffer, size_t length)
+```
+Loads an image file stored in memory at `buffer`, with a size of `length`, and
+returns a `DOME_Bitmap`. You are responsible for freeing it using the `free`
+function in this API.
+
+##### method: free
+```c
+void free(DOME_Bitmap* bitmap)
+```
+Safely frees the `bitmap`. Make sure you don't attempt to use the `bitmap` pointer
+after this function returns.
+
+##### method: pget
+```c
+DOME_Color pget(DOME_Bitmap* bitmap, uint32_t x, uint32_t y)
+```
+Returns the color of the pixel located at `(x, y)` in `bitmap`.
+
+##### method: pset
+```c
+void pset(DOME_Bitmap* bitmap, uint32_t x, uint32_t y, DOME_Color color)
+```
+Sets the color of the pixel located at `(x, y)` in `bitmap` to `color`.
+
+## Canvas
+
+This set of APIs allows you to modify what is displayed on the main canvas.
+You can exploit this to allow for more efficient graphical rendering techniques.
+
+### Acquisition
+
+```c
+CANVAS_API_v0* canvas = (CANVAS_API_v0*)DOME_getAPI(API_CANVAS, CANVAS_API_VERSION);
+```
+
+### Enums
+#### enum: DOME_DrawMode
+
+Some methods in this API allow you to enable or disable alpha-blending 
+for performance gains.
+
+```c
+enum DOME_DrawMode {
+  DOME_DRAWMODE_BLEND
+}
+```
+
+### Struct
+#### struct: DOME_Color
+
+The DOME_Bitmap type contains the following fields:
+
+| Field  | Type        | Purpose                                          |
+| ----------------------------------------------------------------------- |
+|    a   | uint8_t     | This is the color's alpha channel, from 0 - 255. |
+|    r   | uint8_t     | This is the color's red channel, from 0 - 255.   |
+|    g   | uint8_t     | This is the color's green channel, from 0 - 255. |
+|    b   | uint8_t     | This is the color's blue channel, from 0 - 255.  |
+
+This type is also a union. You can get all the fields simultaneously as a 
+32-bit integer, `value`, arranged in the layout `0xAARRGGBB`.
+
+#### Methods
+##### method: draw
+```c
+void draw(DOME_Context ctx, DOME_Bitmap* bitmap, int32_t x, int32_t y, DOME_DRAWODE mode)
+```
+Draws the `bitmap` to the canvas at `(x, y)`. If the `mode` is set, alpha-blending
+will be applied. This will ignore the canvas draw context (offset, clipping region, etc).
+
+##### method: getWidth
+```c
+uint32_t getWidth(DOME_Context ctx)
+```
+Returns the width of the canvas, in pixels.
+
+##### method: getHeight
+```c
+uint32_t getHeight(DOME_Context ctx)
+```
+Returns the height of the canvas, in pixels.
+
+##### method: line
+```c
+void line(DOME_Context ctx, int64_t x0, int64_t y0, int64_t x1, int64_t y1, DOME_Color color);
+```
+Draws a one pixel wide line between `(x0, y0)` and `(x1, y1)`, in the chosen `color`.
+
+##### method: pget
+```c
+DOME_Color pget(DOME_Context ctx, uint32_t x, uint32_t y)
+```
+Returns the color of the pixel located at `(x, y)` in the canvas.
+
+##### method: pset
+```c
+void pset(DOME_Context ctx, uint32_t x, uint32_t y, DOME_Color color)
+```
+Sets the color of the pixel located at `(x, y)` in the canvas to `color`.
+
+##### method: unsafePset
+```c
+void unsafePset(DOME_Context ctx, uint32_t x, uint32_t y, DOME_Color color)
+```
+Sets the color of the pixel located at `(x, y)` in the canvas to `color`.
+This function is provided for performance-sensitive applications.
+It does not do range checks. If you attempt to set a pixel outside the canvas,
+you risk crashing DOME.
+
+## I/O
+
+This set of APIs allows you to access the host filesystem to read files.
+
+### Acquisition
+
+```c
+IO_API_v0* io = (IO_API_v0*)DOME_getAPI(API_IO, IO_API_VERSION);
+```
+#### Methods
+##### method: readFile
+```c
+void* readFile(DOME_Context ctx, const char* path, size_t* length);
+```
+Synchronously reads the file located at `path` to memory. The size of the file in bytes is stored in the location 
+pointed to by `length`. You are responsible for freeing the returned pointer 
+when you are done using it.
