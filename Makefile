@@ -7,6 +7,8 @@ SOURCE_FILES = $(shell find src -type f)
 TOOLS = $(SOURCE)/tools
 MODULES=$(SOURCE)/modules
 SCRIPTS=scripts
+WREN_LIB ?= $(OBJS)/libwren.o
+WREN_PARAMS ?= -DWREN_OPT_RANDOM=0 -DWREN_OPT_META=1
 
 
 # Build flags
@@ -109,7 +111,8 @@ endif
 ifneq ($(filter release,$(TAGS)),)
 CFLAGS += -O3
 else ifneq ($(filter debug,$(TAGS)),)
-CFLAGS += -O0 
+CFLAGS += -O0
+WREN_PARAMS += -DDEBUG=1
 ifneq ($(filter macosx,$(TAGS)),)
 CFLAGS += -fsanitize=address
 FFLAGS += -fsanitize=address
@@ -167,8 +170,6 @@ PROJECTS := dome.bin modules
 .PHONY: all clean reset cloc $(PROJECTS)
 
 all: $(PROJECTS)
-WREN_LIB ?= $(OBJS)/libwren.o
-WREN_PARAMS ?= -DWREN_OPT_RANDOM=0 -DWREN_OPT_META=1
 
 $(TOOLS)/embed: $(TOOLS)/embed-standalone.c $(TOOLS)/embedlib.c
 	@echo "==== Building standalone embed tool  ===="
