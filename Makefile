@@ -48,6 +48,7 @@ TAGS = $(ARCH) $(SYSTEM) $(MODE) $(FRAMEWORK) $(SYMBOLS)
 
 ifneq ($(filter debug,$(TAGS)),)
 TAGS += symbols
+WREN_PARAMS += -DDEBUG=1
 endif
 
 OBJS := $(OBJS)/$(ARCH)
@@ -112,7 +113,6 @@ ifneq ($(filter release,$(TAGS)),)
 CFLAGS += -O3
 else ifneq ($(filter debug,$(TAGS)),)
 CFLAGS += -O0
-WREN_PARAMS += -DDEBUG=1
 ifneq ($(filter macosx,$(TAGS)),)
 CFLAGS += -fsanitize=address
 FFLAGS += -fsanitize=address
