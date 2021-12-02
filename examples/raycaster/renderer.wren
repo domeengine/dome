@@ -64,7 +64,7 @@ foreign class WorldTile {
     return this
   }
   wallTextureId(value) {
-    wallTextureId = value
+    wallTexture = TextureRef.init(value)
     return this
   }
 
@@ -98,9 +98,8 @@ foreign class WorldTile {
     return this
   }
 
-  foreign wallTextureId
-  foreign wallTextureId=(v)
   foreign wallTexture=(v)
+  // TODO: Get wallTexture
   foreign ceilingTextureId
   foreign ceilingTextureId=(v)
   foreign floorTextureId
