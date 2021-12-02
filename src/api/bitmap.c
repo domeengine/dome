@@ -1,5 +1,5 @@
 internal DOME_Bitmap*
-BITMAP_API_fromBuffer(DOME_Context ctx, void* buffer, size_t length) {
+BITMAP_API_fromFileInMemory(DOME_Context ctx, void* buffer, size_t length) {
   DOME_Bitmap* bitmap = malloc(sizeof(DOME_Bitmap));
   bitmap->pixels = (DOME_Color*)stbi_load_from_memory((const stbi_uc*)buffer, length,
       &bitmap->width, &bitmap->height,
@@ -12,7 +12,7 @@ internal DOME_Bitmap*
 BITMAP_API_fromFile(DOME_Context ctx, const char* path) {
   size_t length;
   void* buffer = IO_API_readFile(ctx, path, &length);
-  return BITMAP_API_fromBuffer(ctx, buffer, length);
+  return BITMAP_API_fromFileInMemory(ctx, buffer, length);
 }
 
 internal DOME_Color
@@ -38,7 +38,7 @@ BITMAP_API_free(DOME_Bitmap* bitmap) {
 }
 
 BITMAP_API_v0 bitmap_v0 = {
-  .fromBuffer = BITMAP_API_fromBuffer,
+  .fromFileInMemory = BITMAP_API_fromFileInMemory,
   .fromFile = BITMAP_API_fromFile,
   .pget = BITMAP_API_pget,
   .pset = BITMAP_API_pset,

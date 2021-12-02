@@ -231,7 +231,7 @@ typedef struct {
 
 typedef struct {
   DOME_Bitmap* (*fromFile)(DOME_Context ctx, const char* path);
-  DOME_Bitmap* (*fromBuffer)(DOME_Context ctx, void* buffer, size_t length);
+  DOME_Bitmap* (*fromFileInMemory)(DOME_Context ctx, void* buffer, size_t length);
   DOME_Color (*pget)(DOME_Bitmap* bitmap, uint32_t x, uint32_t y);
   void (*pset)(DOME_Bitmap* bitmap, uint32_t x, uint32_t y, DOME_Color color);
   void (*free)(DOME_Bitmap* bitmap);
