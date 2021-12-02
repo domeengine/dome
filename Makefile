@@ -143,11 +143,6 @@ SDLFLAGS=$(shell $(SDL_CONFIG) --libs)
 endif
 endif
 
-ifneq ($(filter release,$(TAGS)),)
-#DEPS += -lwren
-else ifneq ($(filter debug,$(TAGS)),)
-#DEPS += -lwrend
-endif
 ifneq ($(and $(filter windows,$(TAGS)),$(filter static,$(TAGS))),)
 WINDOW_MODE ?= windows
 WINDOW_MODE_FLAG = -m$(WINDOW_MODE)
@@ -173,7 +168,7 @@ PROJECTS := dome.bin modules
 
 all: $(PROJECTS)
 WREN_LIB ?= $(OBJS)/libwren.o
-WREN_PARAMS ?= $(ARCH) WREN_OPT_RANDOM=0 WREN_OPT_META=1
+WREN_PARAMS ?= -DWREN_OPT_RANDOM=0 -DWREN_OPT_META=1
 
 $(TOOLS)/embed: $(TOOLS)/embed-standalone.c $(TOOLS)/embedlib.c
 	@echo "==== Building standalone embed tool  ===="
@@ -185,10 +180,10 @@ $(MODULES)/*.inc: $(TOOLS)/embed $(MODULES)/*.wren
 
 modules: $(MODULES)/*.inc
 
-$(OBJS)/libwren.o:
+$(OBJS)/libwren.o: $(INCLUDES)/wren.c
 	@mkdir -p $(OBJS)
 	@echo "==== Building wren module ===="
-	$(CC) -c $(INCLUDES)/wren.c -o $(OBJS)/libwren.o $(IFLAGS)
+	$(CC) -c $(INCLUDES)/wren.c -o $(OBJS)/libwren.o $(WREN_PARAMS) $(IFLAGS)
 
 $(OBJS)/glibc_compat.o: $(INCLUDES)/glibc_compat.c
 	@mkdir -p $(OBJS)
