@@ -88,6 +88,25 @@ This must be set while `handleText` is true, or the effect may be inconsistent.
 #### `static allPressed: Map<string, DigitalInput>`
 This returns a map containing the key names and corresponding `DigitalInput` objects, for all keys which are currently "down".
 
+#### `static cursor: String`
+Gets or sets the system cursor to the name provided.
+Available cursor names are:
+* `arrow`
+* `ibeam`
+* `wait`
+* `crosshair`
+* `waitarrow`
+* `sizenwse`
+* `sizenesw`
+* `sizewe`
+* `sizens`
+* `sizeall`
+* `no`
+* `hand`
+
+Mac OS X will set the system cursor to `arrow` if `wait` or `waitarrow` is set.
+Mac OS X will set the system cursor to a closed hand if `sizenwse`, `sizenesw` or `sizeall` is set.
+
 #### `static hidden: Boolean`
 Controls whether the mouse cursor is shown or hidden. You can set and read from this field.
 

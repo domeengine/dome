@@ -313,6 +313,10 @@ ENGINE_free(ENGINE* engine) {
     SDL_DestroyWindow(engine->window);
   }
 
+  if (engine->mouse.cursor != NULL) {
+    SDL_FreeCursor(engine->mouse.cursor);
+  }
+
   if (engine->argv != NULL) {
     free(engine->argv[1]);
     free(engine->argv);
@@ -879,6 +883,30 @@ ENGINE_getKeyState(ENGINE* engine, char* keyName) {
   SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode);
   const uint8_t* state = SDL_GetKeyboardState(NULL);
   return state[scancode];
+}
+
+internal int32_t
+ENGINE_findMouseCursorIndex(ENGINE* engine, const char* cursorName) {
+  for (int index = 0; index < SDL_NUM_SYSTEM_CURSORS; index++) {
+    char * name = ENGINE_MOUSE_CURSORS[index];
+    if (STRINGS_EQUAL(cursorName, name)) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+internal void
+ENGINE_setMouseCursor(ENGINE* engine, int32_t cursorID) {
+  SDL_FreeCursor(engine->mouse.cursor);
+  engine->mouse.cursorID = cursorID;
+  engine->mouse.cursor = SDL_CreateSystemCursor(engine->mouse.cursorID);
+  SDL_SetCursor(engine->mouse.cursor);
+}
+
+internal const char*
+ENGINE_getMouseCursor(ENGINE* engine) {
+  return ENGINE_MOUSE_CURSORS[engine->mouse.cursorID];
 }
 
 internal void

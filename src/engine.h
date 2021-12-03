@@ -11,12 +11,29 @@ typedef struct {
   int64_t h;
 } DOME_RECT;
 
+char * const ENGINE_MOUSE_CURSORS[] = {
+    [SDL_SYSTEM_CURSOR_ARROW] = "arrow",
+    [SDL_SYSTEM_CURSOR_IBEAM] = "ibeam",
+    [SDL_SYSTEM_CURSOR_WAIT] = "wait",
+    [SDL_SYSTEM_CURSOR_CROSSHAIR] = "crosshair",
+    [SDL_SYSTEM_CURSOR_WAITARROW] = "waitarrow",
+    [SDL_SYSTEM_CURSOR_SIZENWSE] = "sizenwse",
+    [SDL_SYSTEM_CURSOR_SIZENESW] = "sizenesw",
+    [SDL_SYSTEM_CURSOR_SIZEWE] = "sizewe",
+    [SDL_SYSTEM_CURSOR_SIZENS] = "sizens",
+    [SDL_SYSTEM_CURSOR_SIZEALL] = "sizeall",
+    [SDL_SYSTEM_CURSOR_NO] = "no",
+    [SDL_SYSTEM_CURSOR_HAND] = "hand"
+};
+
 typedef struct {
   bool relative;
   int x;
   int y;
   int scrollX;
   int scrollY;
+  int cursorID;
+  SDL_Cursor* cursor;
 } ENGINE_MOUSE_STATE;
 
 typedef struct {
