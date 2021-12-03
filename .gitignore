@@ -10,7 +10,6 @@ libadd.so
 src/tools/convert
 src/tools/embed
 src/modules/*.inc
-include/wren.h
 include/SDL2/*
 lib/SDL2*
 lib/SDL/special
