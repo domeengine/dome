@@ -104,6 +104,9 @@ Available cursor names are:
 * `no`
 * `hand`
 
+Mac OS X will set the system cursor to `arrow` if `wait` or `waitarrow` is set.
+Mac OS X will set the system cursor to a closed hand if `sizenwse`, `sizenesw` or `sizeall` is set.
+
 #### `static hidden: Boolean`
 Controls whether the mouse cursor is shown or hidden. You can set and read from this field.
 
