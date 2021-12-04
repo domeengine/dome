@@ -18,6 +18,8 @@ You can exploit this to allow for more efficient graphical rendering techniques.
   - [method: line](#method-line)
   - [method: pget](#method-pget)
   - [method: pset](#method-pset)
+  - [method: rect](#method-rect)
+  - [method: rectfill](#method-rectfill)
   - [method: unsafePset](#method-unsafepset)
 
 ## Acquisition
@@ -90,6 +92,20 @@ Returns the color of the pixel located at `(x, y)` in the canvas.
 void pset(DOME_Context ctx, uint32_t x, uint32_t y, DOME_Color color)
 ```
 Sets the color of the pixel located at `(x, y)` in the canvas to `color`.
+
+### method: rect
+```c
+void rect(DOME_Context ctx, int64_t x, int64_t y, int64_t width, int64_t height, DOME_Color color);
+```
+
+Draws a rectangle (edges only) with size `(width, height)`, with it's top-left corner at `(x, y)`.
+
+### method: rectfill
+```c
+void rectfill(DOME_Context ctx, int64_t x, int64_t y, int64_t width, int64_t height, DOME_Color color);
+```
+
+Draws a filled rectangle with size `(width, height)`, with it's top-left corner at `(x, y)`.
 
 ### method: unsafePset
 ```c

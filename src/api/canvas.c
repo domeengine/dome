@@ -58,6 +58,18 @@ CANVAS_API_line(DOME_Context ctx, int64_t x0, int64_t y0, int64_t x1, int64_t y1
   ENGINE_line(engine, x0, y0, x1, y1, color.value, 1);
 }
 
+internal void
+CANVAS_API_rect(DOME_Context ctx, int64_t x, int64_t y, int64_t width, int64_t height, DOME_Color color) {
+  ENGINE* engine = (ENGINE*)ctx;
+  ENGINE_rect(engine, x, y, width, height, color.value);
+}
+
+internal void
+CANVAS_API_rectfill(DOME_Context ctx, int64_t x, int64_t y, int64_t width, int64_t height, DOME_Color color) {
+  ENGINE* engine = (ENGINE*)ctx;
+  ENGINE_rectfill(engine, x, y, width, height, color.value);
+}
+
 CANVAS_API_v0 canvas_v0 = {
   .pget = CANVAS_API_pget,
   .pset = CANVAS_API_pset,
@@ -65,5 +77,7 @@ CANVAS_API_v0 canvas_v0 = {
   .getWidth = CANVAS_API_getWidth,
   .getHeight = CANVAS_API_getHeight,
   .draw = CANVAS_API_draw,
-  .line = CANVAS_API_line
+  .line = CANVAS_API_line,
+  .rect = CANVAS_API_rect,
+  .rectfill = CANVAS_API_rectfill
 };
