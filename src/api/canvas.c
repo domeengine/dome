@@ -15,7 +15,6 @@ CANVAS_API_pget(DOME_Context ctx, int32_t x, int32_t y) {
   ENGINE* engine = (ENGINE*)ctx;
   DOME_Color color;
   color.value = ENGINE_pget(engine, x, y);
-  printf("%02X\n", color.value);
   return color;
 }
 
