@@ -61,7 +61,6 @@ DOME_EXPORT DOME_Result PLUGIN_preDraw(DOME_Context ctx) {
   return DOME_RESULT_SUCCESS;
 }
 DOME_EXPORT DOME_Result PLUGIN_postDraw(DOME_Context ctx) {
-  canvas->rectfill(ctx, 0, 0, 50, 50, (DOME_Color){ .value = 0xFFFF00FF});
   return DOME_RESULT_SUCCESS;
 }
 
