@@ -1,6 +1,13 @@
 internal DOME_Bitmap*
 BITMAP_API_fromFileInMemory(DOME_Context ctx, void* buffer, size_t length) {
   DOME_Bitmap* bitmap = malloc(sizeof(DOME_Bitmap));
+  if (bitmap == NULL) {
+    char* reason = strerror(errno);
+    size_t length = strlen(reason) + 1;
+    PLUGIN_COLLECTION_setErrorReason((ENGINE*)ctx, reason, length);
+    return NULL;
+  }
+
   bitmap->pixels = (DOME_Color*)stbi_load_from_memory((const stbi_uc*)buffer, length,
       &bitmap->width, &bitmap->height,
       &bitmap->channels, STBI_rgb_alpha);
@@ -8,7 +15,7 @@ BITMAP_API_fromFileInMemory(DOME_Context ctx, void* buffer, size_t length) {
     free(bitmap);
     bitmap = NULL;
     char* reason = stbi_failure_reason();
-    size_t length = strlen(reason);
+    size_t length = strlen(reason) + 1;
     PLUGIN_COLLECTION_setErrorReason((ENGINE*)ctx, reason, length);
   }
   return bitmap;
