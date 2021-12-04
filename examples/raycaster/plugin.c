@@ -38,6 +38,12 @@ DOME_EXPORT DOME_Result PLUGIN_onInit(DOME_getAPIFunction DOME_getAPI,
 
   core->lockModule(ctx, "raycaster");
 
+  /*
+  char* result = io->readFile(ctx, "aiafdfafdadf", NULL);
+  if (result == NULL) {
+    printf("%s\n", core->getLastError(ctx));
+  }
+  */
   // Returning anything other than SUCCESS here will result in the current fiber
   // aborting. Use this to indicate if your plugin initialised successfully.
   return DOME_RESULT_SUCCESS;

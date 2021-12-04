@@ -18,7 +18,7 @@ NEST_usage(ENGINE* engine) {
 internal int
 NEST_writeFile(ENGINE* engine, mtar_t* tar, char* filePath, char* tarPath) {
   size_t length;
-  char* inputFile = readEntireFile(filePath, &length);
+  char* inputFile = readEntireFile(filePath, &length, NULL);
   if (inputFile == NULL) {
     return EXIT_FAILURE;
   }

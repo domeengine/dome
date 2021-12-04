@@ -138,7 +138,7 @@ FILESYSTEM_loadEventHandler(void* data) {
 
   // Thread: Async
   ENGINE* engine = (ENGINE*)wrenGetUserData(task->vm);
-  task->buffer = ENGINE_readFile(engine, task->name, &task->length);
+  task->buffer = ENGINE_readFile(engine, task->name, &task->length, NULL);
 
   SDL_Event event;
   SDL_memset(&event, 0, sizeof(event));
@@ -175,7 +175,7 @@ FILESYSTEM_loadSync(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
 
   size_t length;
-  char* data = ENGINE_readFile(engine, path, &length);
+  char* data = ENGINE_readFile(engine, path, &length, NULL);
   if (data == NULL) {
     size_t len = 22 + strlen(path);
     char message[len];

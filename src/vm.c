@@ -79,7 +79,7 @@ VM_load_module(WrenVM* vm, const char* name) {
   }
 
   // This pointer becomes owned by the WrenVM and freed later.
-  char* file = ENGINE_readFile(engine, path, NULL);
+  char* file = ENGINE_readFile(engine, path, NULL, NULL);
   free(path);
 
   result.source = file;

@@ -76,7 +76,7 @@ ENGINE_writeFile(ENGINE* engine, const char* path, const char* buffer, size_t le
 }
 
 internal char*
-ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr) {
+ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr, char** reason) {
   char pathBuf[PATH_MAX];
 
   if (strncmp(path, "./", 2) == 0) {
@@ -94,8 +94,9 @@ ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr) {
       return file;
     }
 
+    char* message =  mtar_strerror(err);
     if (DEBUG_MODE) {
-      ENGINE_printLog(engine, "Couldn't read %s from bundle: %s. Falling back\n", pathBuf, mtar_strerror(err));
+      ENGINE_printLog(engine, "Couldn't read %s from bundle: %s. Falling back\n", pathBuf, message);
     }
   }
 
@@ -108,11 +109,14 @@ ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr) {
   emscripten_wget(pathBuf, pathBuf);
 #endif
   if (!doesFileExist(pathBuf)) {
+    if (reason != NULL) {
+      strncpy(*reason, "File doesn't exist", 1024);
+    }
     return NULL;
   }
 
   ENGINE_printLog(engine, "Reading from filesystem: %s\n", pathBuf);
-  return readEntireFile(pathBuf, lengthPtr);
+  return readEntireFile(pathBuf, lengthPtr, reason);
 }
 
 internal int
