@@ -5,7 +5,8 @@ I/O
 
 This set of APIs allows you to access the host filesystem to read files.
 
-  - [method: readfile](#method-readfile)
+  * [Acquisition](#acquistion)
+  * [method: readfile](#method-readfile)
 
 ## Acquisition
 

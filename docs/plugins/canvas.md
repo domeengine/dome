@@ -6,6 +6,7 @@ Canvas
 This set of APIs allows you to modify what is displayed on the main canvas.
 You can exploit this to allow for more efficient graphical rendering techniques.
 
+* [Acquisition](#acquistion)
 * Enums
   - [enum: DOME_DrawMode](#enum-dome_drawmode)
 * Struct
@@ -15,8 +16,8 @@ You can exploit this to allow for more efficient graphical rendering techniques.
   - [method: getWidth](#method-getwidth)
   - [method: getHeight](#method-getHeight)
   - [method: line](#method-line)
-  - [method: pget](#method-pget-1)
-  - [method: pset](#method-pset-1)
+  - [method: pget](#method-pget)
+  - [method: pset](#method-pset)
   - [method: unsafePset](#method-unsafepset)
 
 ## Acquisition

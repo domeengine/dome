@@ -16,6 +16,7 @@ This API allows your plugin to register modules and provides some basic utilitie
     - [method: registerFn](#method-registerfn)
     - [method: lockModule](#method-lockmodule)
     - [method: getContext](#method-getcontext)
+    - [method: getLastError](#method-getlasterror)
     - [method: log](#method-log)
 
 
@@ -97,14 +98,18 @@ void lockModule(DOME_Context ctx, const char* name)
 ```
 This marks the module `name` as locked, so that further functions cannot modify it. It is recommended to do this after you have registered all the methods for your module, however there is no requirement to.
 
-
-
-
 #### method: getContext
 ```c
 DOME_Context getContext(WrenVM* vm)
 ```
 This allows foreign functions called by the Wren VM to access the current DOME context, to call various APIs.
+
+#### method: getLastError
+```c
+DOME_Context getLastError(WrenVM* vm)
+```
+This returns the last error message reported by a failed plugin API call.
+The error message will never be longer than 4096 bytes, including a terminating character.
 
 #### method: log
 ```c

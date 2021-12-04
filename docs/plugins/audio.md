@@ -5,6 +5,7 @@ Audio
 
 This set of APIs gives you access to DOME's audio engine, to provide your own audio channel implementations. You can use this to synthesize sounds, or play custom audio formats.
 
+ * [Acquisition](#acquistion)
  * Enums
    - [enum: CHANNEL_STATE](#enum-channel_state)
  * Function Signatures
@@ -21,7 +22,7 @@ This set of APIs gives you access to DOME's audio engine, to provide your own au
 ## Acquisition
 
 ```c
-AUDIO_API_v0* wren = (AUDIO_API_v0*)DOME_getAPI(API_AUDIO, AUDIO_API_VERSION);
+AUDIO_API_v0* audio = (AUDIO_API_v0*)DOME_getAPI(API_AUDIO, AUDIO_API_VERSION);
 ```
 
 ## Enums
