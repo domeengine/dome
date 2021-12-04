@@ -162,6 +162,7 @@ typedef struct {
   DOME_Context (*getContext)(WrenVM* vm);
   void (*log)(DOME_Context ctx, const char* text, ...);
   WrenVM* (*getVM)(DOME_Context ctx);
+  const char* (*getLastError)(DOME_Context ctx);
 } DOME_API_v0;
 
 typedef uint64_t CHANNEL_ID;

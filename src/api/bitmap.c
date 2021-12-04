@@ -5,6 +5,13 @@ BITMAP_API_fromFileInMemory(DOME_Context ctx, void* buffer, size_t length) {
       &bitmap->width, &bitmap->height,
       &bitmap->channels, STBI_rgb_alpha);
   // TODO: handle errors
+  if (bitmap->pixels == NULL) {
+    free(bitmap);
+    bitmap = NULL;
+    char* reason = stbi_failure_reason();
+    size_t length = strlen(reason);
+    PLUGIN_COLLECTION_setErrorReason((ENGINE*)ctx, reason, length);
+  }
   return bitmap;
 }
 

@@ -60,6 +60,12 @@ DOME_printLog(DOME_Context ctx, const char* text, ...) {
   va_end(args);
 }
 
+internal const char*
+DOME_getLastError(DOME_Context ctx) {
+  return PLUGIN_COLLECTION_getErrorReason((ENGINE*)ctx);
+}
+
+
 DOME_API_v0 dome_v0 = {
   .registerModule = DOME_registerModuleImpl,
   .registerFn = DOME_registerFnImpl,
@@ -67,5 +73,6 @@ DOME_API_v0 dome_v0 = {
   .lockModule = DOME_lockModuleImpl,
   .getContext = DOME_getVMContext,
   .getVM = DOME_getVM,
-  .log = DOME_printLog
+  .log = DOME_printLog,
+  .getLastError = DOME_getLastError
 };

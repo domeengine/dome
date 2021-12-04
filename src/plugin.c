@@ -30,6 +30,7 @@ PLUGIN_COLLECTION_init(ENGINE* engine) {
   PLUGIN_COLLECTION plugins = engine->plugins;
   plugins.max = 0;
   plugins.count = 0;
+  plugins.errorReason[0] = '\0';
   assert(plugins.count <= plugins.max);
   plugins.active = NULL;
   plugins.name = NULL;
@@ -228,6 +229,19 @@ PLUGIN_COLLECTION_add(ENGINE* engine, const char* name) {
 
   return DOME_RESULT_SUCCESS;
 }
+
+internal void
+PLUGIN_COLLECTION_setErrorReason(ENGINE* engine, const char* error, size_t length) {
+  char* reason = (char*)&(engine->plugins.errorReason);
+  reason[0] = '\0';
+  size_t size = min(length, ERROR_MAX_LENGTH - 1);
+  strncat(reason, error, size);
+}
+internal const char*
+PLUGIN_COLLECTION_getErrorReason(ENGINE* engine) {
+  return (const char*)&(engine->plugins.errorReason);
+}
+
 
 WREN_API_v0 wren_v0 = {
   .getUserData = wrenGetUserData,
