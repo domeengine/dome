@@ -4,7 +4,6 @@ BITMAP_API_fromFileInMemory(DOME_Context ctx, void* buffer, size_t length) {
   bitmap->pixels = (DOME_Color*)stbi_load_from_memory((const stbi_uc*)buffer, length,
       &bitmap->width, &bitmap->height,
       &bitmap->channels, STBI_rgb_alpha);
-  // TODO: handle errors
   if (bitmap->pixels == NULL) {
     free(bitmap);
     bitmap = NULL;
