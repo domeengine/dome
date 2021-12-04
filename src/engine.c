@@ -902,8 +902,7 @@ ENGINE_trianglefillFlatTop(ENGINE* engine, float x0, float y0, float x1, float y
   float curx0 = x2;
   float curx1 = x2;
 
-  for (int scanlineY = y2; scanlineY > y0; scanlineY--)
-  {
+  for (int scanlineY = y2; scanlineY > y0; scanlineY--) {
     ENGINE_line(engine, curx0, scanlineY, curx1, scanlineY, c, 1);
     curx0 -= invslope0;
     curx1 -= invslope1;
