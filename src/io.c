@@ -177,25 +177,50 @@ writeEntireFile(const char* path, const char* data, size_t length) {
 }
 
 internal char*
-readEntireFile(char* path, size_t* lengthPtr) {
+readEntireFile(char* path, size_t* lengthPtr, char** error) {
   FILE* file = fopen(path, "rb");
   if (file == NULL) {
+    if (error != NULL) {
+      strncpy(*error, strerror(errno), 1024);
+    }
     return NULL;
   }
   char* source = NULL;
   if (fseek(file, 0L, SEEK_END) == 0) {
     /* Get the size of the file. */
     long bufsize = ftell(file);
+    if (bufsize == -1) {
+      if (error != NULL) {
+        strncpy(*error, strerror(errno), 1024);
+      }
+      return NULL;
+    }
+
     /* Allocate our buffer to that size. */
     source = malloc(sizeof(char) * (bufsize + 1));
+    if (source == NULL) {
+      if (error != NULL) {
+        strncpy(*error, strerror(errno), 1024);
+      }
+      return NULL;
+    }
 
     /* Go back to the start of the file. */
-    if (fseek(file, 0L, SEEK_SET) != 0) { /* Error */ }
+    if (fseek(file, 0L, SEEK_SET) != 0) {
+      if (error != NULL) {
+        strncpy(*error, strerror(errno), 1024);
+      }
+      return NULL;
+    }
 
     /* Read the entire file into memory. */
     size_t newLen = fread(source, sizeof(char), bufsize, file);
     if (ferror(file) != 0) {
-      perror("Error reading file");
+      if (error != NULL) {
+        strncpy(*error, strerror(errno), 1024);
+      }
+      clearerr(file);
+      return NULL;
     } else {
       if (lengthPtr != NULL) {
         *lengthPtr = newLen;

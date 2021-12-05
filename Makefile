@@ -110,7 +110,7 @@ CFLAGS += -D_DARWIN_C_SOURCE
 endif
 
 ifneq ($(filter release,$(TAGS)),)
-CFLAGS += -O3
+CFLAGS += -O2
 else ifneq ($(filter debug,$(TAGS)),)
 CFLAGS += -O0
 ifneq ($(filter macosx,$(TAGS)),)

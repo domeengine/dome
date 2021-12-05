@@ -1,9 +1,3 @@
-// Forward-declaring some methods for interacting with the AudioEngine
-// for managing memory and initialization
-struct AUDIO_ENGINE_t;
-internal struct AUDIO_ENGINE_t* AUDIO_ENGINE_init(void);
-internal void AUDIO_ENGINE_free(struct AUDIO_ENGINE_t*);
-
 typedef struct {
   int64_t x;
   int64_t y;
@@ -55,8 +49,8 @@ typedef struct {
 } ENGINE_RECORDER;
 
 typedef struct {
-  size_t height;
-  size_t width;
+  int32_t width;
+  int32_t height;
   uint32_t* pixels;
 } PIXEL_BUFFER;
 
@@ -75,6 +69,7 @@ typedef struct ENGINE_t {
   SDL_Renderer *renderer;
   SDL_Texture *texture;
   SDL_Rect viewport;
+  WrenVM* vm;
   CANVAS canvas;
   PIXEL_BUFFER blitBuffer;
   ABC_FIFO fifo;
@@ -122,4 +117,3 @@ typedef enum {
 } ENGINE_WRITE_RESULT;
 
 global_variable uint32_t ENGINE_EVENT_TYPE;
-
