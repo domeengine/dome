@@ -91,6 +91,7 @@ DOME provides the following features, as more:
     - Circle
     - Ellipses
     - Lines
+    - Triangles
   - Color
   - ImageData (aka Bitmap)
     - Draw sprites loaded from files (png)
@@ -108,7 +109,6 @@ DOME provides the following features, as more:
 You can follow my progress on implementing DOME on [my twitter](https://twitter.com/avivbeeri/status/1012448692119457798).
 
 - Graphics
-  - Triangles
   - Potential 3D rendering mode?
 - IO
   - Asynchronous Operations
@@ -121,8 +121,8 @@ You can follow my progress on implementing DOME on [my twitter](https://twitter.
 
 DOME currently depends on a few libraries to achieve it's functions.
 
-- Wren (This is built by `make` automatically)
-- SDL2 (version 2.0.12 or newer, please install separately when building DOME from source)
+- Wren (included in the project repo already)
+- SDL2 (version 2.0.12 or newer. If you install this from source, you'll want to build shared/dynamic libraries.)
 - utf8.h
 - stb_image
 - stb_image_write
@@ -136,7 +136,7 @@ DOME currently depends on a few libraries to achieve it's functions.
 - mkdirp
 - whereami
 
-Apart from SDL2, all other dependancies are baked in or linked statically. DOME aspires to be both minimalist and cross platform, so it depends on as few external components as possible.
+Apart from SDL2, all other dependancies are baked in. DOME aspires to be both minimalist and cross platform, so it depends on as few external components as possible.
 
 ## Acknowledgements
 
