@@ -14,8 +14,7 @@ CANVAS_print(WrenVM* vm) {
 }
 
 internal void
-CANVAS_pget(WrenVM* vm)
-{
+CANVAS_pget(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
@@ -25,9 +24,9 @@ CANVAS_pget(WrenVM* vm)
   wrenEnsureSlots(vm, 1);
   wrenSetSlotDouble(vm, 0, c);
 }
+
 internal void
-CANVAS_pset(WrenVM* vm)
-{
+CANVAS_pset(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
   ASSERT_SLOT_TYPE(vm, 3, NUM, "color");
@@ -39,8 +38,7 @@ CANVAS_pset(WrenVM* vm)
 }
 
 internal void
-CANVAS_circle_filled(WrenVM* vm)
-{
+CANVAS_circle_filled(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
   ASSERT_SLOT_TYPE(vm, 3, NUM, "radius");
@@ -58,8 +56,7 @@ CANVAS_circle_filled(WrenVM* vm)
 }
 
 internal void
-CANVAS_circle(WrenVM* vm)
-{
+CANVAS_circle(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
   ASSERT_SLOT_TYPE(vm, 3, NUM, "radius");
@@ -75,9 +72,9 @@ CANVAS_circle(WrenVM* vm)
   uint32_t c = round(wrenGetSlotDouble(vm, 4));
   ENGINE_circle(engine, x, y, r, c);
 }
+
 internal void
-CANVAS_line(WrenVM* vm)
-{
+CANVAS_line(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x1");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y1");
   ASSERT_SLOT_TYPE(vm, 3, NUM, "x2");
@@ -95,8 +92,7 @@ CANVAS_line(WrenVM* vm)
 }
 
 internal void
-CANVAS_ellipse(WrenVM* vm)
-{
+CANVAS_ellipse(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x1");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y1");
   ASSERT_SLOT_TYPE(vm, 3, NUM, "x2");
@@ -112,8 +108,7 @@ CANVAS_ellipse(WrenVM* vm)
 }
 
 internal void
-CANVAS_ellipsefill(WrenVM* vm)
-{
+CANVAS_ellipsefill(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x1");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y1");
   ASSERT_SLOT_TYPE(vm, 3, NUM, "x2");
@@ -129,8 +124,49 @@ CANVAS_ellipsefill(WrenVM* vm)
 }
 
 internal void
-CANVAS_rect(WrenVM* vm)
-{
+CANVAS_triangle(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x0");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y0");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "x1");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "y1");
+  ASSERT_SLOT_TYPE(vm, 5, NUM, "x2");
+  ASSERT_SLOT_TYPE(vm, 6, NUM, "y2");
+  ASSERT_SLOT_TYPE(vm, 7, NUM, "color");
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  int64_t x0 = round(wrenGetSlotDouble(vm, 1));
+  int64_t y0 = round(wrenGetSlotDouble(vm, 2));
+  int64_t x1 = round(wrenGetSlotDouble(vm, 3));
+  int64_t y1 = round(wrenGetSlotDouble(vm, 4));
+  int64_t x2 = round(wrenGetSlotDouble(vm, 5));
+  int64_t y2 = round(wrenGetSlotDouble(vm, 6));
+
+  uint32_t c = round(wrenGetSlotDouble(vm, 7));
+  ENGINE_triangle(engine, x0, y0, x1, y1, x2, y2, c);
+}
+
+internal void
+CANVAS_trianglefill(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "x0");
+  ASSERT_SLOT_TYPE(vm, 2, NUM, "y0");
+  ASSERT_SLOT_TYPE(vm, 3, NUM, "x1");
+  ASSERT_SLOT_TYPE(vm, 4, NUM, "y1");
+  ASSERT_SLOT_TYPE(vm, 5, NUM, "x2");
+  ASSERT_SLOT_TYPE(vm, 6, NUM, "y2");
+  ASSERT_SLOT_TYPE(vm, 7, NUM, "color");
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  int64_t x0 = round(wrenGetSlotDouble(vm, 1));
+  int64_t y0 = round(wrenGetSlotDouble(vm, 2));
+  int64_t x1 = round(wrenGetSlotDouble(vm, 3));
+  int64_t y1 = round(wrenGetSlotDouble(vm, 4));
+  int64_t x2 = round(wrenGetSlotDouble(vm, 5));
+  int64_t y2 = round(wrenGetSlotDouble(vm, 6));
+
+  uint32_t c = round(wrenGetSlotDouble(vm, 7));
+  ENGINE_trianglefill(engine, x0, y0, x1, y1, x2, y2, c);
+}
+
+internal void
+CANVAS_rect(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
   ASSERT_SLOT_TYPE(vm, 3, NUM, "w");
@@ -154,8 +190,7 @@ CANVAS_rect(WrenVM* vm)
 }
 
 internal void
-CANVAS_rectfill(WrenVM* vm)
-{
+CANVAS_rectfill(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y");
   ASSERT_SLOT_TYPE(vm, 3, NUM, "w");
@@ -179,8 +214,7 @@ CANVAS_rectfill(WrenVM* vm)
 }
 
 internal void
-CANVAS_cls(WrenVM* vm)
-{
+CANVAS_cls(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "color");
   uint32_t c = round(wrenGetSlotDouble(vm, 1));
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
@@ -205,10 +239,25 @@ CANVAS_getWidth(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   wrenSetSlotDouble(vm, 0, engine->canvas.width);
 }
+
 internal void
 CANVAS_getHeight(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   wrenSetSlotDouble(vm, 0, engine->canvas.height);
+}
+
+internal void
+CANVAS_getOffsetX(WrenVM* vm) {
+  wrenEnsureSlots(vm, 1);
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotDouble(vm, 0, engine->canvas.offsetX);
+}
+
+internal void
+CANVAS_getOffsetY(WrenVM* vm) {
+  wrenEnsureSlots(vm, 1);
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotDouble(vm, 0, engine->canvas.offsetY);
 }
 
 internal void

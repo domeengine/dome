@@ -40,12 +40,18 @@
 typedef enum {
   API_DOME,
   API_WREN,
-  API_AUDIO
+  API_AUDIO,
+  API_CANVAS,
+  API_BITMAP,
+  API_IO
 } API_TYPE;
 
 #define DOME_API_VERSION 0
 #define WREN_API_VERSION 0
 #define AUDIO_API_VERSION 0
+#define CANVAS_API_VERSION 0
+#define BITMAP_API_VERSION 0
+#define IO_API_VERSION 0
 
 // Opaque context pointer
 typedef void* DOME_Context;
@@ -155,6 +161,8 @@ typedef struct {
   void (*lockModule)(DOME_Context ctx, const char* name);
   DOME_Context (*getContext)(WrenVM* vm);
   void (*log)(DOME_Context ctx, const char* text, ...);
+  WrenVM* (*getVM)(DOME_Context ctx);
+  const char* (*getLastError)(DOME_Context ctx);
 } DOME_API_v0;
 
 typedef uint64_t CHANNEL_ID;
@@ -189,11 +197,59 @@ typedef struct {
   void* (*getData)(CHANNEL_REF ref);
 } AUDIO_API_v0;
 
+
+typedef union {
+  uint32_t value;
+  struct {
+    // Intel storage order
+    uint8_t b;
+    uint8_t g;
+    uint8_t r;
+    uint8_t a;
+  } component;
+} DOME_Color;
+
+typedef struct {
+  int32_t width;
+  int32_t height;
+  int32_t channels;
+  DOME_Color* pixels;
+} DOME_Bitmap;
+
+typedef enum {
+  DOME_DRAWMODE_BLEND = 1
+} DOME_DrawMode;
+
+typedef struct {
+  void (*pset)(DOME_Context ctx, int32_t x, int32_t y, DOME_Color color);
+  void (*unsafePset)(DOME_Context ctx, int32_t x, int32_t y, DOME_Color color);
+  DOME_Color (*pget)(DOME_Context ctx, int32_t x, int32_t y);
+  uint32_t (*getWidth)(DOME_Context ctx);
+  uint32_t (*getHeight)(DOME_Context ctx);
+  void (*draw)(DOME_Context ctx, DOME_Bitmap* bitmap, int32_t x, int32_t y, DOME_DrawMode mode);
+  void (*line)(DOME_Context ctx, int64_t x0, int64_t y0, int64_t x1, int64_t y1, DOME_Color color);
+  void (*rect)(DOME_Context ctx, int64_t x, int64_t y, int64_t width, int64_t height, DOME_Color color);
+  void (*rectfill)(DOME_Context ctx, int64_t x, int64_t y, int64_t width, int64_t height, DOME_Color color);
+} CANVAS_API_v0;
+
+typedef struct {
+  DOME_Bitmap* (*fromFile)(DOME_Context ctx, const char* path);
+  DOME_Bitmap* (*fromFileInMemory)(DOME_Context ctx, void* buffer, size_t length);
+  DOME_Color (*pget)(DOME_Bitmap* bitmap, uint32_t x, uint32_t y);
+  void (*pset)(DOME_Bitmap* bitmap, uint32_t x, uint32_t y, DOME_Color color);
+  void (*free)(DOME_Bitmap* bitmap);
+} BITMAP_API_v0;
+
+typedef struct {
+  void* (*readFile)(DOME_Context ctx, const char* path, size_t* length);
+} IO_API_v0;
+
 typedef void* (*DOME_getAPIFunction)(API_TYPE api, int version);
 PUBLIC_EXPORT void* DOME_getAPI(API_TYPE api, int version);
 
 
 // Helper macros to abstract the api->method
+// These can be removed if you don't need them in your project
 
 #define DOME_registerModule(ctx, name, src) api->registerModule(ctx, name, src)
 #define DOME_registerClass(ctx, module, className, allocate, finalize) api->registerClass(ctx, module, className, allocate, finalize)

@@ -116,6 +116,7 @@ INPUT_clearText(WrenVM* vm) {
   if (!inputCaptured) {
     return WREN_RESULT_SUCCESS;
   }
+  wrenEnsureSlots(vm, 1);
   wrenSetSlotHandle(vm, 0, keyboardClass);
   return wrenCall(vm, keyboardClearTextMethod);
 }
@@ -251,6 +252,25 @@ internal void
 MOUSE_getHidden(WrenVM* vm) {
   bool shown = SDL_ShowCursor(SDL_QUERY);
   wrenSetSlotBool(vm, 0, !shown);
+}
+
+internal void
+MOUSE_setCursor(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "cursorName");
+  const char* name = wrenGetSlotString(vm, 1);
+  int32_t cursorID = ENGINE_findMouseCursorIndex(engine, name);
+  if (cursorID < 0) {
+    VM_ABORT(vm, "invalid cursor name");
+  }
+  ENGINE_setMouseCursor(engine, cursorID);
+}
+
+internal void
+MOUSE_getCursor(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  const char* name = ENGINE_getMouseCursor(engine);
+  wrenSetSlotString(vm, 0, name);
 }
 
 typedef struct {
@@ -475,7 +495,7 @@ CLIPBOARD_getContent(WrenVM* vm) {
 internal void
 CLIPBOARD_setContent(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "text");
-  char* text = wrenGetSlotString(vm, 1);
+  const char* text = wrenGetSlotString(vm, 1);
   int result = SDL_SetClipboardText(text);
   if (result < 0) {
     VM_ABORT(vm, SDL_GetError());

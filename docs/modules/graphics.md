@@ -18,10 +18,14 @@ It contains the following classes:
 The `Canvas` class is the core api for graphical display.
 
 ### Fields
+#### `static font: String`
+This is the name of the default font used for `Canvas.print(str, x, y, color)`. You can set this to `Font.default` to return to the DOME built-in font.
 #### `static height: Number`
 This is the height of the canvas/viewport, in pixels.
 #### `static width: Number`
 This is the width of the canvas/viewport, in pixels.
+#### `static offset : Vector`
+A vector representing the Canvas offset. You can both get and set this value
 
 ### Methods
 #### `static circle(x: Number, y: Number, r: Number, c: Color) `
@@ -88,9 +92,11 @@ Resize the canvas to the given `width` and `height`, and reset the color of the 
 If `c` isn't provided, we default to black.
 Resizing the canvas resets the "clipping region" to encompass the whole canvas, as if `Canvas.clip()` was called.
 
-### Instance Field
-#### `font: String`
-This sets the name of the default font used for `Canvas.print(str, x, y, color)`. You can set this to `Font.default` to return to the DOME built-in font.
+#### `static triangle(x0: Number, y0: Number, x1: Number, y1: Number, x2: Number, y2: Number, c: Color) `
+Draw a triangle with vertices at (_x0, y0_), (_x1, y1_), (_x2, y2_) in the color _c_.
+
+#### `static trianglefill(x0: Number, y0: Number, x1: Number, y1: Number, x2: Number, y2: Number, c: Color) `
+Draw a filled triangle with vertices at (_x0, y0_), (_x1, y1_), (_x2, y2_) in the color _c_.
 
 ## Color
 

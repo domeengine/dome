@@ -7,10 +7,9 @@ libwren.a
 libwrend.a
 libadd.so
 **/.DS_Store
-src/util/convert
-src/util/embed
+src/tools/convert
+src/tools/embed
 src/modules/*.inc
-include/wren.h
 include/SDL2/*
 lib/SDL2*
 lib/SDL/special
@@ -36,4 +35,4 @@ dome.html
 dome.js
 dome.wasm
 
-game.egg
+*.egg

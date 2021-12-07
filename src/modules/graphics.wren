@@ -13,6 +13,8 @@ class Canvas {
       Fiber.abort("Default font must be a font name")
     }
   }
+  
+  static font { __defaultFont }
 
   foreign static f_resize(width, height, color)
   static offset() { offset(0, 0) }
@@ -51,6 +53,8 @@ class Canvas {
   foreign static f_circlefill(x, y, r, c)
   foreign static f_ellipse(x1, y1, x2, y2, c)
   foreign static f_ellipsefill(x1, y1, x2, y2, c)
+  foreign static f_triangle(x0, y0, x1, y1, x2, y2, c)
+  foreign static f_trianglefill(x0, y0, x1, y1, x2, y2, c)
 
   static pset(x, y, c) {
     if (c is Color) {
@@ -111,6 +115,20 @@ class Canvas {
       f_circlefill(x, y, r, c)
     }
   }
+  static triangle(x0, y0, x1, y1, x2, y2, c) {
+    if (c is Color) {
+      f_triangle(x0, y0, x1, y1, x2, y2, c.toNum)
+    } else {
+      f_triangle(x0, y0, x1, y1, x2, y2, c)
+    }
+  }
+  static trianglefill(x0, y0, x1, y1, x2, y2, c) {
+    if (c is Color) {
+      f_trianglefill(x0, y0, x1, y1, x2, y2, c.toNum)
+    } else {
+      f_trianglefill(x0, y0, x1, y1, x2, y2, c)
+    }
+  }
   static print(str, x, y, c, font) {
     if (Font[font] != null) {
       Font[font].print(str, x, y, c)
@@ -160,12 +178,19 @@ class Canvas {
     }
     f_cls(color.toNum)
   }
+  
   foreign static width
   foreign static height
 
   static draw(object, x, y) {
     object.draw(x, y)
   }
+  
+  foreign static offsetX
+  foreign static offsetY
+  
+  static offset { Vector.new (offsetX, offsetY) }
+  static offset=(v) { offset(v.x, v.y) }
 }
 
 

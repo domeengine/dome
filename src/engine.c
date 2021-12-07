@@ -5,59 +5,6 @@ getColorComponents(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
   *b = (color & (0xFF << 16)) >> 16;
 }
 
-internal int
-ENGINE_record(void* ptr) {
-  // Thread: Seperate gif record
-  ENGINE* engine = ptr;
-  size_t imageSize = engine->canvas.width * engine->canvas.height;
-  engine->record.gifPixels = (uint32_t*)malloc(imageSize*4*sizeof(uint8_t));
-  size_t scale = GIF_SCALE;
-  uint32_t* scaledPixels = (uint32_t*)malloc(imageSize*4*sizeof(uint8_t)* scale * scale);
-  CANVAS canvas = engine->canvas;
-
-  jo_gif_t gif = jo_gif_start(engine->record.gifName, canvas.width * scale, canvas.height * scale, 0, 31);
-  uint8_t FPS = 30;
-  double MS_PER_FRAME = ceil(1000.0 / FPS);
-  double lag = 0;
-  uint64_t previousTime = SDL_GetPerformanceCounter();
-  do {
-    SDL_Delay(1);
-    uint64_t currentTime = SDL_GetPerformanceCounter();
-    double elapsed = 1000 * (currentTime - previousTime) / (double)SDL_GetPerformanceFrequency();
-    previousTime = currentTime;
-    if(fabs(elapsed - 1.0/120.0) < .0002){
-      elapsed = 1.0/120.0;
-    }
-    if(fabs(elapsed - 1.0/60.0) < .0002){
-      elapsed = 1.0/60.0;
-    }
-    if(fabs(elapsed - 1.0/30.0) < .0002){
-      elapsed = 1.0/30.0;
-    }
-    lag += elapsed;
-    if (lag >= MS_PER_FRAME) {
-      if (scale > 1) {
-        for (size_t j = 0; j < canvas.height * scale; j++) {
-          for (size_t i = 0; i < canvas.width * scale; i++) {
-            size_t u = i / scale;
-            size_t v = j / scale;
-            int32_t c = ((uint32_t*)engine->record.gifPixels)[v * canvas.width + u];
-            scaledPixels[j * canvas.width * scale + i] = c;
-          }
-        }
-        jo_gif_frame(&gif, (uint8_t*)scaledPixels, 4, true);
-      } else {
-        jo_gif_frame(&gif, (uint8_t*)engine->record.gifPixels, 3, true);
-      }
-      lag -= MS_PER_FRAME;
-    }
-  } while(engine->running);
-
-  jo_gif_end(&gif);
-  free(engine->record.gifPixels);
-  return 0;
-}
-
 internal void
 ENGINE_openLogFile(ENGINE* engine) {
   // DOME-2020-02-02-090000.log
@@ -129,7 +76,7 @@ ENGINE_writeFile(ENGINE* engine, const char* path, const char* buffer, size_t le
 }
 
 internal char*
-ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr) {
+ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr, char** reason) {
   char pathBuf[PATH_MAX];
 
   if (strncmp(path, "./", 2) == 0) {
@@ -147,8 +94,9 @@ ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr) {
       return file;
     }
 
+    char* message =  mtar_strerror(err);
     if (DEBUG_MODE) {
-      ENGINE_printLog(engine, "Couldn't read %s from bundle: %s. Falling back\n", pathBuf, mtar_strerror(err));
+      ENGINE_printLog(engine, "Couldn't read %s from bundle: %s. Falling back\n", pathBuf, message);
     }
   }
 
@@ -161,11 +109,14 @@ ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr) {
   emscripten_wget(pathBuf, pathBuf);
 #endif
   if (!doesFileExist(pathBuf)) {
+    if (reason != NULL) {
+      strncpy(*reason, "File doesn't exist", 1024);
+    }
     return NULL;
   }
 
   ENGINE_printLog(engine, "Reading from filesystem: %s\n", pathBuf);
-  return readEntireFile(pathBuf, lengthPtr);
+  return readEntireFile(pathBuf, lengthPtr, reason);
 }
 
 internal int
@@ -209,6 +160,7 @@ ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
 internal ENGINE*
 ENGINE_init(ENGINE* engine) {
   engine->handleText = true;
+  engine->fused = false;
   engine->window = NULL;
   engine->renderer = NULL;
   engine->texture = NULL;
@@ -225,6 +177,7 @@ ENGINE_init(ENGINE* engine) {
   engine->debug.errorBufMax = 0;
   engine->debug.errorBuf = NULL;
   engine->debug.errorBufLen = 0;
+  engine->debug.errorDialog = true;
 
   // Initialise the canvas offset.
   engine->canvas.pixels = NULL;
@@ -364,6 +317,10 @@ ENGINE_free(ENGINE* engine) {
     SDL_DestroyWindow(engine->window);
   }
 
+  if (engine->mouse.cursor != NULL) {
+    SDL_FreeCursor(engine->mouse.cursor);
+  }
+
   if (engine->argv != NULL) {
     free(engine->argv[1]);
     free(engine->argv);
@@ -391,14 +348,15 @@ ENGINE_pget(ENGINE* engine, int64_t x, int64_t y) {
 
 inline internal void
 ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
+  CANVAS canvas = engine->canvas;
 
   // Account for canvas offset
-  x += engine->canvas.offsetX;
-  y += engine->canvas.offsetY;
+  x += canvas.offsetX;
+  y += canvas.offsetY;
 
   // Draw pixel at (x,y)
-  int32_t width = engine->canvas.width;
-  DOME_RECT zone = engine->canvas.clip;
+  int32_t width = canvas.width;
+  DOME_RECT zone = canvas.clip;
 
   uint8_t newA = ((0xFF000000 & c) >> 24);
 
@@ -406,7 +364,7 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
     return;
   } else if (zone.x <= x && x < zone.x + zone.w && zone.y <= y && y < zone.y + zone.h) {
     if (newA < 0xFF) {
-      uint32_t current = ((uint32_t*)(engine->canvas.pixels))[width * y + x];
+      uint32_t current = ((uint32_t*)(canvas.pixels))[width * y + x];
       double normA = newA / (double)UINT8_MAX;
       double diffA = 1 - normA;
 
@@ -424,8 +382,45 @@ ENGINE_pset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
 
     // This is a very hot line, so we use pointer arithmetic for
     // speed!
-    *(((uint32_t*)engine->canvas.pixels) + (width * y + x)) = c;
+    *(((uint32_t*)canvas.pixels) + (width * y + x)) = c;
   }
+}
+
+internal void
+ENGINE_unsafePsetNoBlend(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
+  CANVAS canvas = engine->canvas;
+  // Draw pixel at (x,y)
+  // This is a very hot line, so we use pointer arithmetic for
+  // speed!
+  *(((uint32_t*)canvas.pixels) + (canvas.width * y + x)) = c;
+}
+
+internal void
+ENGINE_unsafePset(ENGINE* engine, int64_t x, int64_t y, uint32_t c) {
+  CANVAS canvas = engine->canvas;
+
+  // Draw pixel at (x,y)
+  int32_t width = canvas.width;
+  uint8_t newA = ((0xFF000000 & c) >> 24);
+
+  uint32_t current = ((uint32_t*)(canvas.pixels))[width * y + x];
+  double normA = newA / (double)UINT8_MAX;
+  double diffA = 1 - normA;
+
+  uint8_t oldR, oldG, oldB, newR, newG, newB;
+  getColorComponents(current, &oldR, &oldG, &oldB);
+  getColorComponents(c, &newR, &newG, &newB);
+
+  uint8_t a = 0xFF;
+  uint8_t r = (diffA * oldR + normA * newR);
+  uint8_t g = (diffA * oldG + normA * newG);
+  uint8_t b = (diffA * oldB + normA * newB);
+
+  c = (a << 24) | (b << 16) | (g << 8) | r;
+
+  // This is a very hot line, so we use pointer arithmetic for
+  // speed!
+  *(((uint32_t*)canvas.pixels) + (width * y + x)) = c;
 }
 
 internal void
@@ -883,6 +878,75 @@ ENGINE_ellipse(ENGINE* engine, int64_t x0, int64_t y0, int64_t x1, int64_t y1, u
 }
 
 internal void
+ENGINE_triangle(ENGINE* engine, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t c) {
+  ENGINE_line(engine, x0, y0, x1, y1, c, 1);
+  ENGINE_line(engine, x1, y1, x2, y2, c, 1);
+  ENGINE_line(engine, x2, y2, x0, y0, c, 1);
+}
+
+internal void
+ENGINE_trianglefillFlatBottom(ENGINE* engine, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t c) {
+  float invslope0 = (x1 - x0) / (y1 - y0);
+  float invslope1 = (x2 - x0) / (y2 - y0);
+  float curx0 = x0;
+  float curx1 = x0;
+
+  for (int scanlineY = y0; scanlineY <= y1; scanlineY++) {
+    ENGINE_line(engine, curx0, scanlineY, curx1, scanlineY, c, 1);
+    curx0 += invslope0;
+    curx1 += invslope1;
+  }
+}
+
+internal void
+ENGINE_trianglefillFlatTop(ENGINE* engine, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t c) {
+  float invslope0 = (x2 - x0) / (y2 - y0);
+  float invslope1 = (x2 - x1) / (y2 - y1);
+
+  float curx0 = x2;
+  float curx1 = x2;
+
+  for (int scanlineY = y2; scanlineY > y0; scanlineY--) {
+    ENGINE_line(engine, curx0, scanlineY, curx1, scanlineY, c, 1);
+    curx0 -= invslope0;
+    curx1 -= invslope1;
+  }
+}
+
+internal void
+ENGINE_trianglefill(ENGINE* engine, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t c) {
+  if (y1 < y0) {
+    swap(&x1, &x0);
+    swap(&y1, &y0);
+  }
+  if (y2 < y0) {
+    swap(&x2, &x0);
+    swap(&y2, &y0);
+  }
+  if (y2 < y1) {
+    swap(&x2, &x1);
+    swap(&y2, &y1);
+  }
+
+  x0 += 0.5;
+  y0 += 0.5;
+  x1 += 0.5;
+  y1 += 0.5;
+  x2 += 0.5;
+  y2 += 0.5;
+
+  if (y1 == y2) {
+    ENGINE_trianglefillFlatBottom(engine, x0, y0, x1, y1, x2, y2, c);
+  } else if (y0 == y1) {
+    ENGINE_trianglefillFlatTop(engine, x0, y0, x1, y1, x2, y2, c);
+  } else {
+    float x3 = (x0 + ((y1 - y0) / (y2 - y0)) * (x2 - x0));
+    ENGINE_trianglefillFlatBottom(engine, x0, y0, x1, y1, x3, y1, c);
+    ENGINE_trianglefillFlatTop(engine, x1, y1, x3, y1, x2, y2, c);
+  }
+}
+
+internal void
 ENGINE_rect(ENGINE* engine, int64_t x, int64_t y, int64_t w, int64_t h, uint32_t c) {
   w = w - 1;
   h = h - 1;
@@ -929,6 +993,30 @@ ENGINE_getKeyState(ENGINE* engine, char* keyName) {
   SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode);
   const uint8_t* state = SDL_GetKeyboardState(NULL);
   return state[scancode];
+}
+
+internal int32_t
+ENGINE_findMouseCursorIndex(ENGINE* engine, const char* cursorName) {
+  for (int index = 0; index < SDL_NUM_SYSTEM_CURSORS; index++) {
+    char * name = ENGINE_MOUSE_CURSORS[index];
+    if (STRINGS_EQUAL(cursorName, name)) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+internal void
+ENGINE_setMouseCursor(ENGINE* engine, int32_t cursorID) {
+  SDL_FreeCursor(engine->mouse.cursor);
+  engine->mouse.cursorID = cursorID;
+  engine->mouse.cursor = SDL_CreateSystemCursor(engine->mouse.cursorID);
+  SDL_SetCursor(engine->mouse.cursor);
+}
+
+internal const char*
+ENGINE_getMouseCursor(ENGINE* engine) {
+  return ENGINE_MOUSE_CURSORS[engine->mouse.cursorID];
 }
 
 internal void
@@ -1041,9 +1129,6 @@ ENGINE_drawDebug(ENGINE* engine) {
 
 internal bool
 ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint32_t color) {
-  if (engine->initialized && engine->record.makeGif) {
-    return true;
-  }
   if (engine->canvas.width == newWidth && engine->canvas.height == newHeight) {
     return true;
   }
@@ -1084,9 +1169,11 @@ internal void
 ENGINE_reportError(ENGINE* engine) {
   if (engine->debug.errorBuf != NULL) {
     ENGINE_printLog(engine, engine->debug.errorBuf);
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+    if (engine->debug.errorDialog) {
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                              "DOME - Error",
                              engine->debug.errorBuf,
                              NULL);
+    }
   }
 }

@@ -115,6 +115,8 @@ class Mouse {
   foreign static hidden=(value)
   foreign static relative=(value)
   foreign static relative
+  foreign static cursor=(value)
+  foreign static cursor
 
   static isButtonPressed(key) {
     return Mouse[StringUtils.toLowercase(key)].down

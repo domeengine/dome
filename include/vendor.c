@@ -7,14 +7,17 @@
 
 #include <stdbool.h>
 
-#include <jo_gif.h>
-
 #define OPTPARSE_IMPLEMENTATION
 #include <optparse.h>
 
 #include <microtar/microtar.c>
 #include <json/pdjson.c>
 #include <mkdirp/mkdirp.c>
+
+#ifndef __EMSCRIPTEN__
+#include <whereami/whereami.h>
+#include <whereami/whereami.c>
+#endif
 
 // Set up STB_IMAGE
 #define STBI_FAILURE_USERMSG
@@ -39,5 +42,4 @@
 #include <SDL.h>
 #define ABC_FIFO_IMPL
 #include <ABC_fifo.h>
-
 

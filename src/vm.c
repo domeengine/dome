@@ -79,7 +79,7 @@ VM_load_module(WrenVM* vm, const char* name) {
   }
 
   // This pointer becomes owned by the WrenVM and freed later.
-  char* file = ENGINE_readFile(engine, path, NULL);
+  char* file = ENGINE_readFile(engine, path, NULL, NULL);
   free(path);
 
   result.source = file;
@@ -168,6 +168,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // DOME
   MAP_addFunction(&engine->moduleMap, "dome", "static Process.f_exit(_)", PROCESS_exit);
   MAP_addFunction(&engine->moduleMap, "dome", "static Process.args", PROCESS_getArguments);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Process.errorDialog", PROCESS_getErrorDialog);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Process.errorDialog=(_)", PROCESS_setErrorDialog);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.resize(_,_)", WINDOW_resize);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.title=(_)", WINDOW_setTitle);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.vsync=(_)", WINDOW_setVsync);
@@ -190,6 +192,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_cls(_)", CANVAS_cls);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_rect(_,_,_,_,_)", CANVAS_rect);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_line(_,_,_,_,_,_)", CANVAS_line);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_triangle(_,_,_,_,_,_,_)", CANVAS_triangle);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_trianglefill(_,_,_,_,_,_,_)", CANVAS_trianglefill);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_circle(_,_,_,_)", CANVAS_circle);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_circlefill(_,_,_,_)", CANVAS_circle_filled);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_ellipse(_,_,_,_,_)", CANVAS_ellipse);
@@ -200,6 +204,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_resize(_,_,_)", CANVAS_resize);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.width", CANVAS_getWidth);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.height", CANVAS_getHeight);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.offsetX", CANVAS_getOffsetX);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.offsetY", CANVAS_getOffsetY);
   MAP_lockModule(&engine->moduleMap, "graphics");
 
   // Font
@@ -285,6 +291,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.hidden", MOUSE_getHidden);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.relative=(_)", MOUSE_setRelative);
   MAP_addFunction(&engine->moduleMap, "input", "static Mouse.relative", MOUSE_getRelative);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.cursor=(_)", MOUSE_setCursor);
+  MAP_addFunction(&engine->moduleMap, "input", "static Mouse.cursor", MOUSE_getCursor);
   MAP_addFunction(&engine->moduleMap, "input", "static SystemGamePad.f_getGamePadIds()", GAMEPAD_getGamePadIds);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.getTrigger(_)", GAMEPAD_getTrigger);
   MAP_addFunction(&engine->moduleMap, "input", "SystemGamePad.close()", GAMEPAD_close);
@@ -321,13 +329,21 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addClass(&engine->moduleMap, "random", "Squirrel3", RANDOM_allocate, RANDOM_finalize);
   MAP_addFunction(&engine->moduleMap, "random", "static Squirrel3.noise(_,_)", RANDOM_noise);
   MAP_addFunction(&engine->moduleMap, "random", "Squirrel3.float()", RANDOM_float);
+
+  MAP_addClass(&engine->moduleMap, "random", "Squirrel5", SQUIRREL5_allocate, SQUIRREL5_finalize);
+  MAP_addFunction(&engine->moduleMap, "random", "static Squirrel5.noise(_,_)", SQUIRREL5_noise);
+  MAP_addFunction(&engine->moduleMap, "random", "Squirrel5.float()", SQUIRREL5_float);
   MAP_lockModule(&engine->moduleMap, "random");
+
+  engine->vm = vm;
 
   return vm;
 }
 
 internal void VM_free(WrenVM* vm) {
   if (vm != NULL) {
+    ENGINE* engine = wrenGetUserData(vm);
+    engine->vm = NULL;
     wrenFreeVM(vm);
   }
 }

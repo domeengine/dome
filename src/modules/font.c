@@ -143,7 +143,6 @@ FONT_RASTER_getArea(WrenVM* vm) {
   const char* text = wrenGetSlotString(vm, 1);
 
   stbtt_fontinfo info = raster->font->info;
-  unsigned char *bitmap;
   int w, h;
 
   int fontHeight = raster->height;
@@ -171,7 +170,7 @@ FONT_RASTER_getArea(WrenVM* vm) {
     int lsb;
     int oY, oX;
     stbtt_GetCodepointHMetrics(&info, codepoint, &ax, &lsb);
-    bitmap = stbtt_GetCodepointBitmap(&info, 0, scale, codepoint, &w, &h, &oX, &oY);
+    stbtt_GetCodepointBitmap(&info, 0, scale, codepoint, &w, &h, &oX, &oY);
 
     posX += oX;
     posX += ax * scale;

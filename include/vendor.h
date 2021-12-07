@@ -6,8 +6,9 @@
 #include <json/pdjson.h>
 #include <mkdirp/mkdirp.h>
 
-#define JO_GIF_HEADER_FILE_ONLY
-#include <jo_gif.h>
+#ifndef __EMSCRIPTEN__
+#include <whereami/whereami.h>
+#endif
 
 // Set up STB_IMAGE
 #define STBI_FAILURE_USERMSG
