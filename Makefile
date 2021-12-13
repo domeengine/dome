@@ -229,4 +229,4 @@ reset:
 	git submodule foreach --recursive git clean -xfd
 
 cloc:
-	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "font" -not-match-f ".inc" src
+	cloc --by-file --force-lang="java",wren --fullpath --not-match-d "font|dSYM" -not-match-f ".inc" src include/dome.h
