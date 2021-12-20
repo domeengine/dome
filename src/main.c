@@ -195,8 +195,13 @@ char* resolveEntryPath(ENGINE* engine, char* entryArgument, bool autoResolve) {
   } else {
     if (entryArgument != NULL) {
       // Set the basepath according to the incoming argument
-      strcpy(entryPath, base);
-      strcat(entryPath, entryArgument);
+      if (entryArgument[0] == '/') {
+        strcpy(entryPath, entryArgument);
+      } else {
+        strcpy(entryPath, base);
+        strcat(entryPath, entryArgument);
+      }
+
       if (isDirectory(entryPath)) {
         autoResolve = true;
         BASEPATH_set(entryPath);
