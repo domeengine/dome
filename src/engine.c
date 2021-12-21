@@ -26,18 +26,20 @@ ENGINE_writeToLog(ENGINE* engine, const char* buffer) {
   }
 }
 
-internal void
-ENGINE_printLogVariadic(ENGINE* engine, const char* line, va_list argList) {
-  va_list args;
-  va_copy(args, argList);
-  size_t bufSize = vsnprintf(NULL, 0, line, args) + 1;
+#define RENDER_VARIADIC_STRING(buffer, line, argList) \
+  va_list args;\
+  va_copy(args, argList);\
+  size_t bufSize = vsnprintf(NULL, 0, line, args) + 1;\
+  va_end(args);\
+  char buffer[bufSize];\
+  buffer[0] = '\0';\
+  va_copy(args, argList);\
+  vsnprintf(buffer, bufSize, line, args);\
   va_end(args);
 
-  char buffer[bufSize];
-  buffer[0] = '\0';
-  va_copy(args, argList);
-  vsnprintf(buffer, bufSize, line, args);
-  va_end(args);
+internal void
+ENGINE_printLogVariadic(ENGINE* engine, const char* line, va_list argList) {
+  RENDER_VARIADIC_STRING(buffer, line, argList);
   ENGINE_writeToLog(engine, buffer);
 }
 
@@ -1173,17 +1175,7 @@ ENGINE_reportErrorVariadic(ENGINE* engine, const char* line, va_list argList) {
   if (line == NULL) {
     return;
   }
-  va_list args;
-  va_copy(args, argList);
-  size_t bufSize = vsnprintf(NULL, 0, line, args) + 1;
-  va_end(args);
-
-  char buffer[bufSize];
-  buffer[0] = '\0';
-  va_copy(args, argList);
-  vsnprintf(buffer, bufSize, line, args);
-  va_end(args);
-
+  RENDER_VARIADIC_STRING(buffer, line, argList);
   ENGINE_writeToLog(engine, buffer);
   if (engine->debug.errorDialog) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
