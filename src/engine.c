@@ -7,9 +7,23 @@ getColorComponents(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
 
 internal void
 ENGINE_openLogFile(ENGINE* engine) {
-  // DOME-2020-02-02-090000.log
   char* filename = "DOME-out.log";
   engine->debug.logFile = fopen(filename, "w+");
+}
+
+internal void
+ENGINE_writeToLog(ENGINE* engine, const char* buffer) {
+  // Output to console
+  printf("%s", buffer);
+
+  if (engine->debug.logFile == NULL) {
+    ENGINE_openLogFile(engine);
+  }
+  if (engine->debug.logFile != NULL) {
+    // Output to file
+    fputs(buffer, engine->debug.logFile);
+    fflush(engine->debug.logFile);
+  }
 }
 
 internal void
@@ -24,19 +38,9 @@ ENGINE_printLogVariadic(ENGINE* engine, const char* line, va_list argList) {
   va_copy(args, argList);
   vsnprintf(buffer, bufSize, line, args);
   va_end(args);
-
-  // Output to console
-  printf("%s", buffer);
-
-  if (engine->debug.logFile == NULL) {
-    ENGINE_openLogFile(engine);
-  }
-  if (engine->debug.logFile != NULL) {
-    // Output to file
-    fputs(buffer, engine->debug.logFile);
-    fflush(engine->debug.logFile);
-  }
+  ENGINE_writeToLog(engine, buffer);
 }
+
 
 internal void
 ENGINE_printLog(ENGINE* engine, char* line, ...) {
@@ -1180,7 +1184,7 @@ ENGINE_reportErrorVariadic(ENGINE* engine, const char* line, va_list argList) {
   vsnprintf(buffer, bufSize, line, args);
   va_end(args);
 
-  ENGINE_printLog(engine, buffer);
+  ENGINE_writeToLog(engine, buffer);
   if (engine->debug.errorDialog) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
         "DOME - Error",
