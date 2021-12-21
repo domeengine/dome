@@ -195,8 +195,13 @@ char* resolveEntryPath(ENGINE* engine, char* entryArgument, bool autoResolve) {
   } else {
     if (entryArgument != NULL) {
       // Set the basepath according to the incoming argument
-      strcpy(entryPath, base);
-      strcat(entryPath, entryArgument);
+      if (isPathAbsolute(entryArgument)) {
+        strcpy(entryPath, entryArgument);
+      } else {
+        strcpy(entryPath, base);
+        strcat(entryPath, entryArgument);
+      }
+
       if (isDirectory(entryPath)) {
         autoResolve = true;
         BASEPATH_set(entryPath);
@@ -247,7 +252,7 @@ char* resolveEntryPath(ENGINE* engine, char* entryArgument, bool autoResolve) {
   }
 
   if (!engine->fused && !resolved) {
-    ENGINE_printLog(engine, "Error: Could not find an entry point at: %s\n", dirname(entryPath));
+    ENGINE_reportError(engine, "Error: Could not find an entry point at: %s\n", dirname(entryPath));
     printUsage(engine);
     return NULL;
   } else {

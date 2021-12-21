@@ -251,9 +251,9 @@ int DOME_begin(ENGINE* engine, char* entryPath) {
   gameFile = ENGINE_readFile(engine, entryPath, &gameFileLength, NULL);
   if (gameFile == NULL) {
     if (engine->tar != NULL) {
-      ENGINE_printLog(engine, "Error: Could not load %s in bundle.\n", entryPath);
+      ENGINE_reportError(engine, "Error: Could not load %s in bundle.\n", entryPath);
     } else {
-      ENGINE_printLog(engine, "Error: Could not load %s.\n", engine->argv[1]);
+      ENGINE_reportError(engine, "Error: Could not load %s\n", engine->argv[1]);
     }
     result = EXIT_FAILURE;
     goto cleanup;
@@ -415,7 +415,7 @@ vm_cleanup:
   }
 
   // Free resources
-  ENGINE_reportError(engine);
+  ENGINE_reportError(engine, engine->debug.errorBuf);
 
   if (initMethod != NULL) {
     wrenReleaseHandle(vm, initMethod);

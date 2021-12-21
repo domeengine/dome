@@ -7,24 +7,12 @@ getColorComponents(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
 
 internal void
 ENGINE_openLogFile(ENGINE* engine) {
-  // DOME-2020-02-02-090000.log
   char* filename = "DOME-out.log";
   engine->debug.logFile = fopen(filename, "w+");
 }
 
 internal void
-ENGINE_printLogVariadic(ENGINE* engine, const char* line, va_list argList) {
-  va_list args;
-  va_copy(args, argList);
-  size_t bufSize = vsnprintf(NULL, 0, line, args) + 1;
-  va_end(args);
-
-  char buffer[bufSize];
-  buffer[0] = '\0';
-  va_copy(args, argList);
-  vsnprintf(buffer, bufSize, line, args);
-  va_end(args);
-
+ENGINE_writeToLog(ENGINE* engine, const char* buffer) {
   // Output to console
   printf("%s", buffer);
 
@@ -37,6 +25,24 @@ ENGINE_printLogVariadic(ENGINE* engine, const char* line, va_list argList) {
     fflush(engine->debug.logFile);
   }
 }
+
+#define RENDER_VARIADIC_STRING(buffer, line, argList) \
+  va_list args;\
+  va_copy(args, argList);\
+  size_t bufSize = vsnprintf(NULL, 0, line, args) + 1;\
+  va_end(args);\
+  char buffer[bufSize];\
+  buffer[0] = '\0';\
+  va_copy(args, argList);\
+  vsnprintf(buffer, bufSize, line, args);\
+  va_end(args);
+
+internal void
+ENGINE_printLogVariadic(ENGINE* engine, const char* line, va_list argList) {
+  RENDER_VARIADIC_STRING(buffer, line, argList);
+  ENGINE_writeToLog(engine, buffer);
+}
+
 
 internal void
 ENGINE_printLog(ENGINE* engine, char* line, ...) {
@@ -1164,16 +1170,25 @@ ENGINE_takeScreenshot(ENGINE* engine) {
   stbi_write_png("screenshot.png", canvas.width, canvas.height, 4, canvas.pixels, canvas.width * 4);
 }
 
+internal void
+ENGINE_reportErrorVariadic(ENGINE* engine, const char* line, va_list argList) {
+  if (line == NULL) {
+    return;
+  }
+  RENDER_VARIADIC_STRING(buffer, line, argList);
+  ENGINE_writeToLog(engine, buffer);
+  if (engine->debug.errorDialog) {
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+        "DOME - Error",
+        buffer,
+        NULL);
+  }
+}
 
 internal void
-ENGINE_reportError(ENGINE* engine) {
-  if (engine->debug.errorBuf != NULL) {
-    ENGINE_printLog(engine, engine->debug.errorBuf);
-    if (engine->debug.errorDialog) {
-      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                             "DOME - Error",
-                             engine->debug.errorBuf,
-                             NULL);
-    }
-  }
+ENGINE_reportError(ENGINE* engine, const char* line, ...) {
+  va_list args;
+  va_start(args, line);
+  ENGINE_reportErrorVariadic(engine, line, args);
+  va_end(args);
 }
