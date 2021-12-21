@@ -263,7 +263,7 @@ char* resolveEntryPath(ENGINE* engine, char* entryArgument, bool autoResolve) {
   }
 
   if (!engine->fused && !resolved) {
-    ENGINE_printLog(engine, "Error: Could not find an entry point at: %s\n", dirname(entryPath));
+    ENGINE_reportError(engine, "Error: Could not find an entry point at: %s\n", dirname(entryPath));
     printUsage(engine);
     return NULL;
   } else {
