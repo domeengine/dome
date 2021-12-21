@@ -182,6 +182,17 @@ printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "  -v --version        Show version.\n");
 }
 
+bool isPathAbsolute(const char* path) {
+#ifdef _WIN32
+  return (path[0] == '/' || (strlen(path) > 3 &&
+       isalpha(path[0]) &&
+       path[1] == ':' &&
+       (path[2] == '/' || path[2] == '\\')));
+#else
+  return (path[0] == '/');
+#endif
+}
+
 char* resolveEntryPath(ENGINE* engine, char* entryArgument, bool autoResolve) {
   char* defaultEggName = "game.egg";
   char* mainFileName = "main.wren";
@@ -195,7 +206,7 @@ char* resolveEntryPath(ENGINE* engine, char* entryArgument, bool autoResolve) {
   } else {
     if (entryArgument != NULL) {
       // Set the basepath according to the incoming argument
-      if (entryArgument[0] == '/') {
+      if (isPathAbsolute(entryArgument)) {
         strcpy(entryPath, entryArgument);
       } else {
         strcpy(entryPath, base);
