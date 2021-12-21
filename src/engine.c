@@ -1166,6 +1166,9 @@ ENGINE_takeScreenshot(ENGINE* engine) {
 
 internal void
 ENGINE_reportErrorVariadic(ENGINE* engine, const char* line, va_list argList) {
+  if (line == NULL) {
+    return;
+  }
   va_list args;
   va_copy(args, argList);
   size_t bufSize = vsnprintf(NULL, 0, line, args) + 1;
@@ -1188,10 +1191,8 @@ ENGINE_reportErrorVariadic(ENGINE* engine, const char* line, va_list argList) {
 
 internal void
 ENGINE_reportError(ENGINE* engine, const char* line, ...) {
-  if (line != NULL) {
-    va_list args;
-    va_start(args, line);
-    ENGINE_reportErrorVariadic(engine, line, args);
-    va_end(args);
-  }
+  va_list args;
+  va_start(args, line);
+  ENGINE_reportErrorVariadic(engine, line, args);
+  va_end(args);
 }
