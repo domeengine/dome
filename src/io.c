@@ -115,6 +115,20 @@ doesFileExist(char* path) {
   return access(path, F_OK) != -1;
 }
 
+internal bool
+isPathAbsolute(const char* path) {
+
+#ifdef _WIN32
+  return (path[0] == '/' || (strlen(path) > 3 &&
+       isalpha(path[0]) &&
+       path[1] == ':' &&
+       (path[2] == '/' || path[2] == '\\')));
+#else
+  return (path[0] == '/');
+#endif
+
+}
+
 internal int
 readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr, char** data) {
   // We assume the tar open has been done already
@@ -231,5 +245,4 @@ readEntireFile(char* path, size_t* lengthPtr, char** error) {
   fclose(file);
   return source;
 }
-
 

@@ -64,5 +64,8 @@ EMBED_perform(ENGINE* engine, char** argv) {
 
   int result = EMBED_encode(fileToConvert, length, moduleName, destination);
   free(fileToConvert);
+  if (shouldFree) {
+    free(destination);
+  }
   return result;
 }

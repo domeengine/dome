@@ -34,7 +34,7 @@ NEST_writeFile(ENGINE* engine, mtar_t* tar, char* filePath, char* tarPath) {
 
 internal int
 NEST_packDirectory(ENGINE* engine, mtar_t* tar, char* directory, size_t start) {
-  tinydir_dir dir;
+  INIT_TO_ZERO(tinydir_dir, dir);
   tinydir_open(&dir, directory);
 
   while (dir.has_next) {
