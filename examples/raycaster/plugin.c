@@ -1,9 +1,14 @@
 #include <string.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
 #include "sbuf.c"
+#ifndef M_PI
+#define M_PI (3.14159265358979323846264338327950288)
+#endif
+
 
 #include "domath.c"
 #include "dome.h"
