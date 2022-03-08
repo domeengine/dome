@@ -289,9 +289,12 @@ CANVAS_clip(WrenVM* vm) {
   int64_t y = round(wrenGetSlotDouble(vm, 2));
   int64_t w = round(wrenGetSlotDouble(vm, 3));
   int64_t h = round(wrenGetSlotDouble(vm, 4));
+
+  // We store the clip that the user requested, but we modify it
+  // so that it fits on screen
   DOME_RECT rect = {
-    .x = x,
-    .y = y,
+    .x = max(0, x),
+    .y = max(0, y),
     .w = min(width - x, w),
     .h = min(height - y, h)
   };
