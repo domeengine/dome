@@ -138,12 +138,21 @@ internal void VM_error(WrenVM* vm, WrenErrorType type, const char* module,
 internal const char*
 VM_resolve_module_name(WrenVM* vm, const char* importer, const char* name) {
   const char* localName = name;
+  bool matchesInternal = false;
+
   if (strlen(name) > 1) {
     while (localName[0] == '.' && localName[1] == '/') {
       localName = localName + 2;
     }
   }
-  return path_normalize(localName);
+  const char* normalized =  path_normalize(localName);
+  ENGINE* engine = wrenGetUserData(vm);
+  matchesInternal = strcmp(name, localName) != 0 && MAP_getModule(&(engine->moduleMap), normalized) != NULL;
+
+  if (matchesInternal) {
+    printf("WARNING: Module import path \"%s\" resolves to internal module \"%s\"\n", name, localName);
+  }
+  return normalized;
 }
 
 internal WrenVM* VM_create(ENGINE* engine) {
