@@ -150,7 +150,7 @@ VM_resolve_module_name(WrenVM* vm, const char* importer, const char* name) {
   matchesInternal = strcmp(name, localName) != 0 && MAP_getModule(&(engine->moduleMap), normalized) != NULL;
 
   if (matchesInternal) {
-    printf("WARNING: Module import path \"%s\" resolves to internal module \"%s\"\n", name, localName);
+    ENGINE_printLog(engine, "WARNING: Module import path \"%s\" resolves to internal module \"%s\"\n", name, localName);
   }
   return normalized;
 }
