@@ -24,6 +24,7 @@ Check out the documentation:
   * [Import Resolution](guides/module-imports)
   * [Game Loop Behaviour](guides/game-loop)
   * [Distributing your game](guides/distribution)
+  * [How to configure DOME](guides/use-dome)
 * [Native Plugins](plugins/)
 * Examples
   * [DOMEjam](https://itch.io/jam/domejam)
