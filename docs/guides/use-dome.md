@@ -18,7 +18,7 @@ It's recommended to keep your project contained within that directory
 
 ## Set up your window
 
-Most of DOME's engine settings can be accessed in the [`dome`]() module. This includes the `Window` which has a few useful settings to modify.
+Most of DOME's engine settings can be accessed in the [`dome`](/modules/dome) module. This includes the `Window` which has a few useful settings to modify.
 
 From this class, you can:
 
