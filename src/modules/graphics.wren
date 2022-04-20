@@ -5,6 +5,12 @@ class Canvas {
 
   static clip() { clip(0, 0, Canvas.width, Canvas.height) }
   foreign static clip(x, y, width, height)
+  static clip=(v) { clip(v.x, v.y, v.z, v.w) }
+  foreign static f_clip
+  static clip {
+    var rect = f_clip
+    return Vector.new(rect[0], rect[1], rect[2], rect[3])
+  }
 
   static font=(v) {
     if (v is String || v == Font.default) {

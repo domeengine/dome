@@ -24,8 +24,10 @@ This is the name of the default font used for `Canvas.print(str, x, y, color)`. 
 This is the height of the canvas/viewport, in pixels.
 #### `static width: Number`
 This is the width of the canvas/viewport, in pixels.
-#### `static offset : Vector`
-A vector representing the Canvas offset. You can both get and set this value
+#### `static offset: Vector`
+A vector representing the Canvas offset. You can both get and set this value.
+#### `static clip: Vector`
+A vector representing the Canvas clipping region. The `z` and `w` fields correspond to the width and height, respectively.
 
 ### Methods
 #### `static circle(x: Number, y: Number, r: Number, c: Color) `

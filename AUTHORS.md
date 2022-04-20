@@ -12,3 +12,4 @@ We'd like to thank the following people for their contributions.
   * Alexandru Badiu, aka voidberg [https://github.com/voidberg]
   * Aayush Kashyap [https://github.com/TheKing0x9]
   * Trevor Martin [https://github.com/trelemar]
+  * catsanddo [https://github.com/catsanddo]
