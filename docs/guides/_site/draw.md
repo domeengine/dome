@@ -86,7 +86,7 @@ image.draw(6, 7)
 ```
 
 DOME also supports scaling and rotation, as well as drawing sub-regions, and that can be achieved using 
-the [`ImageData.transform`](/modules/graphics#transformparametermap-drawable) method.
+the [`ImageData.transform`](/modules/graphics#transformparametermap-drawable method.
 
 
 
