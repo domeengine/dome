@@ -316,15 +316,18 @@ FILESYSTEM_fileExists(WrenVM* vm)
 {
 	ASSERT_SLOT_TYPE(vm, 1, STRING, "file path");
 	const char* path = wrenGetSlotString(vm, 1);
+	ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
 	
-	FILE* f = fopen(path, "rb");
+	size_t length;
+	char* data = ENGINE_readFile(engine, path, &length, NULL);
 	
-	if(f == NULL)
+	
+	if(data == NULL)
 	{
 		wrenSetSlotBool(vm, 0, false);
 		return;
 	}
-	fclose(f);
+	free(data);
 	wrenSetSlotBool(vm, 0, true);
 	return;
 }
