@@ -312,8 +312,7 @@ FILESYSTEM_createDirectory(WrenVM *vm) {
 }
 
 internal void
-FILESYSTEM_fileExists(WrenVM* vm)
-{
+FILESYSTEM_fileExists(WrenVM* vm) {
 	ASSERT_SLOT_TYPE(vm, 1, STRING, "file path");
 	const char* path = wrenGetSlotString(vm, 1);
 	ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
@@ -322,8 +321,7 @@ FILESYSTEM_fileExists(WrenVM* vm)
 	char* data = ENGINE_readFile(engine, path, &length, NULL);
 	
 	
-	if(data == NULL)
-	{
+	if(data == NULL) {
 		wrenSetSlotBool(vm, 0, false);
 		return;
 	}
