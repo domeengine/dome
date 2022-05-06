@@ -14,6 +14,7 @@ class FileSystem {
   foreign static prefPath(org, app)
   foreign static basePath()
   foreign static createDirectory(path)
+  foreign static fileExists(path)
 
   // @Unstable - DO NOT USE
   foreign static f_load(path, op)
