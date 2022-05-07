@@ -125,6 +125,66 @@ ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr, char** reas
   return readEntireFile(pathBuf, lengthPtr, reason);
 }
 
+internal bool
+ENGINE_fileExists(ENGINE* engine, const char* path) {
+ char pathBuf[PATH_MAX];
+
+ if (strncmp(path, "./", 2) == 0) {
+   strcpy(pathBuf, path + 2);
+ } else {
+   strcpy(pathBuf, path);
+ }
+ 
+ if (engine->tar != NULL) {
+   bool tarCheck = fileExistsInTar(engine->tar, pathBuf);
+   if (tarCheck) {
+     return true;
+   }
+ }
+ 
+ if (path[0] != '/') {
+   strcpy(pathBuf, BASEPATH_get());
+   strcat(pathBuf, path);
+ }
+ return doesFileExist(pathBuf);
+}
+
+internal int
+ENGINE_directoryExists(ENGINE* engine, const char* path) {
+ char pathBuf[PATH_MAX];
+
+ if (strncmp(path, "./", 2) == 0) {
+   strcpy(pathBuf, path + 2);
+ } else {
+   strcpy(pathBuf, path);
+ }
+ 
+ if (engine->tar != NULL) {
+   int tarCheck = directoryExistsInTar(engine->tar, pathBuf);
+   if (tarCheck) {
+     return 1;
+   }
+   bool fileTarCheck = fileExistsInTar(engine->tar, pathBuf);
+   if (fileTarCheck) {
+     return 2;
+   }
+ }
+ 
+ if (path[0] != '/') {
+   strcpy(pathBuf, BASEPATH_get());
+   strcat(pathBuf, path);
+ }
+ 
+ if (isDirectory(pathBuf)) {
+   return 1;
+ }
+ 
+ if (doesFileExist(pathBuf)) {
+   return 2;
+ }
+ return 0;
+}
+
 internal int
 ENGINE_taskHandler(ABC_TASK* task) {
   if (task->type == TASK_PRINT) {

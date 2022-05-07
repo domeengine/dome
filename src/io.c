@@ -179,6 +179,83 @@ readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr, char** data) {
   return err;
 }
 
+internal bool
+fileExistsInTar(mtar_t* tar, char* path) {
+  // We assume the tar open has been done already
+  int err;
+  mtar_header_t h;
+
+  char compatiblePath[PATH_MAX];
+
+  strcpy(compatiblePath, "./");
+  strcat(compatiblePath, path);
+
+  err = mtar_rewind(tar);
+  if (err != MTAR_ESUCCESS) {
+    return false;
+  }
+
+  while ((err = mtar_read_header(tar, &h)) == MTAR_ESUCCESS) {
+    // search for "<path>", "./<path>" and "/<path>"
+    // see https://github.com/domeengine/nest/pull/2
+    if (!strcmp(h.name, path) ||
+        !strcmp(h.name, compatiblePath) ||
+        !strcmp(h.name, compatiblePath + 1)) {
+      break;
+    }
+    err = mtar_next(tar);
+
+    if (err != MTAR_ESUCCESS) {
+      return false;
+    }
+  }
+
+  if (err != MTAR_ESUCCESS) {
+    return false;
+  }
+  return true;
+}
+
+internal bool
+directoryExistsInTar(mtar_t* tar, char* path) {
+  // We assume the tar open has been done already
+  int err;
+  mtar_header_t h;
+
+  char compatiblePath[PATH_MAX];
+
+  strcpy(compatiblePath, "./");
+  strcat(compatiblePath, path);
+
+  err = mtar_rewind(tar);
+  if (err != MTAR_ESUCCESS) {
+    return false;
+  }
+
+  while ((err = mtar_read_header(tar, &h)) == MTAR_ESUCCESS) {
+    // search for "<path>", "./<path>" and "/<path>"
+    // see https://github.com/domeengine/nest/pull/2
+    if (!strcmp(h.name, path) ||
+        !strcmp(h.name, compatiblePath) ||
+        !strcmp(h.name, compatiblePath + 1)) {
+      break;
+    }
+    if (h.type != MTAR_TDIR) {
+      return false;
+    }
+    err = mtar_next(tar);
+
+    if (err != MTAR_ESUCCESS) {
+      return false;
+    }
+  }
+
+  if (err != MTAR_ESUCCESS) {
+    return false;
+  }
+  return true;
+}
+
 internal int
 writeEntireFile(const char* path, const char* data, size_t length) {
   FILE* file = fopen(path, "wb+");
