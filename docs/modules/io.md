@@ -35,3 +35,13 @@ This is a blocking operation, and so execution will stop while the file is saved
 
 #### `static createDirectory(path: String): Void`
 Given a valid `path`, creates the directory, if it doesn't already exist and makes parent directories as needed.
+
+#### `static doesFileExist(path: String): Boolean`
+Checks if the path to the given file exists.
+
+#### `static createDirectory(path: String): Number`
+Checks if the path to the given directory exists.
+Return values
+* 0 means the directory does not exist
+* 1 means the directory exists
+* 2 means the path leads to A file
