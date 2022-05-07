@@ -272,7 +272,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.prefPath(_,_)", FILESYSTEM_getPrefPath);
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.basePath()", FILESYSTEM_getBasePath);
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.createDirectory(_)", FILESYSTEM_createDirectory);
-  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.fileExists(_)", FILESYSTEM_fileExists);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.doesFileExist(_)", FILESYSTEM_doesFileExist);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.doesDirectoryExist(_)", FILESYSTEM_doesDirectoryExist);
 
   // Buffer
   MAP_addClass(&engine->moduleMap, "io", "DataBuffer", DBUFFER_allocate, DBUFFER_finalize);
