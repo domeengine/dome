@@ -320,7 +320,7 @@ FILESYSTEM_doesFileExist(WrenVM* vm)
  
  bool fileCheck = ENGINE_fileExists(engine, path);
  
- wrenSetSlotBoolean(vm, 0, fileCheck);
+ wrenSetSlotBool(vm, 0, fileCheck);
  return;
 }
 
@@ -333,9 +333,9 @@ FILESYSTEM_doesDirectoryExist(WrenVM* vm)
  
  int dirCheck = ENGINE_directoryExists(engine, path);
  if (dirCheck != 1) {
-   wrenSetSlotBoolean(vm, 0, false);
+   wrenSetSlotBool(vm, 0, false);
    return;
  }
- wrenSetSlotBoolean(vm, 0, true);
+ wrenSetSlotBool(vm, 0, true);
  return;
 }
