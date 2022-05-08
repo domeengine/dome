@@ -135,13 +135,6 @@ ENGINE_fileExists(ENGINE* engine, const char* path) {
    strcpy(pathBuf, path);
  }
  
- if (engine->tar != NULL) {
-   bool tarCheck = fileExistsInTar(engine->tar, pathBuf);
-   if (tarCheck) {
-     return true;
-   }
- }
- 
  if (path[0] != '/') {
    strcpy(pathBuf, BASEPATH_get());
    strcat(pathBuf, path);
@@ -157,17 +150,6 @@ ENGINE_directoryExists(ENGINE* engine, const char* path) {
    strcpy(pathBuf, path + 2);
  } else {
    strcpy(pathBuf, path);
- }
- 
- if (engine->tar != NULL) {
-   int tarCheck = directoryExistsInTar(engine->tar, pathBuf);
-   if (tarCheck) {
-     return 1;
-   }
-   bool fileTarCheck = fileExistsInTar(engine->tar, pathBuf);
-   if (fileTarCheck) {
-     return 2;
-   }
  }
  
  if (path[0] != '/') {
