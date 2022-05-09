@@ -130,7 +130,7 @@ ENGINE_fileExists(ENGINE* engine, const char* path) {
  char pathBuf[PATH_MAX];
 
  pathBase(path, pathBuf);
- return (fileInfo(pathBuf) == 1) ? true : false;;
+ return (fileInfo(pathBuf) == 1) ? true : false;
 }
 
 internal bool
