@@ -302,6 +302,23 @@ CANVAS_clip(WrenVM* vm) {
 }
 
 internal void
+CANVAS_getClip(WrenVM* vm) {
+    ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+    DOME_RECT clip = engine->canvas.clip;
+
+    wrenEnsureSlots(vm, 2);
+    wrenSetSlotNewList(vm, 0);
+    wrenSetSlotDouble(vm, 1, clip.x);
+    wrenInsertInList(vm, 0, -1, 1);
+    wrenSetSlotDouble(vm, 1, clip.y);
+    wrenInsertInList(vm, 0, -1, 1);
+    wrenSetSlotDouble(vm, 1, clip.w);
+    wrenInsertInList(vm, 0, -1, 1);
+    wrenSetSlotDouble(vm, 1, clip.h);
+    wrenInsertInList(vm, 0, -1, 1);
+}
+
+internal void
 CANVAS_offset(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "x offset");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "y offset");
