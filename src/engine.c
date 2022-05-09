@@ -129,42 +129,17 @@ internal bool
 ENGINE_fileExists(ENGINE* engine, const char* path) {
  char pathBuf[PATH_MAX];
 
- if (strncmp(path, "./", 2) == 0) {
-   strcpy(pathBuf, path + 2);
- } else {
-   strcpy(pathBuf, path);
- }
- 
- if (path[0] != '/') {
-   strcpy(pathBuf, BASEPATH_get());
-   strcat(pathBuf, path);
- }
- return doesFileExist(pathBuf);
+ pathBase(path, pathBuf);
+ return (fileInfo(pathBuf) == 1) ? true : false;;
 }
 
-internal int
+internal bool
 ENGINE_directoryExists(ENGINE* engine, const char* path) {
  char pathBuf[PATH_MAX];
 
- if (strncmp(path, "./", 2) == 0) {
-   strcpy(pathBuf, path + 2);
- } else {
-   strcpy(pathBuf, path);
- }
+ pathBase(path, pathBuf);
  
- if (path[0] != '/') {
-   strcpy(pathBuf, BASEPATH_get());
-   strcat(pathBuf, path);
- }
- 
- if (isDirectory(pathBuf)) {
-   return 1;
- }
- 
- if (doesFileExist(pathBuf)) {
-   return 2;
- }
- return 0;
+ return (fileInfo(pathBuf) == 2) ? true : false;
 }
 
 internal int

@@ -129,6 +129,40 @@ isPathAbsolute(const char* path) {
 
 }
 
+internal void
+pathBase(const char* path, char* pathBuf)
+{
+ if (strncmp(path, "./", 2) == 0) {
+   strcpy(pathBuf, path + 2);
+ } else {
+   strcpy(pathBuf, path);
+ }
+ 
+ if (path[0] != '/') {
+   strcpy(pathBuf, BASEPATH_get());
+   strcat(pathBuf, path);
+ }
+}
+
+internal int
+fileInfo(const char* path)
+{
+ /*
+  Returns an integer
+  0 = No file or directory.
+  1 = Is file.
+  2 = Is directory.
+ */
+ if (isDirectory(path)) {
+   return 2;
+ }
+ 
+ if (doesFileExist(path)) {
+   return 1;
+ }
+ return 0;
+}
+
 internal int
 readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr, char** data) {
   // We assume the tar open has been done already
@@ -177,83 +211,6 @@ readFileFromTar(mtar_t* tar, char* path, size_t* lengthPtr, char** data) {
   }
 
   return err;
-}
-
-internal bool
-fileExistsInTar(mtar_t* tar, char* path) {
-  // We assume the tar open has been done already
-  int err;
-  mtar_header_t h;
-
-  char compatiblePath[PATH_MAX];
-
-  strcpy(compatiblePath, "./");
-  strcat(compatiblePath, path);
-
-  err = mtar_rewind(tar);
-  if (err != MTAR_ESUCCESS) {
-    return false;
-  }
-
-  while ((err = mtar_read_header(tar, &h)) == MTAR_ESUCCESS) {
-    // search for "<path>", "./<path>" and "/<path>"
-    // see https://github.com/domeengine/nest/pull/2
-    if (!strcmp(h.name, path) ||
-        !strcmp(h.name, compatiblePath) ||
-        !strcmp(h.name, compatiblePath + 1)) {
-      break;
-    }
-    err = mtar_next(tar);
-
-    if (err != MTAR_ESUCCESS) {
-      return false;
-    }
-  }
-
-  if (err != MTAR_ESUCCESS) {
-    return false;
-  }
-  return true;
-}
-
-internal bool
-directoryExistsInTar(mtar_t* tar, char* path) {
-  // We assume the tar open has been done already
-  int err;
-  mtar_header_t h;
-
-  char compatiblePath[PATH_MAX];
-
-  strcpy(compatiblePath, "./");
-  strcat(compatiblePath, path);
-
-  err = mtar_rewind(tar);
-  if (err != MTAR_ESUCCESS) {
-    return false;
-  }
-
-  while ((err = mtar_read_header(tar, &h)) == MTAR_ESUCCESS) {
-    // search for "<path>", "./<path>" and "/<path>"
-    // see https://github.com/domeengine/nest/pull/2
-    if (!strcmp(h.name, path) ||
-        !strcmp(h.name, compatiblePath) ||
-        !strcmp(h.name, compatiblePath + 1)) {
-      break;
-    }
-    if (h.type != MTAR_TDIR) {
-      return false;
-    }
-    err = mtar_next(tar);
-
-    if (err != MTAR_ESUCCESS) {
-      return false;
-    }
-  }
-
-  if (err != MTAR_ESUCCESS) {
-    return false;
-  }
-  return true;
 }
 
 internal int
