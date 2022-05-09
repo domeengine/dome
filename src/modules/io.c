@@ -331,11 +331,8 @@ FILESYSTEM_doesDirectoryExist(WrenVM* vm)
  const char* path = wrenGetSlotString(vm, 1);
  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
  
- int dirCheck = ENGINE_directoryExists(engine, path);
- if (dirCheck != 1) {
-   wrenSetSlotBool(vm, 0, false);
-   return;
- }
- wrenSetSlotBool(vm, 0, true);
+ bool dirCheck = ENGINE_directoryExists(engine, path);
+ 
+ wrenSetSlotBool(vm, 0, dirCheck);
  return;
 }
