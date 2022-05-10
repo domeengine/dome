@@ -125,6 +125,23 @@ ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr, char** reas
   return readEntireFile(pathBuf, lengthPtr, reason);
 }
 
+internal bool
+ENGINE_fileExists(ENGINE* engine, const char* path) {
+ char pathBuf[PATH_MAX];
+
+ pathBase(path, pathBuf);
+ return (fileInfo(pathBuf) == 1) ? true : false;
+}
+
+internal bool
+ENGINE_directoryExists(ENGINE* engine, const char* path) {
+ char pathBuf[PATH_MAX];
+
+ pathBase(path, pathBuf);
+ 
+ return (fileInfo(pathBuf) == 2) ? true : false;
+}
+
 internal int
 ENGINE_taskHandler(ABC_TASK* task) {
   if (task->type == TASK_PRINT) {

@@ -310,3 +310,29 @@ FILESYSTEM_createDirectory(WrenVM *vm) {
     VM_ABORT(vm, "Directory could not be created");
   }
 }
+
+internal void
+FILESYSTEM_doesFileExist(WrenVM* vm)
+{
+ ASSERT_SLOT_TYPE(vm, 1, STRING, "file path");
+ const char* path = wrenGetSlotString(vm, 1);
+ ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+ 
+ bool fileCheck = ENGINE_fileExists(engine, path);
+ 
+ wrenSetSlotBool(vm, 0, fileCheck);
+ return;
+}
+
+internal void
+FILESYSTEM_doesDirectoryExist(WrenVM* vm)
+{
+ ASSERT_SLOT_TYPE(vm, 1, STRING, "dir path");
+ const char* path = wrenGetSlotString(vm, 1);
+ ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+ 
+ bool dirCheck = ENGINE_directoryExists(engine, path);
+ 
+ wrenSetSlotBool(vm, 0, dirCheck);
+ return;
+}
