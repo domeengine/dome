@@ -22,22 +22,22 @@ Most of DOME's engine settings can be accessed in the [`dome`](/modules/dome) mo
 
 From this class, you can:
 
-* Change the window title
-* Resize the window
-* Enable fullscreen mode
-* Enable and disable VSync
-* Change Window background color
-* Control the game loop mode (enabling or disabling lockstep behaviour)
+* Change the window title ([`Window.title`](/modules/dome#static-title-string))
+* Resize the window([`Window.resize`](/modules/dome#static-resizewidth-number-height-number-void))
+* Enable fullscreen mode ([`Window.fullscreen`](/modules/dome#static-fullscreen-boolean))
+* Enable and disable VSync ([`Window.vsync`](/modules/dome#static-vsync-boolean))
+* Change Window background color ([`Window.color`](/modules/dome#static-color-color))
+* Configuring the gameloop mode ([`Window.lockstep`](/modules/dome#static-lockstep-boolean))
 
 ## Feature Management
 
 DOME strives to be backwards-compatible, but it is possible that your project relies on features from a version of DOME that 
 is newer than the version running the project. 
 
-In that case, you can use the `Version` class (found in the `dome` module) to test the currently running version, and assert that you 
+In that case, you can use the [`Version`](/modules/dome#version) class (found in the `dome` module) to test the currently running version, and assert that you 
 are at that minimum level.
 
-## Error Handling
+## Logging and Error Handling
 
 By default, DOME displays syntax errors and uncaught exceptions in a couple places for easy access:
  
@@ -45,7 +45,7 @@ By default, DOME displays syntax errors and uncaught exceptions in a couple plac
  * The message is printed out to a `DOME-log.out` file, placed in the same location as your `main.wren` file.
  * If possible, it also prints to `stdout`, but this is only visible on a terminal.
 
-For some, the OS dialog is quite obnoxious, so it can be disabled setting `Process.errorDialog` to `false`.
+For some, the OS dialog is obnoxious, so it can be disabled setting `Process.errorDialog` to `false`.
 
 
 
