@@ -10,7 +10,7 @@ Check out the documentation:
 * [Installation](installation)
 * [Getting Started](getting-started)
 * [FAQ](faq)
-* Guides
+* [Guides](guides)
   * [How to configure DOME](guides/use-dome)
   * [How to draw to the screen?](guides/draw)
   * [How to play sounds?](guides/audio)
