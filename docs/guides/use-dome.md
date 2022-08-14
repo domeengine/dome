@@ -25,14 +25,14 @@ From this class, you can:
 * Change the window title
 * Resize the window
 * Enable fullscreen mode
-* Stop using VSync
-* Change Window Color
+* Enable and disable VSync
+* Change Window background color
 * Control the game loop mode (enabling or disabling lockstep behaviour)
 
 ## Feature Management
 
 DOME strives to be backwards-compatible, but it is possible that your project relies on features from a version of DOME that 
-is newer than the version running things. 
+is newer than the version running the project. 
 
 In that case, you can use the `Version` class (found in the `dome` module) to test the currently running version, and assert that you 
 are at that minimum level.
