@@ -13,6 +13,8 @@ Check out the documentation:
 * Guides
   * [How to configure DOME](guides/use-dome)
   * [How to draw to the screen?](guides/draw)
+  * [How to play sounds?](guides/audio)
+  * [How to handle input?](guides/input)
   * [Import Resolution](guides/module-imports)
   * [Game Loop Behaviour](guides/game-loop)
   * [Distributing your game](guides/distribution)
