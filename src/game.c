@@ -259,6 +259,10 @@ int DOME_begin(ENGINE* engine, char* entryPath) {
     goto cleanup;
   }
 
+  const char* moduleName = strdup(entryPath);
+  char* end = strchr(moduleName, '.');
+  *end = '\0';
+
   result = ENGINE_start(engine);
   if (result == EXIT_FAILURE) {
     goto cleanup;
@@ -272,7 +276,7 @@ int DOME_begin(ENGINE* engine, char* entryPath) {
   // Load user game file
   WrenHandle* initMethod = NULL;
 
-  interpreterResult = wrenInterpret(vm, "main", gameFile);
+  interpreterResult = wrenInterpret(vm, moduleName, gameFile);
   free(gameFile);
   if (interpreterResult != WREN_RESULT_SUCCESS) {
     result = EXIT_FAILURE;
@@ -283,12 +287,12 @@ int DOME_begin(ENGINE* engine, char* entryPath) {
 
   wrenEnsureSlots(vm, 3);
   initMethod = wrenMakeCallHandle(vm, "init()");
-  if (!wrenHasVariable(vm, "main", "Game")) {
-    ENGINE_reportError(engine, "Error: Could not find a \"Game\" variable in \"main\" module.\n");
+  if (!wrenHasVariable(vm, moduleName, "Game")) {
+    ENGINE_reportError(engine, "Error: Could not find a \"Game\" variable in \"%s\" module.\n", moduleName);
     result = EXIT_FAILURE;
     goto vm_cleanup;
   }
-  wrenGetVariable(vm, "main", "Game", 0);
+  wrenGetVariable(vm, moduleName, "Game", 0);
   if (wrenGetSlotType(vm, 0) != WREN_TYPE_UNKNOWN) {
     ENGINE_reportError(engine, "Error: \"Game\" is not a valid type.\n");
     result = EXIT_FAILURE;
@@ -410,6 +414,7 @@ int DOME_begin(ENGINE* engine, char* entryPath) {
   }
 
 vm_cleanup:
+  free(moduleName);
   if (PLUGIN_COLLECTION_runHook(engine, DOME_PLUGIN_HOOK_SHUTDOWN) != DOME_RESULT_SUCCESS) {
     return EXIT_FAILURE;
   };
