@@ -283,7 +283,17 @@ int DOME_begin(ENGINE* engine, char* entryPath) {
 
   wrenEnsureSlots(vm, 3);
   initMethod = wrenMakeCallHandle(vm, "init()");
+  if (!wrenHasVariable(vm, "main", "Game")) {
+    ENGINE_reportError(engine, "Error: Could not find a \"Game\" variable in \"main\" module.\n");
+    result = EXIT_FAILURE;
+    goto vm_cleanup;
+  }
   wrenGetVariable(vm, "main", "Game", 0);
+  if (wrenGetSlotType(vm, 0) != WREN_TYPE_UNKNOWN) {
+    ENGINE_reportError(engine, "Error: \"Game\" is not a valid type.\n");
+    result = EXIT_FAILURE;
+    goto vm_cleanup;
+  }
   loop.gameClass = wrenGetSlotHandle(vm, 0);
   loop.updateMethod = wrenMakeCallHandle(vm, "update()");
   loop.drawMethod = wrenMakeCallHandle(vm, "draw(_)");
