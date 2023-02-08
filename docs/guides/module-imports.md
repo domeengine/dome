@@ -1,6 +1,6 @@
 [< Back](..)
 
-Importing User Modules
+Import Resolution
 ===================
 
 Wren allows scripts to import modules of reusable functionality specific to the embedding environment.
