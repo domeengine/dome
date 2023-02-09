@@ -111,7 +111,7 @@ isDirectory(const char *path) {
 }
 
 internal inline bool
-doesFileExist(char* path) {
+doesFileExist(const char* path) {
   return access(path, F_OK) != -1;
 }
 
@@ -137,7 +137,7 @@ pathBase(const char* path, char* pathBuf)
  } else {
    strcpy(pathBuf, path);
  }
- 
+
  if (path[0] != '/') {
    strcpy(pathBuf, BASEPATH_get());
    strcat(pathBuf, path);
@@ -156,7 +156,7 @@ fileInfo(const char* path)
  if (isDirectory(path)) {
    return 2;
  }
- 
+
  if (doesFileExist(path)) {
    return 1;
  }

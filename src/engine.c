@@ -100,7 +100,7 @@ ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr, char** reas
       return file;
     }
 
-    char* message =  mtar_strerror(err);
+    const char* message =  mtar_strerror(err);
     if (DEBUG_MODE) {
       ENGINE_printLog(engine, "Couldn't read %s from bundle: %s. Falling back\n", pathBuf, message);
     }
@@ -138,7 +138,7 @@ ENGINE_directoryExists(ENGINE* engine, const char* path) {
  char pathBuf[PATH_MAX];
 
  pathBase(path, pathBuf);
- 
+
  return (fileInfo(pathBuf) == 2) ? true : false;
 }
 

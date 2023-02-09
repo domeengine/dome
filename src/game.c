@@ -259,7 +259,7 @@ int DOME_begin(ENGINE* engine, char* entryPath) {
     goto cleanup;
   }
 
-  const char* moduleName = strdup(entryPath);
+  char* moduleName = strdup(entryPath);
   char* end = strchr(moduleName, '.');
   *end = '\0';
 
