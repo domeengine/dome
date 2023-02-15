@@ -11,6 +11,9 @@ class Vector {
   construct new(x, y, z, w) {
     init_(x, y, z, w)
   }
+  static fromHash(z) {
+    return Elegant.unpair(z)
+  }
 
   init_(x, y, z, w) {
     _x = x

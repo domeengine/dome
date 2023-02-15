@@ -108,6 +108,9 @@ The `Vector` class works as a vector of up to 4 dimensions. You can also refer t
 Create a vector. If a value isn't provided, it is set to `(0, 0, 0, 0)`.
 Unless you specifically need 3 or 4-dimensional vectors, you can ignore _z_ and _w_.
 
+#### `Vector.fromHash(z: Number): Vector`
+Reverses an `Elegant` pairing to produce the corresponding vector.
+
 ### Instance Fields
 #### `x: Number`
 #### `y: Number`
