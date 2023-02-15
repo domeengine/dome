@@ -91,7 +91,7 @@ class Math {
     }
     return b.min(c)
   }
-  
+
   static clamp(number, min, max) {
     assertNum(number)
     assertNum(min)
@@ -151,7 +151,6 @@ var HexToNum = Fn.new {|hex|
 
 // Expose a shorthand name for the class
 var M = Math
-
-import "vector" for Vector
+import "vector" for Vector, Elegant
 var Point = Vector
 var Vec = Vector

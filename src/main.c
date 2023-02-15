@@ -133,6 +133,8 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "modules/platform.c"
 #include "modules/random.c"
 #include "modules/plugin.c"
+#include "modules/math.c"
+
 // Comes last to register modules
 #include "vm.c"
 #include "game.c"

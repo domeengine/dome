@@ -7,8 +7,28 @@ The `math` module provides utilities for performing mathematical calculations.
 
 It contains the following classes:
 
+* [Elegant](#elegant)
 * [Math](#math)
 * [Vector](#vector)
+
+## Elegant
+
+The `Elegant` class supplies a useful utility for combining (or "hashing") pairs of integers, based on ["An Elegant Pairing Method"](http://szudzik.com/ElegantPairing.pdf) by Matthew Szudzik
+This version also supports negative integers.
+
+### Static Methods
+
+#### `pair(vec: Vector): Number`
+Pairs the `x` and `y` of `vec` into a single result.
+
+#### `pair(x: Number, y: Number): Number`
+Pairs the `x` and `y` into a single result.
+
+#### `unpair(z: Number): Vector`
+Reverses the value `z` into a vector `(x, y)`.
+
+#### `unpairAsList(z: Number): List<Number>`
+Reverses the value `z` into a list `[ x, y ]`.
 
 ## Math
 
@@ -105,6 +125,9 @@ Returns the 2D vector perpendicular to the current vector. This doesn't work for
 
 #### `unit: Vector`
 Returns a copy of the current vector, where it's arguments have been scaled such that it's length is 1.
+
+#### `hash: Number`
+Uses the `Elegant` algorithm to pair the `x` and `y` coordinates. This can be reversed with `Elegant.unpair(_)`.
 
 
 ### Instance Methods
