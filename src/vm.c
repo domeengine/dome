@@ -348,9 +348,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_lockModule(&engine->moduleMap, "random");
 
   // Math
-  MAP_addFunction(&engine->moduleMap, "math", "static Elegant.pair(_,_)", MATH_pair);
-  MAP_addFunction(&engine->moduleMap, "math", "static Elegant.unpair_i(_)", MATH_unpair);
-  MAP_lockModule(&engine->moduleMap, "math");
+  MAP_addFunction(&engine->moduleMap, "vector", "static Elegant.pair(_,_)", MATH_pair);
+  MAP_addFunction(&engine->moduleMap, "vector", "static Elegant.unpair_i(_)", MATH_unpair);
+  MAP_lockModule(&engine->moduleMap, "vector");
 
   engine->vm = vm;
 

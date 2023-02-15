@@ -126,7 +126,7 @@ class Vector {
 class Elegant {
   static pair(vec) {
     if (vec is Vector) {
-      pair(vec.x, vec.y)
+      return pair(vec.x.floor, vec.y.floor)
     } else {
       Fiber.abort("Elegant.pair: %(vec) was not a vector.")
     }
@@ -140,7 +140,7 @@ class Elegant {
   }
   static unpair(z) {
     var res = unpair_i(z)
-    return Vec.new(res[0], res[1])
+    return Vector.new(res[0], res[1])
   }
 }
 
