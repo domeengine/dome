@@ -284,8 +284,8 @@ class InputGroup {
   repeating { _repeating }
   repeating=(v) { _repeating = v }
 
-  initialFrequency { _initialFreq }
-  initialFrequency=(v) { _initialFreq = v }
+  threshold { _initialFreq }
+  threshold=(v) { _initialFreq = v }
   frequency { _freq }
   frequency=(v) { _freq = v }
 
