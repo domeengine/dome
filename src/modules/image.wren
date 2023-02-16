@@ -93,5 +93,51 @@ foreign class ImageData is Drawable {
   pget(x, y) { Color.fromNum(f_pget(x, y)) }
 }
 
-import "color" for Color
+class ImageSheet {
+
+  construct new(path, tileSize) {
+    setup(path, tileSize, 1)
+  }
+
+  construct new(path, tileSize, scale) {
+    setup(path, tileSize, scale)
+  }
+
+  setup(path, tileSize, scale) {
+    _image = ImageData.loadFromFile(path)
+    _tSize = tileSize
+    if (_image.width % _tSize != 0) {
+      Fiber.abort("Image is not an integer number of tiles wide")
+    }
+    _width = _image.width / _tSize
+    _scale = scale
+    _fg = null
+    _bg = null
+    _cache = {}
+  }
+
+  draw(s, x, y) { getTile(s).draw(x, y) }
+
+  getTile(s) {
+    if (!_cache[s]) {
+      var sy = (s / _width).floor * _tSize
+      var sx = (s % _width).floor * _tSize
+
+      var transform = _image.transform({
+        "srcX": sx, "srcY": sy,
+        "srcW": _tSize, "srcH": _tSize,
+        "mode": _fg ? "MONO" : "RGBA",
+        "scaleX": _scale,
+        "scaleY": _scale,
+        "foreground": _fg || White,
+        "background": _bg || None
+      })
+      _cache[s] = transform
+    }
+
+    return _cache[s]
+  }
+}
+
+import "color" for Color, None, White
 import "io" for FileSystem
