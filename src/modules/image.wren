@@ -107,6 +107,12 @@ foreign class ImageData is Drawable {
 }
 
 class SpriteSheet {
+  static fromImage(image, tileSize) {
+    return SpriteSheet.new(image, tileSize, 1)
+  }
+  static fromImage(image, tileSize, scale)  {
+    return SpriteSheet.new(image, tileSize, scale)
+  }
 
   static loadFromFile(path, tileSize, scale) {
     var image = ImageData.loadFromFile(path)
