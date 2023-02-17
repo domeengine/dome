@@ -19,7 +19,7 @@ class Canvas {
       Fiber.abort("Default font must be a font name")
     }
   }
-  
+
   static font { __defaultFont }
 
   foreign static f_resize(width, height, color)
@@ -184,17 +184,17 @@ class Canvas {
     }
     f_cls(color.toNum)
   }
-  
+
   foreign static width
   foreign static height
 
   static draw(object, x, y) {
     object.draw(x, y)
   }
-  
+
   foreign static offsetX
   foreign static offsetY
-  
+
   static offset { Vector.new (offsetX, offsetY) }
   static offset=(v) { offset(v.x, v.y) }
 }
@@ -202,7 +202,7 @@ class Canvas {
 
 // These need to be at the bottom to prevent cyclic dependancy
 import "color" for Color
-import "image" for Drawable, ImageData
+import "image" for Drawable, ImageData, SpriteSheet
 import "vector" for Point, Vec, Vector
 import "font" for Font, RasterizedFont
 

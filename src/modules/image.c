@@ -143,137 +143,134 @@ DRAW_COMMAND_execute(ENGINE* engine, DRAW_COMMAND* commandPtr) {
   }
 }
 
+internal void
+DRAW_COMMAND_configure(WrenVM* vm, DRAW_COMMAND* command, int mapSlot, int valueSlot) {
+  bool contains;
+  wrenEnsureSlots(vm, max(valueSlot, mapSlot) + 1);
+
+  wrenSetSlotString(vm, valueSlot, "angle");
+  contains = wrenGetMapContainsKey(vm, mapSlot, valueSlot);
+  if (contains) {
+    wrenGetMapValue(vm, mapSlot, valueSlot, valueSlot);
+    ASSERT_SLOT_TYPE(vm, valueSlot, NUM, "angle");
+    command->angle = wrenGetSlotDouble(vm, valueSlot);
+  }
+
+  wrenSetSlotString(vm, valueSlot, "scaleX");
+  contains = wrenGetMapContainsKey(vm, mapSlot, valueSlot);
+  if (contains) {
+    wrenGetMapValue(vm, mapSlot, valueSlot, valueSlot);
+    ASSERT_SLOT_TYPE(vm, valueSlot, NUM, "scale.x");
+    command->scale.x = wrenGetSlotDouble(vm, valueSlot);
+  }
+
+  wrenSetSlotString(vm, valueSlot, "scaleY");
+  contains = wrenGetMapContainsKey(vm, mapSlot, valueSlot);
+  if (contains) {
+    wrenGetMapValue(vm, mapSlot, valueSlot, valueSlot);
+    ASSERT_SLOT_TYPE(vm, valueSlot, NUM, "scale.y");
+    command->scale.y = wrenGetSlotDouble(vm, valueSlot);
+  }
+
+  wrenSetSlotString(vm, valueSlot, "srcX");
+  contains = wrenGetMapContainsKey(vm, mapSlot, valueSlot);
+  if (contains) {
+    wrenGetMapValue(vm, mapSlot, valueSlot, valueSlot);
+    ASSERT_SLOT_TYPE(vm, valueSlot, NUM, "source X");
+    command->src.x = wrenGetSlotDouble(vm, valueSlot);
+  }
+
+  wrenSetSlotString(vm, valueSlot, "srcY");
+  contains = wrenGetMapContainsKey(vm, mapSlot, valueSlot);
+  if (contains) {
+    wrenGetMapValue(vm, mapSlot, valueSlot, valueSlot);
+    ASSERT_SLOT_TYPE(vm, valueSlot, NUM, "source Y");
+    command->src.y = wrenGetSlotDouble(vm, valueSlot);
+  }
+
+  wrenSetSlotString(vm, valueSlot, "srcW");
+  contains = wrenGetMapContainsKey(vm, mapSlot, valueSlot);
+  if (contains) {
+    wrenGetMapValue(vm, mapSlot, valueSlot, valueSlot);
+    ASSERT_SLOT_TYPE(vm, valueSlot, NUM, "source width");
+    command->srcW = wrenGetSlotDouble(vm, valueSlot);
+  }
+
+  wrenSetSlotString(vm, valueSlot, "srcH");
+  contains = wrenGetMapContainsKey(vm, mapSlot, valueSlot);
+  if (contains) {
+    wrenGetMapValue(vm, mapSlot, valueSlot, valueSlot);
+    ASSERT_SLOT_TYPE(vm, valueSlot, NUM, "source height");
+    command->srcH = wrenGetSlotDouble(vm, valueSlot);
+  }
+
+  wrenSetSlotString(vm, valueSlot, "mode");
+  contains = wrenGetMapContainsKey(vm, mapSlot, valueSlot);
+  if (contains) {
+    wrenGetMapValue(vm, mapSlot, valueSlot, valueSlot);
+    ASSERT_SLOT_TYPE(vm, valueSlot, STRING, "color mode");
+    const char* mode = wrenGetSlotString(vm, valueSlot);
+    if (STRINGS_EQUAL(mode, "MONO")) {
+      command->mode = COLOR_MODE_MONO;
+    } else {
+      command->mode = COLOR_MODE_RGBA;
+    }
+  }
+
+  wrenSetSlotString(vm, valueSlot, "foreground");
+  contains = wrenGetMapContainsKey(vm, mapSlot, valueSlot);
+  if (contains) {
+    wrenGetMapValue(vm, mapSlot, valueSlot, valueSlot);
+    ASSERT_SLOT_TYPE(vm, valueSlot, NUM, "foreground color");
+    command->foregroundColor = wrenGetSlotDouble(vm, valueSlot);
+  }
+  wrenSetSlotString(vm, valueSlot, "background");
+  contains = wrenGetMapContainsKey(vm, mapSlot, valueSlot);
+  if (contains) {
+    wrenGetMapValue(vm, mapSlot, valueSlot, valueSlot);
+    ASSERT_SLOT_TYPE(vm, valueSlot, NUM, "background color");
+    command->backgroundColor = wrenGetSlotDouble(vm, valueSlot);
+  }
+  wrenSetSlotString(vm, valueSlot, "opacity");
+  contains = wrenGetMapContainsKey(vm, mapSlot, valueSlot);
+  if (contains) {
+    wrenGetMapValue(vm, mapSlot, valueSlot, valueSlot);
+    ASSERT_SLOT_TYPE(vm, valueSlot, NUM, "opacity");
+    command->opacity = wrenGetSlotDouble(vm, valueSlot);
+  }
+
+  wrenSetSlotString(vm, valueSlot, "tint");
+  contains = wrenGetMapContainsKey(vm, mapSlot, valueSlot);
+  if (contains) {
+    wrenGetMapValue(vm, mapSlot, valueSlot, valueSlot);
+    ASSERT_SLOT_TYPE(vm, valueSlot, NUM, "tint color");
+    command->tintColor = wrenGetSlotDouble(vm, valueSlot);
+  }
+}
 
 internal void
 DRAW_COMMAND_allocate(WrenVM* vm) {
   wrenEnsureSlots(vm, 4);
   ASSERT_SLOT_TYPE(vm, 1, FOREIGN, "image");
   ASSERT_SLOT_TYPE(vm, 2, MAP, "parameters");
-  bool contains;
-
 
   DRAW_COMMAND* command = (DRAW_COMMAND*)wrenSetSlotNewForeign(vm,
       0, 0, sizeof(DRAW_COMMAND));
 
   IMAGE* image = wrenGetSlotForeign(vm, 1);
   *command = DRAW_COMMAND_init(image);
-
-  wrenSetSlotString(vm, 3, "angle");
-  contains = wrenGetMapContainsKey(vm, 2, 3);
-  if (contains) {
-    wrenGetMapValue(vm, 2, 3, 3);
-    ASSERT_SLOT_TYPE(vm, 3, NUM, "angle");
-    command->angle = wrenGetSlotDouble(vm, 3);
-  } else {
-    command->angle = 0;
-  }
-
-  wrenSetSlotString(vm, 3, "scaleX");
-  contains = wrenGetMapContainsKey(vm, 2, 3);
-  if (contains) {
-    wrenGetMapValue(vm, 2, 3, 3);
-    ASSERT_SLOT_TYPE(vm, 3, NUM, "scale.x");
-    command->scale.x = wrenGetSlotDouble(vm, 3);
-  } else {
-    command->scale.x = 1;
-  }
-
-  wrenSetSlotString(vm, 3, "scaleY");
-  contains = wrenGetMapContainsKey(vm, 2, 3);
-  if (contains) {
-    wrenGetMapValue(vm, 2, 3, 3);
-    ASSERT_SLOT_TYPE(vm, 3, NUM, "scale.y");
-    command->scale.y = wrenGetSlotDouble(vm, 3);
-  } else {
-    command->scale.y = 1;
-  }
-
-
-
-  wrenSetSlotString(vm, 3, "srcX");
-  contains = wrenGetMapContainsKey(vm, 2, 3);
-  if (contains) {
-    wrenGetMapValue(vm, 2, 3, 3);
-    ASSERT_SLOT_TYPE(vm, 3, NUM, "source X");
-    command->src.x = wrenGetSlotDouble(vm, 3);
-  } else {
-    command->src.x = 0;
-  }
-
-  wrenSetSlotString(vm, 3, "srcY");
-  contains = wrenGetMapContainsKey(vm, 2, 3);
-  if (contains) {
-    wrenGetMapValue(vm, 2, 3, 3);
-    ASSERT_SLOT_TYPE(vm, 3, NUM, "source Y");
-    command->src.y = wrenGetSlotDouble(vm, 3);
-  } else {
-    command->src.y = 0;
-  }
-
-  wrenSetSlotString(vm, 3, "srcW");
-  contains = wrenGetMapContainsKey(vm, 2, 3);
-  if (contains) {
-    wrenGetMapValue(vm, 2, 3, 3);
-    ASSERT_SLOT_TYPE(vm, 3, NUM, "source width");
-    command->srcW = wrenGetSlotDouble(vm, 3);
-  } else {
-    command->srcW = image->width;
-  }
-
-  wrenSetSlotString(vm, 3, "srcH");
-  contains = wrenGetMapContainsKey(vm, 2, 3);
-  if (contains) {
-    wrenGetMapValue(vm, 2, 3, 3);
-    ASSERT_SLOT_TYPE(vm, 3, NUM, "source height");
-    command->srcH = wrenGetSlotDouble(vm, 3);
-  } else {
-    command->srcH = image->height;
-  }
-
-  wrenSetSlotString(vm, 3, "mode");
-  contains = wrenGetMapContainsKey(vm, 2, 3);
-  command->mode = COLOR_MODE_RGBA;
-  if (contains) {
-    wrenGetMapValue(vm, 2, 3, 3);
-    ASSERT_SLOT_TYPE(vm, 3, STRING, "color mode");
-    const char* mode = wrenGetSlotString(vm, 3);
-    if (STRINGS_EQUAL(mode, "MONO")) {
-      command->mode = COLOR_MODE_MONO;
-    }
-  }
-
-  wrenSetSlotString(vm, 3, "foreground");
-  contains = wrenGetMapContainsKey(vm, 2, 3);
-  if (contains) {
-    wrenGetMapValue(vm, 2, 3, 3);
-    ASSERT_SLOT_TYPE(vm, 3, NUM, "foreground color");
-    command->foregroundColor = wrenGetSlotDouble(vm, 3);
-  }
-  wrenSetSlotString(vm, 3, "background");
-  contains = wrenGetMapContainsKey(vm, 2, 3);
-  if (contains) {
-    wrenGetMapValue(vm, 2, 3, 3);
-    ASSERT_SLOT_TYPE(vm, 3, NUM, "background color");
-    command->backgroundColor = wrenGetSlotDouble(vm, 3);
-  }
-  wrenSetSlotString(vm, 3, "opacity");
-  contains = wrenGetMapContainsKey(vm, 2, 3);
-  if (contains) {
-    wrenGetMapValue(vm, 2, 3, 3);
-    ASSERT_SLOT_TYPE(vm, 3, NUM, "opacity");
-    command->opacity = wrenGetSlotDouble(vm, 3);
-  } else {
-    command->opacity = 1;
-  }
-
-  wrenSetSlotString(vm, 3, "tint");
-  contains = wrenGetMapContainsKey(vm, 2, 3);
-  if (contains) {
-    wrenGetMapValue(vm, 2, 3, 3);
-    ASSERT_SLOT_TYPE(vm, 3, NUM, "tint color");
-    command->tintColor = wrenGetSlotDouble(vm, 3);
-  }
+  DRAW_COMMAND_configure(vm, command, 2, 3);
 }
+
+internal void
+DRAW_COMMAND_modify(WrenVM* vm) {
+  wrenEnsureSlots(vm, 3);
+  ASSERT_SLOT_TYPE(vm, 1, MAP, "parameters");
+
+  DRAW_COMMAND* command = wrenGetSlotForeign(vm, 0);
+  DRAW_COMMAND_configure(vm, command, 1, 2);
+}
+
 
 internal void
 DRAW_COMMAND_finalize(void* data) {

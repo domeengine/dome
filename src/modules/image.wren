@@ -13,6 +13,19 @@ foreign class DrawCommand is Drawable {
   }
 
   foreign draw(x, y)
+  foreign f_modify(modify, empty)
+  modify(map) {
+    if (map.containsKey("foreground")) {
+      map["foreground"] = (map["foreground"] || Color.white).toNum
+    }
+    if (map.containsKey("background")) {
+      map["background"] = (map["background"] || Color.black).toNum
+    }
+    if (map.containsKey("tint")) {
+      map["tint"] = (map["tint"] || Color.none).toNum
+    }
+    return f_modify(map, null)
+  }
 }
 
 
@@ -93,18 +106,26 @@ foreign class ImageData is Drawable {
   pget(x, y) { Color.fromNum(f_pget(x, y)) }
 }
 
-class ImageSheet {
+class SpriteSheet {
 
-  construct new(path, tileSize) {
-    setup(path, tileSize, 1)
+  static loadFromFile(path, tileSize, scale) {
+    var image = ImageData.loadFromFile(path)
+    return SpriteSheet.new(image, tileSize, scale)
+  }
+  static loadFromFile(path, tileSize) {
+    return SpriteSheet.loadFromFile(path, tileSize, 1)
   }
 
-  construct new(path, tileSize, scale) {
-    setup(path, tileSize, scale)
+  construct new(image, tileSize) {
+    setup(image, tileSize, 1)
   }
 
-  setup(path, tileSize, scale) {
-    _image = ImageData.loadFromFile(path)
+  construct new(image, tileSize, scale) {
+    setup(image, tileSize, scale)
+  }
+
+  setup(image, tileSize, scale) {
+    _image = image
     _tSize = tileSize
     if (_image.width % _tSize != 0) {
       Fiber.abort("Image is not an integer number of tiles wide")
@@ -112,11 +133,9 @@ class ImageSheet {
     _width = _image.width / _tSize
     _scale = scale
     _fg = null
-    _bg = null
+    _bg = None
     _cache = {}
   }
-
-  draw(s, x, y) { getTile(s).draw(x, y) }
 
   getTile(s) {
     if (!_cache[s]) {
@@ -137,7 +156,23 @@ class ImageSheet {
 
     return _cache[s]
   }
+
+  draw(s, x, y) {
+    getTile(s).modify({
+      "foreground": _fg || White,
+      "background": _bg || None
+    }).draw(x, y)
+  }
+
+  fg=(v) { _fg = v }
+  fg { _fg }
+  bg=(v) { _bg = v }
+  bg { _bg }
 }
+
+// Aliases
+var Bitmap = ImageData
+var Image = ImageData
 
 import "color" for Color, None, White
 import "io" for FileSystem
