@@ -142,7 +142,7 @@ class SpriteSheet {
       var sy = (s / _width).floor * _tSize
       var sx = (s % _width).floor * _tSize
 
-      var transform = _image.transform({
+      _cache[s] = _image.transform({
         "srcX": sx, "srcY": sy,
         "srcW": _tSize, "srcH": _tSize,
         "mode": _fg ? "MONO" : "RGBA",
@@ -151,7 +151,6 @@ class SpriteSheet {
         "foreground": _fg || White,
         "background": _bg || None
       })
-      _cache[s] = transform
     }
 
     return _cache[s]
