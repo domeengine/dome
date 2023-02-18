@@ -9,6 +9,7 @@ class Input {
 class DigitalInput {
   construct init() {
     _down = false
+    _wasDown = false
     _current = false
     _previous = false
     _repeats = 0
@@ -16,7 +17,8 @@ class DigitalInput {
 
   commit() {
     _previous = _down
-    _down = _current
+    _down = _current || _wasDown
+    _wasDown = false
     if (_down && _previous == _down) {
       _repeats = _repeats + 1
     } else {
@@ -26,10 +28,12 @@ class DigitalInput {
 
   update(state) {
     _current = state
+    _wasDown = _wasDown || _current
   }
 
   reset() {
     _down = false
+    _wasDown = false
     commit()
   }
   repeat() {
