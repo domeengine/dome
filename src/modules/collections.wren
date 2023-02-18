@@ -41,49 +41,38 @@ class Set {
   count { _map.count }
 
   has(value) {
-    var hash = value
-    if (value is Hashable) {
-      hash = value.hash()
-    }
-
-    if (hash != null && !HashableTypes.any {|type| hash is type }) {
-      Fiber.abort("Set: %(value) could not be hashed.")
-    }
-
-    return _map.containsKey(hash)
+   var hash = hashValue(value)
+   return _map.containsKey(hash)
   }
 
   remove(value) {
-    var hash = value
-    if (value is Hashable) {
-      hash = value.hash()
-    }
-    if (hash != null && !HashableTypes.any {|type| hash is type }) {
-      Fiber.abort("Set: %(value) could not be hashed.")
-    }
+    var hash = hashValue(value)
     return _map.remove(hash)
   }
 
   get(value) {
-    var hash = value
-    if (value is Hashable) {
-      hash = value.hash()
-    }
-    if (hash != null && !HashableTypes.any {|type| hash is type }) {
-      Fiber.abort("Set: %(value) could not be hashed.")
-    }
+    var hash = hashValue(value)
     return _map[hash]
   }
 
   add(value) {
-    var hash = value
-    if (value is Hashable) {
-      hash = value.hash()
-    }
-    if (hash != null && !HashableTypes.any {|type| hash is type }) {
-      Fiber.abort("Set: %(value) could not be hashed.")
-    }
+    var hash = hashValue(value)
     _map[hash] = value
+  }
+
+  hashValue(v) {
+    var hash = v
+    if (hash != null && !HashableTypes.any {|type| hash is type }) {
+      var fiber = Fiber.new {
+        return v.hash()
+      }
+      hash = fiber.try()
+      if (fiber.error != null || (hash != null && !HashableTypes.any {|type| hash is type })) {
+        Fiber.abort("Set: %(v) could not be hashed. %(fiber.error)")
+      }
+    }
+    return hash
+
   }
 
   list() { _list[0..-1] }
