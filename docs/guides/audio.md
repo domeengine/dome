@@ -3,7 +3,7 @@
 How to play sounds?
 ==========================
 
-DOME supports playback of audio files in OGG and WAV formats. It will convert
+DOME supports playback of audio files in OGG, MP3, FLAC and WAV formats. It will convert
 all files to its native sample rate of 44.1kHz (CD quality audio), but the
 re-sampling algorithm used is naive and may introduce audio artifacts. It is
 recommended that you produce your audio with a 44.1kHz sample-rate, for the

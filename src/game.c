@@ -76,6 +76,7 @@ DOME_processInput(LOOP_STATE* state) {
             ENGINE_takeScreenshot(engine);
           } else if (event.key.repeat == 0) {
             char* buttonName = strToLower((char*)SDL_GetKeyName(keyCode));
+            printf("%s %i %i\n", buttonName, event.key.repeat, event.key.state);
             interpreterResult = INPUT_update(vm, DOME_INPUT_KEYBOARD, buttonName, event.key.state == SDL_PRESSED);
             free(buttonName);
             if (interpreterResult != WREN_RESULT_SUCCESS) {

@@ -39,9 +39,23 @@ AUDIO_allocate(WrenVM* vm) {
     data->spec.channels = channelsInFile;
     data->spec.freq = freq;
     data->spec.format = AUDIO_F32LSB;
-  } else if (true) {
+  } else if (strncmp(fileBuffer, "fLaC", 4) == 0) {
+    data->audioType = AUDIO_TYPE_FLAC;
+    unsigned int channelsInFile = 0;
+    unsigned int freq = 0;
+    drflac_uint64 totalFrameCount;
+    tempBuffer = drflac_open_memory_and_read_pcm_frames_s16(fileBuffer, length, &channelsInFile, &freq, &totalFrameCount, NULL);
+    if (tempBuffer == NULL) {
+      VM_ABORT(vm, "Invalid FLAC file");
+      return;
+    }
+
+    data->spec.channels = channelsInFile;
+    data->spec.freq = freq;
+    data->spec.format = AUDIO_F32LSB;
+    data->length = totalFrameCount;
+  } else if (strncmp(fileBuffer, "ID3", 3) == 0) {
     data->audioType = AUDIO_TYPE_MP3;
-    drmp3_open_memory_and_read_pcm_frames_s16(const void* pData, size_t dataSize, drmp3_config* pConfig, drmp3_uint64* pTotalFrameCount, const drmp3_allocation_callbacks* pAllocationCallbacks)
     drmp3_config config = { 0 };
     drmp3_uint64 totalFrameCount;
     tempBuffer = drmp3_open_memory_and_read_pcm_frames_s16(fileBuffer, length, &config, &totalFrameCount, NULL);
@@ -98,7 +112,10 @@ internal void
 AUDIO_finalize(void* data) {
   AUDIO_DATA* audioData = (AUDIO_DATA*)data;
   if (audioData->buffer != NULL) {
-    if (audioData->audioType == AUDIO_TYPE_WAV || audioData->audioType == AUDIO_TYPE_OGG || audioData->audioType == AUDIO_TYPE_MP3) {
+    if (audioData->audioType == AUDIO_TYPE_WAV
+        || audioData->audioType == AUDIO_TYPE_OGG
+        || audioData->audioType == AUDIO_TYPE_FLAC
+        || audioData->audioType == AUDIO_TYPE_MP3) {
       free(audioData->buffer);
     }
     audioData->buffer = NULL;
