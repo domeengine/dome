@@ -13,7 +13,7 @@ It contains the following classes:
 
 ## Elegant
 
-The `Elegant` class supplies a useful utility for combining (or "hashing") pairs of integers, based on ["An Elegant Pairing Method"](http://szudzik.com/ElegantPairing.pdf) by Matthew Szudzik
+The `Elegant` class supplies a useful utility for combining pairs of integers, based on ["An Elegant Pairing Method"](http://szudzik.com/ElegantPairing.pdf) by Matthew Szudzik
 This version also supports negative integers.
 
 ### Static Methods
@@ -108,7 +108,7 @@ The `Vector` class works as a vector of up to 4 dimensions. You can also refer t
 Create a vector. If a value isn't provided, it is set to `(0, 0, 0, 0)`.
 Unless you specifically need 3 or 4-dimensional vectors, you can ignore _z_ and _w_.
 
-#### `Vector.fromHash(z: Number): Vector`
+#### `Vector.fromPair(z: Number): Vector`
 Reverses an `Elegant` pairing to produce the corresponding vector.
 
 ### Instance Fields
@@ -129,7 +129,7 @@ Returns the 2D vector perpendicular to the current vector. This doesn't work for
 #### `unit: Vector`
 Returns a copy of the current vector, where it's arguments have been scaled such that it's length is 1.
 
-#### `hash: Number`
+#### `pair: Number`
 Uses the `Elegant` algorithm to pair the `x` and `y` coordinates. This can be reversed with `Elegant.unpair(_)`.
 
 

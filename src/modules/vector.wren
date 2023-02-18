@@ -11,7 +11,7 @@ class Vector {
   construct new(x, y, z, w) {
     init_(x, y, z, w)
   }
-  static fromHash(z) {
+  static fromPair(z) {
     return Elegant.unpair(z)
   }
 
@@ -109,7 +109,7 @@ class Vector {
     }
   }
 
-  hash { Elegant.pair(x, y) }
+  pair { Elegant.pair(x, y) }
   toString {
     if (z == 0 && w == 0) {
       return "(%(x), %(y))"
