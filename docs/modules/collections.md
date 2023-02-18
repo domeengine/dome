@@ -1,0 +1,162 @@
+[< Back](.)
+
+# collections
+
+The `collections` module has a few useful "abstract data types" which can serve a variety of purposes.
+They enforce additional semantics on Wren's `List` and `Map` datatypes to achieve particular properties.
+
+It contains the following classes:
+
+- [Queue](#queue)
+- [PriorityQueue](#priorityqueue)
+- [Set](#set)
+  - [Hashable](#hashable)
+- [Stack](#stack)
+
+
+## Queue
+
+Like a queue in real life, the `queue` in DOME enforces a "First-in-First-out" (FIFO) ordering to elements added to it.
+You cannot insert an element in the middle of the queue, only at the end. In addition, you can only view and retrieve 
+the element at the front of the queue.
+
+`Queue` implements Wren's iterator protocol so you can traverse it using a for-loop.
+
+### Constructor
+
+#### `new(): Queue`
+Creates a new queue.
+
+### Instance Fields
+#### `isEmpty: Boolean`
+Returns true if the queue is empty (aka `count == 0`).
+
+#### `count: Num`
+The number of elements in the queue.
+
+### Instance Methods
+#### `add(v: any)`
+Place `v` at the end of the queue.
+#### `peek(): any`
+Returns the element at the front of the queue.
+#### `remove(): any`
+Removes the element at the front of the queue, and returns it.
+#### `list(): List<Any>`
+Returns a List with all the contained elements in the current order.
+
+## PriorityQueue
+
+A priority queue is a collection where elements can be added to the queue in any order (with a priority supplied), 
+but elements can only be retrieved in priority order.
+
+### Constructor
+
+#### `max(): PriorityQueue`
+Creates a new queue where the highest priority is served first.
+#### `min(): PriorityQueue`
+Creates a new queue where the lowest priority is served first.
+
+#### `new(comparator: Fn<a: Any, b: Any>: Boolean): PriorityQueue`
+Creates a new queue which uses the given comparator to sort its elements.
+
+### Instance Fields
+#### `isEmpty: Boolean`
+Returns true if the queue is empty (aka `count == 0`).
+
+#### `count: Num`
+The number of elements in the queue.
+
+### Instance Methods
+#### `add(v: any)`
+Place `v` in the queue. The value `v` itself is used for priority comparison.
+
+#### `add(v: any, priority: any)`
+Place `v` in the queue. The value `priority` is used for priority comparison.
+
+#### `peek(): any`
+Returns the element at the front of the queue.
+#### `remove(): any`
+Removes the element at the front of the queue, and returns it.
+#### `list(): List<Any>`
+Returns a List with all the contained elements in the current order.
+
+
+## Set
+
+A `Set` is an unordered collection which can only contain an element once. 
+`Set` implements Wren's iterator protocol so you can traverse it using a for-loop.
+
+### Hashable
+A set determines "uniqueness" n a performant way by comparing hashable values.
+But this means that a  set can only contain Hashable types.
+
+By default, this means you can only store: 
+* `null`
+* Num
+* String
+* Boolean
+* Range
+* Class
+
+You can store more complex types if the object supports DOME's `Hashable` interface.
+
+#### `hash(): Num | String | Boolean | Range | Class`
+This method hashes the object in some unique fashion.
+It can return any hashable type for use in `Set`.
+
+### Constructor
+
+#### `new(): Set`
+Creates a new set.
+
+### Instance Fields
+#### `isEmpty: Boolean`
+Returns true if the set is empty (aka `count == 0`).
+
+#### `count: Num`
+The number of elements in the set.
+
+### Instance Methods
+#### `add(v: any)`
+Place `v` in the set. The value `v` itself is used for priority comparison.
+#### `has(v: any): Boolean`
+Returns `true` if the set contains `v`.
+
+#### `get(v: any): any`
+If the set contains `v`, it is returned.
+
+#### `remove(v: any): any`
+Removes the element `v` from the set, and returns it.
+
+#### `list(): List<Any>`
+Returns a List with all the contained elements in the current order.
+
+## Stack
+
+Like a stack in real life, the `stack` in DOME enforces a "Lass-in-first-out" (LIFO) ordering to elements added to it.
+You cannot insert an element in the middle of the stack, only at the top. In addition, you can only view and retrieve 
+the element at the top of the stack.
+
+`Stack` implements Wren's iterator protocol so you can traverse it using a for-loop.
+
+### Constructor
+
+#### `new(): Stack`
+Creates a new stack.
+
+### Instance Fields
+#### `isEmpty: Boolean`
+Returns true if the stack is empty (aka `count == 0`).
+
+#### `count: Num`
+The number of elements in the stack.
+
+### Instance Methods
+#### `add(v: any)`
+Place `v` at the end of the stack.
+#### `peek(): any`
+Returns the element at the front of the stack.
+#### `remove(): any`
+Removes the element at the front of the stack, and returns it.
+#### `list(): List<Any>`
+Returns a List with all the contained elements in the current order.
