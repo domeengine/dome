@@ -13,8 +13,8 @@ It contains the following classes:
 
 ## Elegant
 
-The `Elegant` class supplies a useful utility for combining pairs of integers, based on ["An Elegant Pairing Method"](http://szudzik.com/ElegantPairing.pdf) by Matthew Szudzik
-This version also supports negative integers.
+The `Elegant` class supplies a useful utility for combining pairs of signed integers, based on ["An Elegant Pairing Method"](http://szudzik.com/ElegantPairing.pdf) by Matthew Szudzik
+
 
 ### Static Methods
 
