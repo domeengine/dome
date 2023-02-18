@@ -107,10 +107,10 @@ foreign class ImageData is Drawable {
 }
 
 class SpriteSheet {
-  static fromImage(image, tileSize) {
+  static loadFromImage(image, tileSize) {
     return SpriteSheet.new(image, tileSize, 1)
   }
-  static fromImage(image, tileSize, scale)  {
+  static loadFromImage(image, tileSize, scale)  {
     return SpriteSheet.new(image, tileSize, scale)
   }
 
@@ -162,8 +162,9 @@ class SpriteSheet {
     return _cache[s]
   }
 
-  draw(s, x, y) {
-    getTile(s).modify({
+  draw(s, x, y) { draw(s, x, y, null) }
+  draw(s, x, y, modMap) {
+    getTile(s).modify(modMap || {
       "foreground": _fg || White,
       "background": _bg || None
     }).draw(x, y)
