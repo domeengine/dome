@@ -82,7 +82,7 @@ var Game = Main.new()
 
 ## Modules
 
-DOME provides the following features, as more:
+DOME provides the following features, and more:
 
 - Graphics
   - Canvas
@@ -95,13 +95,19 @@ DOME provides the following features, as more:
   - Color
   - ImageData (aka Bitmap)
     - Draw sprites loaded from files (png)
+  - SpriteSheet support
 - Input
   - Keyboard
   - Mouse
   - Gamepads
 - Filesystem
   - File reading and writing
-- Audio (stereo and mono OGG and WAV files only)
+- Audio (stereo and mono OGG, MP3, FLAC and WAV files)
+- Collections (abstact types)
+  - Set
+  - Queue
+  - Stack
+  - Priority Queue
 - Native Plugins (allowing access to all kinds of functionality!)
 
 ## TODO
@@ -135,6 +141,9 @@ DOME currently depends on a few libraries to achieve it's functions.
 - [ABC_fifo](https://github.com/avivbeeri/abc) (A SPMC threadpool/task dispatching FIFO I wrote for this project)
 - mkdirp
 - whereami
+- dr_mp3
+- dr_flac
+
 
 Apart from SDL2, all other dependancies are baked in. DOME aspires to be both minimalist and cross platform, so it depends on as few external components as possible.
 
@@ -153,6 +162,7 @@ Apart from SDL2, all other dependancies are baked in. DOME aspires to be both mi
 - Jon Olick for [jo_gif](https://www.jonolick.com/home/gif-writer)
 - Stephen Mathieson for [mkdirp](https://github.com/stephenmathieson/mkdirp.c)
 - Gregory Pakosz for [whereami](https://github.com/gpakosz/whereami)
+- David Reid for [dr_flac and dr_mp3](https://github.com/mackron/dr_libs)
 
 
 ### Example Game Resources
