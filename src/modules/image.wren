@@ -106,6 +106,18 @@ foreign class ImageData is Drawable {
   pget(x, y) { Color.fromNum(f_pget(x, y)) }
 }
 
+foreign class AsepriteImage {
+
+  static loadFromFile(path) {
+    var data = FileSystem.load(path)
+    return AsepriteImage.new(data)
+
+  }
+  construct new(fileBuffer) {}
+  foreign do()
+
+}
+
 class SpriteSheet {
   static loadFromImage(image, tileSize) {
     return SpriteSheet.new(image, tileSize, 1)

@@ -33,4 +33,7 @@
 #include <stb_image_write.h>
 #include <stb_truetype.h>
 
+#define CUTE_ASEPRITE_IMPLEMENTATION
+#include "cute_aseprite.h"
+
 #include <ABC_fifo.h>

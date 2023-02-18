@@ -441,3 +441,40 @@ IMAGE_getPNG(WrenVM* vm) {
   }
 }
 
+typedef ase_t* ASE;
+
+internal void
+ASE_finalize(void* data) {
+  ASE ase = *((ASE*)data);
+  cute_aseprite_free(ase);
+}
+
+
+internal void
+ASE_allocate(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "File");
+
+  ASE* ase = (ASE*)wrenSetSlotNewForeign(vm,
+      0, 0, sizeof(ASE));
+  int length;
+  const char* fileBuffer = wrenGetSlotBytes(vm, 1, &length);
+  *ase = cute_aseprite_load_from_memory(fileBuffer, length, NULL);
+}
+
+internal void
+ASE_do(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASE ase = *((ASE*)wrenGetSlotForeign(vm, 0));
+  printf("%i, %i\n", ase->w, ase->h);
+  ase_frame_t frame = ase->frames[0];
+  ase_color_t* pixels = frame.pixels;
+
+  size_t height = ase->h;
+  size_t width = ase->w;
+  uint32_t x = 0;
+  uint32_t y = 0;
+  for (size_t j = 0; j < height; j++) {
+    ase_color_t* row = pixels + (j * width);
+    ENGINE_blitLine(engine, x, y + j, width, (uint32_t*)row);
+  }
+}

@@ -202,7 +202,7 @@ class Canvas {
 
 // These need to be at the bottom to prevent cyclic dependancy
 import "color" for Color
-import "image" for Drawable, ImageData, SpriteSheet
+import "image" for Drawable, ImageData, SpriteSheet,AsepriteImage
 import "vector" for Point, Vec, Vector
 import "font" for Font, RasterizedFont
 
