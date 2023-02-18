@@ -11,6 +11,9 @@ class Vector {
   construct new(x, y, z, w) {
     init_(x, y, z, w)
   }
+  static fromPair(z) {
+    return Elegant.unpair(z)
+  }
 
   init_(x, y, z, w) {
     _x = x
@@ -105,6 +108,8 @@ class Vector {
       return true
     }
   }
+
+  pair { Elegant.pair(x, y) }
   toString {
     if (z == 0 && w == 0) {
       return "(%(x), %(y))"
@@ -113,6 +118,29 @@ class Vector {
     } else {
       return "(%(x), %(y), %(z), %(w))"
     }
+  }
+}
+
+// Converts two integers into a single integer, good for hashing
+// Supports negative numbers too
+class Elegant {
+  static pair(vec) {
+    if (vec is Vector) {
+      return pair(vec.x.floor, vec.y.floor)
+    } else {
+      Fiber.abort("Elegant.pair: %(vec) was not a vector.")
+    }
+  }
+
+  foreign static pair(x, y)
+  foreign static unpair_i(z)
+
+  static unpairAsList(z) {
+    return unpair_i(z)
+  }
+  static unpair(z) {
+    var res = unpair_i(z)
+    return Vector.new(res[0], res[1])
   }
 }
 
