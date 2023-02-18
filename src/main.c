@@ -365,11 +365,13 @@ int main(int argc, char* argv[])
       };
       int ncmds = sizeof(cmds) / sizeof(*cmds);
       subargv = argv + options.optind;
-      // If we match a subcommand, execute it
-      for (int i = 0; i < ncmds; i++) {
-        if (!strncmp(cmds[i].name, subargv[0], strlen(subargv[0]))) {
-          result = cmds[i].cmd(&engine, subargv);
-          goto cleanup;
+      if (subargv[0] != NULL) {
+        // If we match a subcommand, execute it
+        for (int i = 0; i < ncmds; i++) {
+          if (!strncmp(cmds[i].name, subargv[0], strlen(subargv[0]))) {
+            result = cmds[i].cmd(&engine, subargv);
+            goto cleanup;
+          }
         }
       }
     }
