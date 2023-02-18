@@ -23,6 +23,10 @@
 #define STB_VORBIS_HEADER_ONLY
 #include <stb_vorbis.c>
 
+#define DR_MP3_IMPLEMENTATION
+#define DR_MP3_NO_STDIO
+#include "dr_mp3.h"
+
 #include <stb_image_write.h>
 #include <stb_truetype.h>
 
