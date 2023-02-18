@@ -12,6 +12,7 @@ It contains the following classes:
 * [Drawable](#drawable)
 * [Font](#font)
 * [ImageData](#imagedata)
+* [SpriteSheet](#spritesheet)
 
 ## Canvas
 
@@ -261,4 +262,46 @@ The code snippet above:
  * crops an 8x8 tile from a spritesheet, starting from (8, 8) in it's image data
  * It then rotates it 90 degrees clockwise
  * Finally, it scales the tile up by 2 in both the X and Y direction, but it flips the tile vertically.
+
+## SpriteSheet
+
+This class can load in an image and divide it into a fixed-size grid of smaller squares, as a convenience.
+It's useful for loading multiple sprites from a single file. This can also be used as the foundation of an 
+animation system, when multiple frames are stored on the same image.
+
+Sprites can be chosen via `index`. Sprites are numbered from 0, left-to-right across the spritesheet,
+and then in rows from top-to-bottom. 
+
+### Constructor
+
+#### `loadFromFile(path: String, tileSize: Number): SpriteSheet`
+#### `loadFromFile(path: String, tileSize: Number, scale: Number): SpriteSheet`
+
+This loads a file from disk at `path` and treats it as a grid of images of `tileSize` wide and tall.
+The dimensions of the spritesheet at `path` need to be an exact multiple of `tileSize`.
+
+#### `loadFromImage(image: ImageData, tileSize: Number): SpriteSheet`
+#### `loadFromImage(image: ImageData, tileSize: Number, scale: Number): SpriteSheet`
+
+This takes an already loaded `image` and treats it as a grid of sprites of `tileSize` wide and tall.
+The dimensions of the spritesheet at `path` need to be an exact multiple of `tileSize`.
+
+### Instance Fields
+
+#### `getTile(index: Number): DrawCommand`
+Get a `DrawCommand` for rendering the tile `index`.
+
+#### `draw(index: Number, x: Number, y: Number)`
+Draw tile `index` on the spritesheet at location `(x, y)` on screen.
+
+#### `draw(index: Number, x: Number, y: Number, parameterMap)`
+Draw tile `index` on the spritesheet at location `(x, y)` on screen. This will also apply the given transform `parameterMap` to the tile being drawn.
+You can reference the `ImageData.transform` documentation for a list of available parameters.
+
+### Instance Methods
+
+#### `fg: Color`
+The `SpriteSheet` will render the sprite using this color if the pixel isn't transparent.
+#### `bg: Color`
+The `SpriteSheet` will render the sprite using this color if the pixel is transparent.
 

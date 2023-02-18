@@ -236,6 +236,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_pget(_,_)", IMAGE_pget);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_pset(_,_,_)", IMAGE_pset);
   MAP_addClass(&engine->moduleMap, "image", "DrawCommand", DRAW_COMMAND_allocate, DRAW_COMMAND_finalize);
+  MAP_addFunction(&engine->moduleMap, "image", "DrawCommand.f_modify(_,_)", DRAW_COMMAND_modify);
   MAP_addFunction(&engine->moduleMap, "image", "DrawCommand.draw(_,_)", DRAW_COMMAND_draw);
   MAP_lockModule(&engine->moduleMap, "image");
 
