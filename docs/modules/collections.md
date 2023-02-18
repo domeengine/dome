@@ -86,6 +86,23 @@ Returns a List with all the contained elements in the current order.
 A `Set` is an unordered collection which can only contain an element once. 
 `Set` implements Wren's iterator protocol so you can traverse it using a for-loop.
 
+### Hashable
+A set determines "uniqueness" n a performant way by comparing hashable values.
+But this means that a  set can only contain Hashable types.
+
+By default, this means you can only store: 
+* `null`
+* Num
+* String
+* Boolean
+* Range
+* Class
+
+You can store more complex types if the object supports DOME's `Hashable` interface.
+
+#### `hash(): Num | String | Boolean | Range | Class`
+This method hashes the object in some unique fashion.
+It can return any hashable type for use in `Set`.
 
 ### Constructor
 

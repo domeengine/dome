@@ -4,7 +4,7 @@ var HashableTypes = [ Num, String, Range, Bool, Class ]
 var DEFAULT_MAX_COMPARATOR = Fn.new {|a, b| a[0] > b[0] }
 var DEFAULT_MIN_COMPARATOR = Fn.new {|a, b| a[0] < b[0] }
 class Hashable {
-  hash { this.toString }
+  hash() { this.toString }
 }
 
 class Stack {
@@ -23,6 +23,11 @@ class Stack {
     return _list.removeAt(-1)
   }
 
+  add(v) { push(v) }
+  remove() { pop() }
+  get() { peek() }
+
+  list() { _list[0..-1] }
   iterate(iter) { _list.iterate(iter) }
   iteratorValue(iter) { _list.iteratorValue(iter) }
 }
@@ -38,7 +43,7 @@ class Set {
   has(value) {
     var hash = value
     if (value is Hashable) {
-      hash = value.hash
+      hash = value.hash()
     }
 
     if (hash != null && !HashableTypes.any {|type| hash is type }) {
@@ -51,7 +56,7 @@ class Set {
   remove(value) {
     var hash = value
     if (value is Hashable) {
-      hash = value.hash
+      hash = value.hash()
     }
     if (hash != null && !HashableTypes.any {|type| hash is type }) {
       Fiber.abort("Set: %(value) could not be hashed.")
@@ -62,7 +67,7 @@ class Set {
   get(value) {
     var hash = value
     if (value is Hashable) {
-      hash = value.hash
+      hash = value.hash()
     }
     if (hash != null && !HashableTypes.any {|type| hash is type }) {
       Fiber.abort("Set: %(value) could not be hashed.")
@@ -70,10 +75,10 @@ class Set {
     return _map[hash]
   }
 
-  set(value) {
+  add(value) {
     var hash = value
     if (value is Hashable) {
-      hash = value.hash
+      hash = value.hash()
     }
     if (hash != null && !HashableTypes.any {|type| hash is type }) {
       Fiber.abort("Set: %(value) could not be hashed.")
@@ -81,6 +86,7 @@ class Set {
     _map[hash] = value
   }
 
+  list() { _list[0..-1] }
   iterate(iter) { _map.values.iterate(iter) }
   iteratorValue(iter) { _map.values.iteratorValue(iter) }
 }
@@ -90,6 +96,10 @@ class Queue {
   construct new() {
     _list = []
   }
+  add(item) { _list.add(item) }
+  remove() { _list.removeAt(0) }
+  get() { _list[0] }
+
   enqueue(item) { _list.add(item) }
   dequeue() { _list.removeAt(0) }
   peek() { _list[0] }
@@ -104,69 +114,7 @@ class Queue {
   iteratorValue(iter) { _list.iteratorValue(iter) }
 }
 
-class SimplePriorityQueue {
-
-  static min() {
-    return new(DEFAULT_MIN_COMPARATOR)
-  }
-  static max() {
-    return new(DEFAULT_MAX_COMPARATOR)
-  }
-
-  construct new() {
-    init(DEFAULT_MIN_COMPARATOR)
-  }
-  construct new(comparator) {
-    init(comparator)
-  }
-
-  init(comparator) {
-    _comparator = comparator
-    _list = []
-  }
-
-  count { _list.count }
-  isEmpty { _list.isEmpty }
-
-  // Returns a copy of underlying list
-  list() { _list[0..-1] }
-
-  get() {
-    return _list.removeAt(0)[1]
-  }
-
-  peek() {
-    return _list[0][1]
-  }
-
-  currentPriority() {
-    return _list[0][0]
-  }
-
-  put(item) { put(item, item) }
-  put(item, priority) {
-    if (_list.count > 400 && !WarningEmitted) {
-      WarningEmitted = true
-      System.print("Warning: SimplePriorityQueue performance will degrade if more than 400 items are enqueued.")
-    }
-    _list.add([priority, item])
-    _list.sort(_comparator)
-  }
-
-  comparator=(v) {
-    if (v != null && v is Fn) {
-      _comparator = v
-    } else {
-      _comparator = DEFAULT_MIN_COMPARATOR
-    }
-    _list.sort(_comparator)
-  }
-
-  iterate(iter) { _list.iterate(iter) }
-  iteratorValue(iter) { _list.iteratorValue(iter) }
-}
-
-class HeapPriorityQueue {
+class PriorityQueue {
   static min() {
     return new(DEFAULT_MIN_COMPARATOR)
   }
@@ -176,26 +124,27 @@ class HeapPriorityQueue {
 
   construct new(comparator) {
     _heap = Heap.new(comparator)
+    _comparator = comparator
   }
 
-  put(item) { put(item, item) }
-  put(item, priority) {
+  add(item) { put(item, item) }
+  add(item, priority) {
     _heap.insert([priority, item])
   }
 
-  get() {
-    return _heap.del()[1]
-  }
+  get() { peek() }
   peek() {
     return _heap.peek()[1]
   }
 
+  remove() {
+    return _heap.remove()[1]
+  }
+
   isEmpty { _heap.isEmpty }
   count { _heap.count }
-  // Returns the priority tuple
-  list { _heap.list }
+  list { _heap.list.sort(_comparator) }
 }
-var PriorityQueue = HeapPriorityQueue
 
 class Heap {
   construct new() {
@@ -211,37 +160,24 @@ class Heap {
     _size = 0
   }
 
-  swap(i1, i2) {
-    var temp = _list[i1]
-    _list[i1] = _list[i2]
-    _list[i2] = temp
-  }
-
   isEmpty { _list.isEmpty }
   count { _size }
   list { _list[0..-1].sort(_comparator) }
 
-  compare(a, b) {
-    return _comparator.call(a, b)
-  }
-
-  percolateUp(pos) {
-    while (pos > 1) {
-      var parent = (pos/2).floor
-      if (compare(_list[pos], _list[parent]) >= 0) {
-        break
-      }
-      swap(parent, pos)
-      pos = parent
-    }
-  }
-
-  insert(element) {
+  add(element) {
     _list.insert(0, element)
     percolateDown(0)
   }
 
-  del() {
+  get() { peek() }
+  peek() {
+    if (_list.count == 0) {
+      return null
+    }
+    return _list[0]
+  }
+
+  remove() {
     if (_list.count == 0) {
       return null
     }
@@ -258,12 +194,27 @@ class Heap {
     return top
   }
 
-  peek() {
-    if (_list.count == 0) {
-      return null
-    }
-    return _list[0]
+  swap(i1, i2) {
+    var temp = _list[i1]
+    _list[i1] = _list[i2]
+    _list[i2] = temp
   }
+
+  compare(a, b) {
+    return _comparator.call(a, b)
+  }
+
+  percolateUp(pos) {
+    while (pos > 1) {
+      var parent = (pos/2).floor
+      if (compare(_list[pos], _list[parent]) >= 0) {
+        break
+      }
+      swap(parent, pos)
+      pos = parent
+    }
+  }
+
 
   percolateDown(pos) {
     var last = _list.count - 1
