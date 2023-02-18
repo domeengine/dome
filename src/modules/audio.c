@@ -99,6 +99,8 @@ AUDIO_allocate(WrenVM* vm) {
     SDL_FreeWAV((uint8_t*)tempBuffer);
   } else if (data->audioType == AUDIO_TYPE_OGG) {
     free(tempBuffer);
+  } else if (data->audioType == AUDIO_TYPE_FLAC) {
+    free(tempBuffer);
   } else if (data->audioType == AUDIO_TYPE_MP3) {
     free(tempBuffer);
   }
