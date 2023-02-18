@@ -32,6 +32,10 @@ class Stack {
   iteratorValue(iter) { _list.iteratorValue(iter) }
 }
 
+var HashValue =  Fn.new {|v|
+  return v.hash()
+}
+
 class Set {
   construct new() {
     _map = {}
@@ -63,10 +67,8 @@ class Set {
   hashValue(v) {
     var hash = v
     if (hash != null && !HashableTypes.any {|type| hash is type }) {
-      var fiber = Fiber.new {
-        return v.hash()
-      }
-      hash = fiber.try()
+      var fiber = Fiber.new(HashValue)
+      hash = fiber.try(v)
       if (fiber.error != null || (hash != null && !HashableTypes.any {|type| hash is type })) {
         Fiber.abort("Set: %(v) could not be hashed. %(fiber.error)")
       }
