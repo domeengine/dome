@@ -16,7 +16,7 @@ It contains the following classes:
 
 ## Queue
 
-Like a queue in real life, the `queue`in DOME enforces a "First-in-First-out" (FIFO) ordering to elements added to it.
+Like a queue in real life, the `queue` in DOME enforces a "First-in-First-out" (FIFO) ordering to elements added to it.
 You cannot insert an element in the middle of the queue, only at the end. In addition, you can only view and retrieve 
 the element at the front of the queue.
 
