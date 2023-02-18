@@ -39,6 +39,35 @@ AUDIO_allocate(WrenVM* vm) {
     data->spec.channels = channelsInFile;
     data->spec.freq = freq;
     data->spec.format = AUDIO_F32LSB;
+  } else if (strncmp(fileBuffer, "fLaC", 4) == 0) {
+    data->audioType = AUDIO_TYPE_FLAC;
+    unsigned int channelsInFile = 0;
+    unsigned int freq = 0;
+    drflac_uint64 totalFrameCount;
+    tempBuffer = drflac_open_memory_and_read_pcm_frames_s16(fileBuffer, length, &channelsInFile, &freq, &totalFrameCount, NULL);
+    if (tempBuffer == NULL) {
+      VM_ABORT(vm, "Invalid FLAC file");
+      return;
+    }
+
+    data->spec.channels = channelsInFile;
+    data->spec.freq = freq;
+    data->spec.format = AUDIO_F32LSB;
+    data->length = totalFrameCount;
+  } else if (strncmp(fileBuffer, "ID3", 3) == 0) {
+    data->audioType = AUDIO_TYPE_MP3;
+    drmp3_config config = { 0 };
+    drmp3_uint64 totalFrameCount;
+    tempBuffer = drmp3_open_memory_and_read_pcm_frames_s16(fileBuffer, length, &config, &totalFrameCount, NULL);
+    if (tempBuffer == NULL) {
+      VM_ABORT(vm, "Invalid MP3 file");
+      return;
+    }
+
+    data->spec.channels = config.channels;
+    data->spec.freq = config.sampleRate;
+    data->spec.format = AUDIO_F32LSB;
+    data->length = totalFrameCount;
   } else {
     VM_ABORT(vm, "Audio file was of an incompatible format");
     return;
@@ -70,6 +99,10 @@ AUDIO_allocate(WrenVM* vm) {
     SDL_FreeWAV((uint8_t*)tempBuffer);
   } else if (data->audioType == AUDIO_TYPE_OGG) {
     free(tempBuffer);
+  } else if (data->audioType == AUDIO_TYPE_FLAC) {
+    free(tempBuffer);
+  } else if (data->audioType == AUDIO_TYPE_MP3) {
+    free(tempBuffer);
   }
   if (DEBUG_MODE) {
     DEBUG_printAudioSpec(engine, data->spec, data->audioType);
@@ -81,7 +114,10 @@ internal void
 AUDIO_finalize(void* data) {
   AUDIO_DATA* audioData = (AUDIO_DATA*)data;
   if (audioData->buffer != NULL) {
-    if (audioData->audioType == AUDIO_TYPE_WAV || audioData->audioType == AUDIO_TYPE_OGG) {
+    if (audioData->audioType == AUDIO_TYPE_WAV
+        || audioData->audioType == AUDIO_TYPE_OGG
+        || audioData->audioType == AUDIO_TYPE_FLAC
+        || audioData->audioType == AUDIO_TYPE_MP3) {
       free(audioData->buffer);
     }
     audioData->buffer = NULL;
