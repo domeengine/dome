@@ -127,6 +127,9 @@ class PriorityQueue {
   peek() {
     return _heap.peek()[1]
   }
+  peekPriority() {
+    return _heap.peek()[0]
+  }
 
   remove() {
     return _heap.remove()[1]
@@ -157,6 +160,7 @@ class Heap {
 
   add(element) {
     _list.insert(0, element)
+    _size = _size + 1
     percolateDown(0)
   }
 
@@ -172,6 +176,7 @@ class Heap {
     if (_list.count == 0) {
       return null
     }
+    _size = _size - 1
     if (_list.count == 1) {
       return _list.removeAt(0)
     }
