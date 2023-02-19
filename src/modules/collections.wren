@@ -120,7 +120,7 @@ class PriorityQueue {
 
   add(item) { put(item, item) }
   add(item, priority) {
-    _heap.insert([priority, item])
+    _heap.add([priority, item])
   }
 
   get() { peek() }
