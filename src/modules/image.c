@@ -453,7 +453,6 @@ ASE_finalize(void* data) {
 internal void
 ASE_allocate(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "File");
-
   ASE* ase = (ASE*)wrenSetSlotNewForeign(vm,
       0, 0, sizeof(ASE));
   int length;
@@ -462,19 +461,40 @@ ASE_allocate(WrenVM* vm) {
 }
 
 internal void
-ASE_do(WrenVM* vm) {
+ASE_draw(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASE ase = *((ASE*)wrenGetSlotForeign(vm, 0));
-  printf("%i, %i\n", ase->w, ase->h);
-  ase_frame_t frame = ase->frames[0];
-  ase_color_t* pixels = frame.pixels;
-
-  size_t height = ase->h;
-  size_t width = ase->w;
+  uint32_t f = floor(wrenGetSlotDouble(vm, 1));
+  ase_frame_t frame = ase->frames[f % ase->frame_count];
   uint32_t x = 0;
   uint32_t y = 0;
-  for (size_t j = 0; j < height; j++) {
-    ase_color_t* row = pixels + (j * width);
-    ENGINE_blitLine(engine, x, y + j, width, (uint32_t*)row);
+  for (size_t layer = 0; layer < frame.cel_count; layer++) {
+    ase_cel_t cel = frame.cels[layer];
+    if (!(cel.layer->flags & ASE_LAYER_FLAGS_VISIBLE)) {
+	  	continue;
+	  }
+    ase_color_t* pixels = cel.pixels;
+    size_t height = cel.h;
+    size_t width = cel.w;
+
+    for (size_t j = 0; j < height; j++) {
+      for (size_t i = 0; i < width; i++) {
+        ase_color_t color = *(pixels + (i + j * width));
+        uint32_t c = (color.a << 24) | (color.b << 16) | (color.g << 8) | color.r;
+        ENGINE_pset(engine, x + cel.x + i, y + cel.y + j, c);
+      }
+    }
+  }
+}
+internal void
+ASE_getLayers(WrenVM* vm) {
+  wrenEnsureSlots(vm, 2);
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASE ase = *((ASE*)wrenGetSlotForeign(vm, 0));
+  wrenSetSlotNewList(vm, 0);
+  for (size_t i = 0; i < ase->layer_count; i++) {
+    ase_layer_t layer = ase->layers[i];
+    wrenSetSlotString(vm, 1, layer.name);
+    wrenInsertInList(vm, 0, -1, 1);
   }
 }

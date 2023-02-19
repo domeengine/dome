@@ -114,7 +114,9 @@ foreign class AsepriteImage {
 
   }
   construct new(fileBuffer) {}
-  foreign do()
+  foreign draw(frame, layers)
+
+  foreign layers
 
 }
 

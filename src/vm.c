@@ -239,7 +239,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "image", "DrawCommand.f_modify(_,_)", DRAW_COMMAND_modify);
   MAP_addFunction(&engine->moduleMap, "image", "DrawCommand.draw(_,_)", DRAW_COMMAND_draw);
   MAP_addClass(&engine->moduleMap, "image", "AsepriteImage", ASE_allocate, ASE_finalize);
-  MAP_addFunction(&engine->moduleMap, "image", "AsepriteImage.do()", ASE_do);
+  MAP_addFunction(&engine->moduleMap, "image", "AsepriteImage.draw(_,_)", ASE_draw);
+  MAP_addFunction(&engine->moduleMap, "image", "AsepriteImage.layers", ASE_getLayers);
   MAP_lockModule(&engine->moduleMap, "image");
 
   // Audio
