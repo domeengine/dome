@@ -53,12 +53,12 @@ The DOME_Bitmap type contains the following fields:
 |    b   | uint8_t     | This is the color's blue channel, from 0 - 255.  |
 
 This type is also a union. You can get all the fields simultaneously as a 
-32-bit integer, `value`, arranged in the layout `0xAARRGGBB`.
+32-bit integer, `value`, arranged in the layout `0xAABBGGRR`.
 
 ## Methods
 ### method: draw
 ```c
-void draw(DOME_Context ctx, DOME_Bitmap* bitmap, int32_t x, int32_t y, DOME_DRAWODE mode)
+void draw(DOME_Context ctx, DOME_Bitmap* bitmap, int32_t x, int32_t y, DOME_DRAWMODE mode)
 ```
 Draws the `bitmap` to the canvas at `(x, y)`. If the `mode` is set, alpha-blending
 will be applied. This will ignore the canvas draw context (offset, clipping region, etc).
