@@ -17,9 +17,16 @@ class Stack {
   push(v) {
     _list.add(v)
   }
-  peek() { _list[-1] }
-
+  peek() {
+    if (_list.isEmpty) {
+      return null
+    }
+    return _list[-1]
+  }
   pop() {
+    if (_list.isEmpty) {
+      return null
+    }
     return _list.removeAt(-1)
   }
 
@@ -88,12 +95,32 @@ class Queue {
     _list = []
   }
   add(item) { _list.add(item) }
-  remove() { _list.removeAt(0) }
-  get() { _list[0] }
+  remove() {
+    if (_list.isEmpty) {
+      return null
+    }
+    return _list.removeAt(0)
+  }
+  get() {
+    if (_list.isEmpty) {
+      return null
+    }
+    return _list[0]
+  }
 
   enqueue(item) { _list.add(item) }
-  dequeue() { _list.removeAt(0) }
-  peek() { _list[0] }
+  dequeue() {
+    if (_list.isEmpty) {
+      return null
+    }
+    return _list.removeAt(0)
+  }
+  peek() {
+    if (_list.isEmpty) {
+      return null
+    }
+    return _list[0]
+  }
 
   // Returns a copy of underlying list
   list() { _list[0..-1] }
