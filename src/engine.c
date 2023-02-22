@@ -171,6 +171,8 @@ ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
     return false;
   }
   SDL_RenderSetLogicalSize(engine->renderer, engine->canvas.width, engine->canvas.height);
+  SDL_RenderSetIntegerScale(engine->renderer,
+                              SDL_TRUE);
 
   engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, engine->canvas.width, engine->canvas.height);
   if (engine->texture == NULL) {
@@ -232,7 +234,7 @@ ENGINE_start(ENGINE* engine) {
   SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
 #endif
   SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1");
-  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+//  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
 
   //Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
