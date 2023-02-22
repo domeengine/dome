@@ -232,7 +232,7 @@ ENGINE_start(ENGINE* engine) {
   SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
 #endif
   SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1");
-  SDL_SetHint("SDL_WINDOWS_DPI_SCALING", "1");
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
   //Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
