@@ -57,13 +57,25 @@ WINDOW_resize(WrenVM* vm) {
 #ifndef __EMSCRIPTEN__
   uint32_t width = wrenGetSlotDouble(vm, 1);
   uint32_t height = wrenGetSlotDouble(vm, 2);
-  SDL_SetWindowSize(engine->window, width, height);
+
+
+  int32_t currentWinWidth, currentWinHeight;
+  int32_t currentRenderWidth, currentRenderHeight;
+  SDL_GetWindowSize(engine->window, &currentWinWidth, &currentWinHeight);
+  SDL_GetRendererOutputSize(engine->renderer, &currentRenderWidth, &currentRenderHeight);
+
+  double factorH = currentRenderWidth / currentWinWidth;
+  double factorV = currentRenderHeight / currentWinHeight;
+  printf("%i / %i = %f\n", currentRenderWidth, currentWinWidth, factorH);
+
+
+  SDL_SetWindowSize(engine->window, width / factorH, height / factorV);
   // Window may not have resized to the specified value because of
   // desktop restraints, but SDL doesn't check this.
   // We can fetch the final display size from the renderer output.
   int32_t newWidth, newHeight;
   SDL_GetRendererOutputSize(engine->renderer, &newWidth, &newHeight);
-  SDL_SetWindowSize(engine->window, newWidth, newHeight);
+  SDL_SetWindowSize(engine->window, newWidth / factorH, newHeight/factorV);
 #else
   SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
 #endif
