@@ -1,8 +1,8 @@
 // This implements some common data types
 var WarningEmitted = false
 var HashableTypes = [ Num, String, Range, Bool, Class ]
-var DEFAULT_MAX_COMPARATOR = Fn.new {|a, b| a[0] > b[0] }
-var DEFAULT_MIN_COMPARATOR = Fn.new {|a, b| a[0] < b[0] }
+var DEFAULT_MAX_COMPARATOR = Fn.new {|a, b| a[0][0] > b[0][0] || (a[0][0] == b[0][0] && a[0][1] < b[0][1]) }
+var DEFAULT_MIN_COMPARATOR = Fn.new {|a, b| a[0][0] < b[0][0] || (a[0][0] == b[0][0] && a[0][1] < b[0][1]) }
 class Hashable {
   hash() { this.toString }
 }
@@ -29,6 +29,7 @@ class Stack {
     }
     return _list.removeAt(-1)
   }
+  clear() { _list.clear() }
 
   add(v) { push(v) }
   remove() { pop() }
@@ -70,6 +71,7 @@ class Set {
     var hash = hashValue(value)
     _map[hash] = value
   }
+  clear() { _map.clear() }
 
   hashValue(v) {
     var hash = v
@@ -101,6 +103,7 @@ class Queue {
     }
     return _list.removeAt(0)
   }
+  clear() { _list.clear() }
   get() {
     if (_list.isEmpty) {
       return null
@@ -141,13 +144,15 @@ class PriorityQueue {
   }
 
   construct new(comparator) {
+    _id = 0
     _heap = Heap.new(comparator)
     _comparator = comparator
   }
 
   add(item) { put(item, item) }
   add(item, priority) {
-    _heap.add([priority, item])
+    _id = _id + 1
+    _heap.add([[priority, _id], item])
   }
 
   get() { peek() }
@@ -155,16 +160,18 @@ class PriorityQueue {
     return _heap.peek()[1]
   }
   peekPriority() {
-    return _heap.peek()[0]
+    return _heap.peek()[0][0]
   }
 
   remove() {
     return _heap.remove()[1]
   }
+  clear() { _heap.clear() }
 
   isEmpty { _heap.isEmpty }
   count { _heap.count }
-  list { _heap.list.sort(_comparator) }
+  list { _heap.list.sort(_comparator).map{|tuple| [tuple[0][0], tuple[1]]}.toList }
+
 }
 
 class Heap {
@@ -184,6 +191,7 @@ class Heap {
   isEmpty { _list.isEmpty }
   count { _size }
   list { _list[0..-1].sort(_comparator) }
+  listInternal { _list }
 
   add(element) {
     _list.insert(0, element)
@@ -215,6 +223,10 @@ class Heap {
     percolateDown(0)
     // percolate root down
     return top
+  }
+  clear() {
+    _list.clear()
+    _size = 0
   }
 
   swap(i1, i2) {
