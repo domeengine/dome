@@ -64,7 +64,8 @@ foreign class ImageData is Drawable {
     return __cache[name]
   }
 
-  static loadFromFile(path) {
+  static loadFromFile(path) { load(path) }
+  static load(path) {
     if (!__cache) {
       __cache = {}
     }
@@ -114,11 +115,11 @@ class SpriteSheet {
     return SpriteSheet.new(image, tileSize, scale)
   }
 
-  static loadFromFile(path, tileSize, scale) {
+  static load(path, tileSize, scale) {
     var image = ImageData.loadFromFile(path)
     return SpriteSheet.new(image, tileSize, scale)
   }
-  static loadFromFile(path, tileSize) {
+  static load(path, tileSize) {
     return SpriteSheet.loadFromFile(path, tileSize, 1)
   }
 
