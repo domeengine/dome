@@ -87,7 +87,6 @@ ifneq ($(filter windows,$(TAGS)),)
 endif
 
 SDL_CONFIG ?= $(shell which "$(LIBS)/sdl2-config" 1>/dev/null && echo "$(LIBS)/sdl2-config" || (which "sdl2-config" 1>/dev/null && echo "sdl2-config" || echo ""))
-#SDL_CONFIG ?= $(shell which sdl2-config 1>/dev/null && echo "sdl2-config" || (which "$(LIBS)/sdl2-config" 1>/dev/null && echo "$(LIBS)/sdl2-config" || echo ""))
 
 # Compiler configurations
 

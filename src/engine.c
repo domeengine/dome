@@ -171,8 +171,6 @@ ENGINE_setupRenderer(ENGINE* engine, bool vsync) {
     return false;
   }
   SDL_RenderSetLogicalSize(engine->renderer, engine->canvas.width, engine->canvas.height);
-  SDL_RenderSetIntegerScale(engine->renderer,
-                              SDL_TRUE);
 
   engine->texture = SDL_CreateTexture(engine->renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, engine->canvas.width, engine->canvas.height);
   if (engine->texture == NULL) {

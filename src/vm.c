@@ -181,9 +181,11 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "dome", "static Process.errorDialog=(_)", PROCESS_setErrorDialog);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.resize(_,_)", WINDOW_resize);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.title=(_)", WINDOW_setTitle);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.title", WINDOW_getTitle);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.integerScale=(_)", WINDOW_setIntegerScale);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.integerScale", WINDOW_getIntegerScale);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.vsync=(_)", WINDOW_setVsync);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.lockstep=(_)", WINDOW_setLockStep);
-  MAP_addFunction(&engine->moduleMap, "dome", "static Window.title", WINDOW_getTitle);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.fullscreen=(_)", WINDOW_setFullscreen);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.fullscreen", WINDOW_getFullscreen);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.width", WINDOW_getWidth);
