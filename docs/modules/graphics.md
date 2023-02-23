@@ -210,8 +210,10 @@ Fetch a cached image, if it's available. Returns `null` otherwise.
 #### `static create(name: String, width: Number, height: Number): ImageData`
 Creates a blank image of the size `width x height` and caches it as `name` for future use.
 
-#### `static loadFromFile(path: String): ImageData`
+#### `static load(path: String): ImageData`
 Load an image at the given `path` and cache it for use.
+#### `static loadFromFile(path: String): ImageData`
+Load an image at the given `path` and cache it for use. `loadFromFile` is deprecated, use `load` instead.
 
 ### Instance Fields
 #### `height: Number`
@@ -274,8 +276,8 @@ and then in rows from top-to-bottom.
 
 ### Constructor
 
-#### `loadFromFile(path: String, tileSize: Number): SpriteSheet`
-#### `loadFromFile(path: String, tileSize: Number, scale: Number): SpriteSheet`
+#### `load(path: String, tileSize: Number): SpriteSheet`
+#### `load(path: String, tileSize: Number, scale: Number): SpriteSheet`
 
 This loads a file from disk at `path` and treats it as a grid of images of `tileSize` wide and tall.
 The dimensions of the spritesheet at `path` need to be an exact multiple of `tileSize`.

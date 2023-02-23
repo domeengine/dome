@@ -4,7 +4,7 @@
 
 foreign class AudioData {
   construct init(buffer) {}
-  static loadFromFile(path) {
+  static load(path) {
     import "io" for FileSystem
     var data = AudioData.init(FileSystem.load(path))
     System.print("Audio loaded: " + path)
@@ -84,7 +84,7 @@ class AudioEngine {
     }
     var path = __nameMap[name]
     if (!__files.containsKey(path)) {
-      __files[path] = AudioData.loadFromFile(path)
+      __files[path] = AudioData.load(path)
     }
     return __files[path]
   }
