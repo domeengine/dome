@@ -128,7 +128,7 @@ You can follow my progress on implementing DOME on [my twitter](https://twitter.
 DOME currently depends on a few libraries to achieve it's functions.
 
 - Wren (included in the project repo already)
-- SDL2 (version 2.0.12 or newer. If you install this from source, you'll want to build shared/dynamic libraries.)
+- SDL2 (version 2.26.3. If you install this from source, you'll want to build shared/dynamic libraries.)
 - utf8.h
 - stb_image
 - stb_image_write
