@@ -64,7 +64,11 @@ foreign class ImageData is Drawable {
     return __cache[name]
   }
 
-  static loadFromFile(path) { load(path) }
+  static loadFromFile(path) {
+    System.print("WARN: 'loadFromFile(_)' is depreciated. Use 'load(_)' instead.")
+    return load(path)
+  }
+
   static load(path) {
     if (!__cache) {
       __cache = {}
