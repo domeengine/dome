@@ -213,27 +213,29 @@ VERSION_getString(WrenVM* vm) {
   wrenSetSlotBytes(vm, 0, version, len);
 }
 
-const char* LOG_LEVEL[] = {
-  "DEBUG",
-  "INFO",
-  "WARN",
-  "ERROR",
+const int levelCount = 6;
+const char* LOG_LEVEL[levelCount] = {
+  "OFF",
   "FATAL",
-  "OFF"
+  "ERROR",
+  "WARN",
+  "INFO",
+  "DEBUG",
 };
-const char* LOG_COLOR[] = {
-  "\033[36m",
-  "\033[32m",
-  "\033[33m",
+const char* LOG_COLOR[levelCount] = {
+  "\0330m",
   "\033[31m",
-  "\033[31m"
+  "\033[31m",
+  "\033[33m",
+  "\033[32m",
+  "\033[36m"
 };
 
 internal void
 LOG_print(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  uint8_t levelNum = mid(0, wrenGetSlotDouble(vm, 1), 4);
-  if (levelNum < engine->logLevel) {
+  int8_t levelNum = fmid(0, wrenGetSlotDouble(vm, 1), levelCount - 1);
+  if (levelNum > engine->logLevel) {
     return;
   }
   const char* level = LOG_LEVEL[levelNum];
@@ -254,22 +256,6 @@ LOG_print(WrenVM* vm) {
   size_t padding;
   padding = length - lineLength + 1;
 
-  if (tty) {
-    printf("%s", color);
-  }
-  printf("[%s]", level);
-  if (context != NULL) {
-    printf(" [%s]", context);
-  }
-  if (tty) {
-    printf("\033[0m");
-  }
-  printf(":");
-  for (size_t i = 0; i < padding; i++) {
-    printf(" ");
-  }
-  printf("%s\n", line);
-
   char* start;
   char* out;
   start = out = (char*)malloc(strlen(line) + length + 7);
@@ -286,8 +272,25 @@ LOG_print(WrenVM* vm) {
   ENGINE_writeToLogFile(engine, start);
   ENGINE_writeToLogFile(engine, "\n");
 
-  if (levelNum == 4) {
-    VM_ABORT(vm, start);
+  if (tty) {
+    printf("%s", color);
+  }
+  printf("[%s]", level);
+  if (context != NULL) {
+    printf(" [%s]", context);
+  }
+  if (tty) {
+    printf("\033[0m");
+  }
+  printf(":");
+  for (size_t i = 0; i < padding; i++) {
+    printf(" ");
+  }
+  printf("%s\n", line);
+
+  // FATAL
+  if (levelNum == 1) {
+    VM_ABORT(vm, line);
   }
   free(start);
 }

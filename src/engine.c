@@ -204,8 +204,9 @@ ENGINE_init(ENGINE* engine) {
   engine->debug.errorBuf = NULL;
   engine->debug.errorBufLen = 0;
   engine->debug.errorDialog = true;
-  engine->logLevel = 1; // INFO
-  engine->padding = 5; // INFO
+
+  engine->logLevel = 4; // INFO
+  engine->padding = 5;
 
   // Initialise the canvas offset.
   engine->canvas.pixels = NULL;
