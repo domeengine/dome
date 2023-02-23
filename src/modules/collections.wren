@@ -65,7 +65,7 @@ class HashMap is Sequence {
 
   [key] {
     var hash = hashValue(key)
-    return _map[hash].value
+    return _map[hash] ? _map[hash].value : null
   }
 
   hashValue(v) {

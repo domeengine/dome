@@ -213,8 +213,8 @@ VERSION_getString(WrenVM* vm) {
   wrenSetSlotBytes(vm, 0, version, len);
 }
 
-const int levelCount = 6;
-const char* LOG_LEVEL[levelCount] = {
+#define LOG_LEVEL_COUNT 6
+const char* LOG_LEVEL[LOG_LEVEL_COUNT] = {
   "OFF",
   "FATAL",
   "ERROR",
@@ -222,7 +222,7 @@ const char* LOG_LEVEL[levelCount] = {
   "INFO",
   "DEBUG",
 };
-const char* LOG_COLOR[levelCount] = {
+const char* LOG_COLOR[LOG_LEVEL_COUNT] = {
   "\0330m",
   "\033[31m",
   "\033[31m",
@@ -234,7 +234,7 @@ const char* LOG_COLOR[levelCount] = {
 internal void
 LOG_print(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
-  int8_t levelNum = fmid(0, wrenGetSlotDouble(vm, 1), levelCount - 1);
+  int8_t levelNum = fmid(0, wrenGetSlotDouble(vm, 1), LOG_LEVEL_COUNT - 1);
   if (levelNum > engine->logLevel) {
     return;
   }
