@@ -65,6 +65,11 @@ foreign class ImageData is Drawable {
   }
 
   static loadFromFile(path) {
+    System.print("WARN: 'loadFromFile(_)' is depreciated. Use 'load(_)' instead.")
+    return load(path)
+  }
+
+  static load(path) {
     if (!__cache) {
       __cache = {}
     }
@@ -114,11 +119,11 @@ class SpriteSheet {
     return SpriteSheet.new(image, tileSize, scale)
   }
 
-  static loadFromFile(path, tileSize, scale) {
+  static load(path, tileSize, scale) {
     var image = ImageData.loadFromFile(path)
     return SpriteSheet.new(image, tileSize, scale)
   }
-  static loadFromFile(path, tileSize) {
+  static load(path, tileSize) {
     return SpriteSheet.loadFromFile(path, tileSize, 1)
   }
 
