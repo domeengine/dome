@@ -44,6 +44,55 @@ var HashValue =  Fn.new {|v|
   return v.hash()
 }
 
+class HashMap {
+  construct new() {
+    _map = {}
+    _keys = {}
+  }
+
+  clear() { _map.clear() }
+  remove(key) {
+    _keys.remove(hashValue(key))
+    _map.remove(hashValue(key))
+  }
+  count { _map.count }
+  containsKey(key) { _map.containsKey(hashValue(key)) }
+  keys { _keys.values }
+  values { _map.values }
+
+  [key]=(v) {
+    var hash = hashValue(key)
+    _map[hash] = v
+    _keys[hash] = key
+  }
+
+  [key] {
+    var hash = hashValue(key)
+    return _map[hash]
+  }
+
+  hashValue(v) {
+    var hash = v
+    if (hash != null && !HashableTypes.any {|type| hash is type }) {
+      var fiber = Fiber.new(HashValue)
+      hash = fiber.try(v)
+      if (fiber.error != null || (hash != null && !HashableTypes.any {|type| hash is type })) {
+        Fiber.abort("Set: %(v) could not be hashed. %(fiber.error)")
+      }
+    }
+    return hash
+
+  }
+  entries {
+    var mapKeys = keys
+    var entryList = []
+    for (key in mapKeys) {
+      entryList.add(MapEntry.new(key, _map[hashValue(key)]))
+    }
+    return entryList
+  }
+}
+
 class Set {
   construct new() {
     _map = {}
