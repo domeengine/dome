@@ -81,14 +81,21 @@ This is the current frames per second number.
 #### `static fullscreen: Boolean`
 
 Set this to switch between Windowed and Fullscreen modes.
+Default is `false`.
 
 #### `static height: Number`
 
 This is the height of the window/viewport, in pixels.
 
+#### `static integerScale: Boolean`
+
+If set to true, the Canvas within the Window will be scaled by integer scaling factors only. This is useful for avoiding the "fat-pixel" look
+due to a mismatch between the Canvas and Window aspect ratios. Default is `false`.
+
 #### `static lockstep: Boolean`
 
 Setting this to true will disable "catch up" game loop behaviour. This is useful for lighter games, or on systems where you experience a little stuttering at 60fps.
+Default is `false`.
 
 #### `static title: String`
 
@@ -97,6 +104,7 @@ This allows you to set and get the title of the DOME window.
 #### `static vsync: Boolean`
 
 Setting this to true will make the renderer wait for VSync before presenting to the display. Changing this value is an expensive operation and so shouldn't be done frequently.
+Default is `true`.
 
 #### `static width: Number`
 
