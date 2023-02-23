@@ -49,6 +49,18 @@ STRING_UTILS_toLowercase(WrenVM* vm) {
 }
 
 internal void
+STRING_UTILS_toUppercase(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "string");
+  int length;
+  const char* str = wrenGetSlotBytes(vm, 1, &length);
+  char* dest = calloc(length + 1, sizeof(char));
+  utf8ncpy(dest, str, length);
+  utf8upr(dest);
+  wrenSetSlotBytes(vm, 0, dest, length);
+  free(dest);
+}
+
+internal void
 WINDOW_resize(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASSERT_SLOT_TYPE(vm, 1, NUM, "width");
@@ -201,4 +213,100 @@ VERSION_getString(WrenVM* vm) {
   wrenSetSlotBytes(vm, 0, version, len);
 }
 
+const char* LOG_LEVEL[] = {
+  "DEBUG",
+  "INFO",
+  "WARN",
+  "ERROR",
+  "FATAL"
+};
+const char* LOG_COLOR[] = {
+  "\033[36m",
+  "\033[32m",
+  "\033[33m",
+  "\033[31m",
+  "\033[31m"
+};
 
+internal void
+LOG_print(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  uint8_t levelNum = mid(0, wrenGetSlotDouble(vm, 1), 4);
+  if (levelNum < engine->logLevel) {
+    return;
+  }
+  const char* level = LOG_LEVEL[levelNum];
+  const char* color = LOG_COLOR[levelNum];
+  const char* line = wrenGetSlotString(vm, 2);
+  const char* context = NULL;
+  if (wrenGetSlotType(vm, 3) == WREN_TYPE_STRING) {
+    context = wrenGetSlotString(vm, 3);
+  }
+  bool tty = isatty(STDOUT_FILENO);
+  size_t length = engine->padding;
+  const size_t lineLength = (context == NULL ? 0 : 3 + strlen(context)) + strlen(level);
+
+  if (lineLength > length) {
+    length = engine->padding = lineLength;
+  }
+
+  size_t padding;
+  padding = length - lineLength + 1;
+
+  if (tty) {
+    printf("%s", color);
+  }
+  printf("[%s]", level);
+  if (context != NULL) {
+    printf(" [%s]", context);
+  }
+  if (tty) {
+    printf("\033[0m");
+  }
+  printf(":");
+  for (size_t i = 0; i < padding; i++) {
+    printf(" ");
+  }
+  printf("%s\n", line);
+
+  char* start;
+  char* out;
+  start = out = (char*)malloc(strlen(line) + length + 7);
+  out += sprintf(out, "[%s]", level);
+  if (context != NULL) {
+    out += sprintf(out, " [%s]", context);
+  }
+  out += sprintf(out, ":");
+  for (size_t i = 0; i < padding; i++) {
+    out += sprintf(out, " ");
+  }
+  out += sprintf(out, "%s", line);
+  *out = '\0';
+  ENGINE_writeToLogFile(engine, start);
+  ENGINE_writeToLogFile(engine, "\n");
+
+  if (levelNum == 4) {
+    VM_ABORT(vm, start);
+  }
+  free(start);
+}
+
+internal void
+LOG_setLevel(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "log level");
+  const char* str = wrenGetSlotString(vm, 1);
+  int i = 0;
+  for (i = 0; i < 5; i++) {
+    if (STRINGS_EQUAL(str, LOG_LEVEL[i])) {
+      engine->logLevel = i;
+      break;
+    }
+  }
+}
+
+internal void
+LOG_getLevel(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotString(vm, 0, LOG_LEVEL[engine->logLevel]);
+}

@@ -12,10 +12,7 @@ ENGINE_openLogFile(ENGINE* engine) {
 }
 
 internal void
-ENGINE_writeToLog(ENGINE* engine, const char* buffer) {
-  // Output to console
-  printf("%s", buffer);
-
+ENGINE_writeToLogFile(ENGINE* engine, const char* buffer) {
   if (engine->debug.logFile == NULL) {
     ENGINE_openLogFile(engine);
   }
@@ -24,6 +21,12 @@ ENGINE_writeToLog(ENGINE* engine, const char* buffer) {
     fputs(buffer, engine->debug.logFile);
     fflush(engine->debug.logFile);
   }
+}
+internal void
+ENGINE_writeToLog(ENGINE* engine, const char* buffer) {
+  // Output to console
+  printf("%s", buffer);
+  ENGINE_writeToLogFile(engine, buffer);
 }
 
 #define RENDER_VARIADIC_STRING(buffer, line, argList) \
@@ -201,6 +204,8 @@ ENGINE_init(ENGINE* engine) {
   engine->debug.errorBuf = NULL;
   engine->debug.errorBufLen = 0;
   engine->debug.errorDialog = true;
+  engine->logLevel = 1; // INFO
+  engine->padding = 5; // INFO
 
   // Initialise the canvas offset.
   engine->canvas.pixels = NULL;

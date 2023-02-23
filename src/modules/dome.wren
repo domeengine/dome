@@ -1,5 +1,57 @@
 import "color" for Color
 import "platform" for Platform
+import "collections" for Stack
+import "stringUtils" for StringUtils
+
+class Log {
+  static init() {
+    __stack = Stack.new()
+  }
+  static context { __stack }
+  static print(level, text) {
+    var context = __stack.peek()
+    print(level, text, context)
+  }
+
+  foreign static f_level=(v)
+  static level=(v) { f_level = StringUtils.toUppercase(v) }
+  foreign static level
+  foreign static print(level, text, context)
+
+  static debug(text) {
+    print(0, text)
+  }
+  static info(text) {
+    print(1, text)
+  }
+  static warn(text) {
+    print(2, text)
+  }
+  static error(text) {
+    print(3, text)
+  }
+  static fatal(text) {
+    print(4, text)
+    Fiber.abort(text)
+  }
+  static d(text) {
+    print(0, text)
+  }
+  static i(text) {
+    print(1, text)
+  }
+  static w(text) {
+    print(2, text)
+  }
+  static e(text) {
+    print(3, text)
+  }
+  static f(text) {
+    print(4, text)
+    Fiber.abort(text)
+  }
+}
+Log.init()
 
 class Version {
   foreign static toString

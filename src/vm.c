@@ -172,6 +172,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // StringUtils
   MAP_addFunction(&engine->moduleMap, "stringUtils", "static StringUtils.toLowercase(_)", STRING_UTILS_toLowercase);
+  MAP_addFunction(&engine->moduleMap, "stringUtils", "static StringUtils.toUppercase(_)", STRING_UTILS_toUppercase);
   MAP_lockModule(&engine->moduleMap, "stringUtils");
 
   // DOME
@@ -180,6 +181,9 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "dome", "static Process.errorDialog", PROCESS_getErrorDialog);
   MAP_addFunction(&engine->moduleMap, "dome", "static Process.errorDialog=(_)", PROCESS_setErrorDialog);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.resize(_,_)", WINDOW_resize);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Log.print(_,_,_)", LOG_print);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Log.f_level=(_)", LOG_setLevel);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Log.level", LOG_getLevel);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.title=(_)", WINDOW_setTitle);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.title", WINDOW_getTitle);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.integerScale=(_)", WINDOW_setIntegerScale);
@@ -365,5 +369,5 @@ internal void VM_free(WrenVM* vm) {
     ENGINE* engine = wrenGetUserData(vm);
     engine->vm = NULL;
     wrenFreeVM(vm);
-  }
+  };
 }
