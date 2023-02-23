@@ -218,7 +218,8 @@ const char* LOG_LEVEL[] = {
   "INFO",
   "WARN",
   "ERROR",
-  "FATAL"
+  "FATAL",
+  "OFF"
 };
 const char* LOG_COLOR[] = {
   "\033[36m",
