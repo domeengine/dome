@@ -173,6 +173,20 @@ WINDOW_getColor(WrenVM* vm) {
 }
 
 internal void
+WINDOW_setIntegerScale(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, BOOL, "scale");
+  bool value = wrenGetSlotBool(vm, 1);
+  SDL_RenderSetIntegerScale(engine->renderer, value);
+}
+
+internal void
+WINDOW_getIntegerScale(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotBool(vm, 0, SDL_RenderGetIntegerScale(engine->renderer));
+}
+
+internal void
 VERSION_getString(WrenVM* vm) {
   size_t len = 0;
   char* version = DOME_VERSION;

@@ -69,6 +69,8 @@ class Window {
   foreign static width
   foreign static height
   foreign static fps
+  foreign static integerScale
+  foreign static integerScale=(value)
 
   foreign static f_color=(value)
   foreign static f_color
