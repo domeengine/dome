@@ -56,7 +56,8 @@ class HashMap {
     _map.remove(hashValue(key))
   }
   count { _map.count }
-  containsKey(key) { _map.containsKey(hashValue(key)) }
+  containsKey(key) { _keys.containsKey(hashValue(key)) }
+  has(key) { containsKey(key) }
   keys { _keys.values }
   values { _map.values }
 
