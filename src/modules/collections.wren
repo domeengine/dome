@@ -1,5 +1,4 @@
 // This implements some common data types
-var WarningEmitted = false
 var HashableTypes = [ Num, String, Range, Bool, Class ]
 var DEFAULT_MAX_COMPARATOR = Fn.new {|a, b| a[0][0] > b[0][0] || (a[0][0] == b[0][0] && a[0][1] < b[0][1]) }
 var DEFAULT_MIN_COMPARATOR = Fn.new {|a, b| a[0][0] < b[0][0] || (a[0][0] == b[0][0] && a[0][1] < b[0][1]) }
@@ -7,7 +6,11 @@ class Hashable {
   hash() { this.toString }
 }
 
-class Stack {
+var HashValue =  Fn.new {|v|
+  return v.hash()
+}
+
+class Stack is Sequence {
   construct new() {
     _list = []
   }
@@ -35,41 +38,34 @@ class Stack {
   remove() { pop() }
   get() { peek() }
 
-  list() { _list[0..-1] }
   iterate(iter) { _list.iterate(iter) }
   iteratorValue(iter) { _list.iteratorValue(iter) }
 }
 
-var HashValue =  Fn.new {|v|
-  return v.hash()
-}
-
-class HashMap {
+class HashMap is Sequence {
   construct new() {
     _map = {}
-    _keys = {}
   }
 
   clear() { _map.clear() }
   remove(key) {
-    _keys.remove(hashValue(key))
     _map.remove(hashValue(key))
   }
   count { _map.count }
-  containsKey(key) { _keys.containsKey(hashValue(key)) }
+  containsKey(key) { _map.containsKey(hashValue(key)) }
   has(key) { containsKey(key) }
-  keys { _keys.values }
-  values { _map.values }
+  keys { _map.values.map{|entry| entry.key } }
+  values { _map.values.map{|entry| entry.value } }
+  entries { _map.values }
 
   [key]=(v) {
     var hash = hashValue(key)
-    _map[hash] = v
-    _keys[hash] = key
+    _map[hash] = MapEntry.new(key, v)
   }
 
   [key] {
     var hash = hashValue(key)
-    return _map[hash]
+    return _map[hash].value
   }
 
   hashValue(v) {
@@ -82,19 +78,13 @@ class HashMap {
       }
     }
     return hash
+  }
 
-  }
-  entries {
-    var mapKeys = keys
-    var entryList = []
-    for (key in mapKeys) {
-      entryList.add(MapEntry.new(key, _map[hashValue(key)]))
-    }
-    return entryList
-  }
+  iterate(iterator) { entries.iterate(iterator) }
+  iteratorValue(iterator) { entries.iteratorValue(iterator) }
 }
 
-class Set {
+class Set is Sequence {
   construct new() {
     _map = {}
   }
@@ -136,13 +126,12 @@ class Set {
 
   }
 
-  list() { _list[0..-1] }
   iterate(iter) { _map.values.iterate(iter) }
   iteratorValue(iter) { _map.values.iteratorValue(iter) }
 }
 
 // A FIFO queue
-class Queue {
+class Queue is Sequence {
   construct new() {
     _list = []
   }
@@ -175,34 +164,35 @@ class Queue {
     return _list[0]
   }
 
-  // Returns a copy of underlying list
-  list() { _list[0..-1] }
-
-  isEmpty { _list.isEmpty }
   count { _list.count }
 
   iterate(iter) { _list.iterate(iter) }
   iteratorValue(iter) { _list.iteratorValue(iter) }
 }
 
-class PriorityQueue {
+class PriorityQueue is Sequence {
   static min() {
     return new(DEFAULT_MIN_COMPARATOR)
   }
   static max() {
     return new(DEFAULT_MAX_COMPARATOR)
   }
+  static new() {
+    return new(DEFAULT_MIN_COMPARATOR)
+  }
 
   construct new(comparator) {
     _id = 0
     _heap = Heap.new(comparator)
     _comparator = comparator
+    _seq = null
   }
 
-  add(item) { put(item, item) }
+  add(item) { add(item, item) }
   add(item, priority) {
     _id = _id + 1
     _heap.add([[priority, _id], item])
+    _seq = null
   }
 
   get() { peek() }
@@ -214,14 +204,26 @@ class PriorityQueue {
   }
 
   remove() {
+    _seq = null
     return _heap.remove()[1]
   }
-  clear() { _heap.clear() }
+  clear() {
+    _seq = null
+    _heap.clear()
+  }
 
   isEmpty { _heap.isEmpty }
   count { _heap.count }
-  list { _heap.list.sort(_comparator).map{|tuple| [tuple[0][0], tuple[1]]}.toList }
+  toTupleList { _heap.toList.map{|tuple| [tuple[0][0], tuple[1]]}.toList }
+  sequence {
+    if (!_seq) {
+      _seq = _heap.toList.map{|tuple| tuple[1] }
+    }
+    return _seq
+  }
 
+  iterate(iter) { sequence.iterate(iter) }
+  iteratorValue(iter) { sequence.iteratorValue(iter) }
 }
 
 class Heap {
@@ -240,8 +242,8 @@ class Heap {
 
   isEmpty { _list.isEmpty }
   count { _size }
-  list { _list[0..-1].sort(_comparator) }
-  listInternal { _list }
+
+  toList { _list[0..-1].sort(_comparator) }
 
   add(element) {
     _list.insert(0, element)
@@ -300,7 +302,6 @@ class Heap {
     }
   }
 
-
   percolateDown(pos) {
     var last = _list.count - 1
     while (true) {
@@ -320,5 +321,4 @@ class Heap {
       pos = min
     }
   }
-
 }
