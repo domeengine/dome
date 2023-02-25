@@ -565,21 +565,31 @@ ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) 
     return;
   }
 
+  int64_t end = zone.w + zone.x;
   int64_t offsetX = canvas.offsetX;
-  size_t pitch = canvas.width;
-
-  int64_t screenStart = max(0, zone.x);
-  int64_t lineEnd = mid(0, zone.x + zone.w, pitch);
-  int64_t screenX = x + offsetX;
-
-  int64_t startX = mid(screenStart, screenX, lineEnd);
-  int64_t endX = mid(screenStart, screenX + w, lineEnd);
-  int64_t lineWidth = max(0, min(endX, pitch) - startX);
-
-  uint32_t* bufStart = buf;
+  int64_t pitch = canvas.width;
   char* pixels = canvas.pixels;
-  char* line = pixels + ((y * pitch + startX) * 4);
-  memcpy(line, bufStart, lineWidth * 4);
+
+  int64_t screenX = x + offsetX;
+  uint32_t* bufStart = buf;
+
+  int64_t readX = 0;
+  if (screenX < zone.x) {
+    readX += (zone.x - screenX);
+  }
+  int64_t readLength = mid(0, w - readX, w);
+
+  int64_t writeX = mid(zone.x, screenX, end);
+  int64_t writeLength = readLength;
+  if (screenX > end - readLength) {
+    writeLength -= (screenX + readLength) - end;
+  }
+  writeLength = mid(0, writeLength, zone.w);
+  writeLength = max(0, writeLength);
+
+  bufStart += readX;
+  char* line = pixels + ((y * pitch + writeX) * 4);
+  memcpy(line, bufStart, writeLength * 4);
 }
 
 internal uint32_t*
@@ -1178,6 +1188,7 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
   SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
 #endif
 
+  printf("resize\n");
   return true;
 }
 

@@ -295,8 +295,8 @@ CANVAS_clip(WrenVM* vm) {
   DOME_RECT rect = {
     .x = max(0, x),
     .y = max(0, y),
-    .w = min(width - x, w),
-    .h = min(height - y, h)
+    .w = min(min(width - x, w), w + x),
+    .h = min(min(height - y, h), h + y)
   };
   engine->canvas.clip = rect;
 }
