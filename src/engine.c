@@ -1188,7 +1188,6 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
   SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
 #endif
 
-  printf("resize\n");
   return true;
 }
 
