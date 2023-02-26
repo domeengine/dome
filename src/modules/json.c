@@ -58,7 +58,7 @@ JSON_STREAM_pos(WrenVM * vm) {
 internal void
 JSON_STREAM_next(WrenVM * vm) {
   enum json_type type = json_next(jsonStream);
-  if (json_typename[type]) {
+  if (type >= JSON_ERROR && type <= JSON_NULL) {
     wrenSetSlotString(vm, 0, json_typename[type]);
     return;
   }
