@@ -118,6 +118,9 @@ class Set is Sequence {
 
   hashValue(v) {
     var hash = v
+    if (hash == null) {
+      return null
+    }
     if (hash != null && !HashableTypes.any {|type| hash is type }) {
       var fiber = Fiber.new(HashValue)
       hash = fiber.try(v)
