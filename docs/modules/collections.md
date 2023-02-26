@@ -7,14 +7,78 @@ They enforce additional semantics on Wren's `List` and `Map` datatypes to achiev
 
 It contains the following classes:
 
+- [Hashable](#hashable)
+- [HashMap](#hashmap)
 - [Queue](#queue)
 - [PriorityQueue](#priorityqueue)
 - [Set](#set)
-  - [Hashable](#hashable)
 - [Stack](#stack)
 
+## Hashable
+Certain collections in this module use hashing to store values efficiently.
+But this means that tthe keys used are actually hashable types.
+
+By default, this means you can only store: 
+* `null`
+* Num
+* String
+* Boolean
+* Range
+* Class
+
+You can store more complex types if the object supports DOME's `Hashable` interface.
+
+### `hash(): Num | String | Boolean | Range | Class`
+This method hashes the object in some unique fashion.
+It can return any hashable type for use in `Set`.
+
+## HashMap
+Implements [Sequence](https://wren.io/modules/core/sequence.html)
+
+This is like Wren's built-in `Map`, but it works with keys that support DOME's `Hashable`
+interface, such as [`Vector`](math#vector).
+
+### Constructor
+#### `new(): Queue`
+Creates a new queue.
+### Instance Fields
+
+#### `count: Num`
+Returns the total number of values stored in the HashMap.
+
+#### `isEmpty: Num`
+Returns true if there are no values stored in the HashMap.
+
+#### `keys: Sequence`
+Returns a sequence of all the keys stored in the HashMap.
+
+#### `values: Sequence`
+Returns a sequence of all the values stored in the HashMap.
+
+#### `entries: Sequence<MapEntry>`
+Returns a sequence of MapEntry, which holds key-value pairs contained
+in the HashMap.
+
+### Instance Methods
+#### `clear()`
+Clears all values from the HashMap.
+
+#### `containsKey(key: Hashable): Boolean`
+Returns true if there is a value stored using the provided key.
+
+#### `has(key: Hashable): Boolean`
+Same as `containsKey` but shorter for convenience
+
+#### `[key: Hashable]: Any`
+Retrieves the value matched to `key` in the HashMap. 
+If there is no corresponding value, `null` is returned.
+
+#### `[key: Hashable]=(value)`
+Stores `value` matched to `key` in the HashMap. 
+If there is already a corresponding value for `key`, it is overwritten.
 
 ## Queue
+Implements [Sequence](https://wren.io/modules/core/sequence.html)
 
 Like a queue in real life, the `queue` in DOME enforces a "First-in-First-out" (FIFO) ordering to elements added to it.
 You cannot insert an element in the middle of the queue, only at the end. In addition, you can only view and retrieve 
@@ -41,20 +105,21 @@ Place `v` at the end of the queue.
 Returns the element at the front of the queue.
 #### `remove(): any`
 Removes the element at the front of the queue, and returns it.
-#### `list(): List<Any>`
-Returns a List with all the contained elements in the current order.
 
 ## PriorityQueue
+Implements [Sequence](https://wren.io/modules/core/sequence.html)
 
 A priority queue is a collection where elements can be added to the queue in any order (with a priority supplied), 
 but elements can only be retrieved in priority order.
 
 ### Constructor
 
-#### `max(): PriorityQueue`
-Creates a new queue where the highest priority is served first.
+#### `new(): PriorityQueue`
 #### `min(): PriorityQueue`
 Creates a new queue where the lowest priority is served first.
+
+#### `max(): PriorityQueue`
+Creates a new queue where the highest priority is served first.
 
 #### `new(comparator: Fn<a: Any, b: Any>: Boolean): PriorityQueue`
 Creates a new queue which uses the given comparator to sort its elements.
@@ -65,6 +130,9 @@ Returns true if the queue is empty (aka `count == 0`).
 
 #### `count: Num`
 The number of elements in the queue.
+
+#### `toList: List<Any>`
+Returns a List with all the contained elements in the current order.
 
 ### Instance Methods
 #### `add(v: any)`
@@ -77,32 +145,15 @@ Place `v` in the queue. The value `priority` is used for priority comparison.
 Returns the element at the front of the queue.
 #### `remove(): any`
 Removes the element at the front of the queue, and returns it.
-#### `list(): List<Any>`
-Returns a List with all the contained elements in the current order.
 
 
 ## Set
 
+Implements [Sequence](https://wren.io/modules/core/sequence.html)
+
 A `Set` is an unordered collection which can only contain an element once. 
+The items placed in the set must be [`Hashable`](#hashable)
 `Set` implements Wren's iterator protocol so you can traverse it using a for-loop.
-
-### Hashable
-A set determines "uniqueness" n a performant way by comparing hashable values.
-But this means that a  set can only contain Hashable types.
-
-By default, this means you can only store: 
-* `null`
-* Num
-* String
-* Boolean
-* Range
-* Class
-
-You can store more complex types if the object supports DOME's `Hashable` interface.
-
-#### `hash(): Num | String | Boolean | Range | Class`
-This method hashes the object in some unique fashion.
-It can return any hashable type for use in `Set`.
 
 ### Constructor
 
@@ -127,9 +178,6 @@ If the set contains `v`, it is returned.
 
 #### `remove(v: any): any`
 Removes the element `v` from the set, and returns it.
-
-#### `list(): List<Any>`
-Returns a List with all the contained elements in the current order.
 
 ## Stack
 

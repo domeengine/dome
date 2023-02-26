@@ -97,6 +97,8 @@ Returns the tan of `n`.
 ## Vector
 
 The `Vector` class works as a vector of up to 4 dimensions. You can also refer to it as a `Point` or `Vec`.
+This class also implements DOME's [`Hashable`](collections#hashable) interface, allowing it to be used
+with our collections.
 
 ### Constructor
 
@@ -130,7 +132,7 @@ Returns the 2D vector perpendicular to the current vector. This doesn't work for
 Returns a copy of the current vector, where it's arguments have been scaled such that it's length is 1.
 
 #### `pair: Number`
-Uses the `Elegant` algorithm to pair the `x` and `y` coordinates. This can be reversed with `Elegant.unpair(_)`.
+Uses the `Elegant` algorithm to pair the `x` and `y` coordinates. This can be reversed with `Elegant.unpair(_)`. 
 
 
 ### Instance Methods

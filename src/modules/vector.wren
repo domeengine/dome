@@ -109,7 +109,10 @@ class Vector {
     }
   }
 
+  // Implement hashable interface
+  hash() { Elegant.pair(x, y) }
   pair { Elegant.pair(x, y) }
+
   toString {
     if (z == 0 && w == 0) {
       return "(%(x), %(y))"
