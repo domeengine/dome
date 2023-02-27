@@ -20,6 +20,7 @@ Check out the documentation:
   * [Distributing your game](guides/distribution)
 * [Modules](modules/)
   * [audio](modules/audio)
+  * [collections](modules/collections)
   * [dome](modules/dome)
   * [graphics](modules/graphics)
   * [input](modules/input)

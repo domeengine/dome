@@ -16,6 +16,7 @@ It contains the following classes:
 ## Log
 
 ### Static Fields
+
 #### `logLevel: string`
 The current level of logging. Can be one of: 
 
@@ -41,33 +42,28 @@ off the stack.
 See the [`Stack`](collections#stack) documentation for more information.
 
 ### Static Methods
-#### `debug(text: String)`
-#### `d(text: String)`
+
+#### `debug(text: String)` or `d(text: String)`
 
 An `debug` log message is used for fine-grained diagnostics of an application's operations.
 These are often verbose and frequent, which is why they are disabled by default.
 
-
-#### `error(text: String)`
-#### `e(text: String)`
+#### `error(text: String)` or `e(text: String)`
 
 An `error` log message can be used to indicate a problem with the running program but
 not necessarily something unrecoverable.
 
-#### `fatal(text: String)`
-#### `f(text: String)`
+#### `fatal(text: String)` or `f(text: String)`
 
 A fatal log message indicates a catastrophic failure that cannot be recovered from.
 This method will print to the console and then abort the current fiber as if `Fiber.abort` had been used.
 
-#### `info(text: String)`
-#### `i(text: String)`
+#### `info(text: String)` or `i(text: String)`
 
 An `info` log message is used for indicating routine operations. Useful to understand what
 is happening but often high-level.
 
-#### `warn(text: String)`
-#### `w(text: String)`
+#### `warn(text: String)` or `w(text: String)`
 
 An `warn` log message can be used to indicate something potentially problematic which
 might be cause for investigation.
