@@ -65,7 +65,7 @@ class HashMap is Sequence {
 
   [key] {
     var hash = hashValue(key)
-    return _map[hash].value
+    return _map[hash] ? _map[hash].value : null
   }
 
   hashValue(v) {
@@ -118,6 +118,9 @@ class Set is Sequence {
 
   hashValue(v) {
     var hash = v
+    if (hash == null) {
+      return null
+    }
     if (hash != null && !HashableTypes.any {|type| hash is type }) {
       var fiber = Fiber.new(HashValue)
       hash = fiber.try(v)

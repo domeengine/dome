@@ -86,6 +86,9 @@ typedef struct ENGINE_t {
   DOME_RECT textRegion;
   ENGINE_MOUSE_STATE mouse;
 
+  uint8_t logLevel;
+  size_t padding;
+
   int exit_status;
   struct AUDIO_ENGINE_t* audioEngine;
   bool initialized;
