@@ -6,10 +6,71 @@ The `dome` module allows you to control various aspects of how DOME as an applic
 
 It contains the following classes:
 
+- [Log](#log)
 - [Platform](#platform)
 - [Process](#process)
 - [Version](#version)
 - [Window](#window)
+
+
+## Log
+
+### Static Fields
+#### `logLevel: string`
+The current level of logging. Can be one of: 
+
+  0. `OFF`
+  1. `FATAL`
+  2. `ERROR`
+  3. `WARN`
+  4. `INFO`
+  5. `DEBUG`.
+
+When you set the logLevel, the string will be converted to uppercase automatically.
+
+The default level is `INFO`, and each level will include the levels before it; 
+`ERROR` will include `FATAL` messages, for example.
+
+#### `context: Stack<String>`
+
+It isn't always clear where a log was generated from. To make it clearer, you can `push()`
+a context label (of `string` type) onto this stack. The item at the top of the stack will
+be included when a log is printed. When no longer needed, you can `pop()` the context 
+off the stack.
+
+See the [`Stack`](collections#stack) documentation for more information.
+
+### Static Methods
+#### `debug(text: String)`
+#### `d(text: String)`
+
+An `debug` log message is used for fine-grained diagnostics of an application's operations.
+These are often verbose and frequent, which is why they are disabled by default.
+
+
+#### `error(text: String)`
+#### `e(text: String)`
+
+An `error` log message can be used to indicate a problem with the running program but
+not necessarily something unrecoverable.
+
+#### `fatal(text: String)`
+#### `f(text: String)`
+
+A fatal log message indicates a catastrophic failure that cannot be recovered from.
+This method will print to the console and then abort the current fiber as if `Fiber.abort` had been used.
+
+#### `info(text: String)`
+#### `i(text: String)`
+
+An `info` log message is used for indicating routine operations. Useful to understand what
+is happening but often high-level.
+
+#### `warn(text: String)`
+#### `w(text: String)`
+
+An `warn` log message can be used to indicate something potentially problematic which
+might be cause for investigation.
 
 ## Platform
 
