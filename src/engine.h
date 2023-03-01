@@ -87,6 +87,7 @@ typedef struct ENGINE_t {
   ENGINE_MOUSE_STATE mouse;
 
   uint8_t logLevel;
+  bool logColor;
   size_t padding;
 
   int exit_status;

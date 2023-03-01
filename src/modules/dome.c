@@ -245,7 +245,7 @@ LOG_print(WrenVM* vm) {
   if (wrenGetSlotType(vm, 3) == WREN_TYPE_STRING) {
     context = wrenGetSlotString(vm, 3);
   }
-  bool tty = isatty(STDOUT_FILENO);
+  bool tty = engine->logColor;
   size_t length = engine->padding;
   const size_t lineLength = (context == NULL ? 0 : 3 + strlen(context)) + strlen(level);
 

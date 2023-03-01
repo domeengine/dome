@@ -17,7 +17,7 @@ It contains the following classes:
 
 ### Static Fields
 
-#### `logLevel: string`
+#### `level: string`
 The current level of logging. Can be one of: 
 
   0. `OFF`
@@ -27,7 +27,7 @@ The current level of logging. Can be one of:
   4. `INFO`
   5. `DEBUG`.
 
-When you set the logLevel, the string will be converted to uppercase automatically.
+When you set `Log.level`, the string will be converted to uppercase automatically.
 
 The default level is `INFO`, and each level will include the levels before it; 
 `ERROR` will include `FATAL` messages, for example.

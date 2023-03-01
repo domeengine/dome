@@ -206,6 +206,7 @@ ENGINE_init(ENGINE* engine) {
   engine->debug.errorDialog = true;
 
   engine->logLevel = 4; // INFO
+  engine->logColor = isatty(STDOUT_FILENO);
   engine->padding = 5;
 
   // Initialise the canvas offset.

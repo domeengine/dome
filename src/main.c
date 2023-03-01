@@ -326,6 +326,14 @@ int main(int argc, char* argv[])
             freopen("CONIN$", "r", stdin);
             freopen("CONOUT$", "w", stdout);
             freopen("CONOUT$", "w", stderr);
+
+            stdINConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+            if (INVALID_HANDLE_VALUE) {
+              &engine->logColor = false;
+            } else {
+              &engine->logColor = true;
+              SetConsoleMode((stdInConsole, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+            }
           } break;
 #endif
         case 'd':
