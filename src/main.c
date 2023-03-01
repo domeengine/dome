@@ -332,7 +332,7 @@ int main(int argc, char* argv[])
               engine.logColor = false;
             } else {
               engine.logColor = true;
-              SetConsoleMode((stdOutConsole, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+              SetConsoleMode(stdOutConsole, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
             }
           } break;
 #endif
