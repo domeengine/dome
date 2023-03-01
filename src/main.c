@@ -327,12 +327,12 @@ int main(int argc, char* argv[])
             freopen("CONOUT$", "w", stdout);
             freopen("CONOUT$", "w", stderr);
 
-            stdINConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+            HANDLE stdOutConsole = GetStdHandle(STD_OUTPUT_HANDLE);
             if (INVALID_HANDLE_VALUE) {
-              &engine->logColor = false;
+              engine.logColor = false;
             } else {
-              &engine->logColor = true;
-              SetConsoleMode((stdInConsole, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+              engine.logColor = true;
+              SetConsoleMode((stdOutConsole, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
             }
           } break;
 #endif
