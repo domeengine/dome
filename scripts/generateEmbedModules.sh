@@ -17,6 +17,7 @@ declare -a arr=(
 "json"
 "platform"
 "random"
+"collections"
 )
 
 declare -a opts=(

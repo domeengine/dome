@@ -172,6 +172,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
 
   // StringUtils
   MAP_addFunction(&engine->moduleMap, "stringUtils", "static StringUtils.toLowercase(_)", STRING_UTILS_toLowercase);
+  MAP_addFunction(&engine->moduleMap, "stringUtils", "static StringUtils.toUppercase(_)", STRING_UTILS_toUppercase);
   MAP_lockModule(&engine->moduleMap, "stringUtils");
 
   // DOME
@@ -180,10 +181,15 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "dome", "static Process.errorDialog", PROCESS_getErrorDialog);
   MAP_addFunction(&engine->moduleMap, "dome", "static Process.errorDialog=(_)", PROCESS_setErrorDialog);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.resize(_,_)", WINDOW_resize);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Log.print(_,_,_)", LOG_print);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Log.f_level=(_)", LOG_setLevel);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Log.level", LOG_getLevel);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.title=(_)", WINDOW_setTitle);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.title", WINDOW_getTitle);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.integerScale=(_)", WINDOW_setIntegerScale);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.integerScale", WINDOW_getIntegerScale);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.vsync=(_)", WINDOW_setVsync);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.lockstep=(_)", WINDOW_setLockStep);
-  MAP_addFunction(&engine->moduleMap, "dome", "static Window.title", WINDOW_getTitle);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.fullscreen=(_)", WINDOW_setFullscreen);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.fullscreen", WINDOW_getFullscreen);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.width", WINDOW_getWidth);
@@ -210,6 +216,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_print(_,_,_,_)", CANVAS_print);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.offset(_,_)", CANVAS_offset);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.clip(_,_,_,_)", CANVAS_clip);
+  MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_clip", CANVAS_getClip);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.f_resize(_,_,_)", CANVAS_resize);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.width", CANVAS_getWidth);
   MAP_addFunction(&engine->moduleMap, "graphics", "static Canvas.height", CANVAS_getHeight);
@@ -235,6 +242,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_pget(_,_)", IMAGE_pget);
   MAP_addFunction(&engine->moduleMap, "image", "ImageData.f_pset(_,_,_)", IMAGE_pset);
   MAP_addClass(&engine->moduleMap, "image", "DrawCommand", DRAW_COMMAND_allocate, DRAW_COMMAND_finalize);
+  MAP_addFunction(&engine->moduleMap, "image", "DrawCommand.f_modify(_,_)", DRAW_COMMAND_modify);
   MAP_addFunction(&engine->moduleMap, "image", "DrawCommand.draw(_,_)", DRAW_COMMAND_draw);
   MAP_lockModule(&engine->moduleMap, "image");
 
@@ -272,6 +280,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.prefPath(_,_)", FILESYSTEM_getPrefPath);
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.basePath()", FILESYSTEM_getBasePath);
   MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.createDirectory(_)", FILESYSTEM_createDirectory);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.doesFileExist(_)", FILESYSTEM_doesFileExist);
+  MAP_addFunction(&engine->moduleMap, "io", "static FileSystem.doesDirectoryExist(_)", FILESYSTEM_doesDirectoryExist);
 
   // Buffer
   MAP_addClass(&engine->moduleMap, "io", "DataBuffer", DBUFFER_allocate, DBUFFER_finalize);
@@ -344,6 +354,11 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "random", "Squirrel5.float()", SQUIRREL5_float);
   MAP_lockModule(&engine->moduleMap, "random");
 
+  // Math
+  MAP_addFunction(&engine->moduleMap, "vector", "static Elegant.pair(_,_)", MATH_pair);
+  MAP_addFunction(&engine->moduleMap, "vector", "static Elegant.unpair_i(_)", MATH_unpair);
+  MAP_lockModule(&engine->moduleMap, "vector");
+
   engine->vm = vm;
 
   return vm;
@@ -354,5 +369,5 @@ internal void VM_free(WrenVM* vm) {
     ENGINE* engine = wrenGetUserData(vm);
     engine->vm = NULL;
     wrenFreeVM(vm);
-  }
+  };
 }

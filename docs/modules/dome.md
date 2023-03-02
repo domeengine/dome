@@ -6,10 +6,67 @@ The `dome` module allows you to control various aspects of how DOME as an applic
 
 It contains the following classes:
 
+- [Log](#log)
 - [Platform](#platform)
 - [Process](#process)
 - [Version](#version)
 - [Window](#window)
+
+
+## Log
+
+### Static Fields
+
+#### `level: string`
+The current level of logging. Can be one of: 
+
+  0. `OFF`
+  1. `FATAL`
+  2. `ERROR`
+  3. `WARN`
+  4. `INFO`
+  5. `DEBUG`.
+
+When you set `Log.level`, the string will be converted to uppercase automatically.
+
+The default level is `INFO`, and each level will include the levels before it; 
+`ERROR` will include `FATAL` messages, for example.
+
+#### `context: Stack<String>`
+
+It isn't always clear where a log was generated from. To make it clearer, you can `push()`
+a context label (of `string` type) onto this stack. The item at the top of the stack will
+be included when a log is printed. When no longer needed, you can `pop()` the context 
+off the stack.
+
+See the [`Stack`](collections#stack) documentation for more information.
+
+### Static Methods
+
+#### `debug(text: String)` or `d(text: String)`
+
+An `debug` log message is used for fine-grained diagnostics of an application's operations.
+These are often verbose and frequent, which is why they are disabled by default.
+
+#### `error(text: String)` or `e(text: String)`
+
+An `error` log message can be used to indicate a problem with the running program but
+not necessarily something unrecoverable.
+
+#### `fatal(text: String)` or `f(text: String)`
+
+A fatal log message indicates a catastrophic failure that cannot be recovered from.
+This method will print to the console and then abort the current fiber as if `Fiber.abort` had been used.
+
+#### `info(text: String)` or `i(text: String)`
+
+An `info` log message is used for indicating routine operations. Useful to understand what
+is happening but often high-level.
+
+#### `warn(text: String)` or `w(text: String)`
+
+An `warn` log message can be used to indicate something potentially problematic which
+might be cause for investigation.
 
 ## Platform
 
@@ -81,14 +138,21 @@ This is the current frames per second number.
 #### `static fullscreen: Boolean`
 
 Set this to switch between Windowed and Fullscreen modes.
+Default is `false`.
 
 #### `static height: Number`
 
 This is the height of the window/viewport, in pixels.
 
+#### `static integerScale: Boolean`
+
+If set to true, the Canvas within the Window will be scaled by integer scaling factors only. This is useful for avoiding the "fat-pixel" look
+due to a mismatch between the Canvas and Window aspect ratios. Default is `false`.
+
 #### `static lockstep: Boolean`
 
 Setting this to true will disable "catch up" game loop behaviour. This is useful for lighter games, or on systems where you experience a little stuttering at 60fps.
+Default is `false`.
 
 #### `static title: String`
 
@@ -97,6 +161,7 @@ This allows you to set and get the title of the DOME window.
 #### `static vsync: Boolean`
 
 Setting this to true will make the renderer wait for VSync before presenting to the display. Changing this value is an expensive operation and so shouldn't be done frequently.
+Default is `true`.
 
 #### `static width: Number`
 

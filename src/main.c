@@ -133,6 +133,8 @@ global_variable size_t AUDIO_BUFFER_SIZE = 2048;
 #include "modules/platform.c"
 #include "modules/random.c"
 #include "modules/plugin.c"
+#include "modules/math.c"
+
 // Comes last to register modules
 #include "vm.c"
 #include "game.c"
@@ -324,6 +326,19 @@ int main(int argc, char* argv[])
             freopen("CONIN$", "r", stdin);
             freopen("CONOUT$", "w", stdout);
             freopen("CONOUT$", "w", stderr);
+
+            HANDLE stdOutConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+            if (INVALID_HANDLE_VALUE) {
+              engine.logColor = false;
+            } else {
+              engine.logColor = true;
+              SetConsoleMode(stdOutConsole,
+                  ENABLE_PROCESSED_OUTPUT ||
+                  ENABLE_VIRTUAL_TERMINAL_PROCESSING ||
+                  ENABLE_WRAP_AT_EOL_OUTPUT ||
+                  DISABLE_NEWLINE_AUTO_RETURN
+              );
+            }
           } break;
 #endif
         case 'd':
@@ -365,11 +380,13 @@ int main(int argc, char* argv[])
       };
       int ncmds = sizeof(cmds) / sizeof(*cmds);
       subargv = argv + options.optind;
-      // If we match a subcommand, execute it
-      for (int i = 0; i < ncmds; i++) {
-        if (!strncmp(cmds[i].name, subargv[0], strlen(subargv[0]))) {
-          result = cmds[i].cmd(&engine, subargv);
-          goto cleanup;
+      if (subargv[0] != NULL) {
+        // If we match a subcommand, execute it
+        for (int i = 0; i < ncmds; i++) {
+          if (!strncmp(cmds[i].name, subargv[0], strlen(subargv[0]))) {
+            result = cmds[i].cmd(&engine, subargv);
+            goto cleanup;
+          }
         }
       }
     }

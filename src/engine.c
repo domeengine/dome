@@ -12,10 +12,7 @@ ENGINE_openLogFile(ENGINE* engine) {
 }
 
 internal void
-ENGINE_writeToLog(ENGINE* engine, const char* buffer) {
-  // Output to console
-  printf("%s", buffer);
-
+ENGINE_writeToLogFile(ENGINE* engine, const char* buffer) {
   if (engine->debug.logFile == NULL) {
     ENGINE_openLogFile(engine);
   }
@@ -24,6 +21,12 @@ ENGINE_writeToLog(ENGINE* engine, const char* buffer) {
     fputs(buffer, engine->debug.logFile);
     fflush(engine->debug.logFile);
   }
+}
+internal void
+ENGINE_writeToLog(ENGINE* engine, const char* buffer) {
+  // Output to console
+  printf("%s", buffer);
+  ENGINE_writeToLogFile(engine, buffer);
 }
 
 #define RENDER_VARIADIC_STRING(buffer, line, argList) \
@@ -100,7 +103,7 @@ ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr, char** reas
       return file;
     }
 
-    char* message =  mtar_strerror(err);
+    const char* message =  mtar_strerror(err);
     if (DEBUG_MODE) {
       ENGINE_printLog(engine, "Couldn't read %s from bundle: %s. Falling back\n", pathBuf, message);
     }
@@ -123,6 +126,23 @@ ENGINE_readFile(ENGINE* engine, const char* path, size_t* lengthPtr, char** reas
 
   ENGINE_printLog(engine, "Reading from filesystem: %s\n", pathBuf);
   return readEntireFile(pathBuf, lengthPtr, reason);
+}
+
+internal bool
+ENGINE_fileExists(ENGINE* engine, const char* path) {
+ char pathBuf[PATH_MAX];
+
+ pathBase(path, pathBuf);
+ return (fileInfo(pathBuf) == 1) ? true : false;
+}
+
+internal bool
+ENGINE_directoryExists(ENGINE* engine, const char* path) {
+ char pathBuf[PATH_MAX];
+
+ pathBase(path, pathBuf);
+
+ return (fileInfo(pathBuf) == 2) ? true : false;
 }
 
 internal int
@@ -185,6 +205,10 @@ ENGINE_init(ENGINE* engine) {
   engine->debug.errorBufLen = 0;
   engine->debug.errorDialog = true;
 
+  engine->logLevel = 4; // INFO
+  engine->logColor = isatty(STDOUT_FILENO);
+  engine->padding = 5;
+
   // Initialise the canvas offset.
   engine->canvas.pixels = NULL;
   engine->canvas.offsetX = 0;
@@ -224,7 +248,7 @@ ENGINE_start(ENGINE* engine) {
   }
 
   //Create window
-  engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
+  engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
   if(engine->window == NULL)
   {
     char* message = "Window could not be created! SDL_Error: %s\n";
@@ -548,21 +572,31 @@ ENGINE_blitLine(ENGINE* engine, int64_t x, int64_t y, int64_t w, uint32_t* buf) 
     return;
   }
 
+  int64_t end = zone.w + zone.x;
   int64_t offsetX = canvas.offsetX;
-  size_t pitch = canvas.width;
-
-  int64_t screenStart = max(0, zone.x);
-  int64_t lineEnd = mid(0, zone.x + zone.w, pitch);
-  int64_t screenX = x + offsetX;
-
-  int64_t startX = mid(screenStart, screenX, lineEnd);
-  int64_t endX = mid(screenStart, screenX + w, lineEnd);
-  int64_t lineWidth = max(0, min(endX, pitch) - startX);
-
-  uint32_t* bufStart = buf;
+  int64_t pitch = canvas.width;
   char* pixels = canvas.pixels;
-  char* line = pixels + ((y * pitch + startX) * 4);
-  memcpy(line, bufStart, lineWidth * 4);
+
+  int64_t screenX = x + offsetX;
+  uint32_t* bufStart = buf;
+
+  int64_t readX = 0;
+  if (screenX < zone.x) {
+    readX += (zone.x - screenX);
+  }
+  int64_t readLength = mid(0, w - readX, w);
+
+  int64_t writeX = mid(zone.x, screenX, end);
+  int64_t writeLength = readLength;
+  if (screenX > end - readLength) {
+    writeLength -= (screenX + readLength) - end;
+  }
+  writeLength = mid(0, writeLength, zone.w);
+  writeLength = max(0, writeLength);
+
+  bufStart += readX;
+  char* line = pixels + ((y * pitch + writeX) * 4);
+  memcpy(line, bufStart, writeLength * 4);
 }
 
 internal uint32_t*

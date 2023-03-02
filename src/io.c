@@ -111,7 +111,7 @@ isDirectory(const char *path) {
 }
 
 internal inline bool
-doesFileExist(char* path) {
+doesFileExist(const char* path) {
   return access(path, F_OK) != -1;
 }
 
@@ -127,6 +127,40 @@ isPathAbsolute(const char* path) {
   return (path[0] == '/');
 #endif
 
+}
+
+internal void
+pathBase(const char* path, char* pathBuf)
+{
+ if (strncmp(path, "./", 2) == 0) {
+   strcpy(pathBuf, path + 2);
+ } else {
+   strcpy(pathBuf, path);
+ }
+
+ if (path[0] != '/') {
+   strcpy(pathBuf, BASEPATH_get());
+   strcat(pathBuf, path);
+ }
+}
+
+internal int
+fileInfo(const char* path)
+{
+ /*
+  Returns an integer
+  0 = No file or directory.
+  1 = Is file.
+  2 = Is directory.
+ */
+ if (isDirectory(path)) {
+   return 2;
+ }
+
+ if (doesFileExist(path)) {
+   return 1;
+ }
+ return 0;
 }
 
 internal int

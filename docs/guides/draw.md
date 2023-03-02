@@ -13,7 +13,7 @@ The reason for this is discussed further in the [Game Loop guide](/guides/game-l
 You can access most of the graphical functions through the [`Canvas`](/modules/graphics#canvas) class
 in the [`graphics`](/modules/graphics) module.
 
-## Primitives
+## Primitives
 
 The `Canvas` class contains functions for drawing the different shapes. There's an outline and "filled" version:
 
@@ -81,7 +81,7 @@ DOME supports the following image formats:
 Here's an example, loading an image and drawing it to the Canvas:
 
 ```javascript
-var image = ImageData.loadFromFile("path/to/file.format")
+var image = ImageData.load("path/to/file.format")
 image.draw(6, 7)
 ```
 

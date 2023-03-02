@@ -7,8 +7,28 @@ The `math` module provides utilities for performing mathematical calculations.
 
 It contains the following classes:
 
+* [Elegant](#elegant)
 * [Math](#math)
 * [Vector](#vector)
+
+## Elegant
+
+The `Elegant` class supplies a useful utility for combining pairs of signed integers, based on ["An Elegant Pairing Method"](http://szudzik.com/ElegantPairing.pdf) by Matthew Szudzik
+
+
+### Static Methods
+
+#### `pair(vec: Vector): Number`
+Pairs the `x` and `y` of `vec` into a single result.
+
+#### `pair(x: Number, y: Number): Number`
+Pairs the `x` and `y` into a single result.
+
+#### `unpair(z: Number): Vector`
+Reverses the value `z` into a vector `(x, y)`.
+
+#### `unpairAsList(z: Number): List<Number>`
+Reverses the value `z` into a list `[ x, y ]`.
 
 ## Math
 
@@ -77,6 +97,8 @@ Returns the tan of `n`.
 ## Vector
 
 The `Vector` class works as a vector of up to 4 dimensions. You can also refer to it as a `Point` or `Vec`.
+This class also implements DOME's [`Hashable`](collections#hashable) interface, allowing it to be used
+with our collections.
 
 ### Constructor
 
@@ -87,6 +109,9 @@ The `Vector` class works as a vector of up to 4 dimensions. You can also refer t
 
 Create a vector. If a value isn't provided, it is set to `(0, 0, 0, 0)`.
 Unless you specifically need 3 or 4-dimensional vectors, you can ignore _z_ and _w_.
+
+#### `Vector.fromPair(z: Number): Vector`
+Reverses an `Elegant` pairing to produce the corresponding vector.
 
 ### Instance Fields
 #### `x: Number`
@@ -105,6 +130,9 @@ Returns the 2D vector perpendicular to the current vector. This doesn't work for
 
 #### `unit: Vector`
 Returns a copy of the current vector, where it's arguments have been scaled such that it's length is 1.
+
+#### `pair: Number`
+Uses the `Elegant` algorithm to pair the `x` and `y` coordinates. This can be reversed with `Elegant.unpair(_)`. 
 
 
 ### Instance Methods

@@ -49,6 +49,18 @@ STRING_UTILS_toLowercase(WrenVM* vm) {
 }
 
 internal void
+STRING_UTILS_toUppercase(WrenVM* vm) {
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "string");
+  int length;
+  const char* str = wrenGetSlotBytes(vm, 1, &length);
+  char* dest = calloc(length + 1, sizeof(char));
+  utf8ncpy(dest, str, length);
+  utf8upr(dest);
+  wrenSetSlotBytes(vm, 0, dest, length);
+  free(dest);
+}
+
+internal void
 WINDOW_resize(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASSERT_SLOT_TYPE(vm, 1, NUM, "width");
@@ -57,13 +69,25 @@ WINDOW_resize(WrenVM* vm) {
 #ifndef __EMSCRIPTEN__
   uint32_t width = wrenGetSlotDouble(vm, 1);
   uint32_t height = wrenGetSlotDouble(vm, 2);
-  SDL_SetWindowSize(engine->window, width, height);
+
+  // Account for High DPI by comparing the current window size
+  // to the renderer's client output size.
+  // This is considered more accurate than SDL's built in methods.
+  int32_t currentWinWidth, currentWinHeight;
+  int32_t currentRenderWidth, currentRenderHeight;
+  SDL_GetWindowSize(engine->window, &currentWinWidth, &currentWinHeight);
+  SDL_GetRendererOutputSize(engine->renderer, &currentRenderWidth, &currentRenderHeight);
+
+  double factorH = currentRenderWidth / currentWinWidth;
+  double factorV = currentRenderHeight / currentWinHeight;
+
+  SDL_SetWindowSize(engine->window, width / factorH, height / factorV);
   // Window may not have resized to the specified value because of
   // desktop restraints, but SDL doesn't check this.
   // We can fetch the final display size from the renderer output.
   int32_t newWidth, newHeight;
   SDL_GetRendererOutputSize(engine->renderer, &newWidth, &newHeight);
-  SDL_SetWindowSize(engine->window, newWidth, newHeight);
+  SDL_SetWindowSize(engine->window, newWidth / factorH, newHeight/factorV);
 #else
   SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
 #endif
@@ -161,6 +185,20 @@ WINDOW_getColor(WrenVM* vm) {
 }
 
 internal void
+WINDOW_setIntegerScale(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, BOOL, "scale");
+  bool value = wrenGetSlotBool(vm, 1);
+  SDL_RenderSetIntegerScale(engine->renderer, value);
+}
+
+internal void
+WINDOW_getIntegerScale(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotBool(vm, 0, SDL_RenderGetIntegerScale(engine->renderer));
+}
+
+internal void
 VERSION_getString(WrenVM* vm) {
   size_t len = 0;
   char* version = DOME_VERSION;
@@ -175,4 +213,104 @@ VERSION_getString(WrenVM* vm) {
   wrenSetSlotBytes(vm, 0, version, len);
 }
 
+#define LOG_LEVEL_COUNT 6
+const char* LOG_LEVEL[LOG_LEVEL_COUNT] = {
+  "OFF",
+  "FATAL",
+  "ERROR",
+  "WARN",
+  "INFO",
+  "DEBUG",
+};
+const char* LOG_COLOR[LOG_LEVEL_COUNT] = {
+  "\0330m",
+  "\033[31m",
+  "\033[31m",
+  "\033[33m",
+  "\033[32m",
+  "\033[36m"
+};
 
+internal void
+LOG_print(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  int8_t levelNum = fmid(0, wrenGetSlotDouble(vm, 1), LOG_LEVEL_COUNT - 1);
+  if (levelNum > engine->logLevel) {
+    return;
+  }
+  const char* level = LOG_LEVEL[levelNum];
+  const char* color = LOG_COLOR[levelNum];
+  const char* line = wrenGetSlotString(vm, 2);
+  const char* context = NULL;
+  if (wrenGetSlotType(vm, 3) == WREN_TYPE_STRING) {
+    context = wrenGetSlotString(vm, 3);
+  }
+  bool tty = engine->logColor;
+  size_t length = engine->padding;
+  const size_t lineLength = (context == NULL ? 0 : 3 + strlen(context)) + strlen(level);
+
+  if (lineLength > length) {
+    length = engine->padding = lineLength;
+  }
+
+  size_t padding;
+  padding = length - lineLength + 1;
+
+  char* start;
+  char* out;
+  start = out = (char*)malloc(strlen(line) + length + 7);
+  out += sprintf(out, "[%s]", level);
+  if (context != NULL) {
+    out += sprintf(out, " [%s]", context);
+  }
+  out += sprintf(out, ":");
+  for (size_t i = 0; i < padding; i++) {
+    out += sprintf(out, " ");
+  }
+  out += sprintf(out, "%s", line);
+  *out = '\0';
+  ENGINE_writeToLogFile(engine, start);
+  ENGINE_writeToLogFile(engine, "\n");
+
+  if (tty) {
+    printf("%s", color);
+  }
+  printf("[%s]", level);
+  if (context != NULL) {
+    printf(" [%s]", context);
+  }
+  if (tty) {
+    printf("\033[0m");
+  }
+  printf(":");
+  for (size_t i = 0; i < padding; i++) {
+    printf(" ");
+  }
+  printf("%s\n", line);
+
+  // FATAL
+  if (levelNum == 1) {
+    VM_ABORT(vm, line);
+  }
+  free(start);
+}
+
+internal void
+LOG_setLevel(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, STRING, "log level");
+  const char* str = wrenGetSlotString(vm, 1);
+  int i = 0;
+  for (i = 0; i < 5; i++) {
+    if (STRINGS_EQUAL(str, LOG_LEVEL[i])) {
+      engine->logLevel = i;
+      break;
+    }
+  }
+}
+
+internal void
+LOG_getLevel(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  wrenSetSlotString(vm, 0, LOG_LEVEL[engine->logLevel]);
+}

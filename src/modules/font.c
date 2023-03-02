@@ -186,7 +186,6 @@ FONT_RASTER_getArea(WrenVM* vm) {
   // Account for the final line being shorter.
   maxX = max(maxX, posX);
 
-
   wrenEnsureSlots(vm, 2);
   wrenSetSlotNewList(vm, 0);
   wrenSetSlotDouble(vm, 1, maxX);

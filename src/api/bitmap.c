@@ -14,7 +14,7 @@ BITMAP_API_fromFileInMemory(DOME_Context ctx, void* buffer, size_t length) {
   if (bitmap->pixels == NULL) {
     free(bitmap);
     bitmap = NULL;
-    char* reason = stbi_failure_reason();
+    const char* reason = stbi_failure_reason();
     size_t length = strlen(reason) + 1;
     PLUGIN_COLLECTION_setErrorReason((ENGINE*)ctx, reason, length);
   }

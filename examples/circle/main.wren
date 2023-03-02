@@ -19,6 +19,10 @@ class Main {
     }
     if (Keyboard["down"].down) {
       _size = _size - 1
+
+      if (_size < 0) {
+        _size = 0
+      }
     }
   }
 

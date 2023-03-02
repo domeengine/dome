@@ -9,13 +9,16 @@ class Input {
 class DigitalInput {
   construct init() {
     _down = false
+    _wasDown = false
     _current = false
     _previous = false
     _repeats = 0
   }
+
   commit() {
     _previous = _down
-    _down = _current
+    _down = _current || _wasDown
+    _wasDown = false
     if (_down && _previous == _down) {
       _repeats = _repeats + 1
     } else {
@@ -25,10 +28,12 @@ class DigitalInput {
 
   update(state) {
     _current = state
+    _wasDown = _wasDown || _current
   }
 
   reset() {
     _down = false
+    _wasDown = false
     commit()
   }
   repeat() {
@@ -263,6 +268,64 @@ class GamePad {
     __pads.remove(instanceId)
   }
 }
+
+class InputGroup {
+  construct new(inputs) {
+    if (inputs is Sequence) {
+      _inputs = inputs
+    } else if (inputs is DigitalInput) {
+      _inputs = [ inputs ]
+    }
+
+    _repeating = true
+    _initialFreq = 40
+    _freq = 10
+    if (!_inputs.all {|input| input is DigitalInput }) {
+      Fiber.abort("Inputs must be DigitalInput")
+    }
+  }
+
+  repeating { _repeating }
+  repeating=(v) { _repeating = v }
+
+  threshold { _initialFreq }
+  threshold=(v) { _initialFreq = v }
+  frequency { _freq }
+  frequency=(v) { _freq = v }
+
+  reset() {
+    _inputs.each {|input| input.reset() }
+  }
+
+  justPressed {
+    return _inputs.count > 0 && _inputs.any {|input| input.justPressed }
+  }
+  down {
+    return _inputs.count > 0 && _inputs.any {|input| input.down }
+  }
+
+  firing {
+    return _inputs.count > 0 && _inputs.any {|input|
+      if (_repeating) {
+        if (input.down) {
+          if (input.repeats == 0) {
+            return true
+          } else if (input.repeats < _initialFreq) {
+            return false
+          } else if (input.repeats == _initialFreq) {
+            return true
+          } else if (0.max(input.repeats - _initialFreq) % _freq == 0) {
+            return true
+          }
+        }
+        return false
+      } else {
+        return input.justPressed
+      }
+    }
+  }
+}
+
 
 class Clipboard {
   foreign static content

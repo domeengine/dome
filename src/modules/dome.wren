@@ -1,5 +1,60 @@
 import "color" for Color
 import "platform" for Platform
+import "collections" for Stack
+import "stringUtils" for StringUtils
+
+class Log {
+  static init() {
+    __stack = Stack.new()
+    f_level = "INFO"
+  }
+  static context { __stack }
+  static print(level, text) {
+    var context = __stack.peek()
+    print(level, text, context)
+  }
+
+  foreign static f_level=(v)
+  static level=(v) { f_level = StringUtils.toUppercase(v) }
+  foreign static level
+  foreign static print(level, text, context)
+
+  static debug(text) {
+    print(5, text)
+  }
+  static d(text) {
+    print(5, text)
+  }
+
+  static info(text) {
+    print(4, text)
+  }
+  static i(text) {
+    print(4, text)
+  }
+
+  static warn(text) {
+    print(3, text)
+  }
+  static w(text) {
+    print(3, text)
+  }
+
+  static error(text) {
+    print(2, text)
+  }
+  static e(text) {
+    print(2, text)
+  }
+
+  static fatal(text) {
+    print(1, text)
+  }
+  static f(text) {
+    print(1, text)
+  }
+}
+Log.init()
 
 class Version {
   foreign static toString
@@ -69,6 +124,8 @@ class Window {
   foreign static width
   foreign static height
   foreign static fps
+  foreign static integerScale
+  foreign static integerScale=(value)
 
   foreign static f_color=(value)
   foreign static f_color
