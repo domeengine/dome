@@ -107,6 +107,8 @@ CFLAGS += -D_XOPEN_SOURCE=500
 else ifneq ($(filter macosx,$(TAGS)),)
 CFLAGS += -mmacosx-version-min=10.12
 CFLAGS += -D_DARWIN_C_SOURCE
+CFLAGS += -arch x86_64 -arch arm64
+WREN_PARAMS += -arch x86_64 -arch arm64
 endif
 
 ifneq ($(filter release,$(TAGS)),)
