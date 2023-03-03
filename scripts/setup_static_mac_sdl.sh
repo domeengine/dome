@@ -5,9 +5,9 @@ git submodule update --init -- $DIRECTORY
 if ! [ -d "$DIRECTORY/$FOLDER" ]; then
   cd $DIRECTORY
   mkdir ${FOLDER} ; cd ${FOLDER}
-  ../configure CC=$(sh $DIRECTORY/build-scripts/clang-fat.sh) # --disable-shared
+  ../configure CC="sh $DIRECTORY/build-scripts/clang-fat.sh" #--disable-shared
 else
-  cd $DIRECTORY/${FOLDER}
+  cd $DIRECTORY/$FOLDER
 fi
 
 make

@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: ["windows-x64", "windows-x32", "macosx-x64", "linux-x64", "linux-x64-shared"]
+        platform: ["windows-x64", "windows-x32", "macosx-all", "linux-x64", "linux-x64-shared"]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
