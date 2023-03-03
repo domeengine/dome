@@ -5,7 +5,7 @@ on:
   release:
     types: [published]
   push:
-    branches: [ develop, universalBinary ]
+    branches: [ develop ]
 
 jobs:
   build-web:
