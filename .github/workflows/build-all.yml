@@ -83,7 +83,7 @@ jobs:
     - run: make MIN_MAC_VERSION=10.12 STATIC=1
     - uses: actions/upload-artifact@v2
       with:
-        name: dome-macosx-x64
+        name: dome-macosx-all
         path: |
           dome
           main.wren
@@ -148,7 +148,7 @@ jobs:
           args: zip -qq -r dome-windows-x32.zip dome-windows-x32
       - uses: montudor/action-zip@v0.1.0
         with:
-          args: zip -qq -r dome-macosx-x64.zip dome-macosx-x64
+          args: zip -qq -r dome-macosx-all.zip dome-macosx-all
       - uses: montudor/action-zip@v0.1.0
         with:
           args: zip -qq -r dome-web.zip dome-web
@@ -195,8 +195,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }} 
-          asset_path: ./dome-macosx-x64.zip
-          asset_name: dome-${{github.event.release.tag_name}}-macosx-x64.zip
+          asset_path: ./dome-macosx-all.zip
+          asset_name: dome-${{github.event.release.tag_name}}-macosx-all.zip
           asset_content_type: application/zip
       - name: Upload Web Engine
         uses: actions/upload-release-asset@v1
