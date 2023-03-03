@@ -83,7 +83,7 @@ jobs:
          ./lib/libSDL2*
         key: ${{ runner.os }}-${{ hashFiles('./scripts/vars.sh') }}-sdl
     - run: ./scripts/setup_static_mac_sdl.sh
-    - run: make STATIC=1
+    - run: make -mmacosx-version-min=10.11 STATIC=1
     - uses: actions/upload-artifact@v3
       with:
         name: dome-macosx-all
