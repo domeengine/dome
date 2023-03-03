@@ -5,7 +5,7 @@ on:
   release:
     types: [published]
   push:
-    branches: [ develop ]
+    branches: [ develop, universalBinary ]
 
 jobs:
   build-web:
@@ -15,10 +15,10 @@ jobs:
     - name: Verify
       run: emcc -v
     - name: Checkout
-      uses: actions/checkout@v2.0.0
+      uses: actions/checkout@v3.0.0
     - run: git fetch --prune --unshallow
     - run: make MODE=release dome.html ARCH=web
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: dome-web
         path: |
@@ -31,7 +31,7 @@ jobs:
         static: [1, 0]
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.0.0
+      uses: actions/checkout@v3.0.0
     - run: git fetch --prune --unshallow
     - run: sudo apt-get update
     - run: sudo apt-get install build-essential mercurial make cmake autoconf automake libtool libasound2-dev libpulse-dev libaudio-dev libx11-dev libxext-dev   libxrandr-dev libxcursor-dev libxi-dev libxinerama-dev libxxf86vm-dev  libxss-dev libgl1-mesa-dev libdbus-1-dev libudev-dev libgles2-mesa-dev  libegl1-mesa-dev libibus-1.0-dev fcitx-libs-dev libsamplerate0-dev  libsndio-dev libwayland-dev libxkbcommon-dev 
@@ -49,7 +49,7 @@ jobs:
     - run: ./scripts/setup_static_linux_sdl.sh
       if: ${{matrix.static == 1}}
     - run: make MODE=release STATIC=${{matrix.static}} 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       if: ${{matrix.static == 1}}
       with:
         name: dome-linux-x64
@@ -57,7 +57,7 @@ jobs:
           dome
           main.wren
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       if: ${{matrix.static == 0}}
       with:
         name: dome-linux-x64-shared
@@ -69,7 +69,7 @@ jobs:
     runs-on: macOS-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.0.0
+      uses: actions/checkout@v3.0.0
     - run: sudo xcode-select -switch /Applications/Xcode_14.2.app/Contents/Developer
     - name: Cache dependancies
       uses: actions/cache@v2
@@ -81,7 +81,7 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('./scripts/vars.sh') }}-sdl
     - run: ./scripts/setup_static_mac_sdl.sh
     - run: make MIN_MAC_VERSION=10.12 STATIC=1
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: dome-macosx-all
         path: |
@@ -96,7 +96,7 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: msys2/setup-msys2@v2
       with:
         msystem: ${{ matrix.msystem }}
@@ -112,14 +112,14 @@ jobs:
     - run: git fetch --prune --unshallow
     - run: gcc -v
     - run: "make STATIC=1 TARGET_NAME=dome CC=gcc"
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       if: ${{ (matrix.msystem == 'MINGW32') }}
       with:
         name: dome-windows-x32
         path: |
           dome.exe
           main.wren
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       if: ${{ (matrix.msystem == 'MINGW64') }}
       with:
         name: dome-windows-x64
