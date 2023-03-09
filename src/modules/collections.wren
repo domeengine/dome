@@ -18,19 +18,19 @@ class Stack is Sequence {
   count { _list.count }
 
   push(v) {
-    _list.add(v)
+    _list.insert(0, v)
   }
   peek() {
     if (_list.isEmpty) {
       return null
     }
-    return _list[-1]
+    return _list[0]
   }
   pop() {
     if (_list.isEmpty) {
       return null
     }
-    return _list.removeAt(-1)
+    return _list.removeAt(0)
   }
   clear() { _list.clear() }
 
