@@ -66,9 +66,10 @@ WINDOW_resize(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, NUM, "width");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "height");
 
-#ifndef __EMSCRIPTEN__
   uint32_t width = wrenGetSlotDouble(vm, 1);
   uint32_t height = wrenGetSlotDouble(vm, 2);
+
+#ifndef __EMSCRIPTEN__
 
 #if defined _WIN32 || defined __MINGW32__
 
@@ -110,7 +111,7 @@ WINDOW_resize(WrenVM* vm) {
   SDL_SetWindowSize(engine->window, newWidth / factorH, newHeight/factorV);
 #endif
 #else
-  SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
+  //SDL_SetWindowSize(engine->window, width, height);
 #endif
   ENGINE_updateTextRegion(engine);
 }
