@@ -70,7 +70,7 @@ WINDOW_resize(WrenVM* vm) {
   uint32_t width = wrenGetSlotDouble(vm, 1);
   uint32_t height = wrenGetSlotDouble(vm, 2);
 
-#ifdef _WIN32
+#if defined _WIN32 || defined __MINGW32__
   SDL_SetWindowSize(engine->window, width, height);
   int32_t newWidth, newHeight;
   SDL_GetRendererOutputSize(engine->renderer, &newWidth, &newHeight);
