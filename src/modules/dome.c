@@ -71,7 +71,20 @@ WINDOW_resize(WrenVM* vm) {
   uint32_t height = wrenGetSlotDouble(vm, 2);
 
 #if defined _WIN32 || defined __MINGW32__
-  SDL_SetWindowSize(engine->window, width, height);
+
+  SDL_DisplayMode dm;
+
+  if (SDL_GetDesktopDisplayMode(0, &dm) != 0)
+  {
+       SDL_Log("SDL_GetDesktopDisplayMode failed: %s", SDL_GetError());
+       return 1;
+  }
+
+  int w, h;
+  w = dm.w;
+  h = dm.h;
+
+  SDL_SetWindowSize(engine->window, min(width, w-1), min(height, h - 1));
   int32_t newWidth, newHeight;
   SDL_GetRendererOutputSize(engine->renderer, &newWidth, &newHeight);
   SDL_SetWindowSize(engine->window, newWidth, newHeight);
