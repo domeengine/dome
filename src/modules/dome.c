@@ -301,7 +301,7 @@ LOG_setLevel(WrenVM* vm) {
   ASSERT_SLOT_TYPE(vm, 1, STRING, "log level");
   const char* str = wrenGetSlotString(vm, 1);
   int i = 0;
-  for (i = 0; i < 5; i++) {
+  for (i = 0; i < LOG_LEVEL_COUNT; i++) {
     if (STRINGS_EQUAL(str, LOG_LEVEL[i])) {
       engine->logLevel = i;
       break;

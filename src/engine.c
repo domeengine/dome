@@ -235,8 +235,12 @@ ENGINE_init(ENGINE* engine) {
 internal int
 ENGINE_start(ENGINE* engine) {
   int result = EXIT_SUCCESS;
+
+  uint32_t windowFlags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE;
 #if defined _WIN32
   SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
+#else
+  windowFlags |= SDL_WINDOW_ALLOW_HIGHDPI;
 #endif
   SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1");
 
@@ -248,7 +252,7 @@ ENGINE_start(ENGINE* engine) {
   }
 
   //Create window
-  engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+  engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
   if(engine->window == NULL)
   {
     char* message = "Window could not be created! SDL_Error: %s\n";

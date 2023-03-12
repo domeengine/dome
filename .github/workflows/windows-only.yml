@@ -1,0 +1,125 @@
+name: Multi-platform Build Release
+on:
+  workflow_dispatch
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        msystem: [MINGW32, MINGW64]
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.msystem }}
+        release: true
+        update: true
+        install: git make mercurial subversion
+
+    - run: pacman --noconfirm -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-SDL2
+      if: ${{ (matrix.msystem == 'MINGW64') }}
+    - run: pacman --noconfirm -S mingw-w64-i686-toolchain mingw-w64-i686-SDL2
+      if: ${{ (matrix.msystem == 'MINGW32') }}
+
+    - run: git fetch --prune --unshallow
+    - run: gcc -v
+    - run: "make STATIC=1 TARGET_NAME=dome CC=gcc"
+    - uses: actions/upload-artifact@v3
+      if: ${{ (matrix.msystem == 'MINGW32') }}
+      with:
+        name: dome-windows-x32
+        path: |
+          dome.exe
+          main.wren
+    - uses: actions/upload-artifact@v3
+      if: ${{ (matrix.msystem == 'MINGW64') }}
+      with:
+        name: dome-windows-x64
+        path: |
+          dome.exe
+          main.wren
+
+  release-artifacts:
+    if: ${{ github.event.action == 'published' }}
+    needs: [ build-linux, build-mac, build-windows, build-web ]
+    runs-on: ubuntu-latest
+    name: Upload Release Artifacts
+    steps:
+      - uses: actions/download-artifact@v2
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-linux-x64.zip dome-linux-x64
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-linux-x64-shared.zip dome-linux-x64-shared
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-windows-x64.zip dome-windows-x64
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-windows-x32.zip dome-windows-x32
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-macosx-all.zip dome-macosx-all
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r dome-web.zip dome-web
+      - run: ls -la
+      - name: Upload Linux Shared
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-linux-x64-shared.zip
+          asset_name: dome-${{github.event.release.tag_name}}-linux-x64-shared.zip
+          asset_content_type: application/zip
+      - name: Upload Linux Static
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-linux-x64.zip
+          asset_name: dome-${{github.event.release.tag_name}}-linux-x64.zip
+          asset_content_type: application/zip
+      - name: Upload Windows x64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-windows-x64.zip
+          asset_name: dome-${{github.event.release.tag_name}}-windows-x64.zip
+          asset_content_type: application/zip
+      - name: Upload Windows x32
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-windows-x32.zip
+          asset_name: dome-${{github.event.release.tag_name}}-windows-x32.zip
+          asset_content_type: application/zip
+      - name: Upload Mac OS X
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-macosx-all.zip
+          asset_name: dome-${{github.event.release.tag_name}}-macosx-all.zip
+          asset_content_type: application/zip
+      - name: Upload Web Engine
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }} 
+          asset_path: ./dome-web.zip
+          asset_name: dome-${{github.event.release.tag_name}}-web.zip
+          asset_content_type: application/zip
