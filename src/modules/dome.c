@@ -70,6 +70,13 @@ WINDOW_resize(WrenVM* vm) {
   uint32_t width = wrenGetSlotDouble(vm, 1);
   uint32_t height = wrenGetSlotDouble(vm, 2);
 
+#ifdef _WIN32
+  SDL_SetWindowSize(engine->window, width, height);
+  int32_t newWidth, newHeight;
+  SDL_GetRendererOutputSize(engine->renderer, &newWidth, &newHeight);
+  SDL_SetWindowSize(engine->window, newWidth, newHeight);
+#else
+
   // Account for High DPI by comparing the current window size
   // to the renderer's client output size.
   // This is considered more accurate than SDL's built in methods.
@@ -88,6 +95,7 @@ WINDOW_resize(WrenVM* vm) {
   int32_t newWidth, newHeight;
   SDL_GetRendererOutputSize(engine->renderer, &newWidth, &newHeight);
   SDL_SetWindowSize(engine->window, newWidth / factorH, newHeight/factorV);
+#endif
 #else
   SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
 #endif
