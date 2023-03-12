@@ -237,8 +237,10 @@ ENGINE_start(ENGINE* engine) {
   int result = EXIT_SUCCESS;
 
   uint32_t windowFlags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE;
-#if defined _WIN32 || defined __MINGW32__
+#if defined (_WIN32) || defined (__MINGW32__)
   SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
+  SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1");
+  SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, "1");
 #else
   windowFlags |= SDL_WINDOW_ALLOW_HIGHDPI;
 #endif
