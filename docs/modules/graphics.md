@@ -265,7 +265,7 @@ The code snippet above:
  * It then rotates it 90 degrees clockwise
  * Finally, it scales the tile up by 2 in both the X and Y direction, but it flips the tile vertically.
 
-## SpriteSheet
+## SpriteSheet
 
 This class can load in an image and divide it into a fixed-size grid of smaller squares, as a convenience.
 It's useful for loading multiple sprites from a single file. This can also be used as the foundation of an 
