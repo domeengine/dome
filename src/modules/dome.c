@@ -100,6 +100,8 @@ WINDOW_resize(WrenVM* vm) {
 
   double factorH = currentRenderWidth / currentWinWidth;
   double factorV = currentRenderHeight / currentWinHeight;
+  factorH = 1;
+  factorV = 1;
 
   SDL_SetWindowSize(engine->window, width / factorH, height / factorV);
   // Window may not have resized to the specified value because of
