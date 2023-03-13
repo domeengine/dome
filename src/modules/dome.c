@@ -83,13 +83,14 @@ WINDOW_resize(WrenVM* vm) {
     SDL_MaximizeWindow(engine->window);
   } else {
     SDL_SetWindowSize(engine->window, width, height);
-    // Window may not have resized to the specified value because of
-    // desktop restraints, but SDL doesn't check this.
-    // We can fetch the final display size from the renderer output.
-    int32_t newWidth, newHeight;
-    SDL_GetWindowSize(engine->window, &newWidth, &newHeight);
-    SDL_SetWindowSize(engine->window, newWidth, newHeight);
   }
+  // Window may not have resized to the specified value because of
+  // desktop restraints, but SDL doesn't check this and remembers
+  // the requested size only.
+  // We can fetch the final display size to set to the correct value
+  int32_t newWidth, newHeight;
+  SDL_GetWindowSize(engine->window, &newWidth, &newHeight);
+  SDL_SetWindowSize(engine->window, newWidth, newHeight);
 #else
   // In web mode, we fix to the canvas size and let the browser scale the window/canvas
   SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
