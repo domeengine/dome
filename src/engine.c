@@ -242,7 +242,6 @@ ENGINE_start(ENGINE* engine) {
 #else
   windowFlags |= SDL_WINDOW_ALLOW_HIGHDPI;
 #endif
-//  SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1");
 
   //Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {

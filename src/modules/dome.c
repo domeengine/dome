@@ -73,14 +73,13 @@ WINDOW_resize(WrenVM* vm) {
 
   if (SDL_GetDesktopDisplayMode(0, &dm) != 0)
   {
-       SDL_Log("SDL_GetDesktopDisplayMode failed: %s", SDL_GetError());
+       ENGINE_printLog(engine, "SDL_GetDesktopDisplayMode failed %s", SDL_GetError());
        return;
   }
 
-  int w, h;
-  w = dm.w;
-  h = dm.h;
-  if (width > w || height > h) {
+  int32_t displayWidth = dm.w;
+  int32_t displayHeight = dm.h;
+  if (width > displayWidth || height > displayHeight) {
     SDL_MaximizeWindow(engine->window);
   } else {
     SDL_SetWindowSize(engine->window, width, height);
@@ -92,6 +91,7 @@ WINDOW_resize(WrenVM* vm) {
     SDL_SetWindowSize(engine->window, newWidth, newHeight);
   }
 #else
+  // In web mode, we fix to the canvas size and let the browser scale the window/canvas
   SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
 #endif
   ENGINE_updateTextRegion(engine);
