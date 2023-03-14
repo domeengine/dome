@@ -120,11 +120,11 @@ class SpriteSheet {
   }
 
   static load(path, tileSize, scale) {
-    var image = ImageData.loadFromFile(path)
+    var image = ImageData.load(path)
     return SpriteSheet.new(image, tileSize, scale)
   }
   static load(path, tileSize) {
-    return SpriteSheet.loadFromFile(path, tileSize, 1)
+    return SpriteSheet.load(path, tileSize, 1)
   }
 
   construct new(image, tileSize) {
