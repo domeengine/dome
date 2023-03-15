@@ -237,12 +237,11 @@ ENGINE_start(ENGINE* engine) {
   int result = EXIT_SUCCESS;
 
   uint32_t windowFlags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE;
-#if defined _WIN32
+#if defined (_WIN32) || defined (__MINGW32__)
   SDL_setenv("SDL_AUDIODRIVER", "directsound", true);
 #else
   windowFlags |= SDL_WINDOW_ALLOW_HIGHDPI;
 #endif
-  SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1");
 
   //Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -1187,17 +1186,21 @@ ENGINE_canvasResize(ENGINE* engine, uint32_t newWidth, uint32_t newHeight, uint3
     return false;
   }
 
-  engine->canvas.pixels = realloc(engine->canvas.pixels, engine->canvas.width * engine->canvas.height * 4);
+  engine->canvas.pixels = realloc(engine->canvas.pixels, engine->canvas.width * engine->canvas.height * sizeof(uint32_t));
   if (engine->canvas.pixels == NULL) {
     return false;
   }
+  /*
   ENGINE_rectfill(engine, 0, 0, engine->canvas.width, engine->canvas.height, color);
+  */
+  SDL_RenderClear(engine->renderer);
   SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
   ENGINE_updateTextRegion(engine);
 
 #ifdef __EMSCRIPTEN__
   SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
 #endif
+  memset((uint32_t*)engine->canvas.pixels, color, engine->canvas.width * engine->canvas.height);
 
   return true;
 }

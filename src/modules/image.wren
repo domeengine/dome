@@ -120,11 +120,11 @@ class SpriteSheet {
   }
 
   static load(path, tileSize, scale) {
-    var image = ImageData.loadFromFile(path)
+    var image = ImageData.load(path)
     return SpriteSheet.new(image, tileSize, scale)
   }
   static load(path, tileSize) {
-    return SpriteSheet.loadFromFile(path, tileSize, 1)
+    return SpriteSheet.load(path, tileSize, 1)
   }
 
   construct new(image, tileSize) {
@@ -167,6 +167,8 @@ class SpriteSheet {
     return _cache[s]
   }
 
+  drawFrom(sx, sy, x, y, modMap) { draw(sy * _width + sx, x, y, modMap) }
+  drawFrom(sx, sy, x, y) { draw(sy * _width + sx, x, y) }
   draw(s, x, y) { draw(s, x, y, null) }
   draw(s, x, y, modMap) {
     getTile(s).modify(modMap || {

@@ -65,30 +65,34 @@ WINDOW_resize(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASSERT_SLOT_TYPE(vm, 1, NUM, "width");
   ASSERT_SLOT_TYPE(vm, 2, NUM, "height");
-
-#ifndef __EMSCRIPTEN__
   uint32_t width = wrenGetSlotDouble(vm, 1);
   uint32_t height = wrenGetSlotDouble(vm, 2);
 
-  // Account for High DPI by comparing the current window size
-  // to the renderer's client output size.
-  // This is considered more accurate than SDL's built in methods.
-  int32_t currentWinWidth, currentWinHeight;
-  int32_t currentRenderWidth, currentRenderHeight;
-  SDL_GetWindowSize(engine->window, &currentWinWidth, &currentWinHeight);
-  SDL_GetRendererOutputSize(engine->renderer, &currentRenderWidth, &currentRenderHeight);
+#ifndef __EMSCRIPTEN__
+  SDL_DisplayMode dm;
 
-  double factorH = currentRenderWidth / currentWinWidth;
-  double factorV = currentRenderHeight / currentWinHeight;
+  if (SDL_GetDesktopDisplayMode(0, &dm) != 0)
+  {
+       ENGINE_printLog(engine, "SDL_GetDesktopDisplayMode failed %s", SDL_GetError());
+       return;
+  }
 
-  SDL_SetWindowSize(engine->window, width / factorH, height / factorV);
+  int32_t displayWidth = dm.w;
+  int32_t displayHeight = dm.h;
+  if (width > displayWidth || height > displayHeight) {
+    SDL_MaximizeWindow(engine->window);
+  } else {
+    SDL_SetWindowSize(engine->window, width, height);
+  }
   // Window may not have resized to the specified value because of
-  // desktop restraints, but SDL doesn't check this.
-  // We can fetch the final display size from the renderer output.
+  // desktop restraints, but SDL doesn't check this and remembers
+  // the requested size only.
+  // We can fetch the final display size to set to the correct value
   int32_t newWidth, newHeight;
-  SDL_GetRendererOutputSize(engine->renderer, &newWidth, &newHeight);
-  SDL_SetWindowSize(engine->window, newWidth / factorH, newHeight/factorV);
+  SDL_GetWindowSize(engine->window, &newWidth, &newHeight);
+  SDL_SetWindowSize(engine->window, newWidth, newHeight);
 #else
+  // In web mode, we fix to the canvas size and let the browser scale the window/canvas
   SDL_SetWindowSize(engine->window, engine->canvas.width, engine->canvas.height);
 #endif
   ENGINE_updateTextRegion(engine);

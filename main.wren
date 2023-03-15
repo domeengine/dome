@@ -1,4 +1,5 @@
 import "graphics" for Canvas, Color
+
 class Main {
   construct new() {}
   init() {}

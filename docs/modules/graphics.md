@@ -265,7 +265,7 @@ The code snippet above:
  * It then rotates it 90 degrees clockwise
  * Finally, it scales the tile up by 2 in both the X and Y direction, but it flips the tile vertically.
 
-## SpriteSheet
+## SpriteSheet
 
 This class can load in an image and divide it into a fixed-size grid of smaller squares, as a convenience.
 It's useful for loading multiple sprites from a single file. This can also be used as the foundation of an 
@@ -298,6 +298,13 @@ Draw tile `index` on the spritesheet at location `(x, y)` on screen.
 
 #### `draw(index: Number, x: Number, y: Number, parameterMap)`
 Draw tile `index` on the spritesheet at location `(x, y)` on screen. This will also apply the given transform `parameterMap` to the tile being drawn.
+You can reference the `ImageData.transform` documentation for a list of available parameters.
+
+#### `drawFrom(tileX: Number, tileY: Number, x: Number, y: Number)`
+Draw tile `(tileX, tileY)` on the spritesheet at location `(x, y)` on screen.
+
+#### `drawFrom(tileX: Number, tileY: Number, x: Number, y: Number, parameterMap)`
+Draw tile `(tileX, tileY)` on the spritesheet at location `(x, y)` on screen. This will also apply the given transform `parameterMap` to the tile being drawn.
 You can reference the `ImageData.transform` documentation for a list of available parameters.
 
 ### Instance Methods

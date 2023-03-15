@@ -50,6 +50,7 @@ DOME_processInput(LOOP_STATE* state) {
         {
           if (event.window.event == SDL_WINDOWEVENT_RESIZED ||
               event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+
             SDL_RenderGetViewport(engine->renderer, &(engine->viewport));
             break;
           }
@@ -303,7 +304,6 @@ int DOME_begin(ENGINE* engine, char* entryPath) {
   loop.drawMethod = wrenMakeCallHandle(vm, "draw(_)");
 
   SDL_SetRenderDrawColor(engine->renderer, 0x00, 0x00, 0x00, 0xFF);
-
   // Initiate game loop
 
   wrenSetSlotHandle(vm, 0, loop.gameClass);
