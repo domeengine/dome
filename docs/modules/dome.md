@@ -175,4 +175,5 @@ This is the background color of the window. Note that to this _does not_ affect 
 
 #### `static resize(width: Number, height: Number): Void`
 
-This allows you to control the size of DOME's window. The viewport will scale accordingly, but the canvas will NOT resize.
+This allows you to control the size of DOME's window. The viewport will scale accordingly, but the canvas will NOT resize. DOME treats high DPI displays with a scaling factor (determined by the operating system) so the
+true window size may not match your chosen dimensions.

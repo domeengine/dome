@@ -54,13 +54,13 @@ AUDIO_allocate(WrenVM* vm) {
     data->spec.freq = freq;
     data->spec.format = AUDIO_F32LSB;
     data->length = totalFrameCount;
-  } else if (strncmp(fileBuffer, "ID3", 3) == 0) {
+  } else {
     data->audioType = AUDIO_TYPE_MP3;
     drmp3_config config = { 0 };
     drmp3_uint64 totalFrameCount;
     tempBuffer = drmp3_open_memory_and_read_pcm_frames_s16(fileBuffer, length, &config, &totalFrameCount, NULL);
     if (tempBuffer == NULL) {
-      VM_ABORT(vm, "Invalid MP3 file");
+      VM_ABORT(vm, "Audio file was of an incompatible format");
       return;
     }
 
@@ -68,9 +68,6 @@ AUDIO_allocate(WrenVM* vm) {
     data->spec.freq = config.sampleRate;
     data->spec.format = AUDIO_F32LSB;
     data->length = totalFrameCount;
-  } else {
-    VM_ABORT(vm, "Audio file was of an incompatible format");
-    return;
   }
 
   data->buffer = calloc(data->length, bytesPerSample);
