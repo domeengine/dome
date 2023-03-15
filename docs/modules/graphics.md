@@ -300,10 +300,10 @@ Draw tile `index` on the spritesheet at location `(x, y)` on screen.
 Draw tile `index` on the spritesheet at location `(x, y)` on screen. This will also apply the given transform `parameterMap` to the tile being drawn.
 You can reference the `ImageData.transform` documentation for a list of available parameters.
 
-#### `draw(tileX: Number, tileY: Number, x: Number, y: Number)`
+#### `drawFrom(tileX: Number, tileY: Number, x: Number, y: Number)`
 Draw tile `(tileX, tileY)` on the spritesheet at location `(x, y)` on screen.
 
-#### `draw(tileX: Number, tileY: Number, x: Number, y: Number, parameterMap)`
+#### `drawFrom(tileX: Number, tileY: Number, x: Number, y: Number, parameterMap)`
 Draw tile `(tileX, tileY)` on the spritesheet at location `(x, y)` on screen. This will also apply the given transform `parameterMap` to the tile being drawn.
 You can reference the `ImageData.transform` documentation for a list of available parameters.
 

@@ -167,8 +167,8 @@ class SpriteSheet {
     return _cache[s]
   }
 
-  draw(sx, sy, x, y, modMap) { draw(sy * _width + sx, x, y, modMap) }
-  draw(sx, sy, x, y) { draw(sy * _width + sx, x, y) }
+  drawFrom(sx, sy, x, y, modMap) { draw(sy * _width + sx, x, y, modMap) }
+  drawFrom(sx, sy, x, y) { draw(sy * _width + sx, x, y) }
   draw(s, x, y) { draw(s, x, y, null) }
   draw(s, x, y, modMap) {
     getTile(s).modify(modMap || {
