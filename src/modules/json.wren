@@ -196,7 +196,7 @@ class JsonEncoder {
       var substrings = []
       for (key in value.keys) {
         var keyValue = this.encode(value[key])
-        var encodedKey = this.encode(key)
+        var encodedKey = this.encode(key.toString)
         substrings.add("%(encodedKey):%(keyValue)")
       }
       pop()
@@ -204,7 +204,7 @@ class JsonEncoder {
     }
 
     // Default behaviour is to invoke the toString method
-    return value.toString
+    return encode(value.toString)
   }
 }
 
