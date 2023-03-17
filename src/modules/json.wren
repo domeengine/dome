@@ -159,10 +159,14 @@ class JsonEncoder {
     }
   }
 
-  encode(value) {
+  encode(value) { encode(value, 0) }
+  encode(value, level) {
     if (isCircle(value)) {
       Fiber.abort("Circular JSON")
     }
+
+    var nextSpace = " " * ((level + 1) * 2)
+    var space = " " * (level * 2).max(0)
 
     // Loosely based on https://github.com/brandly/wren-json/blob/master/json.wren
     if (value is Num || value is Bool || value is Null) {
@@ -185,22 +189,22 @@ class JsonEncoder {
       push(value)
       var substrings = []
       for (item in value) {
-        substrings.add(encode(item))
+        substrings.add(nextSpace + encode(item, level + 1))
       }
       pop()
-      return "[" + substrings.join(",") + "]"
+      return "[\n" + substrings.join(",\n") + "\n%(space)]"
     }
 
     if (value is Map) {
       push(value)
       var substrings = []
       for (key in value.keys) {
-        var keyValue = this.encode(value[key])
-        var encodedKey = this.encode(key.toString)
-        substrings.add("%(encodedKey):%(keyValue)")
+        var keyValue = this.encode(value[key], level + 1)
+        var encodedKey = this.encode(key.toString, level + 1)
+        substrings.add(nextSpace + "%(encodedKey): %(keyValue)")
       }
       pop()
-      return "{" + substrings.join(",") + "}"
+      return "{\n" + substrings.join(",\n") + "\n%(space)}"
     }
 
     // Default behaviour is to invoke the toString method
