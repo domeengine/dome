@@ -196,8 +196,8 @@ class PriorityQueue is Sequence {
 
   add(item) { add(item, item) }
   add(item, priority) {
-    _id = _id + 1
     _heap.add([[priority, _id], item])
+    _id = _id + 1
     _seq = null
   }
 
@@ -275,7 +275,7 @@ class Heap {
     }
     var top = _list[0]
     var last = _list.count - 1
-    swap(0, last)
+    _list.swap(0, last)
     _list.removeAt(last)
     percolateUp(0)
     percolateDown(0)
@@ -285,12 +285,6 @@ class Heap {
   clear() {
     _list.clear()
     _size = 0
-  }
-
-  swap(i1, i2) {
-    var temp = _list[i1]
-    _list[i1] = _list[i2]
-    _list[i2] = temp
   }
 
   compare(a, b) {
@@ -303,7 +297,7 @@ class Heap {
       if (compare(_list[pos], _list[parent]) >= 0) {
         break
       }
-      swap(parent, pos)
+      _list.swap(parent, pos)
       pos = parent
     }
   }
@@ -323,7 +317,7 @@ class Heap {
         break
       }
 
-      swap(pos, min)
+      _list.swap(pos, min)
       pos = min
     }
   }
