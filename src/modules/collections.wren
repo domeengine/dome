@@ -35,6 +35,12 @@ class Stack is Sequence {
   clear() { _list.clear() }
 
   add(v) { push(v) }
+  addAll(other) {
+    for (item in other) {
+      push(item)
+    }
+  }
+
   remove() { pop() }
   get() { peek() }
 
@@ -114,6 +120,11 @@ class Set is Sequence {
     var hash = hashValue(value)
     _map[hash] = value
   }
+  addAll(other) {
+    for (item in other) {
+      add(item)
+    }
+  }
   clear() { _map.clear() }
 
   hashValue(v) {
@@ -142,6 +153,7 @@ class Queue is Sequence {
     _list = []
   }
   add(item) { _list.add(item) }
+  addAll(other) { _list.addAll(other) }
   remove() {
     if (_list.isEmpty) {
       return null
