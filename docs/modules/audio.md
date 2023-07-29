@@ -89,7 +89,7 @@ The channel will become invalid if it reaches the end of the sample and `loop` i
 You can read and modify the pan position, as a bounded value between -1.0 and 1.0.
 
 #### `position: Number`
-This marks the position of the next sample to be loaded into the AudioEngine mix buffer (which happens on a seperate thread).
+This marks the position of the next sample to be loaded into the AudioEngine mix buffer (which happens on a separate thread).
 You can set a new position for the channel, but it isn't going to be exact, due to delays in audio processing.
 
 You should divide this by `44100` to get the position in seconds.

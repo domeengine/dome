@@ -17,7 +17,7 @@ typedef struct AUDIO_ENGINE_t {
 
 // audio callback function
 // Allows SDL to "pull" data into the output buffer
-// on a seperate thread. We need to be pretty efficient
+// on a separate thread. We need to be pretty efficient
 // here as it holds a lock.
 void AUDIO_ENGINE_mix(void*  userdata,
     Uint8* stream,

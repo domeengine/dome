@@ -78,7 +78,7 @@ class Color is Vector {
       var a
 
       if ((hex.bytes.count - offset) == 3 || (hex.bytes.count - offset) == 4) {
-        // Short color, e.g. #fff intepreted as #ffffff
+        // Short color, e.g. #fff interpreted as #ffffff
         r = ShortColorDigit.call(hex.bytes[offset])
         g = ShortColorDigit.call(hex.bytes[offset + 1])
         b = ShortColorDigit.call(hex.bytes[offset + 2])

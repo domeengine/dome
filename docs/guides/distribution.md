@@ -38,7 +38,7 @@ This section discusses the needs of various platforms when distributing applicat
 
 ### Windows
 
-On Windows, DOME comes compiled with all its dependancies, so you just need to provide your application files.
+On Windows, DOME comes compiled with all its dependencies, so you just need to provide your application files.
 
 ### Mac OS
 

@@ -16,7 +16,7 @@ It contains the following classes:
 
 ## Hashable
 Certain collections in this module use hashing to store values efficiently.
-But this means that tthe keys used are actually hashable types.
+But this means that the keys used are actually hashable types.
 
 By default, this means you can only store: 
 * `null`

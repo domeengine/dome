@@ -88,7 +88,7 @@ The format for the `signature` string is as follows:
  * `methodName` which is the name of the field/method being exposed.
    - If this is a field getter, nothing else is needed.
    - If this is a field setter, add `=(_)`
-   - If this is a method, then parenthesis and a comma seperated list of underscores (`_`) follow, for the number of arguments the method takes. 
+   - If this is a method, then parenthesis and a comma separated list of underscores (`_`) follow, for the number of arguments the method takes. 
    - You can also use the setter and getter syntax for the class' subscript operator `[]`, which can be defined with one or more parameters.
    - Wren methods can have up to 16 arguments, and are overloaded by arity. For example, `Test.do(_)` is considered different to `Test.do(_,_)` and so on.
    

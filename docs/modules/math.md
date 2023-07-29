@@ -154,7 +154,7 @@ Returns an element-wise addition of the two Vectors. This will error if you try 
 Returns an element-wise subtraction of the two Vectors. This will error if you try to subtract a Vector from something other than a Vector, or vice versa.
 
 #### `Vector * Number: Vector`
-Returns the given vector, where it's elements have been multipled by the scalar. This will error if the multiplier is not a number.
+Returns the given vector, where it's elements have been multiplied by the scalar. This will error if the multiplier is not a number.
 
 #### `Vector / Number: Vector`
 Returns the given vector, where it's elements have been divided by the scalar. This will error if the divisor is not a Number.

@@ -32,10 +32,10 @@ A vector representing the Canvas clipping region. The `z` and `w` fields corresp
 
 ### Methods
 #### `static circle(x: Number, y: Number, r: Number, c: Color) `
-Draw a circle, centered at co-ordinates (_x_, _y_), with a radius _r_, in the color _c_.
+Draw a circle, centered at coordinates (_x_, _y_), with a radius _r_, in the color _c_.
 
 #### `static circlefill(x: Number, y: Number, r: Number, c: Color) `
-Draw a filled circle, centered at co-ordinates (_x_, _y_), with a radius _r_, in the color _c_.
+Draw a filled circle, centered at coordinates (_x_, _y_), with a radius _r_, in the color _c_.
 
 
 #### `static clip()`
@@ -109,7 +109,7 @@ DOME comes built-in with the PICO-8 palette, but you can also define and use you
 ### Constructors
 
 #### `construct hex(hexcode: String)`
-Create a new color with the given hexcode as a string of three to eight alpha-numeric values. Hex values can be upper or lowercase, with or without a `#`. If three or four digits are provided, the number is interpreted as if each digit was written twice (similar to CSS): for example, `#123` is the same as `#112233`. If four or eight digits found, the last digit(s) form the value of the alpha channel. Otherwise, it is defaulted to 255 (fully opaque).
+Create a new color with the given hexcode as a string of three to eight alphanumeric values. Hex values can be upper or lowercase, with or without a `#`. If three or four digits are provided, the number is interpreted as if each digit was written twice (similar to CSS): for example, `#123` is the same as `#112233`. If four or eight digits found, the last digit(s) form the value of the alpha channel. Otherwise, it is defaulted to 255 (fully opaque).
 #### `construct hsv(h: Number, s: Number, v: Number)`
 Create a new color using the given HSV number and an alpha value of `255`. 
 The `s` and `v` parameters must be between `0.0` and `1.0`. 
@@ -242,9 +242,9 @@ Options available are:
 
  * `srcX`, `srcY` - These specify the top-left corner of the source image region you wish to draw.
  * `srcW`, `srcH` - This is the width and height of the source image region you want to draw.
- * `scaleX`, `scaleY` - You can scale your image in the x and y axis, independant of each other. If either of these are negative, they result in a "flip" operation.
+ * `scaleX`, `scaleY` - You can scale your image in the x and y axis, independent of each other. If either of these are negative, they result in a "flip" operation.
  * `angle` - Rotates the image. This is in degrees, and rounded to the nearest 90 degrees.
- * `opacity` - A number between 0.0 and 1.0, this sets the global opacity of this image. Any alpha values in the image will be multipled by this value,
+ * `opacity` - A number between 0.0 and 1.0, this sets the global opacity of this image. Any alpha values in the image will be multiplied by this value,
  * `tint` - A color value which is to be applied on top of the image. Use the tint color's alpha to control how strong the tint is.
  * `mode`, `foreground` and `background` - By default, mode is `"RGBA"`, so your images will draw in their true colors. If you set it to `"MONO"`, any pixels which are black or have transparency will be drawn in the `background` color and all other pixels of the image will be drawn in the `foreground` color. Both colors must be `Color` objects, and default to `Color.black` and `Color.white`, respectively.
 

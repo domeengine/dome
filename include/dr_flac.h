@@ -1394,7 +1394,7 @@ There's a bug in GCC 4.2.x which results in an incorrect compilation error when 
 
     "error: shift must be an immediate"
 
-Unfortuantely dr_flac depends on this for a few things so we're just going to disable SSE on GCC 4.2 and below.
+Unfortunately dr_flac depends on this for a few things so we're just going to disable SSE on GCC 4.2 and below.
 */
 #if !defined(DR_FLAC_NO_SIMD)
     #if defined(DRFLAC_X64) || defined(DRFLAC_X86)
@@ -4459,7 +4459,7 @@ static drflac_bool32 drflac__decode_samples_with_residual__rice__neon_32(drflac_
 
     /*
     Pre-loading the coefficients and prior samples is annoying because we need to ensure we don't try reading more than
-    what's available in the input buffers. It would be conenient to use a fall-through switch to do this, but this results
+    what's available in the input buffers. It would be convenient to use a fall-through switch to do this, but this results
     in strict aliasing warnings with GCC. To work around this I'm just doing something hacky. This feels a bit convoluted
     so I think there's opportunity for this to be simplified.
     */
@@ -6114,7 +6114,7 @@ static drflac_bool32 drflac__seek_to_pcm_frame__seek_table(drflac* pFlac, drflac
         return DRFLAC_FALSE;
     }
 
-    /* Do not use the seektable if pcmFramIndex is not coverd by it. */
+    /* Do not use the seektable if pcmFramIndex is not covered by it. */
     if (pFlac->pSeekpoints[0].firstPCMFrame > pcmFrameIndex) {
         return DRFLAC_FALSE;
     }
@@ -6312,7 +6312,7 @@ typedef struct
     drflac_bool32 hasStreamInfoBlock;
     drflac_bool32 hasMetadataBlocks;
     drflac_bs bs;                           /* <-- A bit streamer is required for loading data during initialization. */
-    drflac_frame_header firstFrameHeader;   /* <-- The header of the first frame that was read during relaxed initalization. Only set if there is no STREAMINFO block. */
+    drflac_frame_header firstFrameHeader;   /* <-- The header of the first frame that was read during relaxed initialization. Only set if there is no STREAMINFO block. */
 
 #ifndef DR_FLAC_NO_OGG
     drflac_uint32 oggSerial;
@@ -7799,7 +7799,7 @@ static drflac_bool32 drflac__init_private__ogg(drflac_init_info* pInit, drflac_r
     /*
     If we get here it means we found a FLAC audio stream. We should be sitting on the first byte of the header of the next page. The next
     packets in the FLAC logical stream contain the metadata. The only thing left to do in the initialization phase for Ogg is to create the
-    Ogg bistream object.
+    Ogg bitstream object.
     */
     pInit->hasMetadataBlocks = DRFLAC_TRUE;    /* <-- Always have at least VORBIS_COMMENT metadata block. */
     return DRFLAC_TRUE;
@@ -8045,7 +8045,7 @@ static drflac* drflac_open_with_metadata_private(drflac_read_proc onRead, drflac
         drflac__free_from_callbacks(pOggbs, &allocationCallbacks);
         pOggbs = NULL;
 
-        /* The Ogg bistream needs to be layered on top of the original bitstream. */
+        /* The Ogg bitstream needs to be layered on top of the original bitstream. */
         pFlac->bs.onRead = drflac__on_read_ogg;
         pFlac->bs.onSeek = drflac__on_seek_ogg;
         pFlac->bs.pUserData = (void*)pInternalOggbs;
@@ -8637,7 +8637,7 @@ static drflac_result drflac_wfopen(FILE** ppFile, const wchar_t* pFilePath, cons
     Use fopen() on anything other than Windows. Requires a conversion. This is annoying because
 	fopen() is locale specific. The only real way I can think of to do this is with wcsrtombs(). Note
 	that wcstombs() is apparently not thread-safe because it uses a static global mbstate_t object for
-    maintaining state. I've checked this with -std=c89 and it works, but if somebody get's a compiler
+    maintaining state. I've checked this with -std=c89 and it works, but if somebody gets a compiler
 	error I'll look into improving compatibility.
     */
 
@@ -12293,7 +12293,7 @@ v0.10.0 - 2018-09-11
     need to do it yourself via the callback API.
   - Fix the clang build.
   - Fix undefined behavior.
-  - Fix errors with CUESHEET metdata blocks.
+  - Fix errors with CUESHEET metadata blocks.
   - Add an API for iterating over each cuesheet track in the CUESHEET metadata block. This works the same way as the
     Vorbis comment API.
   - Other miscellaneous bug fixes, mostly relating to invalid FLAC streams.

@@ -103,7 +103,7 @@ DOME provides the following features, and more:
 - Filesystem
   - File reading and writing
 - Audio (stereo and mono OGG, MP3, FLAC and WAV files)
-- Collections (abstact types)
+- Collections (abstract types)
   - Set
   - Queue
   - Stack
@@ -145,7 +145,7 @@ DOME currently depends on a few libraries to achieve it's functions.
 - dr_flac
 
 
-Apart from SDL2, all other dependancies are baked in. DOME aspires to be both minimalist and cross platform, so it depends on as few external components as possible.
+Apart from SDL2, all other dependencies are baked in. DOME aspires to be both minimalist and cross platform, so it depends on as few external components as possible.
 
 ## Acknowledgements
 

@@ -400,7 +400,7 @@ IMAGE_pset(WrenVM* vm) {
     uint32_t* pixels = image->pixels;
     pixels[y * width + x] = color;
   } else {
-    VM_ABORT(vm, "pset co-ordinates out of bounds")
+    VM_ABORT(vm, "pset coordinates out of bounds")
   }
 }
 
@@ -420,7 +420,7 @@ IMAGE_pget(WrenVM* vm) {
     uint32_t c = pixels[y * width + x];
     wrenSetSlotDouble(vm, 0, c);
   } else {
-    VM_ABORT(vm, "pget co-ordinates out of bounds")
+    VM_ABORT(vm, "pget coordinates out of bounds")
   }
 }
 

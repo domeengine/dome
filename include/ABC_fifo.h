@@ -10,7 +10,7 @@
 
   Version History:
 
-  v0.0.12 - Moved the SDL warning so ABC_fifo can be compiled in a seperate translation unit.
+  v0.0.12 - Moved the SDL warning so ABC_fifo can be compiled in a separate translation unit.
   v0.0.11 - When closing, we actually make sure all the threads can wake up
             waiting for them all.
   v0.0.10 - We block when closing the FIFO til all threads finish

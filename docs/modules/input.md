@@ -52,7 +52,7 @@ Returns the current content of the clipboard. Set this field to put a new value 
 
 ## InputGroup
 
-You can use an `InputGroup` to check the state of multiple `DigitalInput` objects simultanously. It also includes some features for checking if the input is being held.
+You can use an `InputGroup` to check the state of multiple `DigitalInput` objects simultaneously. It also includes some features for checking if the input is being held.
 This is useful for implementing more complex control schemes where input/key remapping is required.
 
 ### Constructor
@@ -160,7 +160,7 @@ Returns the current content of the clipboard. Set this field to put a new value 
 
 ## InputGroup
 
-You can use an `InputGroup` to check the state of multiple `DigitalInput` objects simultanously. It also includes some features for checking if the input is being held.
+You can use an `InputGroup` to check the state of multiple `DigitalInput` objects simultaneously. It also includes some features for checking if the input is being held.
 This is useful for implementing more complex control schemes where input/key remapping is required.
 
 ### Constructor

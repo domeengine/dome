@@ -19,7 +19,7 @@ internal WrenForeignMethodFn VM_bind_foreign_method(
     bool isStatic,
     const char* signature) {
 
-  // This file is seperate because it has a Copyright notice with it.
+  // This file is separate because it has a Copyright notice with it.
 #include "signature.c.inc"
 
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);

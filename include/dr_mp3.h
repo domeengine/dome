@@ -356,7 +356,7 @@ typedef struct
     drmp3_uint32 mp3FrameSampleRate;    /* The sample rate of the currently loaded MP3 frame. Internal use only. */
     drmp3_uint32 pcmFramesConsumedInMP3Frame;
     drmp3_uint32 pcmFramesRemainingInMP3Frame;
-    drmp3_uint8 pcmFrames[sizeof(float)*DRMP3_MAX_SAMPLES_PER_FRAME];  /* <-- Multipled by sizeof(float) to ensure there's enough room for DR_MP3_FLOAT_OUTPUT. */
+    drmp3_uint8 pcmFrames[sizeof(float)*DRMP3_MAX_SAMPLES_PER_FRAME];  /* <-- Multiplied by sizeof(float) to ensure there's enough room for DR_MP3_FLOAT_OUTPUT. */
     drmp3_uint64 currentPCMFrame;       /* The current PCM frame, globally, based on the output sample rate. Mainly used for seeking. */
     drmp3_uint64 streamCursor;          /* The current byte the decoder is sitting on in the raw stream. */
     drmp3_seek_point* pSeekPoints;      /* NULL by default. Set with drmp3_bind_seek_table(). Memory is owned by the client. dr_mp3 will never attempt to free this pointer. */
@@ -3426,7 +3426,7 @@ static drmp3_result drmp3_wfopen(FILE** ppFile, const wchar_t* pFilePath, const 
     Use fopen() on anything other than Windows. Requires a conversion. This is annoying because
 	fopen() is locale specific. The only real way I can think of to do this is with wcsrtombs(). Note
 	that wcstombs() is apparently not thread-safe because it uses a static global mbstate_t object for
-    maintaining state. I've checked this with -std=c89 and it works, but if somebody get's a compiler
+    maintaining state. I've checked this with -std=c89 and it works, but if somebody gets a compiler
 	error I'll look into improving compatibility.
     */
 
@@ -3797,7 +3797,7 @@ static drmp3_bool32 drmp3_seek_to_pcm_frame__brute_force(drmp3* pMP3, drmp3_uint
     }
 
     /*
-    If we're moving foward we just read from where we're at. Otherwise we need to move back to the start of
+    If we're moving forward we just read from where we're at. Otherwise we need to move back to the start of
     the stream and read from the beginning.
     */
     if (frameIndex < pMP3->currentPCMFrame) {

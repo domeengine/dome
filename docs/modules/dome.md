@@ -91,7 +91,7 @@ Allows you to enable/disable error message boxes and is enabled by default. You 
 #### `static args: String[]`
 Returns a string list of all non-option command line arguments used to invoke DOME's execution. The first two elements of the returned list will be:
 
-1. the path and name of DOME's invokation.
+1. the path and name of DOME's invocation.
 2. The entry path, combined with the evaluated basepath.
 
 ### Static Methods

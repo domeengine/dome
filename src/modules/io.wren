@@ -74,7 +74,7 @@ if (operation.complete) {
 }
 
 
-var opertion = FileSystem.read("test.txt");
+var operation = FileSystem.read("test.txt");
 if (operation.complete) {
   var buffer = operation.data
   System.print(buffer.length)
