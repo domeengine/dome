@@ -11,6 +11,7 @@ src/tools/convert
 src/tools/embed
 src/modules/*.inc
 include/SDL2/*
+lib/sdl2-config
 lib/SDL2*
 lib/SDL/special
 lib/SDL*
