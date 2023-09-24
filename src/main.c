@@ -269,8 +269,7 @@ char* resolveEntryPath(ENGINE* engine, char* entryArgument, bool autoResolve) {
 int main(int argc, char* argv[])
 {
 #ifdef __MINGW32__
-  // WT_SESSION = Windows terminal, SESSIONNAME=Console == Powershell and CMD and TERM_PROGRAM=Tabby == Tabby
-  if(getenv("WT_SESSION") || (strcmp(getenv("SESSIONNAME"),"Console") == 0 && !getenv("SHELL")) || getenv("TERM_PROGRAM") == "Tabby") {
+  if(!GetStdHandle(STD_OUTPUT_HANDLE)) {
     if (AttachConsole(ATTACH_PARENT_PROCESS)) { 
       freopen("CONOUT$","wb",stdout);
       freopen("CONOUT$","wb",stderr);
