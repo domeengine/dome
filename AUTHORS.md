@@ -14,3 +14,4 @@ We'd like to thank the following people for their contributions.
   * Trevor Martin [https://github.com/trelemar]
   * 8_BIT-DEV [https://github.com/8-BIT-DEV]
   * catsanddo [https://github.com/catsanddo]
+  * Kaspar Martin Suursalu [https://github.com/Kasparsu]

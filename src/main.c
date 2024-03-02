@@ -268,6 +268,14 @@ char* resolveEntryPath(ENGINE* engine, char* entryArgument, bool autoResolve) {
 
 int main(int argc, char* argv[])
 {
+#ifdef __MINGW32__
+  if(!GetStdHandle(STD_OUTPUT_HANDLE)) {
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) { 
+      freopen("CONOUT$","wb",stdout);
+      freopen("CONOUT$","wb",stderr);
+    }
+  }
+#endif
   // configuring the buffer has to be first
 
   setbuf(stdout, NULL);

@@ -11,11 +11,11 @@ class Log {
   static context { __stack }
   static print(level, text) {
     var context = __stack.peek()
-    print(level, text, context)
+    print(level, text.toString, context)
   }
 
   foreign static f_level=(v)
-  static level=(v) { f_level = StringUtils.toUppercase(v) }
+  static level=(v) { f_level = StringUtils.toUppercase(v.toString) }
   foreign static level
   foreign static print(level, text, context)
 

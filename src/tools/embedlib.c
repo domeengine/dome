@@ -27,6 +27,8 @@ EMBED_encode(char* fileToConvert, size_t length, char* moduleName, char* destina
     if (*ptr == '\n') {
       fputs("'\\n',", fp);
       fputs("\n", fp);
+    } else if (*ptr == '\r') {
+      continue;
     } else {
       fputs("'", fp);
 
