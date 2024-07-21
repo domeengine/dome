@@ -39,8 +39,8 @@ This is like Wren's built-in `Map`, but it works with keys that support DOME's `
 interface, such as [`Vector`](math#vector).
 
 ### Constructor
-#### `new(): Queue`
-Creates a new queue.
+#### `new(): HashMap`
+Creates a new HashMap.
 ### Instance Fields
 
 #### `count: Num`
