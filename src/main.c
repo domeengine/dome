@@ -78,6 +78,7 @@ global_variable WrenHandle* gamepadClass = NULL;
 global_variable WrenHandle* updateInputMethod = NULL;
 
 // These are set by cmd arguments
+global_variable bool SCREEN = 0;
 #ifdef DEBUG
 global_variable bool DEBUG_MODE = true;
 #else
@@ -176,6 +177,7 @@ printUsage(ENGINE* engine) {
   ENGINE_printLog(engine, "  nest     Bundle a project into a single file.\n");
   ENGINE_printLog(engine, "\nOptions: \n");
   ENGINE_printLog(engine, "  -b --buffer=<buf>   Set the audio buffer size (default: 11)\n");
+  ENGINE_printLog(engine, "  -s --screen=<num>   Set the screen which window will be opened (default: 0)\n");
 #ifdef __MINGW32__
   ENGINE_printLog(engine, "  -c --console        Opens a console window for development.\n");
 #endif
@@ -305,6 +307,7 @@ int main(int argc, char* argv[])
     {"console", 'c', OPTPARSE_NONE},
 #endif
     {"buffer", 'b', OPTPARSE_REQUIRED},
+    {"screen", 's', OPTPARSE_REQUIRED},
     {"debug", 'd', OPTPARSE_NONE},
     {0}
   };
@@ -353,6 +356,12 @@ int main(int argc, char* argv[])
           {
             DEBUG_MODE = true;
             ENGINE_printLog(&engine, "Debug Mode enabled\n");
+          } break;
+        case 's':
+          {
+            int screen = atoi(options.optarg);
+            SCREEN = screen;
+            ENGINE_printLog(&engine, "Screen force enabled\n");
           } break;
         case 'h':
           {
