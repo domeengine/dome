@@ -136,7 +136,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Upload Release Artifacts
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
       - uses: montudor/action-zip@v0.1.0
         with:
           args: zip -qq -r dome-linux-x64.zip dome-linux-x64
