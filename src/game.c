@@ -317,7 +317,7 @@ int DOME_begin(ENGINE* engine, char* entryPath) {
   initMethod = NULL;
   engine->initialized = true;
 
-  SDL_SetWindowPosition(engine->window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+  SDL_SetWindowPosition(engine->window, SDL_WINDOWPOS_CENTERED_DISPLAY(SCREEN), SDL_WINDOWPOS_CENTERED_DISPLAY(SCREEN));
   SDL_ShowWindow(engine->window);
 
   loop.lag = loop.MS_PER_FRAME;
