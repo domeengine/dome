@@ -115,6 +115,33 @@ WINDOW_getHeight(WrenVM* vm) {
 }
 
 internal void
+WINDOW_setDisplay(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  ASSERT_SLOT_TYPE(vm, 1, NUM, "display");
+  int32_t display = wrenGetSlotDouble(vm, 1);
+  if(display < 0) {
+    display = SDL_GetNumVideoDisplays() - 1;
+  }
+  DISPLAY = display;
+  uint32_t flags = SDL_GetWindowFlags(engine->window);
+  bool fullscreen = (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) != 0;
+  if(fullscreen) {
+    SDL_SetWindowFullscreen(engine->window, SDL_WINDOW_SHOWN);
+  }
+  SDL_SetWindowPosition(engine->window, SDL_WINDOWPOS_CENTERED_DISPLAY(DISPLAY), SDL_WINDOWPOS_CENTERED_DISPLAY(DISPLAY));
+  if(fullscreen) {
+    SDL_SetWindowFullscreen(engine->window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+  }
+}
+
+internal void
+WINDOW_getDisplay(WrenVM* vm) {
+  ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
+  int display = SDL_GetWindowDisplayIndex(engine->window);
+  wrenSetSlotDouble(vm, 0, display);
+}
+
+internal void
 WINDOW_setTitle(WrenVM* vm) {
   ENGINE* engine = (ENGINE*)wrenGetUserData(vm);
   ASSERT_SLOT_TYPE(vm, 1, STRING, "title");

@@ -115,6 +115,8 @@ class Process {
 
 
 class Window {
+  foreign static display=(value)
+  foreign static display
   foreign static title=(value)
   foreign static title
   foreign static vsync=(value)

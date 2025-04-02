@@ -80,6 +80,9 @@ Returns the generic name of the operating system or platform, where possible.
 #### `time: Number`
 Returns the integer number of seconds since the unix epoch (1st January 1970).
 
+#### `screenCount: Number`
+Returns the integer number of screens on the system.
+
 ## Process
 
 ### Static Fields
@@ -143,6 +146,10 @@ Default is `false`.
 #### `static height: Number`
 
 This is the height of the window/viewport, in pixels.
+
+#### `static display: Number`
+
+This is the display window is rendered on. Default is `0` which is users primary/main display. When going out of bounds (less than `0` or more than number of displays) will automatically loop back around 
 
 #### `static integerScale: Boolean`
 
