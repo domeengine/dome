@@ -78,7 +78,7 @@ global_variable WrenHandle* gamepadClass = NULL;
 global_variable WrenHandle* updateInputMethod = NULL;
 
 // These are set by cmd arguments
-global_variable bool SCREEN = 0;
+global_variable int SCREEN = 0;
 #ifdef DEBUG
 global_variable bool DEBUG_MODE = true;
 #else
