@@ -78,7 +78,7 @@ global_variable WrenHandle* gamepadClass = NULL;
 global_variable WrenHandle* updateInputMethod = NULL;
 
 // These are set by cmd arguments
-global_variable int SCREEN = 0;
+global_variable int DISPLAY = 0;
 #ifdef DEBUG
 global_variable bool DEBUG_MODE = true;
 #else
@@ -359,9 +359,7 @@ int main(int argc, char* argv[])
           } break;
         case 's':
           {
-            int screen = atoi(options.optarg);
-            SCREEN = screen;
-            ENGINE_printLog(&engine, "Screen force enabled\n");
+            DISPLAY = atoi(options.optarg);
           } break;
         case 'h':
           {

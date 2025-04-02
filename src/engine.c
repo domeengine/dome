@@ -251,7 +251,7 @@ ENGINE_start(ENGINE* engine) {
   }
 
   //Create window
-  engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_CENTERED_DISPLAY(SCREEN), SDL_WINDOWPOS_CENTERED_DISPLAY(SCREEN), SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
+  engine->window = SDL_CreateWindow("DOME", SDL_WINDOWPOS_CENTERED_DISPLAY(DISPLAY), SDL_WINDOWPOS_CENTERED_DISPLAY(DISPLAY), SCREEN_WIDTH, SCREEN_HEIGHT, windowFlags);
   if(engine->window == NULL)
   {
     char* message = "Window could not be created! SDL_Error: %s\n";
