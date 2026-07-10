@@ -75,6 +75,8 @@ extern "C" {
 # define _tinydir_strcmp _tcscmp
 # define _tinydir_strrchr _tcsrchr
 # define _tinydir_strncmp _tcsncmp
+# define _tinydir_strncpy _tcsncpy
+# define _tinydir_strncat _tcsncat
 #else
 # define _tinydir_char_t char
 # define TINYDIR_STRING(s) s
@@ -84,6 +86,8 @@ extern "C" {
 # define _tinydir_strcmp strcmp
 # define _tinydir_strrchr strrchr
 # define _tinydir_strncmp strncmp
+# define _tinydir_strncpy strncpy
+# define _tinydir_strncat strncat
 #endif
 
 #if (defined _MSC_VER || defined __MINGW32__)
@@ -533,11 +537,13 @@ int tinydir_readfile(const tinydir_dir *dir, tinydir_file *file)
 		return -1;
 	}
 
-	_tinydir_strcpy(file->path, dir->path);
+	_tinydir_strncpy(file->path, dir->path, _TINYDIR_PATH_MAX - 1);
+	file->path[_TINYDIR_PATH_MAX - 1] = 0;
 	if (_tinydir_strcmp(dir->path, TINYDIR_STRING("/")) != 0)
-		_tinydir_strcat(file->path, TINYDIR_STRING("/"));
-	_tinydir_strcpy(file->name, filename);
-	_tinydir_strcat(file->path, filename);
+		_tinydir_strncat(file->path, TINYDIR_STRING("/"), _TINYDIR_PATH_MAX - _tinydir_strlen(file->path) - 1);
+	_tinydir_strncpy(file->name, filename, _TINYDIR_FILENAME_MAX - 1);
+	file->name[_TINYDIR_FILENAME_MAX - 1] = 0;
+	_tinydir_strncat(file->path, filename, _TINYDIR_PATH_MAX - _tinydir_strlen(file->path) - 1);
 #ifndef _MSC_VER
 #ifdef __MINGW32__
 	if (_tstat(
