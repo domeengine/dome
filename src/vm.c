@@ -184,6 +184,8 @@ internal WrenVM* VM_create(ENGINE* engine) {
   MAP_addFunction(&engine->moduleMap, "dome", "static Log.print(_,_,_)", LOG_print);
   MAP_addFunction(&engine->moduleMap, "dome", "static Log.f_level=(_)", LOG_setLevel);
   MAP_addFunction(&engine->moduleMap, "dome", "static Log.level", LOG_getLevel);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.display=(_)", WINDOW_setDisplay);
+  MAP_addFunction(&engine->moduleMap, "dome", "static Window.display", WINDOW_getDisplay);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.title=(_)", WINDOW_setTitle);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.title", WINDOW_getTitle);
   MAP_addFunction(&engine->moduleMap, "dome", "static Window.integerScale=(_)", WINDOW_setIntegerScale);
@@ -338,6 +340,7 @@ internal WrenVM* VM_create(ENGINE* engine) {
   // Platform
   MAP_addFunction(&engine->moduleMap, "platform", "static Platform.time", PLATFORM_getTime);
   MAP_addFunction(&engine->moduleMap, "platform", "static Platform.name", PLATFORM_getName);
+  MAP_addFunction(&engine->moduleMap, "platform", "static Platform.displayCount", PLATFORM_getDisplayCount);
   MAP_lockModule(&engine->moduleMap, "platform");
 
   // Plugin
